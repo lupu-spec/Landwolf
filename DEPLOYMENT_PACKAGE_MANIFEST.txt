@@ -1,0 +1,38 @@
+LANDWOLF DEPLOYMENT PACKAGE
+
+Extract this ZIP directly inside the landwolf.ai/ application directory.
+Do not create an extra wrapper directory.
+
+Required top-level runtime structure:
+  app/
+  alembic/
+  config/
+  database/
+  investment_engine/
+  scripts/
+  alembic.ini
+  requirements.txt
+  pyproject.toml
+
+Alembic migration command:
+  alembic upgrade head
+
+ASGI start command:
+  uvicorn app.main:app --host 0.0.0.0 --port <PORT>
+
+Required production environment variable names:
+  APP_ENV
+  SECRET_KEY
+  DATABASE_URL
+  CORS_ORIGINS
+  COOKIE_SECURE
+  COOKIE_HTTPONLY
+  COOKIE_SAMESITE
+  STRIPE_SECRET_KEY
+  STRIPE_MONTHLY_PRICE_ID
+  STRIPE_ANNUAL_PRICE_ID
+  STRIPE_WEBHOOK_SECRET
+  STRIPE_SUCCESS_URL
+  STRIPE_CANCEL_URL
+
+Do not upload a real .env file or commit live Stripe/database secrets.

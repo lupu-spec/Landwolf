@@ -1,0 +1,15 @@
+LANDWOLF GITHUB-READY FOLDER
+
+Upload the CONTENTS of this folder to the ROOT of:
+https://github.com/lupu-spec/Landwolf
+
+Critical paths after upload:
+app/main.py
+alembic/env.py
+alembic/versions/0001_landwolf_initial.py
+requirements.txt
+alembic.ini
+render.yaml
+
+Do not flatten folders.
+Do not upload real .env files or live secrets.

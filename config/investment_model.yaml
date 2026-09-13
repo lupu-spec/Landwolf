@@ -1,0 +1,27 @@
+version: 1
+monte_carlo:
+  default_iterations: 25000
+  max_iterations: 100000
+  seed_policy: property_uid
+  convergence:
+    enabled: true
+    p10_p50_p90_max_change_pct: 0.5
+    probability_loss_max_change_points: 0.5
+
+decision:
+  hard_stops:
+    - unresolved_title
+    - unresolved_high_priority_lien
+    - environmental_contamination
+    - access_unknown
+  opportunity_score:
+    weights:
+      acquisition_discount: 20
+      risk_adjusted_equity: 20
+      roi_irr: 15
+      distress: 10
+      property_development: 10
+      liquidity: 5
+      rental: 5
+      competition: 5
+      data_confidence: 10

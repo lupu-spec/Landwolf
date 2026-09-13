@@ -1,0 +1,120 @@
+name: Post-Deployment Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        type: choice
+        options: [staging, production]
+
+permissions:
+  contents: read
+
+jobs:
+  core-smoke:
+    name: Core deployed-release verification
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
+      SMOKE_ALLOWED_ORIGIN: ${{ vars.CORS_PRIMARY_ORIGIN }}
+      SMOKE_BLOCKED_ORIGIN: https://blocked-smoke-origin.example
+      SMOKE_TIMEOUT_SECONDS: "15"
+      SMOKE_TEST_EMAIL_DOMAIN: ${{ vars.SMOKE_TEST_EMAIL_DOMAIN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "httpx==0.28.1"
+      - name: Run core live smoke tests
+        run: python scripts/post_deploy_smoke.py
+
+  subscription-smoke:
+    name: Stripe subscription verification
+    needs: core-smoke
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
+      SMOKE_ALLOWED_ORIGIN: ${{ vars.CORS_PRIMARY_ORIGIN }}
+      SMOKE_TIMEOUT_SECONDS: "15"
+      SMOKE_TEST_EMAIL_DOMAIN: ${{ vars.SMOKE_TEST_EMAIL_DOMAIN }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      STRIPE_PRICE_ID: ${{ vars.STRIPE_PRICE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "httpx==0.28.1"
+      - name: Run Stripe subscription smoke tests
+        run: python scripts/post_deploy_subscription_smoke.py
+
+  webhook-replay-smoke:
+    name: Stripe webhook replay/order verification
+    needs: subscription-smoke
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
+      SMOKE_TIMEOUT_SECONDS: "15"
+      SMOKE_TEST_EMAIL_DOMAIN: ${{ vars.SMOKE_TEST_EMAIL_DOMAIN }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      STRIPE_PRICE_ID: ${{ vars.STRIPE_PRICE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "httpx==0.28.1"
+      - name: Replay and reorder Stripe webhooks
+        run: python scripts/post_deploy_webhook_replay_smoke.py
+
+  webhook-persistence-smoke:
+    name: Stripe webhook persistence verification
+    needs: webhook-replay-smoke
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
+      SMOKE_TEST_EMAIL_DOMAIN: ${{ vars.SMOKE_TEST_EMAIL_DOMAIN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      STRIPE_PRICE_ID: ${{ vars.STRIPE_PRICE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "httpx==0.28.1" "psycopg[binary]==3.2.9"
+      - name: Verify webhook ledger persistence and ordering
+        run: python scripts/post_deploy_webhook_persistence_smoke.py
+
+  webhook-rollback-smoke:
+    name: Stripe webhook rollback verification
+    needs: webhook-persistence-smoke
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
+      SMOKE_TEST_EMAIL_DOMAIN: ${{ vars.SMOKE_TEST_EMAIL_DOMAIN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      STRIPE_PRICE_ID: ${{ vars.STRIPE_PRICE_ID }}
+      WEBHOOK_FAILURE_INJECTION_SECRET: ${{ secrets.WEBHOOK_FAILURE_INJECTION_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "httpx==0.28.1" "psycopg[binary]==3.2.9"
+      - run: python scripts/post_deploy_webhook_rollback_smoke.py
+
+  release-healthy:
+    needs: webhook-rollback-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Release healthy; rollback atomicity verified."

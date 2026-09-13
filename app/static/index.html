@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>US Property Intelligence</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header>
+  <div class="brand">US Property Intelligence</div>
+  <div id="account"></div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Find distressed and acquisition opportunities.</h1>
+    <p>Search property records, government dispositions and investment signals.</p>
+  </section>
+
+  <section id="auth-card" class="card">
+    <h2>Create your account</h2>
+    <p>Log in or create an account to see whether your search contains promising opportunities. Subscribe to investigate the properties behind the signals.</p>
+    <div class="grid">
+      <input id="email" type="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password (12+ characters)">
+    </div>
+    <div class="actions">
+      <button onclick="register()">Register</button>
+      <button class="secondary" onclick="login()">Log in</button>
+    </div>
+    <div id="auth-message" class="message"></div>
+  </section>
+
+  <section id="search-card" class="card hidden">
+    <div class="search-header">
+      <div>
+        <h2>Property Search</h2>
+        <p id="access-status"></p>
+      </div>
+      <button class="secondary" onclick="logout()">Log out</button>
+    </div>
+
+    <div class="grid">
+      <div class="field-group">
+        <label for="city">City</label>
+        <input id="city" placeholder="e.g., Melissa">
+      </div>
+      <div class="field-group">
+        <label for="state">State</label>
+        <input id="state" maxlength="2" placeholder="e.g., TX">
+      </div>
+      <div class="field-group">
+        <label for="county">County</label>
+        <input id="county" placeholder="e.g., Collin">
+      </div>
+      <div class="field-group">
+        <label for="min_acres">Minimum Acres</label>
+        <input id="min_acres" type="number" min="0" placeholder="e.g., 10">
+      </div>
+      <div class="field-group">
+        <label for="max_price">Maximum Estimated Value</label>
+        <input id="max_price" type="number" min="0" placeholder="e.g., 500000">
+      </div>
+      <div class="field-group">
+        <label for="distress_type">Category</label>
+        <select id="distress_type">
+          <option value="">Any category</option>
+          <option value="tax_sale">Tax Sale</option>
+          <option value="tax_foreclosure">Tax Foreclosure</option>
+          <option value="government_land">Government Land</option>
+          <option value="municipal_surplus">Municipal Surplus</option>
+          <option value="civil_forfeiture">Civil Forfeiture</option>
+          <option value="mortgage_foreclosure">Mortgage Foreclosure</option>
+        </select>
+      </div>
+    </div>
+
+    <button onclick="searchProperties()">Search</button>
+    <div id="search-message" class="message"></div>
+    <div id="preview-note" class="message"></div>
+    <div id="results"></div>
+  </section>
+
+  <section id="subscribe-card" class="card hidden">
+    <h2>Turn signals into actionable property research</h2>
+    <p>Your preview shows whether this market and category may be worth investigating. Subscribe to evaluate the underlying opportunities with the property-level data, risk context, and acquisition analysis needed for due diligence.</p>
+    <div class="pricing-options">
+      <button onclick="subscribe('monthly')">
+        <strong>$29/month</strong><span>Monthly billing</span>
+      </button>
+      <button class="secondary annual-plan" onclick="subscribe('annual')">
+        <strong>$299/year</strong><span>Save $49/year</span>
+      </button>
+    </div>
+    <div id="billing-message" class="message"></div>
+  </section>
+</main>
+
+<script src="/app.js"></script>
+
+<footer class="site-footer">
+  <small>
+  Copyright © <span id="copyright-year"></span> L91 LLC. All rights reserved.
+  &nbsp;·&nbsp;
+  Support: <a href="mailto:support.landwolf@gmail.com">support.landwolf@gmail.com</a>
+</small>
+</footer>
+
+</body>
+</html>

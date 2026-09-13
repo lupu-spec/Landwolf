@@ -1,0 +1,75 @@
+name: Release Preflight
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-preflight-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: pip install pytest
+      - name: Test deployment preflight logic
+        run: PYTHONPATH=. pytest -q tests/unit/test_deployment_preflight.py
+
+  staging-preflight:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      APP_ENV: staging
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      CORS_ORIGINS: ${{ vars.CORS_ORIGINS }}
+      JWT_EXPIRE_MINUTES: ${{ vars.JWT_EXPIRE_MINUTES }}
+      COOKIE_SECURE: ${{ vars.COOKIE_SECURE }}
+      COOKIE_HTTPONLY: ${{ vars.COOKIE_HTTPONLY }}
+      COOKIE_SAMESITE: ${{ vars.COOKIE_SAMESITE }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      STRIPE_PRICE_ID: ${{ vars.STRIPE_PRICE_ID }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      STRIPE_SUCCESS_URL: ${{ vars.STRIPE_SUCCESS_URL }}
+      STRIPE_CANCEL_URL: ${{ vars.STRIPE_CANCEL_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fail-closed staging preflight
+        run: python scripts/deployment_preflight.py --environment staging
+
+  production-preflight:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      APP_ENV: production
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      CORS_ORIGINS: ${{ vars.CORS_ORIGINS }}
+      JWT_EXPIRE_MINUTES: ${{ vars.JWT_EXPIRE_MINUTES }}
+      COOKIE_SECURE: ${{ vars.COOKIE_SECURE }}
+      COOKIE_HTTPONLY: ${{ vars.COOKIE_HTTPONLY }}
+      COOKIE_SAMESITE: ${{ vars.COOKIE_SAMESITE }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      STRIPE_PRICE_ID: ${{ vars.STRIPE_PRICE_ID }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      STRIPE_SUCCESS_URL: ${{ vars.STRIPE_SUCCESS_URL }}
+      STRIPE_CANCEL_URL: ${{ vars.STRIPE_CANCEL_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fail-closed production preflight
+        run: python scripts/deployment_preflight.py --environment production
