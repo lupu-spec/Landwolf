@@ -690,3 +690,110 @@ to `landwolf-free-beta.onrender.com`. Apex has no AAAA or CAA records.
 Spaceship's browser stayed on an explicit Cloudflare security-verification loop
 after one reload; botDetection reported `challenge_loop` and attempts stopped.
 No registrar DNS mutation has occurred at this checkpoint.
+
+
+### Production deployment and domain association — observed result
+
+Runtime commit `9483d455fa0389960b3dc3fa7161618781ab431e`, tree
+`00ed55464fb8fef870d6dca6e2b39388a0680c8d`, passed both hosted workflows:
+[push 34895361976](https://github.com/lupu-spec/Landwolf/actions/runs/34895361976)
+(job `104147881035`) and
+[PR 34895367562](https://github.com/lupu-spec/Landwolf/actions/runs/34895367562)
+(job `104147898978`). All configured steps succeeded. Observed push-job logs confirm
+210 unit/API tests, all three Chromium journeys, disposable PostgreSQL integration,
+format/lint/type checks, production build/package, Bandit, both dependency audits,
+secret scanning and diff integrity. Each hosted command listed in the local table
+above (except the separately run legacy suite and live source sync) exited 0; hosted
+setup also ran `uv sync --frozen --dev`, `npm ci` and
+`.venv/bin/playwright install --with-deps chromium` successfully. The existing legacy
+Test/release/preflight failures are separate and were not bypassed or called passed.
+
+An initial Git fetch briefly returned the old branch tip, so the staged-tree
+comparison failed. A subsequent explicit ref fetch obtained the published commit;
+`git diff --cached --quiet 9483d455fa0389960b3dc3fa7161618781ab431e` exited 0. The
+local branch was then aligned without discarding changes. GitHub's created tree
+exactly matched local `git write-tree`.
+
+Render merged only `LANDWOLF_PUBLIC_ORIGIN`, `LANDWOLF_ADDITIONAL_ORIGINS` and
+`LANDWOLF_PAYMENTS_ENABLED`, preserving other environment variables and the database.
+The environment update itself triggered deploy `dep-dak5tkvf3r2c73c76r9g`; no duplicate
+manual trigger was issued. Render confirmed the exact runtime commit above and
+**live at 20:54:15 UTC**, September 14, 2026. Automatic branch deployment remains off.
+Service `srv-dak1lvh42hec73blur00` and its existing PostgreSQL database were reused;
+no new service, plan upgrade, billing integration or database migration was created.
+
+**Passed**, exit 0:
+`LANDWOLF_CHECK_ORIGIN=https://landwolf-free-beta.onrender.com .venv/bin/python
+/workspace/scratch/bae2278276c6/check_production_deployed.py`, from beta,
+20:54:36–20:54:53 UTC. Actual deployed HTTPS verified health, disabled payments,
+exact built JS/CSS/original-logo bytes, FREE ACCESS text, anonymous denial, secure
+host-only cookies, authenticated search/research, CSRF, coordinate validation,
+50-state coverage metadata, seven sale feeds, five research sources and 2,529
+current listings. Dallas address research returned four ready national sources;
+Raleigh returned all five sources ready. Source-cache timestamps and saved-property
+persistence across logout/login passed. That check removed its own test save and
+revoked its session; its synthetic account remains, with no email sent or credentials
+printed/persisted. This remains sample availability, not complete nationwide coverage.
+
+The legacy primary `www.landwolf.ai` binding was removed in Render; Render also
+removed its associated apex redirect. The legacy service and database were retained.
+Adding `landwolf.ai` to the rebuilt service automatically added a www-to-apex
+redirect. The apex verified immediately; www initially showed Waiting for DNS.
+After the explicit Verify action, the Render dashboard showed **Verified** and
+**Certificate Issued** for **both domains**. The www row explicitly redirects to
+`landwolf.ai`. The existing Render subdomain remains enabled.
+
+This is observed Render configuration, **not a successful custom-domain HTTP check**:
+
+- The Python HTTPX batch requested `https://landwolf.ai/`, `/api/health`, and
+  `https://www.landwolf.ai/`; all returned ReadTimeout. The diagnostic batch exited
+  0 because it records failures, so its exit does not indicate successful requests.
+- HTTP requests to both names returned a workspace-generated Site Unavailable page
+  with `x-openai-site-blocked: true`, not an application response or verified HTTPS
+  redirect. The cloud browser's apex visit showed 502 / connection refused. No
+  routing fix or nationwide availability is inferred from these failed checks.
+- `.venv/bin/python /workspace/scratch/bae2278276c6/check_domain_account_continuity.py`
+  created one synthetic account and save on the Render address, then paused before
+  visiting the apex. It was interrupted after the access block was identified
+  (exit 1); no completed evidence/cleanup file was written. Live cross-domain
+  continuity is **Not run**, and cleanup of that single synthetic save/session was
+  **not confirmed**. Account/save continuity passed in the isolated tests.
+- The full apex variant of `check_production_deployed.py` was **Not run** after the
+  access block. No authenticated custom-domain browser journey is claimed.
+
+**Passed**, exit 0, both commands from beta:
+`.venv/bin/python /workspace/scratch/bae2278276c6/check_production_dns.py before`
+and the same command with `after`. Google and Cloudflare public resolvers agreed
+at 20:52 and 20:59 UTC: apex A `216.24.57.1` and www CNAME
+`landwolf-mw8m.onrender.com`, TTL 60; Spaceship remains authoritative. Neither
+resolver returned apex MX/TXT/AAAA/CAA records; www's alias chain has no AAAA address.
+No DNS records were changed. These observations verify public resolution at those
+resolvers, not every cache on the internet. The remaining registrar change is:
+
+| Host | Type | Required target | TTL |
+| --- | --- | --- | --- |
+| `www` | CNAME | `landwolf-free-beta.onrender.com` | 60 seconds (or provider default) |
+
+Keep the existing apex A record. Leave unrelated records intact. Render accepted
+the existing www alias, which already resolves into Render, but it still
+names the old service; update it to match the new service before retiring legacy.
+Spaceship remained blocked by its security-verification loop; the control-browser
+skill required stopping there after one recovery attempt. The owner must make
+the registrar edit or complete secure browser access. Then verify both custom
+domains from an unrestricted browser, including www/HTTP redirects and sign-in.
+The deployment is complete; final DNS cleanup and custom-domain verification remain
+open. No claim is made that every DNS server updated or every user can reach it.
+
+A subsequent browser visit to the Render address observed the original logo,
+FREE ACCESS, all-50-state description and sign-in gate. No authenticated cloud
+browser journey was run. A bounded Render application warning/error query for
+20:53:39–21:00:00 UTC returned zero matching entries.
+
+A local Python/YAML check parsed `render.beta.yaml`, instantiated Settings from its
+non-secret environment values, and confirmed disabled payments, both domain names,
+auto-deploy off and preserved resource names (exit 0). This is application
+configuration validation; Render CLI/platform Blueprint validation remains Not run.
+
+This follow-up records evidence only. The deployed runtime is unchanged. Email
+verification/password recovery, a tested backup restoration, MLS access and complete
+county-level foreclosure/tax/parcel coverage remain outside this release.
