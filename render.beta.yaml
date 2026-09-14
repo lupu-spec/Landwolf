@@ -15,8 +15,6 @@ services:
     envVars:
       - key: LANDWOLF_ENVIRONMENT
         value: production
-      - key: LANDWOLF_PUBLIC_ORIGIN
-        sync: false
       - key: LANDWOLF_PAYMENTS_ENABLED
         value: "false"
       - key: LANDWOLF_DATABASE_URL

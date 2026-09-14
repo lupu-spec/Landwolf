@@ -73,17 +73,24 @@ seed are displayed. See [MODEL.md](docs/MODEL.md) for equations and limitations.
 
 Schema version 1 uses `lw2_` tables. `init-db` bootstraps only this initial schema;
 future changes need reviewed migrations. Production requires a separate PostgreSQL
-database and an explicit HTTPS `LANDWOLF_PUBLIC_ORIGIN`; it does not auto-create
-tables during request startup. Configure backups/retention before public enrollment.
+database and a validated HTTPS origin; it does not auto-create tables during request
+startup. On Render, the default is the service's platform-assigned
+[`RENDER_EXTERNAL_URL`](https://render.com/docs/environment-variables), available
+before startup. A missing or invalid Render URL stops startup. Set
+`LANDWOLF_PUBLIC_ORIGIN` explicitly for an attached custom domain or another host;
+this override takes precedence and must also pass validation. Request headers never
+select the trusted origin. Configure backups/retention before public enrollment.
 
 ## Deployment and verification
 
 [render.beta.yaml](../render.beta.yaml) defines a new Render service and database.
 It has automatic deployment disabled and does not modify the existing service.
 Provisioning the specified hosting plans may incur charges; this file is a reviewable
-configuration, not evidence that anything is deployed. Set the new public origin,
-run the bootstrap command, deploy, then verify new-account login, API health, live
-sync, save ownership, cookies, and the browser flow on the actual HTTPS hostname.
+configuration, not evidence that anything is deployed. Select branch
+`codex/landwolf-beta-rebuild` and Blueprint path `render.beta.yaml`. No placeholder
+origin is needed: Render supplies the service address, and the pre-deploy command
+bootstraps the fresh database. Deploy, then verify the actual assigned HTTPS origin,
+new-account login, API health, live sync, save ownership, cookies, and browser flow.
 
 The commands and no-false-verification rule are in [AGENTS.md](AGENTS.md).
 See [VERIFICATION.md](docs/VERIFICATION.md) for observed results and outstanding gates.

@@ -1,10 +1,29 @@
 """Explicit environment boundaries. Opaque sessions need no JWT signing key."""
 
+import os
 from typing import Literal, Self
 from urllib.parse import urlsplit
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def default_public_origin() -> str:
+    # Render assigns this service's URL before its container starts. Never derive
+    # the security boundary from a request Host or forwarding header.
+    if os.environ.get("RENDER") != "true":
+        return "http://127.0.0.1:8000"
+    origin = os.environ.get("RENDER_EXTERNAL_URL", "")
+    url = urlsplit(origin)
+    if (
+        url.scheme != "https"
+        or not url.hostname
+        or not url.hostname.endswith(".onrender.com")
+        or url.hostname == ".onrender.com"
+        or url.port is not None
+    ):
+        raise ValueError("Render must supply its assigned public HTTPS origin")
+    return origin
 
 
 class Settings(BaseSettings):
@@ -14,7 +33,7 @@ class Settings(BaseSettings):
 
     environment: Literal["development", "test", "production"] = "development"
     database_url: str = Field(default="sqlite:///./landwolf-beta.db", repr=False)
-    public_origin: str = "http://127.0.0.1:8000"
+    public_origin: str = Field(default_factory=default_public_origin)
     auto_sync: bool = True
     payments_enabled: Literal[False] = False
     session_hours: int = Field(default=8, ge=1, le=24)

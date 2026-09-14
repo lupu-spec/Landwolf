@@ -106,7 +106,7 @@ Additional executed checks:
 | Legacy `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (repository root) | **Failed** | 48 passed, 5 failed because legacy `.env.sandbox.example` and `.env.live.example` fixtures are absent. No legacy tests or implementation files were changed. |
 | `docker build -f beta/Dockerfile beta` (repository root) | **Not run** | Docker is not installed in this workspace. Wheel validation is not a container build. |
 | Production PostgreSQL integration | **Not run** | No separate beta database has been provisioned; local API/browser tests use SQLite. |
-| Deployed HTTPS health, session, browser, and live refresh checks | **Not run** | The owner approved My Workspace and the proposed hosting plan. Render sign-in now succeeds, but provisioning is blocked because the approved workspace has no payment card on file. No beta service has been deployed. |
+| Deployed HTTPS health, session, browser, and live refresh checks | **Not run** | Sign-in and billing are ready. A temporary-origin deployment was rejected by automatic approval review. The revised configuration uses Render's assigned HTTPS URL and awaits its hosted browser gate before deployment. |
 | `git push -u origin codex/landwolf-beta-rebuild` | **Failed**, publication resolved | Initial automatic review required explicit destination authorization. After the owner approved, the shell attempt failed because Git had no login. The authorized GitHub connector then published the exact reviewed tree, verified by its tree and asset hashes. |
 | Draft pull request | **Passed** | [PR #1](https://github.com/lupu-spec/Landwolf/pull/1) is open as a draft; no merge occurred. |
 
@@ -134,13 +134,13 @@ They apply to that source commit; this later report update changes documentation
 | [LandWolf beta gates, run 34839910064](https://github.com/lupu-spec/Landwolf/actions/runs/34839910064) | **Passed** | Job `verify` completed successfully. Locked installation, formatting, lint, types, unit/API tests, browser journey, production package, security, diff integrity, and screenshot upload all report success. |
 | Legacy Test, run 34839910053 | **Failed** | Its unchanged root test environment stops during collection with `ModuleNotFoundError: No module named 'investment_engine'`. This is distinct from the five fixture failures observed locally with `PYTHONPATH=.`. |
 | Legacy Release Preflight, run 34839910038 | **Failed** | Its unchanged static preflight job installs pytest without the dependencies imported by the root test configuration and stops with `ModuleNotFoundError: No module named 'numpy'`. Production/staging preflight jobs were skipped, not passed. |
-| Render beta provisioning and deployed verification | **Not run** | No new beta service/database has been created. GitHub sign-in reached the authenticated Render dashboard. The beta branch and Blueprint path are selected; Render requires a payment card before it can continue. |
+| Render beta provisioning and deployed verification | **Not run** | No new beta service/database has been created. Billing is ready, and the approved beta branch/path resolves to the two intended resources. The safer origin configuration is undergoing verification before resubmission. |
 
 The existing Render app and database were inspected without modification. The
 beta's Docker build, production PostgreSQL integration, and deployed HTTPS/browser
 checks remain outstanding. Hosted CI success is not evidence of deployment.
 
-### Render dashboard continuation — September 14, 2026
+### Earlier Render dashboard continuation — September 14, 2026
 
 - The earlier workspace connection and Render sign-in blockers are resolved.
   Fresh Render dashboard evidence shows the approved **My Workspace**.
@@ -156,6 +156,47 @@ checks remain outstanding. Hosted CI success is not evidence of deployment.
 - Documentation checks: `npm run secrets` from `beta/`, `git diff --check`, and
   `git status --short` from the repository root all exited 0. Only this report
   changed. Application test suites were not rerun for this documentation update.
+
+### Render origin correction — September 14, 2026
+
+The owner added a payment card. Render then displayed the intended create plan:
+`landwolf-free-beta` on `starter` and `landwolf-beta-db` on `basic-256mb`.
+Automatic approval review rejected submitting a temporary `pending.invalid` origin;
+that rejected action created no resources. The revised Blueprint has no placeholder
+or manually required origin. The app uses Render's documented
+[`RENDER_EXTERNAL_URL`](https://render.com/docs/environment-variables) only when
+`RENDER=true`, validates the assigned HTTPS `onrender.com` origin, and stops startup
+on invalid or missing platform configuration. An explicit `LANDWOLF_PUBLIC_ORIGIN`
+override still takes precedence and must pass validation. Host headers never choose
+the security boundary.
+
+Changed `landwolf/config.py`, `tests/test_config.py`, `README.md`, and the root
+`render.beta.yaml`. Sixteen additional cases cover platform URL validation,
+configuration precedence, development behavior, and actual host/CSRF/cookie behavior.
+The source connector, model, UI, original branding, and legacy app are unchanged.
+
+Commands below ran after this source change. Except where stated, the directory
+is `beta/`; successful commands exited 0.
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `uv sync --frozen --dev` | **Passed** | Restored the locked environment after its interpreter link was lost. |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | **Passed** | 18 Python files and configured frontend files formatted. |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | **Passed** | No lint findings. |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | **Passed** | Python strict types and TypeScript checks passed. The initial mypy attempt exited 127 before the environment restoration; the retry exited 0. |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** | 80 passed, 1 browser test deselected, 2 existing deprecation warnings. |
+| `npm run build` | **Passed** | Browser assets built. |
+| `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/workspace/scratch/bae2278276c6/browser-tools/chromium .venv/bin/pytest -q -m browser` | **Failed** | Chromium exited with SIGSEGV at launch; the UI journey did not start. Await the hosted browser gate for this source revision. |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | **Passed** | Source archive and wheel built; required application and original branding assets present. |
+| `.venv/bin/bandit -r landwolf` | **Passed** | No findings. |
+| `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | **Passed** | No known dependency vulnerabilities or secret-scan findings. |
+| `uv run --no-project --isolated --with jsonschema --with pyyaml python` with the schema-validation script on stdin (root) | **Passed** | Revised Blueprint validates against the official cached Render schema. The earlier attempt without `--no-project` failed while trying to build the unchanged legacy root package. |
+| `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (root) | **Failed** | 48 passed, the same 5 missing legacy environment-fixture failures. |
+| `git diff --check`; `git status --short` (root) | **Passed** | Reviewed the isolated configuration, regression tests, and documentation changes. |
+
+Hosted browser verification for this revision and the actual Docker/PostgreSQL/HTTPS
+deployment checks remain outstanding. Earlier CI results above belong to the earlier
+source commit; they are not claimed as verification of this correction.
 
 ## Remaining product and deployment limits
 
