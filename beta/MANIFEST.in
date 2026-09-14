@@ -1,0 +1,6 @@
+recursive-include tests *.py *.html
+recursive-include web *.ts *.html *.css *.png *.jpg *.svg
+recursive-include scripts *.py *.mjs
+recursive-include docs *.md *.png
+include AGENTS.md Dockerfile requirements.lock uv.lock package.json package-lock.json
+include tsconfig.json eslint.config.js
