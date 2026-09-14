@@ -4,7 +4,7 @@ import os
 from typing import Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     session_hours: int = Field(default=8, ge=1, le=24)
     idle_minutes: int = Field(default=30, ge=5, le=120)
     auth_limit: int = Field(default=12, ge=1, le=100)
+
+    @field_validator("payments_enabled", mode="before")
+    @classmethod
+    def keep_payments_disabled(cls, value: object) -> Literal[False]:
+        # Environment variables are strings; accept only an explicit false value.
+        if value is False or (isinstance(value, str) and value.casefold() == "false"):
+            return False
+        raise ValueError("Payments must remain disabled for the free beta")
 
     @model_validator(mode="after")
     def validate_deployment(self) -> Self:

@@ -88,6 +88,27 @@ def test_non_render_development_keeps_local_origin(
     assert Settings(_env_file=None).public_origin == "http://127.0.0.1:8000"
 
 
+@pytest.mark.parametrize("value", ["false", "False", "FALSE"])
+def test_render_environment_accepts_disabled_payments(
+    render_environment: None, monkeypatch: pytest.MonkeyPatch, value: str
+) -> None:
+    monkeypatch.setenv("LANDWOLF_ENVIRONMENT", "production")
+    monkeypatch.setenv("LANDWOLF_DATABASE_URL", "postgresql://user@localhost/landwolf_beta")
+    monkeypatch.setenv("LANDWOLF_PAYMENTS_ENABLED", value)
+    settings = Settings(_env_file=None)
+    assert settings.payments_enabled is False
+    assert settings.public_origin == "https://landwolf-config-test.onrender.com"
+
+
+@pytest.mark.parametrize("value", ["true", "True", "1", "0", "off", ""])
+def test_environment_cannot_enable_or_ambiguously_configure_payments(
+    render_environment: None, monkeypatch: pytest.MonkeyPatch, value: str
+) -> None:
+    monkeypatch.setenv("LANDWOLF_PAYMENTS_ENABLED", value)
+    with pytest.raises(ValueError, match="Payments must remain disabled"):
+        Settings(_env_file=None)
+
+
 def test_assigned_origin_enforces_host_csrf_and_secure_cookie(
     render_environment: None, tmp_path: Path
 ) -> None:
