@@ -106,7 +106,7 @@ Additional executed checks:
 | Legacy `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (repository root) | **Failed** | 48 passed, 5 failed because legacy `.env.sandbox.example` and `.env.live.example` fixtures are absent. No legacy tests or implementation files were changed. |
 | `docker build -f beta/Dockerfile beta` (repository root) | **Not run** | Docker is not installed in this workspace. Wheel validation is not a container build. |
 | Production PostgreSQL integration | **Not run** | No separate beta database has been provisioned; local API/browser tests use SQLite. |
-| Deployed HTTPS health, session, browser, and live refresh checks | **Not run** | The owner approved My Workspace and the proposed hosting plan. No beta service has been deployed; the Render dashboard needs secure sign-in, and the coding/browser workspace connection subsequently failed. |
+| Deployed HTTPS health, session, browser, and live refresh checks | **Not run** | The owner approved My Workspace and the proposed hosting plan. Render sign-in now succeeds, but provisioning is blocked because the approved workspace has no payment card on file. No beta service has been deployed. |
 | `git push -u origin codex/landwolf-beta-rebuild` | **Failed**, publication resolved | Initial automatic review required explicit destination authorization. After the owner approved, the shell attempt failed because Git had no login. The authorized GitHub connector then published the exact reviewed tree, verified by its tree and asset hashes. |
 | Draft pull request | **Passed** | [PR #1](https://github.com/lupu-spec/Landwolf/pull/1) is open as a draft; no merge occurred. |
 
@@ -134,11 +134,28 @@ They apply to that source commit; this later report update changes documentation
 | [LandWolf beta gates, run 34839910064](https://github.com/lupu-spec/Landwolf/actions/runs/34839910064) | **Passed** | Job `verify` completed successfully. Locked installation, formatting, lint, types, unit/API tests, browser journey, production package, security, diff integrity, and screenshot upload all report success. |
 | Legacy Test, run 34839910053 | **Failed** | Its unchanged root test environment stops during collection with `ModuleNotFoundError: No module named 'investment_engine'`. This is distinct from the five fixture failures observed locally with `PYTHONPATH=.`. |
 | Legacy Release Preflight, run 34839910038 | **Failed** | Its unchanged static preflight job installs pytest without the dependencies imported by the root test configuration and stops with `ModuleNotFoundError: No module named 'numpy'`. Production/staging preflight jobs were skipped, not passed. |
-| Render beta provisioning and deployed verification | **Not run** | No new beta service/database has been created. The authenticated connector can inspect the approved workspace, but its Docker creation flow requires the dashboard. The dashboard is at sign-in; the coding/browser workspace then reported an initialization-handshake connection timeout, leaving browser controls unavailable. |
+| Render beta provisioning and deployed verification | **Not run** | No new beta service/database has been created. GitHub sign-in reached the authenticated Render dashboard. The beta branch and Blueprint path are selected; Render requires a payment card before it can continue. |
 
 The existing Render app and database were inspected without modification. The
 beta's Docker build, production PostgreSQL integration, and deployed HTTPS/browser
 checks remain outstanding. Hosted CI success is not evidence of deployment.
+
+### Render dashboard continuation — September 14, 2026
+
+- The earlier workspace connection and Render sign-in blockers are resolved.
+  Fresh Render dashboard evidence shows the approved **My Workspace**.
+- Prepared Blueprint name `landwolf-free-beta`, repository `lupu-spec/Landwolf`,
+  branch `codex/landwolf-beta-rebuild`, and path `render.beta.yaml`.
+- Render displayed **Payment Information Required** before resource creation.
+  The workspace billing page separately reports **No card on file**. The owner
+  must add a payment method directly in Render; no card data belongs in this repo.
+- After billing is ready, resume this existing form, review the two new beta
+  resources and plans, configure the actual generated HTTPS origin, deploy,
+  and run the outstanding hosted checks. Do not deploy the legacy `render.yaml`.
+- This continuation changes only this status report; no application code changed.
+- Documentation checks: `npm run secrets` from `beta/`, `git diff --check`, and
+  `git status --short` from the repository root all exited 0. Only this report
+  changed. Application test suites were not rerun for this documentation update.
 
 ## Remaining product and deployment limits
 
