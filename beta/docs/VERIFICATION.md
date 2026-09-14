@@ -1,9 +1,13 @@
 # LandWolf beta verification
 
-Observed locally on September 14, 2026, on branch `codex/landwolf-beta-rebuild`,
-based on `5307de0a11fd75a7c51bdf5243f3e13179b95d38`. Results describe the new
-`beta/` application, not a deployed service or the legacy billing application.
-Python 3.12 and Node 24 were used with the committed dependency locks.
+The free beta is live at **https://landwolf-free-beta.onrender.com/** on runtime
+commit `f9b0fcc7711db0b8df0a968575775139b79ad580`. The latest deployed checks
+completed on September 14, 2026, at 16:15:59 UTC; see the final deployment section.
+
+The initial local results below were observed on September 14, 2026, on branch
+`codex/landwolf-beta-rebuild`, based on
+`5307de0a11fd75a7c51bdf5243f3e13179b95d38`. Python 3.12 and Node 24 were used
+with committed dependency locks. Historical results are retained with their scope.
 
 ## Changes
 
@@ -105,8 +109,9 @@ Additional executed checks:
 | Legacy `/workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (repository root) | **Failed** | Initial collection could not import `investment_engine` with that external environment's launcher. |
 | Legacy `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (repository root) | **Failed** | 48 passed, 5 failed because legacy `.env.sandbox.example` and `.env.live.example` fixtures are absent. No legacy tests or implementation files were changed. |
 | `docker build -f beta/Dockerfile beta` (repository root) | **Not run** | Docker is not installed in this workspace. Wheel validation is not a container build. |
-| Production PostgreSQL integration | **Not run** | No separate beta database has been provisioned; local API/browser tests use SQLite. |
-| Deployed HTTPS health, session, browser, and live refresh checks | **Not run** | Sign-in and billing are ready. A temporary-origin deployment was rejected by automatic approval review. The revised configuration uses Render's assigned HTTPS URL and awaits its hosted browser gate before deployment. |
+| Production PostgreSQL integration | **Passed** | New PostgreSQL 18 database; observed schema bootstrap, health query, account creation, idempotent saves, ownership isolation, and save persistence across login. See final deployment evidence. |
+| Deployed HTTPS health, session APIs, public login screen, and live refresh | **Passed** | Actual HTTPS service, 29 fresh official records, original branding, and authenticated API journey verified. |
+| Authenticated browser journey on the deployed service | **Not run** | The deployed authenticated journey was tested through HTTP APIs. The complete browser journey passed in hosted CI against its isolated fixture server; the deployed public login page was inspected separately. |
 | `git push -u origin codex/landwolf-beta-rebuild` | **Failed**, publication resolved | Initial automatic review required explicit destination authorization. After the owner approved, the shell attempt failed because Git had no login. The authorized GitHub connector then published the exact reviewed tree, verified by its tree and asset hashes. |
 | Draft pull request | **Passed** | [PR #1](https://github.com/lupu-spec/Landwolf/pull/1) is open as a draft; no merge occurred. |
 
@@ -134,11 +139,11 @@ They apply to that source commit; this later report update changes documentation
 | [LandWolf beta gates, run 34839910064](https://github.com/lupu-spec/Landwolf/actions/runs/34839910064) | **Passed** | Job `verify` completed successfully. Locked installation, formatting, lint, types, unit/API tests, browser journey, production package, security, diff integrity, and screenshot upload all report success. |
 | Legacy Test, run 34839910053 | **Failed** | Its unchanged root test environment stops during collection with `ModuleNotFoundError: No module named 'investment_engine'`. This is distinct from the five fixture failures observed locally with `PYTHONPATH=.`. |
 | Legacy Release Preflight, run 34839910038 | **Failed** | Its unchanged static preflight job installs pytest without the dependencies imported by the root test configuration and stops with `ModuleNotFoundError: No module named 'numpy'`. Production/staging preflight jobs were skipped, not passed. |
-| Render beta provisioning and deployed verification | **Not run** | No new beta service/database has been created. Billing is ready, and the approved beta branch/path resolves to the two intended resources. The safer origin configuration is undergoing verification before resubmission. |
+| Render beta provisioning and deployed verification | **Passed** | Separate beta service and database created. Deploy `dep-dak1oqe7bikc739nj210` is live at runtime commit `f9b0fcc7711db0b8df0a968575775139b79ad580`; scope and limits appear below. |
 
-The existing Render app and database were inspected without modification. The
-beta's Docker build, production PostgreSQL integration, and deployed HTTPS/browser
-checks remain outstanding. Hosted CI success is not evidence of deployment.
+The existing Render app and database were inspected without modification. These
+initial CI results preceded deployment. The later container and hosted checks
+below establish deployment separately; CI success alone is not deployment evidence.
 
 ### Earlier Render dashboard continuation — September 14, 2026
 
@@ -194,9 +199,109 @@ is `beta/`; successful commands exited 0.
 | `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (root) | **Failed** | 48 passed, the same 5 missing legacy environment-fixture failures. |
 | `git diff --check`; `git status --short` (root) | **Passed** | Reviewed the isolated configuration, regression tests, and documentation changes. |
 
-Hosted browser verification for this revision and the actual Docker/PostgreSQL/HTTPS
-deployment checks remain outstanding. Earlier CI results above belong to the earlier
-source commit; they are not claimed as verification of this correction.
+The origin correction was published as
+`79835e36691a98edce54776f9d514a2af79f18f8`, with remote tree
+`bc3350057b231f1c41afcb06b778cae0fe71ad78` matching the reviewed local tree.
+[Hosted beta run 34865893100](https://github.com/lupu-spec/Landwolf/actions/runs/34865893100)
+passed every step, including its real Chromium browser journey.
+
+## Final deployment — September 14, 2026
+
+Render built the first Docker image successfully. Its pre-deploy command then
+failed because `Literal[False]` rejected the environment string `"false"` in
+`LANDWOLF_PAYMENTS_ENABLED`. A before-validator now accepts only boolean false or
+the explicit case-insensitive string `"false"`; true and ambiguous inputs fail.
+Nine new regression cases cover the actual environment path. Payments remain
+disabled. This correction is runtime commit
+`f9b0fcc7711db0b8df0a968575775139b79ad580`, tree
+`cca32280b8165026777467e5ddcbc54c5f69730b`; remote and reviewed local tree hashes
+matched before the beta branch was updated.
+
+### Commands after the final source correction
+
+All commands run from `beta/` unless stated otherwise. Each **Passed** command
+actually exited 0 after the final application change.
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | **Passed** | 18 Python files and configured frontend files formatted. |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | **Passed** | No lint findings. |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | **Passed** | Strict Python checking and TypeScript completed. |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** | 89 passed, 1 browser test deselected, 2 retained dependency deprecation warnings. |
+| `npm run build` | **Passed** | Browser assets built. |
+| `.venv/bin/pytest -q -m browser` | **Passed in hosted CI** | The normal Chromium browser journey passed in run 34866716634. Not rerun with the locally crashing browser executable. |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | **Passed** | Source archive, wheel, and required assets validated. |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | **Passed** | No static findings, known dependency vulnerabilities, or secret-scan findings. |
+| `git diff --check`; `git status --short` (root) | **Passed** | Only the reviewed configuration and test changes before publication; local tree subsequently matched the published commit. |
+| `.venv/bin/python -` with the deployed HTTPS integration script on stdin | **Passed** | Completed at 16:15:59 UTC against the actual beta, with the checks below. |
+| Render Docker build using `beta/Dockerfile`, `npm ci --no-fund`, `npm run build`, and `pip install --no-cache-dir --require-hashes -r requirements.lock` | **Passed on Render** | Image built and pushed for the deployed runtime commit. Local Docker remains unavailable. |
+| `python -m landwolf.cli init-db` in the Render pre-deploy container | **Passed on Render** | Log reports schema version 1 initialized at 16:10:40 UTC and pre-deploy complete. |
+| `python -m landwolf.serve` in the Render runtime | **Passed on Render** | Application startup completed, listening on `0.0.0.0:10000`; deploy reported live at 16:10:54 UTC. |
+
+[Hosted beta run 34866716634](https://github.com/lupu-spec/Landwolf/actions/runs/34866716634),
+job `104052263435`, completed every configured gate successfully at the final
+runtime commit: locked installation, formatting, lint, types, unit/API tests,
+browser journey, package, security, diff integrity, and browser evidence upload.
+Unchanged legacy workflows still fail separately; they are not beta gate passes.
+
+### Actual deployed verification
+
+- **Passed:** HTTPS `/api/health` returned 200 with schema/database ready, version
+  `0.2.0`, and payments false. HSTS, restrictive script CSP, and API `no-store`
+  headers were present.
+- **Passed:** SHA-256 equality for the deployed original logo, `app.js`, and
+  `styles.css` against the tested local build. A real cloud browser displayed the
+  public login page and loaded the original 2172px-wide logo. No horizontal page
+  overflow was observed at its 1363px viewport.
+- **Passed:** server-side 401 responses before authentication for search, source,
+  details, save, unsave, and analysis. New accounts received Secure, HttpOnly,
+  SameSite=Strict session cookies. Cross-origin and invalid-CSRF writes returned
+  403; unknown search fields returned 422.
+- **Passed:** 29 real Texas GLO listings, source status ready and not stale,
+  successful refresh at **16:11:21 UTC**, official provenance and published
+  coordinates on every returned listing, and enriched property details.
+  California correctly reported unsupported coverage and no invented inventory.
+- **Passed:** PostgreSQL save idempotency, separation between two accounts, and
+  protection against a second account removing the first account's save. Saved
+  data survived logout and a new login.
+- **Passed:** two identical, seeded 10,000-scenario API calculations; deterministic
+  synthetic profit, risk, and maximum-bid invariants matched their expected values.
+  These assumptions test the model and do not value the displayed property.
+- **Passed:** logout revoked the session, replay was rejected, and the successful
+  run removed its saved record and revoked both test sessions. Only synthetic
+  `deployment-check-...@example.com` accounts were used; no user accounts or source
+  listings were modified and no email was sent.
+
+The first ad hoc deployed-check script stopped on an HTTPX `delete(json=...)`
+TypeError. The corrected script used `request('DELETE', ..., json=...)` and passed
+the complete journey. Four synthetic test accounts were created across the two
+attempts. Cleanup was attempted in the failed run and explicitly verified for the
+successful run; test passwords and session tokens were never printed or persisted.
+
+The direct database-query connector could not connect because its client reported
+SSL/TLS required and unexpected EOF. No network or TLS protections were weakened.
+PostgreSQL integration was instead verified through the actual application's
+successful bootstrap, health queries, account writes, and ownership/persistence
+checks. A later error-log query returned provider 503/504; no claim is made that
+this query found zero errors. Earlier build/startup logs were retrieved successfully.
+
+### Infrastructure and operating limits
+
+- Blueprint `exs-dak1e78ae00c73eneogg`; **Auto Sync: No** was saved and observed.
+- Web service `srv-dak1lvh42hec73blur00`, `landwolf-free-beta`, Docker, Oregon,
+  starter plan, one instance, auto-deploy off, health path `/api/health`.
+- Database `dpg-dak1lih42hec73blthcg-a`, `landwolf-beta-db`, PostgreSQL 18,
+  basic-256mb, **15 GB storage**, disk autoscaling off, external IP allowlist empty.
+  The approved compute and additional storage/usage charges are now active.
+- Final live deploy `dep-dak1oqe7bikc739nj210` serves
+  **https://landwolf-free-beta.onrender.com/**. The prior deploy
+  `dep-dak1lvp42hec73blus20` failed pre-deploy and is not claimed as successful.
+- The workspace is Hobby. Render documents a
+  [three-day point-in-time recovery window for paid databases on Hobby](https://render.com/docs/postgresql-backups).
+  A backup restore was **not run** and is not verified by this deployment.
+- Full browser interaction after sign-in on the deployed service was **not run**.
+  That flow passed in CI; actual deployed authentication/search/save/analysis were
+  tested through HTTPS APIs, and the public deployed UI was inspected independently.
 
 ## Remaining product and deployment limits
 
@@ -208,10 +313,11 @@ Scenario outputs depend on user assumptions and omit correlated market shocks;
 see [MODEL.md](MODEL.md). Asking prices never establish resale value.
 
 Email ownership verification and automatic password recovery remain to be added
-before broad public enrollment. Deployment requires a new PostgreSQL database,
-an explicit HTTPS origin, reviewed backup/retention settings, and the deployment
-checks above. Initial operation uses one worker/instance. The Render configuration
-may incur hosting charges and has not created or modified any hosted resource.
+before broad public enrollment. The deployed beta uses its new PostgreSQL database,
+validated Render-assigned HTTPS origin, and one worker/instance. Review longer-term
+backup retention and test restoration before broader operation. Hosting charges
+apply to the two new beta resources; the existing production service/database and
+the main branch were not modified or merged.
 
 Review screenshots: [login](preview-login.png), [property search](preview-explore.png),
 [scenario analysis](preview-analysis.png), [mobile](preview-mobile.png).
