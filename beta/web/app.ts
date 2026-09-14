@@ -64,6 +64,34 @@ type SearchResult = {
   coverage_note: string;
 };
 type SessionInfo = { authenticated?: boolean; email: string; csrf: string };
+type ResearchCatalog = {
+  id: string;
+  name: string;
+  url: string;
+  coverage: string;
+};
+type ResearchReport = {
+  status: string;
+  message: string;
+  cached: boolean;
+  location: {
+    latitude: number;
+    longitude: number;
+    label: string;
+    basis: string;
+    state: string;
+  } | null;
+  sources: {
+    id: string;
+    name: string;
+    url: string;
+    status: string;
+    retrieved_at: string;
+    summary: string;
+    limitation: string;
+    sections: { title: string; facts: { label: string; value: string }[] }[];
+  }[];
+};
 type AnalysisResult = {
   model_version: string;
   iterations: number;
@@ -124,6 +152,9 @@ let savedOnly = false;
 let requestSequence = 0;
 let detailSequence = 0;
 let analysisSequence = 0;
+let researchSequence = 0;
+let navigationSequence = 0;
+let researchListingId: string | null = null;
 let currentProperty: PropertyRecord | null = null;
 let lastResult: SearchResult | null = null;
 let map: L.Map | null = null;
@@ -167,6 +198,8 @@ function clearSession(): void {
   csrf = "";
   requestSequence++;
   detailSequence++;
+  navigationSequence++;
+  resetResearch();
   currentProperty = null;
   lastResult = null;
   dialog.close();
@@ -176,6 +209,7 @@ function clearSession(): void {
   byId("property-list").replaceChildren();
   byId("source-cards").replaceChildren();
   byId("state-coverage").replaceChildren();
+  byId("research-catalog").replaceChildren();
   coverageSources = [];
   coverageStates = [];
   byId("account-email").textContent = "";
@@ -192,9 +226,10 @@ async function api<T>(
   path: string,
   method = "GET",
   body?: unknown,
+  timeoutMs = 20000,
 ): Promise<T> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(path, {
       method,
@@ -266,6 +301,11 @@ function sourceLink(url: string, label: string): HTMLAnchorElement {
         "disposal.gsa.gov",
         "www.usa.gov",
         "cosl.org",
+        "geocoding.geo.census.gov",
+        "www.fema.gov",
+        "epqs.nationalmap.gov",
+        "sdmdataaccess.nrcs.usda.gov",
+        "www.nconemap.gov",
       ].includes(parsed.hostname)
     )
       a.href = url;
@@ -353,38 +393,62 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   await navigate("explore");
 }
 async function navigate(view: string): Promise<void> {
+  const navigation = ++navigationSequence;
+  const sessionToken = csrf;
+  requestSequence++;
   document
     .querySelectorAll<HTMLButtonElement>("[data-nav]")
     .forEach((button) =>
       button.classList.toggle("active", button.dataset.nav === view),
     );
   const sources = view === "sources";
+  const researching = view === "research";
   savedOnly = view === "saved";
   page = 1;
   byId("source-panel").hidden = !sources;
-  byId("explore-panel").hidden = sources;
+  byId("research-panel").hidden = !researching;
+  byId("explore-panel").hidden = sources || researching;
   byId("workspace-title").textContent = sources
     ? "Know the source. Know the limits."
-    : savedOnly
-      ? "Your opportunities, in one place."
-      : "Find your next opportunity.";
+    : researching
+      ? "Understand the location."
+      : savedOnly
+        ? "Your opportunities, in one place."
+        : "Find your next opportunity.";
   byId("workspace-description").textContent = sources
     ? "A transparent view of connected data and current gaps."
-    : savedOnly
-      ? "Your account's saved properties. Filters still apply."
-      : "Real listings. Clear sources. A closer look at what matters.";
+    : researching
+      ? "Public records, with their source and uncertainty in view."
+      : savedOnly
+        ? "Your account's saved properties. Filters still apply."
+        : "Real listings. Clear sources. A closer look at what matters.";
   if (sources) {
     try {
-      const result = await api<{ sources: Source[]; states: StateCoverage[] }>(
-        "/api/sources",
-      );
+      const result = await api<{
+        sources: Source[];
+        states: StateCoverage[];
+        research_sources: ResearchCatalog[];
+      }>("/api/sources");
+      if (!csrf || csrf !== sessionToken || navigation !== navigationSequence)
+        return;
       coverageSources = result.sources;
       coverageStates = result.states;
       renderCoverage();
+      byId("research-catalog").replaceChildren(
+        ...result.research_sources.map((source) => {
+          const card = element("article", "source-card");
+          card.append(
+            element("h4", "", source.name),
+            element("p", "", source.coverage),
+            sourceLink(source.url, "View public source ↗"),
+          );
+          return card;
+        }),
+      );
     } catch (error) {
       notify(errorText(error));
     }
-  } else await search();
+  } else if (!researching) await search();
 }
 document.querySelectorAll<HTMLButtonElement>("[data-nav]").forEach((button) =>
   button.addEventListener("click", () => {
@@ -782,6 +846,142 @@ function renderCoverage(): void {
 byId("coverage-state").addEventListener("change", renderCoverage);
 byId("coverage-category").addEventListener("change", renderCoverage);
 
+function researchMode(): void {
+  const address = byId<HTMLSelectElement>("research-mode").value === "address";
+  byId("research-address-field").hidden = !address;
+  byId<HTMLInputElement>("research-address").required = address;
+  byId("research-coordinate-fields").hidden = address;
+  for (const id of ["research-latitude", "research-longitude"])
+    byId<HTMLInputElement>(id).required = !address;
+}
+function invalidateResearch(): void {
+  researchSequence++;
+  researchListingId = null;
+  byId("research-results").replaceChildren();
+  byId("research-status").textContent = "";
+  byId<HTMLButtonElement>("research-submit").disabled = false;
+}
+function resetResearch(): void {
+  invalidateResearch();
+  byId<HTMLFormElement>("research-form").reset();
+  researchMode();
+}
+function renderResearch(report: ResearchReport): void {
+  const container = byId("research-results");
+  container.replaceChildren();
+  if (report.location) {
+    const point = report.location;
+    const context = element("div", "research-context");
+    context.append(
+      element("h3", "", point.label),
+      element(
+        "p",
+        "",
+        `${point.basis} · ${point.latitude.toFixed(6)}, ${point.longitude.toFixed(6)} · ${point.state}`,
+      ),
+    );
+    if (point.basis === "Census address approximation")
+      context.append(
+        element(
+          "p",
+          "source-state warn",
+          "Approximate address point. Parcel, flood and soil results may describe a road or neighboring land. Confirm the location before relying on them.",
+        ),
+      );
+    if (report.cached)
+      context.append(
+        element(
+          "p",
+          "input-note",
+          "Cached public response. Original retrieval times are shown below; successful results may be reused for up to 6 hours.",
+        ),
+      );
+    container.append(context);
+  }
+  for (const source of report.sources) {
+    const card = element("article", "source-card research-source");
+    const status =
+      {
+        ready: "Data returned",
+        unavailable: "Temporarily unavailable",
+        no_data: "No data returned · unknown",
+        not_applicable: "Outside this source's coverage",
+      }[source.status] ?? "Unknown";
+    card.append(
+      element(
+        "span",
+        `source-state ${source.status === "ready" ? "" : "warn"}`,
+        status,
+      ),
+      element("h3", "", source.name),
+      element("p", "", source.summary),
+    );
+    for (const section of source.sections) {
+      const group = element("section", "research-section");
+      const facts = element("dl", "research-facts");
+      group.append(element("h4", "", section.title));
+      for (const fact of section.facts)
+        facts.append(
+          element("dt", "", fact.label),
+          element("dd", "", fact.value),
+        );
+      group.append(facts);
+      card.append(group);
+    }
+    card.append(
+      element("p", "input-note", source.limitation),
+      element(
+        "p",
+        "input-note",
+        `${source.status === "not_applicable" ? "Coverage checked" : "Request completed"} ${new Date(source.retrieved_at).toLocaleString()}. Retrieval time is not the source record's update date.`,
+      ),
+      sourceLink(source.url, "View public source & limitations ↗"),
+    );
+    container.append(card);
+  }
+}
+async function runResearch(): Promise<void> {
+  const researchForm = byId<HTMLFormElement>("research-form");
+  if (!csrf || !researchForm.reportValidity()) return;
+  const sequence = ++researchSequence;
+  const sessionToken = csrf;
+  const body = researchListingId
+    ? { listing_id: researchListingId }
+    : byId<HTMLSelectElement>("research-mode").value === "address"
+      ? { address: byId<HTMLInputElement>("research-address").value.trim() }
+      : {
+          latitude: Number(byId<HTMLInputElement>("research-latitude").value),
+          longitude: Number(byId<HTMLInputElement>("research-longitude").value),
+        };
+  const button = byId<HTMLButtonElement>("research-submit");
+  button.disabled = true;
+  byId("research-results").replaceChildren();
+  byId("research-status").textContent =
+    "Checking public sources… this can take up to a minute.";
+  try {
+    const report = await api<ResearchReport>(
+      "/api/research",
+      "POST",
+      body,
+      60000,
+    );
+    if (!csrf || csrf !== sessionToken || sequence !== researchSequence) return;
+    byId("research-status").textContent = report.message;
+    renderResearch(report);
+  } catch (error) {
+    if (csrf === sessionToken && sequence === researchSequence)
+      byId("research-status").textContent = errorText(error);
+  } finally {
+    if (sequence === researchSequence) button.disabled = false;
+  }
+}
+byId("research-mode").addEventListener("change", researchMode);
+byId("research-form").addEventListener("input", invalidateResearch);
+byId("research-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  void runResearch();
+});
+
 async function openDetail(id: string): Promise<void> {
   const sequence = ++detailSequence;
   try {
@@ -927,6 +1127,34 @@ function renderDetail(record: PropertyRecord): void {
     ),
   );
   research.append(description, risks);
+  const researchButton = element(
+    "button",
+    "button quiet",
+    "Research this location",
+  );
+  researchButton.addEventListener("click", async () => {
+    dialog.close();
+    detailSequence++;
+    resetResearch();
+    const hasPoint = record.latitude !== null && record.longitude !== null;
+    if (hasPoint) {
+      byId<HTMLSelectElement>("research-mode").value = "coordinates";
+      byId<HTMLInputElement>("research-latitude").value = String(
+        record.latitude,
+      );
+      byId<HTMLInputElement>("research-longitude").value = String(
+        record.longitude,
+      );
+      researchListingId = record.id;
+      researchMode();
+    }
+    await navigate("research");
+    if (hasPoint) await runResearch();
+    else
+      byId("research-status").textContent =
+        "This listing has no published point. Enter a full street address or independently verified coordinates; a tract or parcel ID is not an address.";
+  });
+  description.append(researchButton);
   byId("detail-content").replaceChildren(hero, research);
 }
 byId("close-detail").addEventListener("click", () => {

@@ -477,3 +477,45 @@ The earlier limits for email ownership verification, automatic password recovery
 backup restoration, comparables, independent valuations and deal-model assumptions
 continue to apply. The original screenshot files above show the initial Texas
 release; they are not presented as screenshots of the expanded signed-in UI.
+
+## Free public API integration — September 14, 2026
+
+Added authenticated reference research through Census geography, FEMA NFHL, USGS elevation, USDA NRCS soils and NC OneMap parcels. These are separate from sale inventory and model inputs; MLS remains unconnected. See [FREE_DATA.md](FREE_DATA.md). No dependencies, schema, account records, infrastructure plans or payment configuration changed.
+
+### Local gates
+
+Commands ran from `beta/` unless marked repository root. Exit statuses below are observed; unavailable browsers and upstream responses are not called passes.
+
+| Command | Result | Evidence / limit |
+| --- | --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts` | **Passed** (exit 0) | Command completed successfully. |
+| `npm run format:check` | **Passed** (exit 0) | Command completed successfully. |
+| `.venv/bin/ruff check landwolf tests scripts` | **Passed** (exit 0) | Command completed successfully. |
+| `npm run lint` | **Passed** (exit 0) | Command completed successfully. |
+| `.venv/bin/mypy landwolf` | **Passed** (exit 0) | Command completed successfully. |
+| `npm run typecheck` | **Passed** (exit 0) | Command completed successfully. |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** (exit 0) | 165 passed; 3 browser tests deselected for this unit/API command. |
+| `npm run build` | **Passed** (exit 0) | Command completed successfully. |
+| `.venv/bin/pytest -q -m browser` | **Failed** (exit 1) | 3 failed before UI execution: default Playwright Chromium executable missing. |
+| `.venv/bin/python -m build` | **Passed** (exit 0) | Command completed successfully. |
+| `.venv/bin/python scripts/check_package.py` | **Passed** (exit 0) | Command completed successfully. |
+| `.venv/bin/bandit -r landwolf` | **Passed** (exit 0) | Command completed successfully. |
+| `.venv/bin/pip-audit --local --skip-editable` | **Passed** (exit 0) | No known dependency vulnerabilities; editable application excluded from advisory lookup, covered by source tests/scanner. |
+| `npm audit --audit-level=moderate` | **Passed** (exit 0) | Zero dependency vulnerabilities. |
+| `npm run secrets` | **Passed** (exit 0) | No configured secret findings. |
+| `git diff --check` | **Passed** (exit 0) | Repository root: no whitespace errors. |
+| `git status --short` | **Passed** (exit 0) | Repository root: only intended beta files modified or added. |
+| `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` | **Failed** (exit 1) | Repository root: 48 passed, 5 existing failures from missing legacy environment-example fixtures; legacy code unchanged. |
+| `.venv/bin/python -m landwolf.cli check-research` | **Passed** (exit 0) | Live Dallas point: Census, FEMA, USGS and soils ready; NC correctly outside coverage. |
+| `.venv/bin/python -m landwolf.cli check-research --latitude 35.7804 --longitude -78.6391` | **Failed** (exit 1) | Live Raleigh aggregate: four sources ready; NC unavailable. Earlier full Raleigh check passed; later single-source diagnostic returned one parcel in one attempt. Neither erases this failed run. |
+| `.venv/bin/python -m landwolf.cli sync` | **Passed** (exit 0) | All seven automated listing sources ready. Raw snapshot counts: AR 2,288; TX 30; USDA 18; Treasury 15; IRS 10; AK 171; MI 8. Directory entries excluded; raw snapshot counts differ from date-filtered current search. |
+
+The final responsive-header adjustment was followed by another successful run of both format checks, both lint commands, Python/TypeScript type checks, the 165-test unit/API suite and `npm run build`. Production package build/validation and all four security commands also ran again successfully after that adjustment.
+
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE=/workspace/scratch/bae2278276c6/browser-tools/chromium .venv/bin/pytest -q -m browser` also **Failed** (exit 1): all three journeys stopped because the alternate local Chromium crashed with SIGSEGV at launch. This is not browser verification.
+
+`.venv/bin/python scripts/check_postgres.py` was **Not run locally** because a disposable PostgreSQL service is unavailable here. Hosted CI must supply PostgreSQL 18 and normal Chromium before deployment.
+
+New tests exercise authenticated/CSRF-protected research, rate/capacity limits, source coordinate identity, bounded requests/responses, redirect/endpoint rejection, missing data, malformed schemas, independent source failures, numeric sentinels, multiple parcel candidates, cache expiry and absence of database changes. The new browser journey uses real browser → API → parsers → isolated database, replacing only upstream HTTP transport with explicit synthetic fixtures. It covers approximate-location labels, missing values, source links, tablet/mobile widths, no model prefilling, input-edit races and sign-out cleanup.
+
+Initial intermediate Ruff line-length and mypy optional-value errors were corrected before these gates; no suppression or gate relaxation was added. Existing FastAPI/Starlette deprecation warnings and npm environment-config warnings remain.

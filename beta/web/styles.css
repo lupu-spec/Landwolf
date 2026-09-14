@@ -926,6 +926,60 @@ input::placeholder {
   font-size: 0.9rem;
   color: var(--muted);
 }
+.research-panel {
+  max-width: 1040px;
+}
+.research-form {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 18px;
+  margin: 25px 0;
+  align-items: end;
+}
+.research-form > button {
+  justify-self: start;
+}
+.research-coordinates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.research-context {
+  margin: 24px 0;
+}
+.research-context p {
+  margin-top: 12px;
+}
+.research-source,
+#research-catalog .source-card {
+  margin-top: 18px;
+  overflow-wrap: anywhere;
+}
+.research-section {
+  margin-top: 20px;
+}
+.research-facts {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(0, 2fr);
+  margin: 12px 0;
+  font-size: 0.87rem;
+}
+.research-facts dt,
+.research-facts dd {
+  margin: 0;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.research-facts dt {
+  color: var(--muted);
+  padding-right: 18px;
+}
+.research-facts dd {
+  font-weight: 600;
+}
+#research-status {
+  margin: 20px 0;
+}
 .property-dialog {
   border: 0;
   border-radius: 12px;
@@ -1314,6 +1368,20 @@ input::placeholder {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+@media (max-width: 1050px) {
+  .site-header {
+    height: auto;
+    min-height: 90px;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .main-nav {
+    order: 3;
+    width: 100%;
+    min-height: 44px;
+    justify-content: space-between;
+  }
+}
 @media (max-width: 800px) {
   .site-header {
     height: auto;
@@ -1333,11 +1401,23 @@ input::placeholder {
     order: 3;
     width: 100%;
     justify-content: space-between;
-    height: 44px;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: auto;
+    gap: 0 12px;
   }
   .nav-link {
     font-size: 0.8rem;
+    min-height: 42px;
+  }
+  .research-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .research-source {
+    padding: 18px;
+  }
+  .research-facts {
+    grid-template-columns: minmax(90px, 1fr) minmax(0, 1.4fr);
   }
   .workspace {
     padding: 26px 5%;

@@ -32,6 +32,14 @@ from landwolf.db import (
     database,
     initialize,
 )
+from landwolf.research import (
+    RESEARCH_SOURCES,
+    ResearchBusy,
+    ResearchPoint,
+    ResearchQuery,
+    ResearchReport,
+    ResearchService,
+)
 from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, SearchQuery
 from landwolf.sources import SOURCE_BY_ID
 
@@ -80,6 +88,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     engine, factory = database(settings.database_url)
     provider = Catalog(factory)
+    research = ResearchService()
 
     @contextlib.asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -107,6 +116,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url=None,
     )
     app.state.factory, app.state.provider, app.state.settings = factory, provider, settings
+    app.state.research = research
     app.add_middleware(BodyLimit)
     host = urlsplit(settings.public_origin).hostname
     if host is None:
@@ -203,8 +213,44 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {
             "sources": provider.statuses(),
             "states": provider.coverage(),
+            "research_sources": list(RESEARCH_SOURCES),
             "payments_enabled": False,
         }
+
+    @app.post("/api/research")
+    async def research_location(
+        query: ResearchQuery, request: Request, session: DB
+    ) -> ResearchReport:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"research:{account.id}", 12)
+        auth.limit(session, "research:shared", 40)
+        point = None
+        if query.listing_id:
+            item = session.get(Listing, query.listing_id)
+            if item is None:
+                raise HTTPException(404, "Property not found")
+            record = PropertyRecord.model_validate(item.payload)
+            if record.latitude is None or record.longitude is None:
+                raise HTTPException(
+                    422, "No published point is available. Use an address or verified coordinates."
+                )
+            point = ResearchPoint(
+                latitude=record.latitude,
+                longitude=record.longitude,
+                label=record.title,
+                basis="Source-published coordinate",
+                state=record.state,
+            )
+        # Release the database connection before bounded upstream I/O.
+        session.close()
+        try:
+            return await research.lookup(query, point)
+        except ResearchBusy as exc:
+            raise HTTPException(
+                503,
+                "Property research is busy. Please try again shortly.",
+                headers={"Retry-After": "5"},
+            ) from exc
 
     def record_payload(item: Listing, saved: set[str]) -> dict[str, Any]:
         value = PropertyRecord.model_validate(item.payload).model_dump(mode="json")

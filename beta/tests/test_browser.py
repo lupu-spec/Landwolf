@@ -23,6 +23,89 @@ from landwolf.db import Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
+@pytest.mark.parametrize("browser_server", ["research"], indirect=True)
+def test_public_research_authentication_sources_mobile_and_stale_results(
+    browser_server: tuple[str, int],
+) -> None:
+    # Only upstream public HTTP transport is synthetic; browser, API, parsers,
+    # authentication, rate limits and database are real.
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(origin)
+        expect(page.locator("#research-form")).to_be_hidden()
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("research@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        expect(page.locator("#workspace")).to_be_visible()
+        page.get_by_role("button", name="Property research", exact=True).click()
+        expect(page.locator("#search-form")).to_be_hidden()
+        page.get_by_label("Street address, city, state and ZIP", exact=True).fill(
+            "1 Synthetic Way, Fixture, NC 27000"
+        )
+        page.get_by_role("button", name="Research location", exact=True).click()
+        expect(page.locator(".research-source")).to_have_count(5)
+        expect(page.locator(".research-context")).to_contain_text("Census address approximation")
+        expect(page.locator(".research-context")).to_contain_text("neighboring land")
+        text = page.locator("#research-results").inner_text()
+        assert "FIXTURE-999" in text and "Not published" in text
+        assert "OWNER FIELD" not in text
+        assert "0.00" in text and "even Zone X can flood" in text
+        assert page.get_by_role("link", name="View public source & limitations").count() == 5
+        assert page.locator('input[name="resale_likely"]').input_value() == ""
+        page.set_viewport_size({"width": 900, "height": 1000})
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.set_viewport_size({"width": 390, "height": 844})
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path="test-results/research-mobile.png", full_page=True)
+        page.get_by_role("button", name="Data coverage", exact=True).click()
+        expect(page.locator("#research-catalog .source-card")).to_have_count(5)
+        expect(page.locator("#source-panel")).to_contain_text("Live MLS is not connected")
+        page.get_by_role("button", name="Property research", exact=True).click()
+        page.get_by_label("Research by", exact=True).select_option("coordinates")
+        expect(page.locator("#research-results")).to_be_empty()
+        page.get_by_label("Latitude", exact=True).fill("35.7804")
+        page.get_by_label("Longitude", exact=True).fill("-78.6391")
+        page.get_by_role("button", name="Research location", exact=True).click()
+        expect(page.locator(".research-source")).to_have_count(5)
+        expect(page.locator(".research-context")).to_contain_text("User-supplied coordinate")
+
+        def edit_during_research(route: Route) -> None:
+            result = route.fetch()
+            page.get_by_label("Latitude", exact=True).fill("36")
+            route.fulfill(response=result)
+
+        page.route("**/api/research", edit_during_research)
+        page.get_by_role("button", name="Research location", exact=True).click()
+        expect(page.locator("#research-submit")).to_be_enabled()
+        expect(page.locator("#research-results")).to_be_empty()
+        page.unroute("**/api/research", edit_during_research)
+
+        def sign_out_during_research(route: Route) -> None:
+            result = route.fetch()
+            page.get_by_role("button", name="Sign out", exact=True).click()
+            expect(page.locator("#auth-form")).to_be_visible()
+            route.fulfill(response=result)
+
+        page.route("**/api/research", sign_out_during_research)
+        page.get_by_role("button", name="Research location", exact=True).click()
+        expect(page.locator("#auth-form")).to_be_visible()
+        expect(page.locator("#research-results")).to_be_empty()
+        expect(page.locator("#research-address")).to_have_value("")
+        expect(page.locator("#research-catalog")).to_be_empty()
+        assert page.evaluate("Object.keys(localStorage).length") == 0
+        assert errors == []
+        browser.close()
+
+
 @pytest.fixture
 def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[tuple[str, int]]:
     url = f"sqlite:///{tmp_path / 'browser.db'}"
@@ -73,7 +156,11 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 sys.executable,
                 "-m",
                 "uvicorn",
-                "landwolf.main:create_app",
+                "research_fixture:create_fixture_app"
+                if getattr(request, "param", "") == "research"
+                else "landwolf.main:create_app",
+                "--app-dir",
+                "tests",
                 "--factory",
                 "--host",
                 "127.0.0.1",

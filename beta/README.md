@@ -66,6 +66,30 @@ without parcel coordinates remain in the list and have no invented map marker.
 No owner contact lists or interested-party columns are imported. Title, ownership,
 liens, flood risk and current market values are not independently verified.
 
+## Free public property research
+
+After signing in, open **Property research** and enter a complete street address
+or coordinates. Census geographic lookup, FEMA digital flood mapping, USGS ground
+elevation and USDA NRCS soils are connected without API keys. North Carolina OneMap
+adds county parcel identifiers, GIS acreage and reported assessment values in NC.
+Each card shows coverage, uncertainty, retrieval time and available source dates.
+No MLS, paid provider account or usage-based API subscription is enabled.
+
+An address result is an interpolated Census point; it may fall on a road or
+neighboring parcel. It never becomes a listing map marker. Reference values do not
+prefill the deal model. A property's **Research this location** button uses its
+published point, or asks for an address/verified point if none is available.
+Failures are independent and missing flood data stays unknown. Reports are held in
+a bounded memory cache for up to six hours, not saved to accounts or the database.
+See [FREE_DATA.md](docs/FREE_DATA.md) for API contracts, limitations and MLS access.
+
+Run actual public API checks explicitly (not part of deterministic fixture CI):
+
+```sh
+.venv/bin/python -m landwolf.cli check-research
+.venv/bin/python -m landwolf.cli check-research --latitude 35.7804 --longitude -78.6391
+```
+
 ## Deal model
 
 Investors explicitly enter resale and repair ranges, title/closing costs, a lien and

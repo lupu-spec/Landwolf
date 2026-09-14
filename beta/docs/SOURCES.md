@@ -1,5 +1,9 @@
 # Nationwide source coverage
 
+For connected Census, FEMA, USGS, USDA NRCS and NC parcel reference APIs, see
+[FREE_DATA.md](FREE_DATA.md). Reference research is separate from the sale inventory
+below. Live MLS and nationwide assessor/deed databases are not connected.
+
 Reviewed on 2026-09-14. This is a source inventory, not certification of completeness,
 sale availability, clear title or current value. All property and coverage endpoints
 require a signed-in session. Refresh timestamps describe our retrieval, not the

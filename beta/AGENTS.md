@@ -3,7 +3,7 @@
 The root engineering policy applies. This is a standalone free beta. Keep its
 runtime, accounts, database, and dependency environment separate from the legacy
 application. Preserve the supplied LandWolf logo and navy/white visual identity.
-Every property search, source, detail, save, and analysis route requires server
+Every property search, source, detail, save, analysis, and research route requires server
 authentication. Payments stay disabled. Never use fabricated runtime listings,
 unverified parcel coordinates, asking prices as valuations, or unknown costs as zero.
 
@@ -32,6 +32,12 @@ Do not combine the two dependency environments or change legacy billing tests.
 Run live source verification explicitly with `.venv/bin/python -m landwolf.cli sync`;
 fixture tests cannot establish current upstream availability. A deployment needs
 its own database, HTTPS/browser checks, and an observed health check.
+After public research adapter edits, also run
+`.venv/bin/python -m landwolf.cli check-research` and
+`.venv/bin/python -m landwolf.cli check-research --latitude 35.7804 --longitude -78.6391`.
+These sample locations test upstream availability; they do not prove nationwide
+coverage. Keep public reference records separate from listings and deal inputs.
+Never treat approximate geocodes as parcel coordinates or missing flood data as low risk.
 
 Preserve command exit statuses. Never describe missing tools, timeouts, skipped
 tests, failed commands, an unbuilt container, or an unobserved deployment as passed.

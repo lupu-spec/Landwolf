@@ -28,6 +28,7 @@
           Explore properties
         </button>
         <button class="nav-link" data-nav="saved">Saved properties</button>
+        <button class="nav-link" data-nav="research">Property research</button>
         <button class="nav-link" data-nav="sources">Data coverage</button>
       </nav>
       <div class="account-tools">
@@ -187,6 +188,16 @@
           </div>
           <div id="source-cards"></div>
           <div class="coverage-next">
+            <h3>Free public property research</h3>
+            <p>
+              Use Property research to look up a street address or coordinates.
+              These reference databases do not add sale listings or establish
+              market value. Live MLS is not connected: MLS providers require
+              data-access authorization. No paid API subscriptions are enabled.
+            </p>
+            <div id="research-catalog"></div>
+          </div>
+          <div class="coverage-next">
             <h3>All 50 states. Explicit coverage limits.</h3>
             <p>
               Federal feeds accept all 50 states, but may have no current
@@ -205,6 +216,86 @@
             </p>
             <div id="state-coverage" class="table-scroll"></div>
           </div>
+        </section>
+
+        <section
+          id="research-panel"
+          class="source-panel research-panel"
+          hidden
+          aria-labelledby="research-title"
+        >
+          <p class="eyebrow">PUBLIC RECORDS • FREE ACCESS</p>
+          <h2 id="research-title">A closer look at a location.</h2>
+          <p>
+            Look up geographic identifiers, flood mapping, elevation, soils and
+            available parcel records. Coverage varies by source. This does not
+            establish that a property is for sale.
+          </p>
+          <form
+            id="research-form"
+            class="research-form"
+            aria-label="Public property research"
+          >
+            <div class="field">
+              <label for="research-mode">Research by</label>
+              <select id="research-mode">
+                <option value="address">Street address</option>
+                <option value="coordinates">Coordinates</option>
+              </select>
+            </div>
+            <div id="research-address-field" class="field">
+              <label for="research-address"
+                >Street address, city, state and ZIP</label
+              >
+              <input
+                id="research-address"
+                minlength="8"
+                maxlength="240"
+                autocomplete="off"
+                placeholder="e.g. 1500 Marilla St, Dallas, TX 75201"
+                required
+              />
+            </div>
+            <div
+              id="research-coordinate-fields"
+              class="research-coordinates"
+              hidden
+            >
+              <div class="field">
+                <label for="research-latitude">Latitude</label
+                ><input
+                  id="research-latitude"
+                  type="number"
+                  min="-90"
+                  max="90"
+                  step="any"
+                  placeholder="32.7767"
+                />
+              </div>
+              <div class="field">
+                <label for="research-longitude">Longitude</label
+                ><input
+                  id="research-longitude"
+                  type="number"
+                  min="-180"
+                  max="180"
+                  step="any"
+                  placeholder="-96.7970"
+                />
+              </div>
+            </div>
+            <button id="research-submit" class="button primary" type="submit">
+              Research location
+            </button>
+          </form>
+          <p class="input-note">
+            Addresses are sent to the U.S. Census Geocoder; resolved coordinates
+            are sent to the public data sources. Census address points are
+            approximate and may fall on a road or neighboring parcel. Use a
+            verified point for parcel research.
+          </p>
+          <p id="research-status" role="status" aria-live="polite"></p>
+          <div id="research-results"></div>
         </section>
 
         <section id="explore-panel">
