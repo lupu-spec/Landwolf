@@ -68,7 +68,7 @@ The live run uses the workspace's supplied proxy and its CA, imported into the
 browser's NSS trust store for that execution. TLS verification and the app's CSP
 remain enabled. The server and browser run in one process tree because this
 workspace isolates network access between command sessions. CI uses Playwright's
-normal Chromium installer instead; local success does not establish hosted CI success.
+normal Chromium installer instead. The subsequently observed hosted CI results are recorded below.
 
 The browser journey covers pre-login search concealment, account creation,
 authenticated search, grouped map selection, list/map/split modes, an uncovered
@@ -106,15 +106,39 @@ Additional executed checks:
 | Legacy `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (repository root) | **Failed** | 48 passed, 5 failed because legacy `.env.sandbox.example` and `.env.live.example` fixtures are absent. No legacy tests or implementation files were changed. |
 | `docker build -f beta/Dockerfile beta` (repository root) | **Not run** | Docker is not installed in this workspace. Wheel validation is not a container build. |
 | Production PostgreSQL integration | **Not run** | No separate beta database has been provisioned; local API/browser tests use SQLite. |
-| Deployed HTTPS health, session, browser, and live refresh checks | **Not run** | No beta service has been deployed. Render workspace selection requires owner confirmation. |
-| `git push -u origin codex/landwolf-beta-rebuild` | **Failed** | Automatic approval review rejected publication of the source and assets to `github.com/lupu-spec/Landwolf`, requiring explicit user authorization for that destination. No retry or alternate publication route was used. |
-| Draft pull request and hosted GitHub Actions | **Not run** | The push was blocked. The rebuild is committed locally and supplied as a review archive; publication awaits user authorization. |
+| Deployed HTTPS health, session, browser, and live refresh checks | **Not run** | The owner approved My Workspace and the proposed hosting plan. No beta service has been deployed; the Render dashboard needs secure sign-in, and the coding/browser workspace connection subsequently failed. |
+| `git push -u origin codex/landwolf-beta-rebuild` | **Failed**, publication resolved | Initial automatic review required explicit destination authorization. After the owner approved, the shell attempt failed because Git had no login. The authorized GitHub connector then published the exact reviewed tree, verified by its tree and asset hashes. |
+| Draft pull request | **Passed** | [PR #1](https://github.com/lupu-spec/Landwolf/pull/1) is open as a draft; no merge occurred. |
 
 The five unchanged legacy failures are in `test_landwolf_domain_billing.py`,
 `test_live_stripe_connected_ids.py`, two cases in
 `test_live_stripe_deployment_kit.py`, and `test_stripe_plan_checkout.py`.
 Pytest also emits two third-party deprecation warnings from Starlette's current
 TestClient/httpx integration and AnyIO's `BlockingPortal` alias. They are not suppressed.
+
+
+## Published source and hosted CI
+
+The owner explicitly approved publishing this rebuild to `lupu-spec/Landwolf`
+and deploying a separate paid beta in Render's **My Workspace**. That approval
+remains in effect. The source was published in commit
+`e6c741faef1ed8368592c1b16e4bcde6c73c1cf1`; its complete tree hash,
+`d52f8270659395eaf63ff468627747894bf1cc40`, exactly matches the reviewed local
+tree. All six binary assets were also checked against their Git blob hashes.
+
+The following hosted results were observed through GitHub's workflow and job APIs.
+They apply to that source commit; this later report update changes documentation only.
+
+| Hosted workflow/check | Result | Observed evidence |
+| --- | --- | --- |
+| [LandWolf beta gates, run 34839910064](https://github.com/lupu-spec/Landwolf/actions/runs/34839910064) | **Passed** | Job `verify` completed successfully. Locked installation, formatting, lint, types, unit/API tests, browser journey, production package, security, diff integrity, and screenshot upload all report success. |
+| Legacy Test, run 34839910053 | **Failed** | Its unchanged root test environment stops during collection with `ModuleNotFoundError: No module named 'investment_engine'`. This is distinct from the five fixture failures observed locally with `PYTHONPATH=.`. |
+| Legacy Release Preflight, run 34839910038 | **Failed** | Its unchanged static preflight job installs pytest without the dependencies imported by the root test configuration and stops with `ModuleNotFoundError: No module named 'numpy'`. Production/staging preflight jobs were skipped, not passed. |
+| Render beta provisioning and deployed verification | **Not run** | No new beta service/database has been created. The authenticated connector can inspect the approved workspace, but its Docker creation flow requires the dashboard. The dashboard is at sign-in; the coding/browser workspace then reported an initialization-handshake connection timeout, leaving browser controls unavailable. |
+
+The existing Render app and database were inspected without modification. The
+beta's Docker build, production PostgreSQL integration, and deployed HTTPS/browser
+checks remain outstanding. Hosted CI success is not evidence of deployment.
 
 ## Remaining product and deployment limits
 
