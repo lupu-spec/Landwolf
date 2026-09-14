@@ -519,3 +519,24 @@ The final responsive-header adjustment was followed by another successful run of
 New tests exercise authenticated/CSRF-protected research, rate/capacity limits, source coordinate identity, bounded requests/responses, redirect/endpoint rejection, missing data, malformed schemas, independent source failures, numeric sentinels, multiple parcel candidates, cache expiry and absence of database changes. The new browser journey uses real browser → API → parsers → isolated database, replacing only upstream HTTP transport with explicit synthetic fixtures. It covers approximate-location labels, missing values, source links, tablet/mobile widths, no model prefilling, input-edit races and sign-out cleanup.
 
 Initial intermediate Ruff line-length and mypy optional-value errors were corrected before these gates; no suppression or gate relaxation was added. Existing FastAPI/Starlette deprecation warnings and npm environment-config warnings remain.
+
+### Hosted check and source recovery before deployment
+
+Initial application commit `3bc8154922e5b85d14e49e3ba3c808eae38d54a1`, tree
+`4ce45f10f6ddcb03a031377bc2de21bcc1841ccd`, was published only to the beta branch.
+Push run [34880072884](https://github.com/lupu-spec/Landwolf/actions/runs/34880072884)
+and PR run [34880076670](https://github.com/lupu-spec/Landwolf/actions/runs/34880076670)
+passed install, format, lint, types, all 165 unit/API tests and PostgreSQL 18.
+The new public-research Chromium journey and original complete journey passed;
+the nationwide journey failed because its global `.source-card` selector counted
+five newly added reference-source cards alongside the one filtered sale feed.
+The test now scopes the existing count/name assertions to `#source-cards` and
+additionally asserts that all five reference cards remain present. No behavior
+assertion, gate or test was removed. Package/security steps in these two runs were
+skipped after the browser failure, not passed. No deployment was triggered.
+
+The second aggregate Raleigh command also exited 1 at **18:17:36 UTC**, with NC
+unavailable and the other four sources ready. The intervening isolated NC request
+had returned one candidate parcel in one attempt. This intermittent source result
+remains documented; the beta displays unavailable findings independently and does
+not assign a zero value or infer low risk from them.
