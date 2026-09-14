@@ -1,11 +1,14 @@
-# LandWolf beta instructions
+# LandWolf rebuilt application instructions
 
-The root engineering policy applies. This is a standalone free beta. Keep its
+The root engineering policy applies. This is the rebuilt free application. Keep its
 runtime, accounts, database, and dependency environment separate from the legacy
 application. Preserve the supplied LandWolf logo and navy/white visual identity.
 Every property search, source, detail, save, analysis, and research route requires server
 authentication. Payments stay disabled. Never use fabricated runtime listings,
 unverified parcel coordinates, asking prices as valuations, or unknown costs as zero.
+Production uses `landwolf.ai` with `www.landwolf.ai` redirected at Render. Preserve
+the existing rebuilt service/database during promotion; do not reset accounts.
+Configure explicit HTTPS origins; never derive trust from client forwarding headers.
 
 Run commands from `beta/` using Python 3.12+ and Node 24. Install dependencies with
 `uv sync --frozen --dev` and `npm ci`. Browser setup is

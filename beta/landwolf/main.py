@@ -108,7 +108,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             engine.dispose()
 
     app = FastAPI(
-        title="LandWolf Beta",
+        title="LandWolf",
         version="0.2.0",
         lifespan=lifespan,
         docs_url=None,
@@ -118,10 +118,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.factory, app.state.provider, app.state.settings = factory, provider, settings
     app.state.research = research
     app.add_middleware(BodyLimit)
-    host = urlsplit(settings.public_origin).hostname
-    if host is None:
-        raise ValueError("A public origin hostname is required")
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=[host])
+    hosts = []
+    for origin in settings.trusted_origins:
+        host = urlsplit(origin).hostname
+        if host is None:
+            raise ValueError("A public origin hostname is required")
+        hosts.append(host)
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts, www_redirect=False)
 
     @app.middleware("http")
     async def headers(request: Request, call_next: Any) -> Response:

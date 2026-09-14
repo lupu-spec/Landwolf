@@ -632,3 +632,61 @@ The final follow-up to this log changes documentation only; it does not change t
 deployed runtime. MLS, nationwide assessor/deed/title/lien records, independent
 market valuations, email verification/password recovery and tested backup restore
 remain outside the completed feature scope.
+
+
+## Production domain promotion — September 14, 2026
+
+Owner authorized production at `landwolf.ai` / `www.landwolf.ai`, with payments
+still disabled. This change reuses the rebuilt service and database, preserves
+accounts/saves and branding, and adds an explicit three-origin allowlist. Writes
+require both an allowed Origin and its matching Host; cookies remain host-only.
+Render performs the canonical apex/www redirect. No dependencies or schema changed.
+
+Local commands ran from 20:47 UTC after the final runtime/test edits:
+
+| Command (from beta unless noted) | Observed local result |
+| --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts` | **Passed** (exit 0) |
+| `npm run format:check` | **Passed** (exit 0) |
+| `.venv/bin/ruff check landwolf tests scripts` | **Passed** (exit 0) |
+| `npm run lint` | **Passed** (exit 0) |
+| `.venv/bin/mypy landwolf` | **Passed** (exit 0) |
+| `npm run typecheck` | **Passed** (exit 0) |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** (exit 0) — 210 tests |
+| `.venv/bin/python scripts/check_postgres.py` | **Failed** (exit 1) — disposable PostgreSQL unavailable locally |
+| `npm run build` | **Passed** (exit 0) |
+| `.venv/bin/pytest -q -m browser` | **Failed** (exit 1) — Chromium executable unavailable; no browser pass claimed |
+| `.venv/bin/python -m build` | **Passed** (exit 0) |
+| `.venv/bin/python scripts/check_package.py` | **Passed** (exit 0) |
+| `.venv/bin/bandit -r landwolf` | **Passed** (exit 0) |
+| `.venv/bin/pip-audit --local --skip-editable` | **Passed** (exit 0) |
+| `npm audit --audit-level=moderate` | **Passed** (exit 0) |
+| `npm run secrets` | **Passed** (exit 0) |
+| `git diff --check` | **Passed** (exit 0) |
+| `git status --short` | **Passed** (exit 0) |
+| `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` | **Failed** (exit 1) — 48 passed, 5 existing missing-env-fixture failures |
+| `.venv/bin/python -m landwolf.cli sync` | **Passed** (exit 0) |
+
+The initial targeted command `.venv/bin/pytest -q tests/test_domains.py
+tests/test_config.py` exited 1 (69 passed / 1 failed): the new save-persistence
+assertion used `items` instead of the existing response key `results`. The assertion
+was corrected, then the complete 210-test suite passed without weakened gates.
+`.venv/bin/ruff format landwolf tests scripts` and `npm run format` both exited 0;
+the resulting diff was reviewed. Existing httpx/Starlette and npm environment
+deprecation warnings remain. Production build, package and all security scanners
+passed; live source sync passed independently of fixture tests.
+
+Hosted CI, production deployment and final DNS/HTTPS checks are pending at this
+checkpoint; this section does not claim them as passed. The Render CLI is not
+installed locally, so CLI Blueprint validation has not run.
+
+DNS inspection found Spaceship authoritative servers `launch1.spaceship.net` and
+`launch2.spaceship.net`; apex A is already `216.24.57.1`, and www CNAME still targets
+`landwolf-mw8m.onrender.com`, both with 60-second TTL. Existing domains were verified
+and certificated on the legacy service, redirecting apex to www. Desired cutover
+uses the rebuilt service, reverses that redirect, and updates only the www CNAME
+to `landwolf-free-beta.onrender.com`. Apex has no AAAA or CAA records.
+
+Spaceship's browser stayed on an explicit Cloudflare security-verification loop
+after one reload; botDetection reported `challenge_loop` and attempts stopped.
+No registrar DNS mutation has occurred at this checkpoint.

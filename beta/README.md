@@ -1,9 +1,9 @@
-# LandWolf free beta
+# LandWolf free application
 
 A separate rebuild of LandWolf with the original wordmark, wolf logo, white/navy
 palette, and rural photography. Fresh email/password accounts unlock source-backed
 property search, map/list browsing, saved properties, and reproducible deal analysis.
-All beta features are free. This application contains no checkout or Stripe gate.
+All features are free. This application contains no checkout or Stripe gate.
 
 ## Run locally
 
@@ -112,8 +112,7 @@ seed are displayed. See [MODEL.md](docs/MODEL.md) for equations and limitations.
 - Secrets and personal records never belong in Git or log messages. Source HTML is
   parsed into validated fields; the browser uses text nodes and allowlisted URLs.
 - Accounts have no roles or billing privileges. Email ownership verification and
-  automated password recovery are not implemented; plan these before broad public
-  enrollment. No transactional email is sent by this beta.
+  automated password recovery are not implemented. No transactional email is sent.
 - Use one application instance/worker for the initial source scheduler. A future
   multi-instance rollout requires a distributed scheduler lease. Configure trusted
   proxy addresses deliberately; never trust arbitrary client forwarding headers.
@@ -125,19 +124,30 @@ startup. On Render, the default is the service's platform-assigned
 [`RENDER_EXTERNAL_URL`](https://render.com/docs/environment-variables), available
 before startup. A missing or invalid Render URL stops startup. Set
 `LANDWOLF_PUBLIC_ORIGIN` explicitly for an attached custom domain or another host;
-this override takes precedence and must also pass validation. Request headers never
-select the trusted origin. Configure backups/retention before public enrollment.
+this override takes precedence and must also pass validation. Optional
+`LANDWOLF_ADDITIONAL_ORIGINS` is a JSON array of at most four explicit origins.
+Every write must match both a configured origin and that request's Host; one allowed
+domain cannot write to another. Cookies are host-only, Secure and SameSite=Strict.
+Request headers never select the trusted origins. Backup restoration remains an
+outstanding operational check.
 
 ## Deployment and verification
 
-[render.beta.yaml](../render.beta.yaml) defines a new Render service and database.
-It has automatic deployment disabled and does not modify the existing service.
-Provisioning the specified hosting plans may incur charges; this file is a reviewable
-configuration, not evidence that anything is deployed. Select branch
-`codex/landwolf-beta-rebuild` and Blueprint path `render.beta.yaml`. No placeholder
-origin is needed: Render supplies the service address, and the pre-deploy command
-bootstraps the fresh database. Deploy, then verify the actual assigned HTTPS origin,
-new-account login, API health, live sync, save ownership, cookies, and browser flow.
+[render.beta.yaml](../render.beta.yaml) describes the existing rebuilt Render service
+and PostgreSQL database, promoted to free production without replacing their data.
+Resource names retain `beta` for continuity; automatic deployment stays disabled.
+The deploy branch is `codex/landwolf-beta-rebuild`, with Blueprint path
+`render.beta.yaml`. The legacy service/main branch remains a rollback reference.
+Do not merge legacy configuration into the new service or create duplicate resources.
+
+The canonical origin is `https://landwolf.ai`; Render redirects `www.landwolf.ai`
+to the apex and provisions HTTPS. The existing `landwolf-free-beta.onrender.com`
+address remains available. Set the three explicit origins as shown in the Blueprint
+before moving domain bindings. Apex DNS uses Render's `216.24.57.1` A record;
+`www` uses a CNAME to `landwolf-free-beta.onrender.com`. Preserve mail and unrelated
+DNS records. Verify authoritative/public DNS, HTTPS redirects, health, sign-in,
+save persistence and disabled payments after cutover. The Blueprint describes the
+desired configuration; observed deployment/DNS results are recorded below.
 
 The commands and no-false-verification rule are in [AGENTS.md](AGENTS.md).
 See [VERIFICATION.md](docs/VERIFICATION.md) for observed results and outstanding gates.

@@ -7,6 +7,7 @@ import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from threading import BoundedSemaphore
+from urllib.parse import urlsplit
 
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
@@ -67,7 +68,11 @@ def limit(session: Session, key: str, maximum: int, seconds: int = 60) -> None:
 
 
 def origin_guard(request: Request, settings: Settings) -> None:
-    if request.headers.get("origin") != settings.public_origin:
+    origin = request.headers.get("origin", "")
+    # Each configured origin may write only to its own host, even during a cutover.
+    if origin not in settings.trusted_origins or request.headers.get("host", "").lower() != (
+        urlsplit(origin).netloc
+    ):
         raise HTTPException(403, "Request origin is not allowed")
     if request.headers.get("x-landwolf-client") != "web":
         raise HTTPException(403, "Client header is required")
