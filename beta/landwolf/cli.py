@@ -4,9 +4,9 @@ import argparse
 import asyncio
 import json
 
+from landwolf.catalog import Catalog
 from landwolf.config import Settings
 from landwolf.db import database, initialize
-from landwolf.provider import GLOProvider
 
 
 def main() -> None:
@@ -20,9 +20,9 @@ def main() -> None:
             initialize(engine)
             print("Beta schema version 1 initialized; legacy tables unchanged")
         else:
-            result = asyncio.run(GLOProvider(factory).refresh())
+            result = asyncio.run(Catalog(factory).refresh())
             print(json.dumps(result, indent=2))
-            if result["status"] != "ready":
+            if any(source["automated"] and source["status"] != "ready" for source in result):
                 raise SystemExit(1)
     finally:
         engine.dispose()

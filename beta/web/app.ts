@@ -4,10 +4,20 @@ type PropertyRecord = {
   id: string;
   tract: string;
   title: string;
-  county: string;
+  county: string | null;
   state: string;
-  acres: number;
-  asking_price: number;
+  acres: number | null;
+  asking_price: number | null;
+  reported_taxes: number | null;
+  source_appraised_value: number | null;
+  price_kind: string;
+  category: string;
+  sale_type: string;
+  sale_status: string;
+  auction_date: string | null;
+  auction_date_text: string | null;
+  bidding_deadline: string | null;
+  eligibility: string | null;
   source_url: string;
   source_name: string;
   image_url: string | null;
@@ -24,6 +34,7 @@ type PropertyRecord = {
   saved: boolean;
 };
 type Source = {
+  id: string;
   name: string;
   url: string;
   status: string;
@@ -32,6 +43,16 @@ type Source = {
   message: string;
   stale: boolean;
   coverage_note: string;
+  states: string[];
+  categories: string[];
+  automated: boolean;
+};
+type StateCoverage = {
+  state: string;
+  name: string;
+  record_count: number;
+  directory_url: string;
+  feed_ids: string[];
 };
 type SearchResult = {
   results: PropertyRecord[];
@@ -39,7 +60,8 @@ type SearchResult = {
   page: number;
   page_size: number;
   coverage_supported: boolean;
-  source: Source;
+  sources: Source[];
+  coverage_note: string;
 };
 type SessionInfo = { authenticated?: boolean; email: string; csrf: string };
 type AnalysisResult = {
@@ -108,6 +130,28 @@ let map: L.Map | null = null;
 let markers: L.LayerGroup | null = null;
 let mapRecords: PropertyRecord[] = [];
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
+let coverageSources: Source[] = [];
+let coverageStates: StateCoverage[] = [];
+const categoryNames: Record<string, string> = {
+  government_land: "DNR & government land",
+  tax_sale: "Tax sale",
+  foreclosure: "Foreclosure / REO",
+  pre_foreclosure: "Pre-foreclosure notice",
+  surplus: "Public surplus",
+  public_auction: "Public auction",
+};
+const area = (value: number | null) =>
+  value === null
+    ? "Acreage not published"
+    : `${value.toLocaleString(undefined, { maximumFractionDigits: 4 })} acres`;
+const perAcre = (record: PropertyRecord) =>
+  record.asking_price !== null && record.acres !== null
+    ? money(record.asking_price / record.acres)
+    : "Not available";
+const location = (record: PropertyRecord) =>
+  `${record.county ? record.county + " County, " : ""}${record.state}`;
+const saleDate = (value: string | null) =>
+  value ? new Date(value + "T12:00:00").toLocaleDateString() : "Not published";
 
 function notify(message: string): void {
   const box = byId("toast");
@@ -131,6 +175,9 @@ function clearSession(): void {
   byId<HTMLFormElement>("analysis-form").reset();
   byId("property-list").replaceChildren();
   byId("source-cards").replaceChildren();
+  byId("state-coverage").replaceChildren();
+  coverageSources = [];
+  coverageStates = [];
   byId("account-email").textContent = "";
   markers?.clearLayers();
   mapRecords = [];
@@ -185,8 +232,13 @@ function safeImage(url: string | null): string | null {
   try {
     const parsed = new URL(url);
     return parsed.protocol === "https:" &&
-      parsed.hostname === "cdn.glo.texas.gov" &&
-      parsed.pathname.startsWith("/vlb/land/tract-images/")
+      !parsed.username &&
+      !parsed.password &&
+      !parsed.port &&
+      ((parsed.hostname === "cdn.glo.texas.gov" &&
+        parsed.pathname.startsWith("/vlb/land/tract-images/")) ||
+        (parsed.hostname === "dnr.alaska.gov" &&
+          parsed.pathname.startsWith("/mlw/cdn/img/landsales/")))
       ? url
       : null;
   } catch {
@@ -197,7 +249,25 @@ function sourceLink(url: string, label: string): HTMLAnchorElement {
   const a = element("a", "", label);
   try {
     const parsed = new URL(url);
-    if (parsed.protocol === "https:" && parsed.hostname === "www.glo.texas.gov")
+    if (
+      parsed.protocol === "https:" &&
+      !parsed.username &&
+      !parsed.password &&
+      !parsed.port &&
+      [
+        "www.glo.texas.gov",
+        "www.resales.usda.gov",
+        "www.irsauctions.gov",
+        "www.treasury.gov",
+        "dnr.alaska.gov",
+        "www.dnr.state.mi.us",
+        "www.michigan.gov",
+        "www.hudhomestore.gov",
+        "disposal.gsa.gov",
+        "www.usa.gov",
+        "cosl.org",
+      ].includes(parsed.hostname)
+    )
       a.href = url;
   } catch {
     /* A malformed source is displayed without an actionable URL. */
@@ -305,8 +375,12 @@ async function navigate(view: string): Promise<void> {
       : "Real listings. Clear sources. A closer look at what matters.";
   if (sources) {
     try {
-      const result = await api<{ sources: Source[] }>("/api/sources");
-      renderSources(result.sources);
+      const result = await api<{ sources: Source[]; states: StateCoverage[] }>(
+        "/api/sources",
+      );
+      coverageSources = result.sources;
+      coverageStates = result.states;
+      renderCoverage();
     } catch (error) {
       notify(errorText(error));
     }
@@ -327,6 +401,7 @@ function query(): Record<string, unknown> {
     min_acres: Number(data.get("min_acres") || 0),
     max_price: maximum ? Number(maximum) : null,
     category: data.get("category"),
+    source: data.get("source") || null,
     sort: byId<HTMLSelectElement>("sort").value,
     page,
     page_size: 12,
@@ -374,7 +449,7 @@ byId("refresh-results").addEventListener("click", () => {
 });
 byId("reset-filters").addEventListener("click", () => {
   form.reset();
-  byId<HTMLSelectElement>("state").value = "TX";
+  byId<HTMLSelectElement>("state").value = "US";
   page = 1;
   void search();
 });
@@ -392,33 +467,30 @@ function renderResults(result: SearchResult): void {
   byId("results-title").textContent =
     `${total} ${savedOnly ? "saved " : ""}${total === 1 ? "property" : "properties"}`;
   byId("results-subtitle").textContent =
-    "Texas GLO public-sale inventory · Asking prices are not appraisals";
-  const source = result.source;
-  byId("source-summary").textContent =
-    source.status === "syncing"
-      ? "Refreshing official inventory. Use Refresh results in a moment."
-      : `${source.stale || source.status !== "ready" ? "Source needs attention" : "Official-source inventory"} · Last successful retrieval ${date(source.last_success)}`;
-  byId("source-summary").parentElement?.classList.toggle(
-    "stale",
-    source.stale || source.status !== "ready",
+    "Connected sale inventories · Published prices and bids are not appraisals";
+  const feeds = result.sources.filter((source) => source.automated);
+  const ready = feeds.filter(
+    (source) => source.status === "ready" && !source.stale,
   );
+  const attention = feeds.some(
+    (source) => source.status !== "ready" || source.stale,
+  );
+  byId("source-summary").textContent =
+    `${ready.length} of ${feeds.length} matching feeds refreshed${attention ? " · Some feeds need attention" : ""} · Partial coverage; inspect Data coverage`;
+  byId("source-summary").parentElement?.classList.toggle("stale", attention);
   const empty = result.results.length === 0;
   byId("empty-state").hidden = !empty;
   byId("results-layout").hidden = empty;
   if (empty) {
     byId("empty-title").textContent = !result.coverage_supported
       ? "This coverage is not connected yet."
-      : source.record_count === 0
-        ? "The official inventory is not ready yet."
-        : savedOnly
-          ? "No saved properties match these filters."
-          : "No matching listings in this source.";
+      : savedOnly
+        ? "No saved properties match these filters."
+        : "No matching listings in connected sources.";
     byId("empty-description").textContent = !result.coverage_supported
-      ? "The beta currently covers Texas GLO public-sale land. Other states, tax sales, foreclosures, and surplus feeds are not connected. This is a coverage gap, not proof that no opportunities exist."
-      : source.record_count === 0
-        ? source.message +
-          " Try Refresh results shortly. We will not substitute sample listings."
-        : "Try another county, a lower acreage minimum, or a higher price ceiling. These results only reflect the connected source.";
+      ? "An automated feed for this selection is not connected. Open Data coverage for official source links and current gaps. A pre-foreclosure notice is not a confirmed sale."
+      : result.coverage_note +
+        " Try a different state or filter, or inspect Data coverage.";
   }
   byId("property-list").replaceChildren(...result.results.map(propertyCard));
   const pages = Math.max(1, Math.ceil(total / result.page_size));
@@ -446,7 +518,9 @@ function propertyCard(record: PropertyRecord): HTMLElement {
     element(
       "span",
       "category-label",
-      record.active ? "GOVERNMENT LAND" : "NOT IN CURRENT INVENTORY",
+      record.active
+        ? (categoryNames[record.category] ?? record.category).toUpperCase()
+        : "NOT IN CURRENT INVENTORY",
     ),
   );
   const save = element("button", "save-button");
@@ -478,17 +552,11 @@ function propertyCard(record: PropertyRecord): HTMLElement {
   });
   image.append(save);
   const body = element("div", "card-body");
-  body.append(
-    element("p", "card-location", `${record.county} County, ${record.state}`),
-  );
+  body.append(element("p", "card-location", location(record)));
   const heading = element("div", "card-heading");
   heading.append(
     element("h3", "", record.title),
-    element(
-      "span",
-      "",
-      `${record.acres.toLocaleString(undefined, { maximumFractionDigits: 4 })} acres`,
-    ),
+    element("span", "", area(record.acres)),
   );
   body.append(heading);
   body.append(
@@ -496,12 +564,17 @@ function propertyCard(record: PropertyRecord): HTMLElement {
     element(
       "p",
       "card-price-note",
-      `Published sale price · ${money(record.asking_price / record.acres)}/acre`,
+      `${record.price_kind}${record.asking_price !== null && record.acres !== null ? " · " + perAcre(record) + "/acre" : ""}`,
+    ),
+    element(
+      "p",
+      "card-sale-status",
+      `${record.sale_status}${record.auction_date ? " · " + saleDate(record.auction_date) : ""}`,
     ),
     element("div", "card-divider"),
   );
   const footer = element("div", "card-footer");
-  footer.append(element("span", "card-source", "Texas GLO · Public sale"));
+  footer.append(element("span", "card-source", record.source_name));
   const detail = element("button", "card-detail", "View property →");
   detail.setAttribute("aria-label", `View property ${record.tract}`);
   detail.addEventListener("click", () => {
@@ -516,8 +589,8 @@ function propertyCard(record: PropertyRecord): HTMLElement {
 function drawMap(records: PropertyRecord[]): void {
   if (!map) {
     map = L.map("property-map", { scrollWheelZoom: false }).setView(
-      [31.2, -99.3],
-      6,
+      [39, -98],
+      4,
     );
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 18,
@@ -543,7 +616,7 @@ function drawMap(records: PropertyRecord[]): void {
     `${points.length} of ${records.length} locations · this page`;
   if (points.length)
     map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 12 });
-  else map.setView([31.2, -99.3], 6);
+  else map.setView([39, -98], 4);
   renderMapMarkers();
   setTimeout(() => map?.invalidateSize(), 50);
 }
@@ -637,9 +710,11 @@ function renderSources(sources: Source[]): void {
         element(
           "span",
           `source-state ${source.stale || source.status !== "ready" ? "warn" : ""}`,
-          source.status === "ready" && !source.stale
-            ? "Retrieval current"
-            : source.status,
+          !source.automated
+            ? "Official source link · not imported"
+            : source.status === "ready" && !source.stale
+              ? "Retrieval current"
+              : source.status,
         ),
       );
       card.append(
@@ -648,7 +723,9 @@ function renderSources(sources: Source[]): void {
         element(
           "p",
           "",
-          `${source.record_count} records at last successful sync · ${date(source.last_success)}`,
+          source.automated
+            ? `${source.record_count} source records at last successful sync · ${date(source.last_success)}`
+            : "Directory entry; excluded from property counts",
         ),
         element("p", "", source.message),
         sourceLink(source.url, "Inspect the original inventory ↗"),
@@ -657,6 +734,53 @@ function renderSources(sources: Source[]): void {
     }),
   );
 }
+
+function renderCoverage(): void {
+  const state = byId<HTMLSelectElement>("coverage-state").value;
+  const category = byId<HTMLSelectElement>("coverage-category").value;
+  renderSources(
+    coverageSources.filter(
+      (source) =>
+        (state === "US" || source.states.includes(state)) &&
+        (category === "all" || source.categories.includes(category)),
+    ),
+  );
+  const rows = coverageStates.filter(
+    (item) => state === "US" || item.state === state,
+  );
+  const table = element("table", "coverage-table");
+  const head = element("thead");
+  const header = element("tr");
+  for (const label of [
+    "State",
+    "Current records · all categories",
+    "Official state agencies",
+  ])
+    header.append(element("th", "", label));
+  head.append(header);
+  const body = element("tbody");
+  for (const item of rows) {
+    const row = element("tr");
+    const stateCell = element("td");
+    const button = element("button", "text-button", item.name);
+    button.addEventListener("click", () => {
+      form.reset();
+      byId<HTMLSelectElement>("state").value = item.state;
+      void navigate("explore");
+    });
+    stateCell.append(button);
+    const link = element("td");
+    link.append(
+      sourceLink(item.directory_url, "Find state / local agencies ↗"),
+    );
+    row.append(stateCell, element("td", "", String(item.record_count)), link);
+    body.append(row);
+  }
+  table.append(head, body);
+  byId("state-coverage").replaceChildren(table);
+}
+byId("coverage-state").addEventListener("change", renderCoverage);
+byId("coverage-category").addEventListener("change", renderCoverage);
 
 async function openDetail(id: string): Promise<void> {
   const sequence = ++detailSequence;
@@ -673,7 +797,10 @@ async function openDetail(id: string): Promise<void> {
         "purchase_price",
       );
     if (input instanceof HTMLInputElement)
-      input.value = String(record.asking_price);
+      input.value =
+        record.asking_price === null || record.price_kind === "Government bid"
+          ? ""
+          : String(record.asking_price);
     byId("analysis-results").hidden = true;
     byId("analysis-results").replaceChildren();
     byId("analysis-error").textContent = "";
@@ -692,7 +819,7 @@ function renderDetail(record: PropertyRecord): void {
       "p",
       "eyebrow",
       record.active
-        ? "GOVERNMENT LAND · PUBLIC SALE"
+        ? record.sale_type.toUpperCase()
         : "NO LONGER IN CURRENT INVENTORY",
     ),
   );
@@ -700,21 +827,53 @@ function renderDetail(record: PropertyRecord): void {
   heading.id = "detail-title";
   overview.append(
     heading,
-    element("p", "detail-location", `${record.county} County, Texas`),
+    element("p", "detail-location", location(record)),
     element("p", "detail-price", money(record.asking_price)),
     element(
       "p",
       "input-note",
-      "Published sale price · Not a market-value estimate",
+      `${record.price_kind} · Not a market-value estimate`,
+    ),
+    element("p", "", record.sale_status),
+    element(
+      "p",
+      "",
+      `Auction: ${saleDate(record.auction_date)} · Bid deadline: ${saleDate(record.bidding_deadline)}`,
     ),
   );
+  if (record.eligibility)
+    overview.append(element("p", "source-state warn", record.eligibility));
+  if (record.reported_taxes !== null)
+    overview.append(
+      element(
+        "p",
+        "input-note",
+        `Source-reported taxes: ${money(record.reported_taxes)} · Not a sale price, minimum bid or verified lien balance`,
+      ),
+    );
+  if (record.auction_date_text && !record.auction_date)
+    overview.append(
+      element(
+        "p",
+        "input-note",
+        `Source date text: ${record.auction_date_text}`,
+      ),
+    );
+  if (record.source_appraised_value !== null)
+    overview.append(
+      element(
+        "p",
+        "input-note",
+        `Source-reported appraisal: ${money(record.source_appraised_value)} · Date and current market value not independently verified; not an asking price`,
+      ),
+    );
   overview.append(
     sourceLink(record.source_url, "View official listing & sale terms ↗"),
   );
   const facts = element("div", "detail-facts");
   for (const [label, value] of [
-    ["LAND AREA", `${record.acres} acres`],
-    ["PRICE / ACRE", money(record.asking_price / record.acres)],
+    ["LAND AREA", area(record.acres)],
+    ["PRICE / ACRE", perAcre(record)],
     ["SOURCE FIELDS", `${record.data_completeness}%`],
   ]) {
     const fact = element("div");
@@ -903,6 +1062,7 @@ function renderAnalysis(result: AnalysisResult): void {
   container.append(metrics);
   if (
     currentProperty &&
+    currentProperty.asking_price !== null &&
     result.maximum_bid !== null &&
     result.maximum_bid < currentProperty.asking_price
   )
@@ -910,7 +1070,7 @@ function renderAnalysis(result: AnalysisResult): void {
       element(
         "p",
         "model-meta",
-        "Your model maximum is below the published sale price. The seller may not accept an offer at that level.",
+        "Your model maximum is below the published price or bid. Confirm the seller's terms before making an offer.",
       ),
     );
   const chart = element("div", "histogram-panel");
@@ -987,14 +1147,10 @@ const states =
   "AL:Alabama|AK:Alaska|AZ:Arizona|AR:Arkansas|CA:California|CO:Colorado|CT:Connecticut|DE:Delaware|FL:Florida|GA:Georgia|HI:Hawaii|ID:Idaho|IL:Illinois|IN:Indiana|IA:Iowa|KS:Kansas|KY:Kentucky|LA:Louisiana|ME:Maine|MD:Maryland|MA:Massachusetts|MI:Michigan|MN:Minnesota|MS:Mississippi|MO:Missouri|MT:Montana|NE:Nebraska|NV:Nevada|NH:New Hampshire|NJ:New Jersey|NM:New Mexico|NY:New York|NC:North Carolina|ND:North Dakota|OH:Ohio|OK:Oklahoma|OR:Oregon|PA:Pennsylvania|RI:Rhode Island|SC:South Carolina|SD:South Dakota|TN:Tennessee|TX:Texas|UT:Utah|VT:Vermont|VA:Virginia|WA:Washington|WV:West Virginia|WI:Wisconsin|WY:Wyoming";
 for (const state of states.split("|")) {
   const [code, name] = state.split(":");
-  const option = element(
-    "option",
-    "",
-    `${name}${code === "TX" ? "" : " · not connected"}`,
-  );
+  const option = element("option", "", name);
   option.value = code ?? "";
-  option.defaultSelected = code === "TX";
   byId<HTMLSelectElement>("state").append(option);
+  byId<HTMLSelectElement>("coverage-state").append(option.cloneNode(true));
 }
 byId("year").textContent = String(new Date().getFullYear());
 void (async () => {

@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import time
 from collections.abc import AsyncIterator, Iterator
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import urlsplit
@@ -12,7 +13,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import delete, select, text
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -20,6 +21,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from landwolf import auth
 from landwolf.analysis import analyze
+from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
 from landwolf.db import (
     Account,
@@ -30,8 +32,8 @@ from landwolf.db import (
     database,
     initialize,
 )
-from landwolf.provider import MAX_RECORDS, GLOProvider
 from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, SearchQuery
+from landwolf.sources import SOURCE_BY_ID
 
 
 class BodyLimit:
@@ -77,7 +79,7 @@ class BodyLimit:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     engine, factory = database(settings.database_url)
-    provider = GLOProvider(factory)
+    provider = Catalog(factory)
 
     @contextlib.asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -124,7 +126,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "Content-Security-Policy": (
                     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
                     "img-src 'self' data: https://cdn.glo.texas.gov "
-                    "https://tile.openstreetmap.org; "
+                    "https://dnr.alaska.gov https://tile.openstreetmap.org; "
                     "connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; "
                     "frame-ancestors 'none'; form-action 'self'"
                 ),
@@ -198,11 +200,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/sources")
     def sources(request: Request, session: DB) -> dict[str, Any]:
         auth.authenticate(request, session, settings)
-        return {"sources": [provider.status()], "payments_enabled": False}
+        return {
+            "sources": provider.statuses(),
+            "states": provider.coverage(),
+            "payments_enabled": False,
+        }
 
     def record_payload(item: Listing, saved: set[str]) -> dict[str, Any]:
-        value = PropertyRecord.model_validate(item.payload).model_dump()
+        value = PropertyRecord.model_validate(item.payload).model_dump(mode="json")
         value.update(active=item.active, saved=item.id in saved)
+        today = datetime.now(UTC).date().isoformat()
+        if any(
+            value.get(key) and value[key] < today for key in ("auction_date", "bidding_deadline")
+        ):
+            value.update(active=False, sale_status="Date passed — verify outcome")
         return value
 
     def saved_ids(session: Session, account: Account) -> set[str]:
@@ -216,46 +227,71 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def search(query: SearchQuery, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings, write=True)
         auth.limit(session, f"search:{account.id}", 60)
-        supported = query.state == "TX" and query.category in {"all", "government_land"}
+        if query.source is not None and query.source not in SOURCE_BY_ID:
+            raise HTTPException(422, "Select a known source")
+        sources = provider.statuses(query.state, query.category, query.source)
+        supported = any(source["automated"] for source in sources)
         saved = saved_ids(session, account)
-        rows: list[dict[str, Any]] = []
-        if supported:
-            stmt = select(Listing).order_by(Listing.id).limit(MAX_RECORDS)
-            if not query.saved_only:
-                stmt = stmt.where(Listing.active.is_(True))
-            for item in session.scalars(stmt):
-                value = record_payload(item, saved)
-                location = " ".join(
-                    str(value.get(k) or "") for k in ("county", "tract", "location_description")
-                ).casefold()
-                if query.location.strip().casefold() not in location:
-                    continue
-                if value["acres"] < query.min_acres or (
-                    query.max_price is not None and value["asking_price"] > query.max_price
-                ):
-                    continue
-                if query.saved_only and item.id not in saved:
-                    continue
-                rows.append(value)
+        stmt = select(Listing)
+        if query.saved_only:
+            stmt = stmt.where(
+                Listing.id.in_(
+                    select(SavedProperty.listing_id).where(SavedProperty.account_id == account.id)
+                )
+            )
+        else:
+            stmt = stmt.where(
+                Listing.active.is_(True),
+                *current_sale_conditions(datetime.now(UTC).date().isoformat()),
+            )
+        if query.state != "US":
+            stmt = stmt.where(Listing.payload["state"].as_string() == query.state)
+        if query.category != "all":
+            stmt = stmt.where(Listing.payload["category"].as_string() == query.category)
+        if query.source:
+            stmt = stmt.where(Listing.source == query.source)
+        if query.location.strip():
+            location = func.lower(
+                func.coalesce(Listing.payload["county"].as_string(), "")
+                + " "
+                + func.coalesce(Listing.payload["tract"].as_string(), "")
+                + " "
+                + func.coalesce(Listing.payload["title"].as_string(), "")
+                + " "
+                + func.coalesce(Listing.payload["location_description"].as_string(), "")
+            )
+            stmt = stmt.where(location.contains(query.location.strip().lower(), autoescape=True))
+        acreage = Listing.payload["acres"].as_float()
+        price = Listing.payload["asking_price"].as_float()
+        if query.min_acres > 0:
+            stmt = stmt.where(acreage >= query.min_acres)
+        if query.max_price is not None:
+            stmt = stmt.where(price <= query.max_price)
+        total = session.scalar(select(func.count()).select_from(stmt.subquery())) or 0
         key = (
-            "county"
+            Listing.payload["county"].as_string()
             if query.sort == "county"
-            else "acres"
-            if query.sort == "acres_desc"
-            else "asking_price"
+            else (acreage if query.sort == "acres_desc" else price)
         )
-        rows.sort(
-            key=lambda row: (row[key], row["id"]),
-            reverse=query.sort in {"price_desc", "acres_desc"},
+        order = key.desc() if query.sort in {"price_desc", "acres_desc"} else key.asc()
+        stmt = (
+            stmt.order_by(order.nullslast(), Listing.id)
+            .offset((query.page - 1) * query.page_size)
+            .limit(query.page_size)
         )
-        start = (query.page - 1) * query.page_size
+        rows = [record_payload(item, saved) for item in session.scalars(stmt)]
         return {
-            "results": rows[start : start + query.page_size],
-            "total": len(rows),
+            "results": rows,
+            "total": total,
             "page": query.page,
             "page_size": query.page_size,
             "coverage_supported": supported,
-            "source": provider.status(),
+            "sources": sources,
+            "coverage_note": (
+                "Partial source coverage in all 50 states. Counts reflect connected "
+                "inventories, not all properties or county sales. Unknown price/acreage is "
+                "excluded when that numeric filter is applied."
+            ),
         }
 
     @app.get("/api/properties/{listing_id}")

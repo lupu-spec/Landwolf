@@ -14,7 +14,7 @@ from pathlib import Path
 
 import httpx
 import pytest
-from conftest import seed
+from conftest import seed, seed_national
 from playwright.sync_api import Route, expect, sync_playwright
 from sqlalchemy import select
 
@@ -24,7 +24,7 @@ pytestmark = pytest.mark.browser
 
 
 @pytest.fixture
-def browser_server(tmp_path: Path) -> Iterator[tuple[str, int]]:
+def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[tuple[str, int]]:
     url = f"sqlite:///{tmp_path / 'browser.db'}"
     engine, factory = database(url)
     initialize(engine)
@@ -49,6 +49,8 @@ def browser_server(tmp_path: Path) -> Iterator[tuple[str, int]]:
                 )
             )
         source_engine.dispose()
+    elif getattr(request, "param", "") == "nationwide":
+        seed_national(factory)
     else:
         seed(factory)
     with factory() as session:
@@ -251,4 +253,65 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         assert page_errors == []
         assert api_failures == []
         context.close()
+        browser.close()
+
+
+@pytest.mark.parametrize("browser_server", ["nationwide"], indirect=True)
+def test_nationwide_categories_unknown_prices_and_coverage(browser_server: tuple[str, int]) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(origin)
+        expect(page.locator("#search-form")).to_be_hidden()
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("nationwide@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        expect(page.locator(".property-card")).to_have_count(3)
+        assert page.locator("#state option").count() == 51
+        page.get_by_label("State", exact=True).select_option("AR")
+        page.get_by_label("Category", exact=True).select_option("tax_sale")
+        page.locator("#search-submit").click()
+        expect(page.locator(".property-card")).to_have_count(1)
+        expect(page.locator(".card-price")).to_have_text("Not available")
+        assert "null" not in page.locator(".property-card").inner_text()
+        page.locator(".card-detail").click()
+        expect(page.locator("#property-dialog")).to_be_visible()
+        assert page.locator('input[name="purchase_price"]').input_value() == ""
+        assert "Source-reported taxes" in page.locator("#detail-content").inner_text()
+        assert (
+            page.get_by_role("link", name="View official listing")
+            .get_attribute("href")
+            .startswith("https://cosl.org/")
+        )
+        page.locator("#close-detail").click()
+        page.get_by_label("Category", exact=True).select_option("pre_foreclosure")
+        page.locator("#search-submit").click()
+        expect(page.locator("#empty-state")).to_be_visible()
+        assert "not connected" in page.locator("#empty-description").inner_text()
+        page.get_by_role("button", name="Data coverage", exact=True).click()
+        expect(page.locator(".coverage-table tbody tr")).to_have_count(50)
+        page.get_by_label("Coverage state", exact=True).select_option("AK")
+        expect(page.locator(".coverage-table tbody tr")).to_have_count(1)
+        page.get_by_label("Sale type coverage", exact=True).select_option("government_land")
+        expect(page.locator(".source-card")).to_have_count(1)
+        assert "Alaska" in page.locator(".source-card").inner_text()
+        page.locator(".coverage-table").get_by_role("button", name="Alaska", exact=True).click()
+        expect(page.locator(".property-card")).to_have_count(1)
+        page.locator(".card-detail").click()
+        expect(page.locator("#detail-content")).to_contain_text("Alaska residents only")
+        assert page.locator('input[name="purchase_price"]').input_value() == "25000"
+        page.locator("#close-detail").click()
+        page.set_viewport_size({"width": 390, "height": 844})
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.screenshot(path="test-results/nationwide-mobile.png", full_page=True)
+        page.get_by_role("button", name="Sign out", exact=True).click()
+        expect(page.locator("#state-coverage")).to_be_empty()
+        assert errors == []
         browser.close()

@@ -23,25 +23,48 @@ ignored by Git. The source refreshes every six hours while the process runs.
 The public health endpoint is `/api/health`. API documentation is disabled.
 The application wheel includes the built browser assets.
 
-## What is live
+## Source coverage
 
-The initial connector reads the [Texas General Land Office public land-sale
-inventory](https://www.glo.texas.gov/veterans/land-sale/public). It retrieves a complete
-inventory before replacing active records, then enriches each tract from its official
-detail page. Every result has a source link, retrieval time, published price, acreage,
-county, and explicit unknowns. Map markers use coordinates published by the source.
-They are location points, not surveyed parcel boundaries. Source outages preserve
-the last complete inventory and display an availability warning. Detail freshness
-is tracked separately from inventory freshness.
+Search accepts all 50 US states, or `US` for the nationwide view. The live adapters
+read these official inventories:
 
-Coverage is currently this Texas inventory only. County tax sales, foreclosures,
-municipal surplus, other states, verified ownership/liens/flood overlays, comparable
-sales, and independent valuations are **not connected**. Searches outside coverage
-show that limitation. An upstream listing does not establish continued availability.
-The background connector performs at most 500 sequential detail requests, with a
-180-second overall refresh deadline, 15-second request timeouts, response size limits,
-and an allowlist of official source URLs. An unexpected or empty source table requires
-manual review; it cannot erase the prior inventory.
+| Source | Records supplied |
+| --- | --- |
+| Arkansas Commissioner of State Lands | Upcoming county tax-delinquent land auctions |
+| Texas General Land Office | Public land-sale tracts |
+| USDA RD / FSA | Federal foreclosure and REO listings across the 50 states |
+| U.S. Treasury | Federal forfeited real-estate auctions across the 50 states |
+| IRS | Federal tax-seizure real estate auctions across the 50 states |
+| Alaska DNR | State land auctions and direct-sale inventory |
+| Michigan DNR | General-public BuyNow parcels marked available |
+
+This is **partial inventory coverage**, not every listing in every state or county.
+A federal program may have no current records in a state. HUD and GSA are directory
+links only. Nationwide pre-foreclosure and tax-lien certificate feeds are not
+connected. The authenticated Data coverage page distinguishes feed snapshots,
+directory links, current record counts, and gaps for every state and sale category.
+See [SOURCES.md](docs/SOURCES.md) for the original sources and parsing rules.
+
+Each provider replaces only its own inventory after a complete successful retrieval.
+A failure preserves that provider's last snapshot and displays its status. At most
+two providers refresh concurrently; new adapters allow 240 requests per refresh
+including one bounded retry for transient failures, 30-second request timeouts,
+an 8 MB response limit and a 300-second overall deadline. The original GLO adapter
+keeps its stricter 180-second deadline. Inventories are bounded, URLs are explicitly
+allowlisted, and redirects are rejected. Refreshes run every six hours.
+
+Search uses database filtering, counting and pagination. Unknown price and acreage
+remain null, sort last, and do not pass an applicable numeric filter. Minimum bids,
+government bids, tax balances and source appraisals remain distinct. Past auction
+dates and bid deadlines are excluded from current search even between refreshes.
+Ambiguous published dates are withheld for review. Saved entries remain accessible
+with their inactive or expired status. Times and cancellations must still be
+confirmed at the original source before acting.
+
+Map points appear only when a source supplies validated coordinates. New inventories
+without parcel coordinates remain in the list and have no invented map marker.
+No owner contact lists or interested-party columns are imported. Title, ownership,
+liens, flood risk and current market values are not independently verified.
 
 ## Deal model
 
@@ -97,5 +120,5 @@ See [VERIFICATION.md](docs/VERIFICATION.md) for observed results and outstanding
 Fixture tests are isolated from runtime inventory and live checks.
 
 Original branding was supplied by the owner. Land photography and listing facts
-come from Texas GLO. Interactive basemaps use OpenStreetMap contributors with visible
+come from Texas GLO and Alaska DNR. Interactive basemaps use OpenStreetMap contributors with visible
 attribution and normal browser caching; no offline tile harvesting is implemented.

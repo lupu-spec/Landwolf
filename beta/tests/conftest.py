@@ -74,6 +74,59 @@ def inventory(client: TestClient) -> None:
     seed(client.app.state.factory)
 
 
+def seed_national(factory: Any) -> None:
+    """Unknown tax-sale price, a known DNR minimum bid, and a federal REO listing."""
+    with factory() as session, session.begin():
+        for values in [
+            {
+                "id": "fixture-ar",
+                "source": "ar_cosl",
+                "state": "AR",
+                "category": "tax_sale",
+                "source_url": "https://cosl.org/Home/Contents",
+                "reported_taxes": 125.5,
+            },
+            {
+                "id": "fixture-ak",
+                "source": "ak_dnr",
+                "state": "AK",
+                "category": "government_land",
+                "source_url": "https://dnr.alaska.gov/mlw/landsales/parcels",
+                "asking_price": 25000,
+                "acres": 5,
+                "price_kind": "Minimum bid",
+                "bidding_deadline": "2099-09-30",
+                "auction_date": "2099-10-21",
+                "sale_status": "Auction scheduled",
+                "eligibility": "Alaska residents only",
+            },
+            {
+                "id": "fixture-hi",
+                "source": "usda_resales",
+                "state": "HI",
+                "category": "foreclosure",
+                "source_url": "https://www.resales.usda.gov/resales/public/home",
+                "asking_price": 200000,
+            },
+        ]:
+            item = PropertyRecord.model_validate(
+                {
+                    "tract": values["id"],
+                    "title": "Synthetic " + values["state"] + " listing",
+                    "retrieved_at": "2099-01-01T00:00:00Z",
+                    **values,
+                }
+            )
+            session.add(
+                Listing(
+                    id=item.id,
+                    source=item.source,
+                    active=True,
+                    payload=item.model_dump(mode="json"),
+                )
+            )
+
+
 @pytest.fixture
 def scenario() -> AnalysisInput:
     return AnalysisInput(

@@ -73,7 +73,7 @@ def test_sync_failure_retains_cache_and_complete_sync_deactivates_missing(
         return INVENTORY if url == provider.INVENTORY else DETAIL
 
     monkeypatch.setattr(provider, "fetch_text", good_fetch)
-    source = client.app.state.provider
+    source = client.app.state.provider.providers["tx_glo_public"]
     assert asyncio.run(source.refresh())["status"] == "ready"
     with client.app.state.factory() as session:
         active = session.scalars(select(Listing).where(Listing.active.is_(True))).all()
@@ -98,7 +98,7 @@ def test_failed_detail_retains_prior_detail_timestamp(
         return INVENTORY if url == provider.INVENTORY else DETAIL
 
     monkeypatch.setattr(provider, "fetch_text", initial)
-    source = client.app.state.provider
+    source = client.app.state.provider.providers["tx_glo_public"]
     asyncio.run(source.refresh())
     with client.app.state.factory() as session:
         timestamp = session.get(Listing, "glo-14968").payload["detail_retrieved_at"]

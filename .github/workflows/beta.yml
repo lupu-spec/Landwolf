@@ -12,6 +12,17 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: landwolf_ci
+          POSTGRES_USER: landwolf_ci
+          POSTGRES_PASSWORD: landwolf_ci_disposable
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U landwolf_ci -d landwolf_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     defaults:
       run:
         working-directory: beta
@@ -45,6 +56,10 @@ jobs:
           npm run typecheck
       - name: Unit and API integration
         run: .venv/bin/pytest -q -m 'not browser'
+      - name: PostgreSQL integration
+        env:
+          LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
+        run: .venv/bin/python scripts/check_postgres.py
       - name: Browser journey
         run: |
           npm run build

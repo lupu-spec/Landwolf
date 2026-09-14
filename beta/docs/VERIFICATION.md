@@ -303,7 +303,7 @@ this query found zero errors. Earlier build/startup logs were retrieved successf
   That flow passed in CI; actual deployed authentication/search/save/analysis were
   tested through HTTPS APIs, and the public deployed UI was inspected independently.
 
-## Remaining product and deployment limits
+## Product and deployment limits at the initial Texas release
 
 Live coverage is Texas GLO public-sale inventory only. Other states, county tax
 sales, foreclosure feeds, municipal surplus, ownership, liens, flood overlays,
@@ -321,3 +321,63 @@ the main branch were not modified or merged.
 
 Review screenshots: [login](preview-login.png), [property search](preview-explore.png),
 [scenario analysis](preview-analysis.png), [mobile](preview-mobile.png).
+
+## Nationwide expansion — September 14, 2026
+
+The expansion adds a source registry, six additional official-source adapters,
+independent atomic snapshots, SQL filtering/counting/pagination, all 50 state
+selectors and coverage counts, and sale/deadline/eligibility fields. Unknown prices
+and acreage remain unknown. Tax balances, government bids, source appraisals,
+asking prices and user-supplied resale assumptions remain distinct. Only published
+parcel coordinates appear on the map. See [SOURCES.md](SOURCES.md) for source
+contracts and the remaining county and pre-foreclosure gaps.
+
+The original logo/theme, authentication boundary, existing beta accounts, model,
+payments-disabled policy, Render resources and legacy application are preserved.
+No dependency, paid provider, database migration or infrastructure change is needed.
+The CI workflow adds a disposable PostgreSQL 18 integration gate to validate the
+new JSON filtering and persistence against the deployed database engine.
+
+### Commands after the final expansion changes
+
+All commands ran from `beta/` unless stated otherwise. **Passed** means exit 0.
+The local commands below completed after the final security-fixture correction.
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | **Passed** | 24 Python files and configured frontend files formatted. |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | **Passed** | No findings. |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | **Passed** | 14 Python modules and TypeScript checked. |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** | 115 passed, 2 browser tests deselected, 2 retained dependency deprecation warnings. |
+| `.venv/bin/python scripts/check_postgres.py` | **Not run locally** | PostgreSQL/Docker unavailable locally; the new hosted CI gate must pass before deployment. |
+| `npm run build` | **Passed** | Updated browser assets built. |
+| `.venv/bin/pytest -q -m browser` | **Not run locally** | The local Chromium launch crash is documented above. Await the two hosted Chromium journeys for this revision. |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | **Passed** | Source archive/wheel built; app, new modules and original branding assets packaged. |
+| `.venv/bin/bandit -r landwolf` | **Passed** | No findings; 2,157 lines scanned, zero security suppressions. |
+| `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | **Passed** | No known dependency vulnerabilities or secret-scan findings. |
+| `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (root) | **Failed** | 48 passed; the same 5 missing legacy environment-fixture failures. No legacy source or billing tests changed. |
+| `.venv/bin/python -m landwolf.cli sync` | **Passed** | Final source refresh exited 0; all seven automated sources ready by 17:13:52 UTC. 2,539 raw records, 2,528 current after date/status filtering, in 19 states. |
+| `git diff --check`; `git status --short` (root) | **Passed** | Reviewed only beta code/tests/docs and its CI workflow; no source snapshots, database files, credentials or unrelated changes. |
+
+### Resolved development findings and pending release checks
+
+- Parser tests caught whitespace-sensitive Alaska auction dates and a Michigan
+  acreage pattern that accepted a substring of a negative size. Both were fixed
+  and their regression cases pass.
+- Initial Alaska/Michigan HTTP reads timed out. New adapters now use 30-second
+  request timeouts, one bounded transient retry, a 300-second source deadline,
+  an 8 MB response bound and at most 240 requests per source refresh.
+- USDA's unfiltered search returned an error page. Retrieval now uses each
+  advertised state and property type, verifies advertised counts, parses published
+  date formats, withholds ambiguous dates, and distinguishes FSA appraisals.
+- The secret scanner initially rejected a literal fake Basic Auth URL in an SSRF
+  rejection test. The fixture now constructs that invalid URL; the same security
+  assertion remains and the scanner has no added exceptions. The complete local
+  gate sequence subsequently passed.
+- An intermediate source-result inspection attempted to read the redirected JSON
+  file while the refresh was still running and failed with JSONDecodeError. This
+  inspection is not a successful refresh or a passing gate.
+
+Hosted browser/PostgreSQL results, exact published tree,
+Render deployment and deployed HTTPS checks will be recorded below when observed.
+No claim is made here that this expansion has already been deployed.

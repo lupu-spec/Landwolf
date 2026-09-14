@@ -22,8 +22,9 @@ def test_filters_sorting_pagination_and_uncovered_sources(
     assert search(sort="acres_desc")["results"][0]["acres"] == 20
     assert search(location="' OR 1=1 --")["total"] == 0
     assert search(page=999)["results"] == []
-    assert search(state="CA")["coverage_supported"] is False
-    assert search(category="tax_sale")["coverage_supported"] is False
+    assert search(state="CA")["coverage_supported"] is True
+    assert search(category="tax_sale")["coverage_supported"] is True
+    assert search(category="pre_foreclosure")["coverage_supported"] is False
     assert search(location="missing")["coverage_supported"] is True
 
 

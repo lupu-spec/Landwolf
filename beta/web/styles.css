@@ -651,6 +651,7 @@ input::placeholder {
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
+  flex-wrap: wrap;
 }
 .card-heading h3 {
   font-size: 1rem;
@@ -685,6 +686,54 @@ input::placeholder {
 .card-source {
   font-size: 0.69rem;
   color: var(--muted);
+  max-width: 65%;
+  overflow-wrap: anywhere;
+}
+.card-sale-status {
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-top: 9px;
+}
+.source-filter-row,
+.coverage-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0;
+  font-size: 0.8rem;
+}
+.source-filter-row select,
+.coverage-filters select {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  padding: 8px;
+  max-width: 100%;
+  color: var(--navy);
+}
+.source-filter-row span {
+  flex: 1 1 250px;
+  color: var(--muted);
+}
+#source-cards {
+  display: grid;
+  gap: 16px;
+}
+.table-scroll {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+.coverage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.coverage-table th,
+.coverage-table td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
 }
 .card-detail {
   padding: 0;

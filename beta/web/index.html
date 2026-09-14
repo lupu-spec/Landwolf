@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="LandWolf free beta: source-backed Texas land discovery, property research, and transparent deal scenarios."
+      content="LandWolf free beta: property research across all 50 states, official sale inventories, and transparent deal scenarios."
     />
     <title>LandWolf — Property Intelligence</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -121,8 +121,9 @@
               <div>
                 <strong>Built for a better-informed first move.</strong>
                 <p>
-                  Beta coverage begins with Texas GLO public land sales. More
-                  sources will be added as they are validated.
+                  Search all 50 states. Connected government sources provide
+                  land, foreclosure and auction records; coverage varies by
+                  source.
                 </p>
               </div>
             </div>
@@ -162,15 +163,47 @@
             successful retrieval does not verify title, liens, market value, or
             continued availability.
           </p>
+          <div class="coverage-filters">
+            <div class="field">
+              <label for="coverage-state">Coverage state</label
+              ><select id="coverage-state">
+                <option value="US">All 50 states</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="coverage-category">Sale type coverage</label
+              ><select id="coverage-category">
+                <option value="all">All sale types</option>
+                <option value="government_land">
+                  DNR &amp; government land
+                </option>
+                <option value="tax_sale">Tax sales</option>
+                <option value="foreclosure">Foreclosure / REO</option>
+                <option value="pre_foreclosure">Pre-foreclosure notices</option>
+                <option value="surplus">Public surplus</option>
+                <option value="public_auction">Public auctions</option>
+              </select>
+            </div>
+          </div>
           <div id="source-cards"></div>
           <div class="coverage-next">
-            <h3>Not connected yet</h3>
+            <h3>All 50 states. Explicit coverage limits.</h3>
             <p>
-              County tax sales, mortgage foreclosures, municipal surplus, and
-              other states. A search outside connected coverage returns a
-              coverage notice—not invented properties or a claim that no
-              opportunities exist.
+              Federal feeds accept all 50 states, but may have no current
+              records in a state. State and county inventories are partial.
+              Arkansas county tax-delinquent auctions are connected; tax-lien
+              certificate and nationwide pre-foreclosure feeds are not
+              connected. IRS tax-seizure auctions are a separate sale type. A
+              default notice does not establish an offer to sell or an auction
+              date.
             </p>
+            <p>
+              Directory links open official sites and do not add listings.
+              Counts below include current records across all connected
+              categories, exclude past auction dates and bid deadlines, and do
+              not establish full market coverage.
+            </p>
+            <div id="state-coverage" class="table-scroll"></div>
           </div>
         </section>
 
@@ -191,7 +224,9 @@
             </div>
             <div class="field">
               <label for="state">State</label
-              ><select id="state" name="state"></select>
+              ><select id="state" name="state">
+                <option value="US">All 50 states</option>
+              </select>
             </div>
             <div class="field">
               <label for="min-acres">Min. acres</label
@@ -206,7 +241,7 @@
               />
             </div>
             <div class="field">
-              <label for="max-price">Max. asking price</label
+              <label for="max-price">Max. published price / bid</label
               ><input
                 id="max-price"
                 name="max_price"
@@ -220,11 +255,15 @@
             <div class="field">
               <label for="category">Category</label
               ><select id="category" name="category">
-                <option value="all">All connected</option>
-                <option value="government_land">Government land</option>
-                <option value="tax_sale">Tax sales · not connected</option>
-                <option value="foreclosure">Foreclosure · not connected</option>
-                <option value="surplus">Surplus · not connected</option>
+                <option value="all">All sale types</option>
+                <option value="government_land">
+                  DNR &amp; government land
+                </option>
+                <option value="tax_sale">Tax sales</option>
+                <option value="foreclosure">Foreclosure / REO</option>
+                <option value="pre_foreclosure">Pre-foreclosure notices</option>
+                <option value="surplus">Public surplus</option>
+                <option value="public_auction">Public auctions</option>
               </select>
             </div>
             <button
@@ -238,6 +277,23 @@
               >Search
             </button>
           </form>
+          <div class="source-filter-row">
+            <label for="source-filter">Data source</label>
+            <select id="source-filter" name="source" form="search-form">
+              <option value="">All matching sources</option>
+              <option value="ar_cosl">Arkansas county tax sales</option>
+              <option value="tx_glo_public">Texas GLO</option>
+              <option value="usda_resales">USDA foreclosures / REO</option>
+              <option value="irs_auctions">IRS tax-seizure auctions</option>
+              <option value="us_treasury">Treasury public auctions</option>
+              <option value="ak_dnr">Alaska DNR</option>
+              <option value="mi_dnr">Michigan DNR</option>
+            </select>
+            <span
+              >Price and acreage filters exclude unknown values. Check bid type
+              and dates in each listing.</span
+            >
+          </div>
           <div class="coverage-strip">
             <p id="source-summary">Checking source coverage…</p>
             <button id="refresh-results" class="text-button">

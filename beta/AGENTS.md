@@ -18,6 +18,8 @@ Required gates, in order:
 2. `.venv/bin/ruff check landwolf tests scripts` and `npm run lint`.
 3. `.venv/bin/mypy landwolf` and `npm run typecheck`.
 4. `.venv/bin/pytest -q -m 'not browser'` (isolated API, parser, and invariant tests).
+   CI must also run `.venv/bin/python scripts/check_postgres.py` with the disposable
+   `landwolf_ci` PostgreSQL service. Never point this check at a production database.
 5. `npm run build`, then `.venv/bin/pytest -q -m browser` for real browser flows.
 6. `.venv/bin/python -m build` and `.venv/bin/python scripts/check_package.py`.
 7. `.venv/bin/bandit -r landwolf`, `.venv/bin/pip-audit --local --skip-editable`,

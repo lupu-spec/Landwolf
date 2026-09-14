@@ -1,9 +1,15 @@
 """Contracts reject unknown keys, non-finite values, and unbounded workloads."""
 
-import re
+from datetime import date
 from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
+
+from landwolf.states import state_code
+
+Category = Literal[
+    "government_land", "tax_sale", "foreclosure", "pre_foreclosure", "surplus", "public_auction"
+]
 
 
 class Contract(BaseModel):
@@ -16,18 +22,35 @@ class Credentials(Contract):
 
 
 class PropertyRecord(Contract):
-    id: str
-    source: Literal["tx_glo_public"] = "tx_glo_public"
-    source_name: str = "Texas General Land Office"
-    source_url: str
-    tract: str
-    title: str
-    state: Literal["TX"] = "TX"
-    county: str
-    acres: float = Field(gt=0, le=10_000_000)
-    asking_price: float = Field(ge=0, le=1_000_000_000)
-    price_kind: Literal["Published sale price"] = "Published sale price"
-    category: Literal["government_land"] = "government_land"
+    id: str = Field(min_length=1, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$")
+    source: str = Field(default="tx_glo_public", max_length=40, pattern=r"^[a-z0-9_]+$")
+    source_name: str = Field(default="Texas General Land Office", max_length=160)
+    source_url: str = Field(max_length=1000)
+    tract: str = Field(min_length=1, max_length=100)
+    title: str = Field(min_length=1, max_length=300)
+    state: str = "TX"
+    county: str | None = Field(default=None, max_length=100)
+    acres: float | None = Field(default=None, gt=0, le=10_000_000)
+    asking_price: float | None = Field(default=None, ge=0, le=1_000_000_000)
+    reported_taxes: float | None = Field(default=None, ge=0, le=1_000_000_000)
+    source_appraised_value: float | None = Field(default=None, ge=0, le=1_000_000_000)
+    price_kind: Literal[
+        "Published sale price", "Minimum bid", "Government bid", "Not published"
+    ] = "Published sale price"
+    category: Category = "government_land"
+    sale_type: str = Field(default="Public land sale", max_length=100)
+    sale_status: Literal[
+        "Available",
+        "Auction scheduled",
+        "Date not announced",
+        "Date needs review",
+        "Pre-foreclosure notice",
+    ] = "Available"
+    auction_date: date | None = None
+    auction_date_text: str | None = Field(default=None, max_length=80)
+    bidding_deadline: date | None = None
+    notice_date: date | None = None
+    eligibility: str | None = Field(default=None, max_length=500)
     image_url: str | None = None
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
@@ -47,11 +70,48 @@ class PropertyRecord(Contract):
         ]
     )
 
+    @field_validator("state")
+    @classmethod
+    def valid_state(cls, value: str) -> str:
+        return state_code(value)
+
+    @model_validator(mode="after")
+    def consistent_sale(self) -> Self:
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("Coordinates must be supplied as a pair")
+        if self.asking_price is None:
+            self.price_kind = "Not published"
+        elif self.price_kind == "Not published":
+            raise ValueError("A published price requires its price kind")
+        if self.sale_status == "Auction scheduled" and self.auction_date is None:
+            raise ValueError("Scheduled auctions require a source-published date")
+        if (
+            self.bidding_deadline
+            and self.auction_date
+            and self.bidding_deadline > self.auction_date
+        ):
+            raise ValueError("Bid deadline cannot follow the auction")
+        if self.category == "pre_foreclosure" and (
+            self.sale_status != "Pre-foreclosure notice" or self.auction_date is not None
+        ):
+            raise ValueError("A pre-foreclosure notice is not a scheduled sale")
+        self.data_completeness = 20 * sum(
+            [
+                True,
+                self.asking_price is not None,
+                self.acres is not None,
+                bool(self.legal_description or self.location_description),
+                self.latitude is not None and self.longitude is not None,
+            ]
+        )
+        return self
+
 
 class SearchQuery(Contract):
-    state: str = Field(default="TX", min_length=2, max_length=2)
+    state: str = Field(default="US", min_length=2, max_length=2)
     location: str = Field(default="", max_length=100)
-    category: Literal["all", "government_land", "tax_sale", "foreclosure", "surplus"] = "all"
+    category: Literal["all"] | Category = "all"
+    source: str | None = Field(default=None, max_length=40, pattern=r"^[a-z0-9_]+$")
     min_acres: float = Field(default=0, ge=0, le=10_000_000)
     max_price: float | None = Field(default=None, ge=0, le=1_000_000_000)
     sort: Literal["price_asc", "price_desc", "acres_desc", "county"] = "price_asc"
@@ -62,9 +122,7 @@ class SearchQuery(Contract):
     @field_validator("state")
     @classmethod
     def state_code(cls, value: str) -> str:
-        if not re.fullmatch(r"[A-Za-z]{2}", value):
-            raise ValueError("Use a two-letter state code")
-        return value.upper()
+        return state_code(value, nationwide=True)
 
 
 class Range(Contract):
