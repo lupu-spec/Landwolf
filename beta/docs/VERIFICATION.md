@@ -349,9 +349,9 @@ The local commands below completed after the final security-fixture correction.
 | `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | **Passed** | No findings. |
 | `.venv/bin/mypy landwolf`; `npm run typecheck` | **Passed** | 14 Python modules and TypeScript checked. |
 | `.venv/bin/pytest -q -m 'not browser'` | **Passed** | 115 passed, 2 browser tests deselected, 2 retained dependency deprecation warnings. |
-| `.venv/bin/python scripts/check_postgres.py` | **Not run locally** | PostgreSQL/Docker unavailable locally; the new hosted CI gate must pass before deployment. |
+| `.venv/bin/python scripts/check_postgres.py` | **Passed in hosted CI** | PostgreSQL 18 authentication, JSON filters, nulls, dates, pagination and saves passed at 17:17:27 UTC. Not run locally; PostgreSQL/Docker unavailable. |
 | `npm run build` | **Passed** | Updated browser assets built. |
-| `.venv/bin/pytest -q -m browser` | **Not run locally** | The local Chromium launch crash is documented above. Await the two hosted Chromium journeys for this revision. |
+| `.venv/bin/pytest -q -m browser` | **Passed in hosted CI** | Both Chromium journeys passed at 17:17:38 UTC: existing discovery/model flow and nationwide category/source/unknown-price/deadline/coverage/mobile flow. Not rerun with the locally crashing browser. |
 | `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | **Passed** | Source archive/wheel built; app, new modules and original branding assets packaged. |
 | `.venv/bin/bandit -r landwolf` | **Passed** | No findings; 2,157 lines scanned, zero security suppressions. |
 | `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | **Passed** | No known dependency vulnerabilities or secret-scan findings. |
@@ -359,7 +359,7 @@ The local commands below completed after the final security-fixture correction.
 | `.venv/bin/python -m landwolf.cli sync` | **Passed** | Final source refresh exited 0; all seven automated sources ready by 17:13:52 UTC. 2,539 raw records, 2,528 current after date/status filtering, in 19 states. |
 | `git diff --check`; `git status --short` (root) | **Passed** | Reviewed only beta code/tests/docs and its CI workflow; no source snapshots, database files, credentials or unrelated changes. |
 
-### Resolved development findings and pending release checks
+### Resolved development findings
 
 - Parser tests caught whitespace-sensitive Alaska auction dates and a Michigan
   acreage pattern that accepted a substring of a negative size. Both were fixed
@@ -378,6 +378,102 @@ The local commands below completed after the final security-fixture correction.
   file while the refresh was still running and failed with JSONDecodeError. This
   inspection is not a successful refresh or a passing gate.
 
-Hosted browser/PostgreSQL results, exact published tree,
-Render deployment and deployed HTTPS checks will be recorded below when observed.
-No claim is made here that this expansion has already been deployed.
+### Published source and hosted gates
+
+Runtime commit `81929160dc4a3d72e679c658a121203938f6d3c7` has tree
+`05dd6d246f18a48ca47dc47e7c7b2268024c7cc8`, exactly matching the reviewed staged
+local tree before the beta branch was advanced. Fetching that branch and comparing
+it with the local working tree exited 0; the working tree was clean afterwards.
+
+[Push run 34873672194](https://github.com/lupu-spec/Landwolf/actions/runs/34873672194),
+job `104075467040`, passed every gate at this exact commit. Logs confirm 115 unit/API
+tests, the disposable PostgreSQL integration, and both browser journeys passed.
+[PR run 34873674813](https://github.com/lupu-spec/Landwolf/actions/runs/34873674813),
+job `104075476374`, independently passed every beta gate. Existing legacy workflows
+remain separate failures, not beta passes. No main-branch merge was performed.
+
+### Observed deployment and HTTPS verification
+
+Render deploy `dep-dak2p0jm8hqs7396m50g` built the Docker image for the exact runtime
+commit above and reported **live at 17:19:39 UTC**. Logs show `python -m landwolf.cli
+init-db` completed against the existing beta database, then `python -m landwolf.serve`
+started successfully on port 10000. Service auto-deploy remains off. No additional
+resources were provisioned and no production/main-branch changes were made.
+
+The temporary release command
+`.venv/bin/python /workspace/scratch/bae2278276c6/source-research/check-deployed-national.py`
+ran from `beta/` against **https://landwolf-free-beta.onrender.com/** and exited 0.
+The complete successful journey finished at **17:21:19 UTC**:
+
+- HTTPS health and payments-disabled status passed. HSTS, restrictive script CSP,
+  API no-store, Secure/HttpOnly/SameSite=Strict cookies, origin and CSRF rejection,
+  and rejection of unknown state/source values passed.
+- Anonymous search, source, detail, save and unsave requests were rejected.
+  Deployed logo, JavaScript and CSS SHA-256 hashes matched the tested build.
+- All seven automated feeds reported ready and fresh. All 50 states appeared in
+  coverage; directory-only entries contributed zero imported records. Search and
+  coverage aggregation agreed on **2,528 current records in 19 states**.
+- Arkansas state/category/source filters and the last page beyond 500 records
+  passed. Tax balances stayed separate from asking prices; records with unknown
+  prices were excluded by an explicit maximum-price filter. California returned
+  real inventory; Hawaii correctly retained federal-program search support.
+- Pre-foreclosure returned no invented records and explicitly reported that no
+  nationwide feed is connected. Connected-source results excluded past sale/bid
+  dates. Alaska bid deadlines preceded auction dates and had no invented points.
+- Tax property details, duplicate save idempotency, saved search and persistence
+  across logout/login passed against the deployed PostgreSQL database. The saved
+  test record was removed and the successful test session was revoked.
+
+| Source | Current records in deployed search |
+| --- | ---: |
+| Arkansas COSL county tax-delinquent sales | 2,288 |
+| Texas GLO public land | 29 |
+| USDA federal foreclosure/REO | 7 |
+| U.S. Treasury real-property auctions | 15 |
+| IRS real-estate tax-seizure auctions | 10 |
+| Alaska DNR | 171 |
+| Michigan DNR | 8 |
+
+These are source records, not a deduplicated count of unique properties or proof
+that every state/county is covered. USDA retained 18 raw source records; 11 past
+or ambiguous sale-date records were excluded from current search. Only the 29 GLO
+records have verified source coordinates; new records without coordinates remain
+available in the list and details.
+
+The initial deployed-check attempt failed because its assertion expected the
+words "not connected" while the API says "No nationwide pre-foreclosure feed is
+connected." The assertion was corrected to match that explicit limitation; no app
+code or gate was weakened. The failed attempt had not saved a property and its
+session was revoked. Its cleanup message incorrectly said a record was removed;
+the temporary script now distinguishes no record created from a successful removal.
+Two synthetic `national-deployment-check-...@example.com` accounts were created
+across both attempts. Passwords/tokens were neither printed nor persisted; no email
+was sent and no real user account or source listing was modified.
+
+A controlled cloud browser loaded the deployed public login screen, original logo
+(2,172px source width), all-50-state copy and preserved navy/white layout. At its
+1,363px viewport, document width was 1,348px with no horizontal overflow. Its log
+contained browser-extension metadata errors; no application error appeared in the
+returned entries. The authenticated UI journeys passed in CI; a full authenticated
+UI journey on the deployed service was **not run**. Actual live signed-in behavior
+was verified through HTTPS APIs as listed above.
+
+Render's warning/error log query for **17:19:28–17:21:30 UTC** succeeded with zero
+matching entries. This bounded observation is not a claim of error-free future
+operation. The image build retained its harmless existing system-UID warning.
+Backup restoration remains untested.
+
+### Remaining coverage and product work
+
+All 50 states are searchable through federal programs and have official agency
+directory links. Current listings are present in 19 states, and county coverage
+remains partial. Nationwide pre-foreclosure notices, additional county tax-deed /
+tax-lien feeds, HUD/GSA imports, and the remaining state DNR inventories need
+approved sources and additional adapters. No paid subscription or redistribution
+license was acquired. Source cancellations and same-day closing times still require
+confirmation at the official listing. See [SOURCES.md](SOURCES.md).
+
+The earlier limits for email ownership verification, automatic password recovery,
+backup restoration, comparables, independent valuations and deal-model assumptions
+continue to apply. The original screenshot files above show the initial Texas
+release; they are not presented as screenshots of the expanded signed-in UI.
