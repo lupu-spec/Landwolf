@@ -1,0 +1,135 @@
+# LandWolf beta verification
+
+Observed locally on September 14, 2026, on branch `codex/landwolf-beta-rebuild`,
+based on `5307de0a11fd75a7c51bdf5243f3e13179b95d38`. Results describe the new
+`beta/` application, not a deployed service or the legacy billing application.
+Python 3.12 and Node 24 were used with the committed dependency locks.
+
+## Changes
+
+- Original owner-supplied logo and navy/white identity; responsive sign-in,
+  property discovery, map/list views, details, saved properties, and analysis.
+- Fresh accounts, server-enforced authentication before property queries, hashed
+  opaque sessions, ownership checks, CSRF protection, and disabled payments.
+- An official Texas GLO public-sale connector with independent inventory/detail
+  freshness, validated source coordinates, bounded requests, and cache retention
+  on upstream failure. Overlapping map pins expose every grouped property.
+- Explicit cost/resale inputs and reproducible 10,000-scenario risk, profit,
+  median ROI, and maximum-bid calculations with stated model limitations.
+- Enforceable root and beta `AGENTS.md` policies, isolated CI, a packaged frontend,
+  and a separate Render service/database configuration with automatic deploys off.
+- All pre-existing application files and production configuration remain unchanged.
+
+## Commands and observed results
+
+Commands below run from `beta/` unless another directory is stated. **Passed**
+means the command completed with exit status 0. Browser environment prefixes are
+listed separately so the actual browser execution can be reproduced accurately.
+
+| Command | Result | Evidence and scope |
+| --- | --- | --- |
+| `uv sync --frozen --dev` | **Passed** | Installed the locked isolated Python environment. |
+| `uv lock --check` | **Passed** | Python lock matches project metadata. |
+| `npm ci --no-fund` | **Passed** | Clean installation from the committed Node lock. |
+| `.venv/bin/ruff format --check landwolf tests scripts` | **Passed** | 17 files formatted. |
+| `npm run format:check` | **Passed** | Configured frontend/build files formatted. |
+| `.venv/bin/ruff check landwolf tests scripts` | **Passed** | No lint findings. |
+| `npm run lint` | **Passed** | ESLint completed successfully. |
+| `.venv/bin/mypy landwolf` | **Passed** | Strict checking of 10 source files. |
+| `npm run typecheck` | **Passed** | TypeScript completed without emitting files. |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** | 64 tests; browser test deliberately belongs to the next gate. |
+| `npm run build` | **Passed** | Built browser bundle, styles, Leaflet, and branding assets. |
+| `.venv/bin/pytest -q -m browser` with fixture prefix below | **Passed** | One complete real Chromium journey using an isolated database and synthetic source fixtures. |
+| `.venv/bin/python -m landwolf.cli sync` | **Passed** | Official upstream returned 29 active records; status ready, stale false; successful retrieval at 2026-09-14 09:53:48 UTC. All 29 have source detail data and coordinates. |
+| `.venv/bin/pytest -q -m browser` with live prefix below | **Passed** | Complete browser journey over those 29 source records; real source photo and OSM tile loading explicitly asserted. Latest run: 1 passed, 64 deselected, 26.28 seconds. |
+| `.venv/bin/python -m build` | **Passed** | Built source archive and application wheel. |
+| `.venv/bin/python scripts/check_package.py` | **Passed** | Wheel includes the app, HTML, JavaScript, styles, Leaflet, exact logo, and landscape. |
+| `.venv/bin/bandit -r landwolf` | **Passed** | No static security findings. |
+| `.venv/bin/pip-audit --local --skip-editable` | **Passed** | No known vulnerabilities reported in installed dependencies. The local editable app is covered by source analysis and tests, not an advisory database. |
+| `npm audit --audit-level=moderate` | **Passed** | Zero reported vulnerabilities. |
+| `npm run secrets` | **Passed** | Configured masked secret scan over new code, fixtures, docs, policy, workflow, and deployment file. |
+| `git diff --check` (repository root) | **Passed** | No whitespace errors after correcting an extra favicon EOF newline. |
+| `git status --short` (repository root) | **Passed** | Only new beta, policy, workflow, and beta deployment files. |
+
+Fixture browser prefix:
+
+```sh
+PLAYWRIGHT_CHROMIUM_EXECUTABLE=/workspace/scratch/bae2278276c6/browser-tools/chromium
+```
+
+Live browser prefix (all three assignments apply to the same pytest command):
+
+```sh
+LANDWOLF_BROWSER_PROXY=1 LANDWOLF_E2E_LIVE=1 PLAYWRIGHT_CHROMIUM_EXECUTABLE=/workspace/scratch/bae2278276c6/browser-tools/chromium
+```
+
+The browser is Chromium 153.0.8010.0, obtained from `@sparticuz/chromium@153.0.0`.
+The live run uses the workspace's supplied proxy and its CA, imported into the
+browser's NSS trust store for that execution. TLS verification and the app's CSP
+remain enabled. The server and browser run in one process tree because this
+workspace isolates network access between command sessions. CI uses Playwright's
+normal Chromium installer instead; local success does not establish hosted CI success.
+
+The browser journey covers pre-login search concealment, account creation,
+authenticated search, grouped map selection, list/map/split modes, an uncovered
+state, saving, property/source details, analysis, invalidating results after input
+changes (including an in-flight response), 390px mobile layout, session reload,
+logout, cleared private UI, empty local storage, and absence of JavaScript errors
+or failed application API responses. API tests separately cover unauthorized
+access, save ownership, session/CSRF/origin checks, rate limits, malformed input,
+source failures, and model invariants. These tests do not certify security.
+
+Additional executed checks:
+
+- **Passed:** the Render file validated against the downloaded official
+  `https://render.com/schema/render.yaml.json` using Python's
+  `jsonschema.Draft202012Validator` and `yaml.safe_load`, run with
+  `uv run --isolated --with jsonschema --with pyyaml python` and the validator
+  script on standard input. The YAML value `autoDeployTrigger: "off"` is quoted
+  to preserve its required string type.
+- **Passed:** Python `hashlib.sha256` equality check between the supplied original
+  logo and `web/assets/landwolf-logo.png`.
+- **Passed:** visual inspection of the login, desktop discovery, analysis, and
+  mobile screenshots. The analysis screenshot uses explicitly synthetic investor
+  assumptions; its return figures are not an assessment of the displayed tract.
+
+## Failed attempts, resolutions, and unavailable gates
+
+| Command/check | Result | Explanation |
+| --- | --- | --- |
+| Initial dependency audit with pytest 8.4.2 | **Failed**, resolved | Advisory PYSEC-2026-1845 was reported. Updated the beta test dependency to 9.0.3, regenerated locks, and reran the test suite and clean audit. |
+| `npx agent-browser install` | **Failed** | Browser download could not validate the environment's certificate chain. |
+| `.venv/bin/playwright install chromium` | **Failed** | Browser download timed out; no success is claimed for that installer. The separately obtained Chromium executable ran the actual Playwright tests successfully. |
+| Agent-browser session startup | **Failed** | The environment rejected its Unix daemon socket with `Operation not permitted`. Used Playwright directly; agent-browser itself is not verified. |
+| Initial live browser attempts | **Failed**, resolved | External assets failed without the workspace proxy/CA. The final run asserts actual image and tile dimensions with TLS verification retained. |
+| Legacy `/workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (repository root) | **Failed** | Initial collection could not import `investment_engine` with that external environment's launcher. |
+| Legacy `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (repository root) | **Failed** | 48 passed, 5 failed because legacy `.env.sandbox.example` and `.env.live.example` fixtures are absent. No legacy tests or implementation files were changed. |
+| `docker build -f beta/Dockerfile beta` (repository root) | **Not run** | Docker is not installed in this workspace. Wheel validation is not a container build. |
+| Production PostgreSQL integration | **Not run** | No separate beta database has been provisioned; local API/browser tests use SQLite. |
+| Deployed HTTPS health, session, browser, and live refresh checks | **Not run** | No beta service has been deployed. Render workspace selection requires owner confirmation. |
+| `git push -u origin codex/landwolf-beta-rebuild` | **Failed** | Automatic approval review rejected publication of the source and assets to `github.com/lupu-spec/Landwolf`, requiring explicit user authorization for that destination. No retry or alternate publication route was used. |
+| Draft pull request and hosted GitHub Actions | **Not run** | The push was blocked. The rebuild is committed locally and supplied as a review archive; publication awaits user authorization. |
+
+The five unchanged legacy failures are in `test_landwolf_domain_billing.py`,
+`test_live_stripe_connected_ids.py`, two cases in
+`test_live_stripe_deployment_kit.py`, and `test_stripe_plan_checkout.py`.
+Pytest also emits two third-party deprecation warnings from Starlette's current
+TestClient/httpx integration and AnyIO's `BlockingPortal` alias. They are not suppressed.
+
+## Remaining product and deployment limits
+
+Live coverage is Texas GLO public-sale inventory only. Other states, county tax
+sales, foreclosure feeds, municipal surplus, ownership, liens, flood overlays,
+comparables, and independent valuations are not connected. The UI reports these
+gaps and source freshness. Published location points are not surveyed boundaries.
+Scenario outputs depend on user assumptions and omit correlated market shocks;
+see [MODEL.md](MODEL.md). Asking prices never establish resale value.
+
+Email ownership verification and automatic password recovery remain to be added
+before broad public enrollment. Deployment requires a new PostgreSQL database,
+an explicit HTTPS origin, reviewed backup/retention settings, and the deployment
+checks above. Initial operation uses one worker/instance. The Render configuration
+may incur hosting charges and has not created or modified any hosted resource.
+
+Review screenshots: [login](preview-login.png), [property search](preview-explore.png),
+[scenario analysis](preview-analysis.png), [mobile](preview-mobile.png).

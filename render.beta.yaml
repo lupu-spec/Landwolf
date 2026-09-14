@@ -1,0 +1,32 @@
+# A separate, manually deployed beta. Existing render.yaml and live service stay intact.
+services:
+  - type: web
+    name: landwolf-free-beta
+    runtime: docker
+    plan: starter
+    region: oregon
+    branch: codex/landwolf-beta-rebuild
+    dockerfilePath: ./beta/Dockerfile
+    dockerContext: ./beta
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/health
+    preDeployCommand: python -m landwolf.cli init-db
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: LANDWOLF_ENVIRONMENT
+        value: production
+      - key: LANDWOLF_PUBLIC_ORIGIN
+        sync: false
+      - key: LANDWOLF_PAYMENTS_ENABLED
+        value: "false"
+      - key: LANDWOLF_DATABASE_URL
+        fromDatabase:
+          name: landwolf-beta-db
+          property: connectionString
+databases:
+  - name: landwolf-beta-db
+    databaseName: landwolf_beta
+    user: landwolf_beta
+    plan: basic-256mb
+    region: oregon
+    ipAllowList: []

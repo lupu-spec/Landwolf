@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="LandWolf free beta: source-backed Texas land discovery, property research, and transparent deal scenarios."
+    />
+    <title>LandWolf — Property Intelligence</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/leaflet.css" />
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script type="module" src="/assets/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a href="/" class="brand" aria-label="LandWolf home"
+        ><img
+          src="/assets/landwolf-logo.png"
+          alt="LandWolf — Find distressed and acquisition opportunities"
+          width="270"
+          height="90"
+      /></a>
+      <nav class="main-nav" aria-label="Main navigation" id="main-nav" hidden>
+        <button class="nav-link active" data-nav="explore">
+          Explore properties
+        </button>
+        <button class="nav-link" data-nav="saved">Saved properties</button>
+        <button class="nav-link" data-nav="sources">Data coverage</button>
+      </nav>
+      <div class="account-tools">
+        <span class="beta-tag">FREE BETA</span
+        ><button id="signout" class="button quiet small" hidden>
+          Sign out
+        </button>
+      </div>
+    </header>
+    <main id="main">
+      <section id="auth-view" class="auth-layout">
+        <div class="auth-story">
+          <div class="story-shade"></div>
+          <div class="story-copy">
+            <p class="eyebrow light">PROPERTY INTELLIGENCE, WITH PERSPECTIVE</p>
+            <h1>
+              Find the land.<br />Understand<br /><em>the opportunity.</em>
+            </h1>
+            <p>
+              Explore source-backed listings. Investigate the risks. Know your
+              numbers before you make a move.
+            </p>
+            <div class="story-features">
+              <span>Official-source records</span
+              ><span>Transparent deal scenarios</span
+              ><span>No payment required</span>
+            </div>
+          </div>
+          <p class="photo-credit">
+            Land photography: Texas General Land Office
+          </p>
+        </div>
+        <div class="auth-panel">
+          <div class="auth-content">
+            <p class="eyebrow">WELCOME TO LANDWOLF</p>
+            <h2 id="auth-title">Your next opportunity<br />starts here.</h2>
+            <p class="muted">
+              Sign in to search, save properties, and run deal scenarios. All
+              beta features are free.
+            </p>
+            <div
+              class="segmented auth-tabs"
+              role="group"
+              aria-label="Account action"
+            >
+              <button id="login-tab" aria-pressed="true">Sign in</button
+              ><button id="register-tab" aria-pressed="false">
+                Create account
+              </button>
+            </div>
+            <form id="auth-form">
+              <label for="email">Email address</label
+              ><input
+                id="email"
+                name="email"
+                type="email"
+                maxlength="254"
+                autocomplete="username"
+                placeholder="you@example.com"
+                required
+              />
+              <label for="password">Password</label
+              ><input
+                id="password"
+                name="password"
+                type="password"
+                minlength="12"
+                maxlength="128"
+                autocomplete="current-password"
+                placeholder="At least 12 characters"
+                required
+              />
+              <p class="input-note">
+                Use a unique password of 12–128 characters.
+              </p>
+              <button
+                id="auth-submit"
+                class="button primary full"
+                type="submit"
+              >
+                Sign in to LandWolf <span aria-hidden="true">→</span>
+              </button>
+              <p id="auth-message" class="form-message" role="alert"></p>
+            </form>
+            <p class="auth-support">
+              Need help accessing your account?
+              <a href="mailto:support.landwolf@gmail.com">Contact support</a>.
+            </p>
+            <div class="beta-note">
+              <span class="beta-note-icon" aria-hidden="true">↗</span>
+              <div>
+                <strong>Built for a better-informed first move.</strong>
+                <p>
+                  Beta coverage begins with Texas GLO public land sales. More
+                  sources will be added as they are validated.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="workspace" class="workspace" hidden>
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow" id="workspace-eyebrow">
+              DISCOVER • RESEARCH • EVALUATE
+            </p>
+            <h1 id="workspace-title">Find your next opportunity.</h1>
+            <p class="muted" id="workspace-description">
+              Real listings. Clear sources. A closer look at what matters.
+            </p>
+          </div>
+          <div class="signed-in">
+            <span class="account-avatar" aria-hidden="true">LW</span>
+            <div>
+              <span>YOUR WORKSPACE</span><strong id="account-email"></strong>
+            </div>
+          </div>
+        </div>
+
+        <section
+          id="source-panel"
+          class="source-panel"
+          hidden
+          aria-labelledby="coverage-title"
+        >
+          <p class="eyebrow">KNOW WHAT YOU'RE SEARCHING</p>
+          <h2 id="coverage-title">Coverage you can inspect.</h2>
+          <p>
+            Connected means LandWolf can retrieve listings from that source. A
+            successful retrieval does not verify title, liens, market value, or
+            continued availability.
+          </p>
+          <div id="source-cards"></div>
+          <div class="coverage-next">
+            <h3>Not connected yet</h3>
+            <p>
+              County tax sales, mortgage foreclosures, municipal surplus, and
+              other states. A search outside connected coverage returns a
+              coverage notice—not invented properties or a claim that no
+              opportunities exist.
+            </p>
+          </div>
+        </section>
+
+        <section id="explore-panel">
+          <form
+            id="search-form"
+            class="search-bar"
+            aria-label="Property search"
+          >
+            <div class="field location-field">
+              <label for="location">County, tract, or location</label
+              ><input
+                id="location"
+                name="location"
+                maxlength="100"
+                placeholder="e.g. Eastland, 14968"
+              />
+            </div>
+            <div class="field">
+              <label for="state">State</label
+              ><select id="state" name="state"></select>
+            </div>
+            <div class="field">
+              <label for="min-acres">Min. acres</label
+              ><input
+                id="min-acres"
+                name="min_acres"
+                type="number"
+                min="0"
+                max="10000000"
+                step="0.01"
+                placeholder="Any size"
+              />
+            </div>
+            <div class="field">
+              <label for="max-price">Max. asking price</label
+              ><input
+                id="max-price"
+                name="max_price"
+                type="number"
+                min="0"
+                max="1000000000"
+                step="1"
+                placeholder="No maximum"
+              />
+            </div>
+            <div class="field">
+              <label for="category">Category</label
+              ><select id="category" name="category">
+                <option value="all">All connected</option>
+                <option value="government_land">Government land</option>
+                <option value="tax_sale">Tax sales · not connected</option>
+                <option value="foreclosure">Foreclosure · not connected</option>
+                <option value="surplus">Surplus · not connected</option>
+              </select>
+            </div>
+            <button
+              class="button primary search-submit"
+              id="search-submit"
+              type="submit"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 5 5" /></svg
+              >Search
+            </button>
+          </form>
+          <div class="coverage-strip">
+            <p id="source-summary">Checking source coverage…</p>
+            <button id="refresh-results" class="text-button">
+              Refresh results
+            </button>
+          </div>
+          <p id="workspace-error" class="form-message" role="alert"></p>
+          <div class="results-toolbar">
+            <div>
+              <h2 id="results-title">Property results</h2>
+              <p id="results-subtitle">
+                Search the connected inventory to begin.
+              </p>
+            </div>
+            <div class="results-controls">
+              <label for="sort" class="sr-only">Sort properties</label
+              ><select id="sort">
+                <option value="price_asc">Price: low to high</option>
+                <option value="price_desc">Price: high to low</option>
+                <option value="acres_desc">Largest acreage</option>
+                <option value="county">County A–Z</option>
+              </select>
+              <div
+                class="segmented view-tabs"
+                role="group"
+                aria-label="Results layout"
+              >
+                <button data-view="split" aria-pressed="true">Split</button
+                ><button data-view="list" aria-pressed="false">List</button
+                ><button data-view="map" aria-pressed="false">Map</button>
+              </div>
+            </div>
+          </div>
+          <div id="empty-state" class="empty-state" hidden>
+            <span class="empty-mark" aria-hidden="true">⌕</span>
+            <h3 id="empty-title"></h3>
+            <p id="empty-description"></p>
+            <button id="reset-filters" class="button secondary">
+              Reset filters
+            </button>
+          </div>
+          <div id="results-layout" class="results-layout" data-view="split">
+            <div
+              id="property-list"
+              class="property-list"
+              aria-live="polite"
+            ></div>
+            <div class="map-panel">
+              <div class="map-label">
+                <span>PROPERTY MAP</span><span id="map-count"></span>
+              </div>
+              <div
+                id="property-map"
+                aria-label="Map of source-reported property locations"
+              ></div>
+              <div id="map-warning" class="map-warning" hidden></div>
+              <div class="map-footer">
+                Location points, not surveyed boundaries.
+                <a
+                  href="https://www.openstreetmap.org/fixthemap"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Report a map issue</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="pagination" id="pagination" hidden>
+            <button id="previous" class="button secondary small">
+              ← Previous
+            </button>
+            <p id="page-label"></p>
+            <button id="next" class="button secondary small">Next →</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <dialog
+      id="property-dialog"
+      class="property-dialog"
+      aria-labelledby="detail-title"
+    >
+      <div class="detail-topbar">
+        <span>PROPERTY INTELLIGENCE</span
+        ><button
+          id="close-detail"
+          class="icon-button"
+          aria-label="Close property details"
+        >
+          ×
+        </button>
+      </div>
+      <div id="detail-content"></div>
+      <section class="analysis-section" aria-labelledby="analysis-title">
+        <div class="analysis-intro">
+          <p class="eyebrow">THE NUMBERS BEHIND THE OPPORTUNITY</p>
+          <h2 id="analysis-title">Build your deal scenario.</h2>
+          <p>
+            Enter your estimates. LandWolf will model the range of outcomes and
+            the highest bid that meets your targets.
+          </p>
+        </div>
+        <form id="analysis-form">
+          <fieldset>
+            <legend>Acquisition &amp; resale</legend>
+            <div class="analysis-grid">
+              <label
+                >Purchase / bid price ($)<input
+                  name="purchase_price"
+                  type="number"
+                  min="0"
+                  max="1000000000"
+                  step="1"
+                  required /></label
+              ><label
+                >Resale — low ($)<input
+                  name="resale_low"
+                  type="number"
+                  min="1"
+                  max="1000000000"
+                  placeholder="Your conservative estimate"
+                  required /></label
+              ><label
+                >Resale — likely ($)<input
+                  name="resale_likely"
+                  type="number"
+                  min="1"
+                  max="1000000000"
+                  placeholder="Your base estimate"
+                  required /></label
+              ><label
+                >Resale — high ($)<input
+                  name="resale_high"
+                  type="number"
+                  min="1"
+                  max="1000000000"
+                  placeholder="Your upside estimate"
+                  required
+              /></label>
+            </div>
+            <p class="input-note">
+              Resale values are your assumptions—not the asking price, an
+              automated valuation, or an appraisal.
+            </p>
+          </fieldset>
+          <fieldset>
+            <legend>Costs &amp; reserves</legend>
+            <div class="analysis-grid">
+              <label
+                >Repairs — low ($)<input
+                  name="repairs_low"
+                  type="number"
+                  min="0"
+                  max="1000000000"
+                  required
+                  placeholder="Your estimate" /></label
+              ><label
+                >Repairs — likely ($)<input
+                  name="repairs_likely"
+                  type="number"
+                  min="0"
+                  max="1000000000"
+                  required
+                  placeholder="Your estimate" /></label
+              ><label
+                >Repairs — high ($)<input
+                  name="repairs_high"
+                  type="number"
+                  min="0"
+                  max="1000000000"
+                  required
+                  placeholder="Your estimate" /></label
+              ><label
+                >Liens / back-tax reserve ($)<input
+                  name="lien_reserve"
+                  type="number"
+                  min="0"
+                  max="1000000000"
+                  required
+                  placeholder="Not independently verified" /></label
+              ><label
+                >Title &amp; closing costs ($)<input
+                  name="closing_costs"
+                  type="number"
+                  min="0"
+                  max="1000000000"
+                  required
+                  placeholder="Your estimate" /></label
+              ><label
+                >Monthly holding cost ($)<input
+                  name="monthly_holding"
+                  type="number"
+                  min="0"
+                  max="1000000"
+                  required
+                  placeholder="Include property taxes" /></label
+              ><label
+                >Holding period (months)<input
+                  name="holding_months"
+                  type="number"
+                  min="0"
+                  max="120"
+                  value="6"
+                  required /></label
+              ><label
+                >Buyer premium (%)<input
+                  name="buyer_premium_pct"
+                  type="number"
+                  min="0"
+                  max="50"
+                  step="0.1"
+                  required
+                  placeholder="Check seller terms" /></label
+              ><label
+                >Selling costs (%)<input
+                  name="selling_cost_pct"
+                  type="number"
+                  min="0"
+                  max="50"
+                  step="0.1"
+                  value="6"
+                  required /></label
+              ><label
+                >Financing APR (%)<input
+                  name="annual_financing_pct"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  required
+                  placeholder="0 for cash purchase"
+              /></label>
+            </div>
+            <p class="input-note">
+              Financing models simple interest on the full bid. Unknown costs
+              are not automatically treated as zero.
+            </p>
+          </fieldset>
+          <fieldset>
+            <legend>Your investment targets</legend>
+            <div class="analysis-grid">
+              <label
+                >Target median ROI (%)<input
+                  name="target_roi_pct"
+                  type="number"
+                  min="0"
+                  max="200"
+                  value="20"
+                  step="0.1"
+                  required /></label
+              ><label
+                >Minimum median profit ($)<input
+                  name="min_profit"
+                  type="number"
+                  min="0"
+                  max="1000000000"
+                  value="25000"
+                  required /></label
+              ><label
+                >Maximum loss probability (%)<input
+                  name="max_loss_probability_pct"
+                  type="number"
+                  min="0"
+                  max="50"
+                  value="10"
+                  step="0.1"
+                  required /></label
+              ><label
+                >Reproducibility seed<input
+                  name="seed"
+                  type="number"
+                  min="0"
+                  max="4294967295"
+                  value="847291"
+                  required
+              /></label>
+            </div>
+          </fieldset>
+          <div class="analysis-actions">
+            <button id="run-analysis" class="button primary" type="submit">
+              Run 10,000 scenarios <span aria-hidden="true">→</span></button
+            ><span>Illustrative defaults are editable.</span>
+          </div>
+          <p id="analysis-error" class="form-message" role="alert"></p>
+        </form>
+        <div id="analysis-results" aria-live="polite" hidden></div>
+      </section>
+    </dialog>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <footer class="site-footer">
+      <span>© <span id="year"></span> L91 LLC · LandWolf</span>
+      <p>
+        Research tools, not investment or legal advice. Verify records and sale
+        terms with the original source.
+      </p>
+      <a href="mailto:support.landwolf@gmail.com">Contact support ↗</a>
+    </footer>
+    <noscript
+      ><p class="empty-state">
+        LandWolf requires JavaScript for sign-in, interactive maps, and deal
+        analysis.
+      </p></noscript
+    >
+  </body>
+</html>
