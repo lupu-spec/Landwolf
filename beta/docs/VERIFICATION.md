@@ -540,3 +540,95 @@ unavailable and the other four sources ready. The intervening isolated NC reques
 had returned one candidate parcel in one attempt. This intermittent source result
 remains documented; the beta displays unavailable findings independently and does
 not assign a zero value or infer low risk from them.
+
+### Final hosted gates and observed deployment
+
+Verified/deployed commit: `5686a2b1a3e410f40df39f782fd6eefd88c825c2`.
+Tree: `7d3deb5c86aa4f9926b3479726255f8a2fae3dfb`. The application code is identical
+to `3bc8154`; the follow-up corrected the scoped browser assertion and recorded
+evidence. The original logo and navy/white appearance remain in place.
+
+Both [push run 34880426547](https://github.com/lupu-spec/Landwolf/actions/runs/34880426547)
+(job `104098072305`) and
+[PR run 34880429321](https://github.com/lupu-spec/Landwolf/actions/runs/34880429321)
+(job `104098081768`) completed **successfully**. Observed job logs confirm:
+
+| Hosted command / gate | Observed result |
+| --- | --- |
+| `uv sync --frozen --dev`, `npm ci`, `.venv/bin/playwright install --with-deps chromium` | **Passed** |
+| `.venv/bin/ruff format --check landwolf tests scripts`, `npm run format:check` | **Passed** |
+| `.venv/bin/ruff check landwolf tests scripts`, `npm run lint` | **Passed** |
+| `.venv/bin/mypy landwolf`, `npm run typecheck` | **Passed** |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** — 165 tests; browser cases run separately |
+| `.venv/bin/python scripts/check_postgres.py` | **Passed** — disposable PostgreSQL 18, authentication, nationwide filters, nulls, dates, pagination and saves |
+| `npm run build`, `.venv/bin/pytest -q -m browser` | **Passed** — all 3 Chromium journeys, including public research and the corrected nationwide coverage check |
+| `.venv/bin/python -m build`, `.venv/bin/python scripts/check_package.py` | **Passed** — source archive and deployable wheel |
+| `.venv/bin/bandit -r landwolf` | **Passed** — no findings |
+| `.venv/bin/pip-audit --local --skip-editable`, `npm audit --audit-level=moderate` | **Passed** — no known dependency vulnerabilities |
+| `npm run secrets` | **Passed** — no configured secret findings |
+| `git diff --check`, `git status --short` | **Passed** |
+
+All commands exited 0. Existing legacy `Test`, release/preflight workflows remain
+separate failures; they were not bypassed or represented as beta successes. The
+local legacy suite's 48 passes / 5 missing-fixture failures are recorded above.
+No merge into `main` or deployment of legacy production occurred.
+
+After these gates, Render service `srv-dak1lvh42hec73blur00` was confirmed to use
+the beta branch with auto-deploy off. Manual deploy `dep-dak3o3p5efls73fup88g`
+selected the verified commit, completed its build/pre-deploy rollout, and reached
+**live at 18:25:58 UTC** on September 14. The existing service and PostgreSQL
+database were reused; no new infrastructure, plan change or API subscription was
+created. [Deployed beta](https://landwolf-free-beta.onrender.com/).
+
+The explicit command
+`.venv/bin/python /workspace/scratch/bae2278276c6/check_free_research_deployed.py`
+**Passed** (exit 0), running against real HTTPS and the deployed database from
+**18:26:39–18:26:58 UTC**. It verified:
+
+- Observed health and disabled payments; deployed JavaScript, CSS and logo bytes
+  matched the exact local production build by SHA-256.
+- Anonymous research returned 401, missing CSRF returned 403, invalid coordinates
+  returned 422, and authenticated research succeeded. Cookies were Secure,
+  HttpOnly and SameSite=Strict.
+- The source API retained all 50 states, seven sale-feed adapters and five research
+  sources. Current listing search and coverage counts agreed on 2,529 records.
+- Dallas City Hall's street address returned **ready** Census, FEMA, USGS and NRCS
+  results, correctly labeled as an approximate Census location. NC parcels were
+  correctly outside that source's coverage.
+- The NC State Capitol point returned **ready** results from **all five sources**.
+  NC parcel `1703790137` was returned with its value type explicitly `Assessed`;
+  source text states that tax values are not market values or asking prices.
+- A repeated NC query returned cached public facts with unchanged original
+  retrieval timestamps. Public owner fields were absent from the returned facts.
+- A synthetic account's saved record persisted through research and logout/login;
+  the revoked session could not research. The test save was removed and the final
+  test session revoked. One synthetic account was created, without sending email;
+  its generated credentials were never printed or persisted.
+
+These are observed sample locations, not proof of complete nationwide records or
+continuous provider availability. In particular, the earlier local NC interruptions
+remain relevant; the deployed successful check does not erase them.
+
+A controlled cloud browser reloaded the deployed login page, observed the supplied
+brand, free-beta/all-50-state copy and sign-in gate, and measured a 1,348px document
+inside a 1,363px viewport with no horizontal overflow. An initial image-role locator
+timed out; no image-dimension result is claimed from that failed call. A subsequent
+DOM/layout check succeeded, and the HTTPS check independently verified exact logo
+bytes. An authenticated browser journey on the live Render service was **Not run**;
+authenticated Chromium flows ran in hosted CI, while actual deployed authentication
+and public APIs were exercised through HTTPS above.
+
+Render application warning/error query **18:25:19–18:28:12 UTC** returned zero
+matching entries. This is a bounded observation, not a guarantee of future uptime.
+
+Changed files: `landwolf/research.py` implements the bounded public adapters and
+contracts; `main.py` adds authenticated research and source discovery; `cli.py`
+adds explicit live research checks; `web/app.ts`, `web/index.html`, `web/styles.css`
+add the research workflow; research fixtures/tests and the browser suite cover its
+behavior. `AGENTS.md`, `README.md`, `SOURCES.md` and `FREE_DATA.md` document commands,
+coverage and limitations. No database migration or new dependency was required.
+
+The final follow-up to this log changes documentation only; it does not change the
+deployed runtime. MLS, nationwide assessor/deed/title/lien records, independent
+market valuations, email verification/password recovery and tested backup restore
+remain outside the completed feature scope.
