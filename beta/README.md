@@ -2,7 +2,7 @@
 
 A separate rebuild of LandWolf with the original wordmark, wolf logo, white/navy
 palette, and rural photography. Fresh email/password accounts unlock source-backed
-property search, map/list browsing, saved properties, and reproducible deal analysis.
+property search, map/list browsing, public-record research, and reproducible deal analysis.
 All features are free. This application contains no checkout or Stripe gate.
 
 ## Run locally
@@ -57,8 +57,8 @@ Search uses database filtering, counting and pagination. Unknown price and acrea
 remain null, sort last, and do not pass an applicable numeric filter. Minimum bids,
 government bids, tax balances and source appraisals remain distinct. Past auction
 dates and bid deadlines are excluded from current search even between refreshes.
-Ambiguous published dates are withheld for review. Saved entries remain accessible
-with their inactive or expired status. Times and cancellations must still be
+Ambiguous published dates are withheld for review. Inactive or expired listings are
+excluded from search. Times and cancellations must still be
 confirmed at the original source before acting.
 
 Map points appear only when a source supplies validated coordinates. New inventories
@@ -77,8 +77,8 @@ No MLS, paid provider account or usage-based API subscription is enabled.
 
 An address result is an interpolated Census point; it may fall on a road or
 neighboring parcel. It never becomes a listing map marker. Reference values do not
-prefill a valuation. **Research property** restores your saved research location,
-or uses a published point or full street-shaped source-address field for review.
+prefill a valuation. **Research property** uses a published point or full street-shaped source-address
+field for review.
 Address handoff is available across the connected feeds, not limited to IRS/USDA.
 Otherwise it asks for an address
 or verified point; it never geocodes a tract or county as a parcel.
@@ -107,24 +107,14 @@ probability with a sampling interval, and a scenario score. It does not infer ma
 value from the seller's asking price. The current feeds lack calibrated local or
 broader-area cost estimates; no ChatGPT-generated figures are presented as evidence.
 
-**Save property / Saved ✓** is at the top of every listing card, before the photo,
-and in the sticky detail bar. **View Saved properties →** in Research uses the same
-navigation as the Saved tab, brings its heading into view and focuses it.
-Failed loads show an explicit retry action and never present previous Explore
-results as saved records. HTML and browser assets revalidate after deployments.
-**Saved properties** lists all account-owned saves, including manually entered
-properties, most recently updated first, with pagination and no inherited Explore
-filters. **Add a property** opens Research; enter an address or coordinate pair and
-select **Save property**. No matching source listing or successful upstream lookup
-is required. Saved manual properties are private research records, not published
-listings or confirmed sales. **Save changes** retains a name and selected address
-or coordinates across reloads, sign-outs and devices. A stale revision returns 409
-and asks the user to reopen the record rather than overwrite newer edits.
-Address-only handoffs always wait for the user to select **Research location**.
-The Research navigation also carries the most recently opened property.
-Missing locations remain missing until the user supplies one; user locations never
-overwrite source coordinates or become official map markers. A repeated bookmark
-does not overwrite a saved location. Saving does not persist scenarios or reports.
+The Saved property feature has been permanently removed: there are no Save
+buttons, Saved tab, manual saved records, saved search filters or Saved API routes.
+Schema v3 deletes both retired tables and their records as authorized by the owner.
+**Research property** still prefills a source address or published coordinates.
+Address-only handoffs wait for **Research location**. You can also enter a location
+directly in Research; it is not stored in your account. **New research** clears the
+current location/report. User-entered points never overwrite source coordinates.
+HTML and browser assets revalidate after deployments.
 Scenario drafts are kept in bounded page-session memory (up to 50 properties), cleared
 on reload/sign-out. **Research property** retains the property context and offers
 **Open deal scenario**. **Find similar properties** prefills state, county, sale
@@ -150,16 +140,18 @@ seed are displayed. See [MODEL.md](docs/MODEL.md) for equations and limitations.
   multi-instance rollout requires a distributed scheduler lease. Configure trusted
   proxy addresses deliberately; never trust arbitrary client forwarding headers.
 
-Schema version 2 uses `lw2_` tables. `init-db` bootstraps v2 or runs the additive,
-transactional v1 → v2 migration. It adds `lw2_saved_records`, copies existing account
-bookmarks and creation times, and retains the old bookmark table, accounts, sessions
-and source listings. Repeated runs are idempotent; unknown versions fail before DDL.
-Migration calls are serialized with a PostgreSQL transaction advisory lock or SQLite
-immediate transaction. No dependency, database instance or plan change is needed.
-The predeploy command runs the migration before serving the new image. V1 images
-require schema 1 and are not a direct rollback after migration: use a v2-compatible
-fix-forward release, preserving the new records. There may be a brief health-check
-transition during the initial v1 → v2 cutover. Production requires a separate PostgreSQL
+Schema version 3 uses `lw2_` tables. `init-db` bootstraps v3 or migrates v1/v2
+in one transaction. It permanently drops `lw2_saved_records` and
+`lw2_saved_properties`, including user-entered research addresses/coordinates.
+Accounts, sessions, source listings and source status remain. No archive is created.
+Repeated runs are idempotent; unknown versions fail before DDL. PostgreSQL advisory
+locks / SQLite immediate transactions serialize migration; a failure rolls it back.
+The predeploy command runs this migration before serving the new image. Old v1/v2
+images are incompatible afterward: use a v3-compatible fix-forward release.
+The deleted records cannot be restored through the application. Hosting backups
+follow their existing retention policy; this change does not purge whole-database
+backups containing unrelated accounts/listings. A brief health transition can occur
+during cutover. Production requires a separate PostgreSQL
 database and a validated HTTPS origin; it does not auto-create tables during request
 startup. On Render, the default is the service's platform-assigned
 [`RENDER_EXTERNAL_URL`](https://render.com/docs/environment-variables), available
@@ -187,7 +179,7 @@ address remains available. Set the three explicit origins as shown in the Bluepr
 before moving domain bindings. Apex DNS uses Render's `216.24.57.1` A record;
 `www` uses a CNAME to `landwolf-free-beta.onrender.com`. Preserve mail and unrelated
 DNS records. Verify authoritative/public DNS, HTTPS redirects, health, sign-in,
-save persistence and disabled payments after cutover. The Blueprint describes the
+account continuity, removal of Saved routes/storage and disabled payments after cutover. The Blueprint describes the
 desired configuration; observed deployment/DNS results are recorded below.
 
 The commands and no-false-verification rule are in [AGENTS.md](AGENTS.md).

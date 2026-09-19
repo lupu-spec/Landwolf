@@ -615,60 +615,25 @@ input::placeholder {
   border-radius: 4px;
   color: var(--navy);
 }
-.property-card-toolbar {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--line);
-  background: var(--soft);
-}
-.property-card-toolbar .save-button {
-  width: 100%;
-  background: var(--navy);
-  color: white;
-  border-color: var(--navy);
-}
-.property-card-toolbar .save-button[aria-pressed="true"] {
-  background: var(--green);
-  border-color: var(--green);
-}
-.save-button {
-  position: static;
-  min-height: 44px;
-}
-.save-button svg,
-.property-save svg {
-  width: 17px;
-  height: 17px;
-}
-.save-button[aria-pressed="true"] svg,
-.property-save[aria-pressed="true"] svg {
-  fill: currentColor;
-}
 .property-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 14px;
 }
-.saved-location {
+.research-location {
   margin: 14px 0;
   font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
-.saved-toolbar,
-.research-save-bar,
 .detail-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
 }
-.saved-toolbar,
-.research-save-bar {
+.research-new {
   margin: 20px 0;
-}
-.research-save-bar .field {
-  flex: 1 1 260px;
-  min-width: 0;
 }
 .detail-actions .property-actions {
   margin-top: 0;
@@ -679,9 +644,6 @@ input::placeholder {
 .detail-topbar > .icon-button {
   flex-shrink: 0;
   align-self: flex-start;
-}
-.manual-property h3 {
-  overflow-wrap: anywhere;
 }
 .research-property-context:not(:empty),
 .zero-cost-warning {

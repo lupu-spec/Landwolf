@@ -1,5 +1,54 @@
 # LandWolf beta verification
 
+## Permanent Saved feature removal — 2026-09-19
+
+The owner explicitly requested removal and then confirmed: “Delete it permanently
+and push to production.” This supersedes the earlier request to retain saved data.
+Removed Saved navigation, card/detail/research Save buttons, manual record forms,
+saved search filtering, Saved API routes, serializers and ORM models. Source
+address/coordinate handoff, manual Research, sessions and deal scenarios remain.
+The source-location helper moved to `landwolf/locations.py`.
+
+Schema v3 permanently drops `lw2_saved_records` and `lw2_saved_properties` in one
+transaction, without copying or archiving their data. Fresh databases create neither
+table. v1/v2 upgrades and repeated runs are supported; unknown schemas stop before
+DDL. No CASCADE is used. Accounts, sessions, listings and source status remain.
+Old images are incompatible after migration; use a schema-v3 fix-forward release.
+Provider-wide backups retain their existing retention; unrelated database backups
+are not purged by this feature removal.
+
+Obsolete feature tests were replaced with absent-route/filter/payload assertions,
+v1/v2 deletion and repeat-run checks, preservation and atomic rollback checks.
+Browser tests now check absent Save controls/requests at desktop/mobile sizes,
+direct address/coordinate Research, source-address prefill with review, reset,
+reload, search failure/retry and the existing scenario/map/authentication flows.
+
+Local results (commands from beta unless noted):
+
+| Command | Result |
+| --- | --- |
+| `.venv/bin/ruff format landwolf tests scripts`; `npm run format` | Passed |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed |
+| `npm run typecheck`; `.venv/bin/mypy --no-incremental --cache-dir=/dev/null landwolf` | Passed |
+| `.venv/bin/mypy landwolf` | Failed, existing local internal cache error, exit 2; hosted canonical gate required |
+| `npm run test:unit` | Passed, 4 tests |
+| `.venv/bin/pytest -q tests/test_saved_removal.py tests/test_domains.py tests/test_search.py` | Passed, 76 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed, 233 tests; 6 browser cases deselected |
+| `.venv/bin/python scripts/check_postgres.py` | Failed locally, disposable database unavailable, exit 1; hosted gate required |
+| `npm run build`; `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed; retired implementation excluded from wheel |
+| `.venv/bin/pytest -q -m browser` | Local Chromium unavailable; hosted gate required |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | Passed, no findings |
+| `git diff --check`; `git status --short` (root) | Passed, expected changes only |
+| `.venv/bin/pytest -q` (root) | Failed, legacy environment absent, exit 127 |
+
+An initial test collection failure (shared migration-fixture import) and formatting
+findings were corrected before the successful local suite. No verification gate
+was weakened. Security review found no new dependencies or secrets, no SQL built
+from untrusted input, and no changes to auth/CSRF/host/origin protections. Database
+deletion is limited to the two explicitly retired tables. Hosted gates and deployment
+verification are pending.
+
 ## Explore Save and Research → Saved navigation — 2026-09-19 (deployed)
 
 Triage found Save below each card's photo/details, navigation preserving the prior

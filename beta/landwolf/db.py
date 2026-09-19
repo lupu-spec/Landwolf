@@ -1,4 +1,4 @@
-"""Versioned, additive beta migrations; never touches legacy application tables."""
+"""Versioned beta migrations; never touches legacy application tables."""
 
 import time
 from collections.abc import Iterator
@@ -10,7 +10,6 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    UniqueConstraint,
     create_engine,
     insert,
     inspect,
@@ -73,29 +72,7 @@ class SourceState(Base):
     record_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
-class SavedProperty(Base):
-    __tablename__ = "lw2_saved_properties"
-    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
-    listing_id: Mapped[str] = mapped_column(ForeignKey("lw2_listings.id"), primary_key=True)
-    created_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
-
-
-class SavedRecord(Base):
-    """Account-owned research context. Never published into the source inventory."""
-
-    __tablename__ = "lw2_saved_records"
-    __table_args__ = (UniqueConstraint("account_id", "listing_id"),)
-    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
-    id: Mapped[str] = mapped_column(String(80), primary_key=True)
-    listing_id: Mapped[str | None] = mapped_column(ForeignKey("lw2_listings.id"), nullable=True)
-    title: Mapped[str] = mapped_column(String(300))
-    research_location: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    revision: Mapped[int] = mapped_column(Integer, default=1)
-    created_at: Mapped[int] = mapped_column(Integer, default=lambda: int(time.time()))
-    updated_at: Mapped[int] = mapped_column(Integer, default=lambda: int(time.time()))
-
-
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -107,7 +84,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Bootstrap or migrate v1 → v2 atomically; retain all old bookmark rows."""
+    """Remove retired Saved storage in v3, as explicitly authorized by the owner."""
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -119,34 +96,16 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported beta schema version; migration required")
         Base.metadata.create_all(connection)
+        # Intentionally irreversible. Do not archive or copy retired Saved data.
+        # No CASCADE: unexpected dependents must fail the transaction for review.
+        connection.execute(text("DROP TABLE IF EXISTS lw2_saved_records"))
+        connection.execute(text("DROP TABLE IF EXISTS lw2_saved_properties"))
         if not versions:
             connection.execute(insert(SchemaVersion).values(version=SCHEMA_VERSION))
-        elif versions == [1]:
-            connection.execute(
-                insert(SavedRecord).from_select(
-                    [
-                        "account_id",
-                        "id",
-                        "listing_id",
-                        "title",
-                        "created_at",
-                        "updated_at",
-                        "revision",
-                    ],
-                    select(
-                        SavedProperty.account_id,
-                        SavedProperty.listing_id,
-                        SavedProperty.listing_id,
-                        Listing.payload["title"].as_string(),
-                        SavedProperty.created_at,
-                        SavedProperty.created_at,
-                        text("1"),
-                    ).join(Listing, Listing.id == SavedProperty.listing_id),
-                )
-            )
+        elif versions != [SCHEMA_VERSION]:
             connection.execute(update(SchemaVersion).values(version=SCHEMA_VERSION))
 
 

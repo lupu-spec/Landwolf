@@ -3,7 +3,7 @@
 The root engineering policy applies. This is the rebuilt free application. Keep its
 runtime, accounts, database, and dependency environment separate from the legacy
 application. Preserve the supplied LandWolf logo and navy/white visual identity.
-Every property search, source, detail, save, analysis, and research route requires server
+Every property search, source, detail, analysis, and research route requires server
 authentication. Payments stay disabled. Never use fabricated runtime listings,
 unverified parcel coordinates, or asking prices as valuations. The owner permits
 explicit hypothetical resale defaults of bid × 0.95 / 1.00 / 1.20 and unestimated

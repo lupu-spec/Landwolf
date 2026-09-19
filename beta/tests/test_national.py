@@ -333,7 +333,5 @@ def test_nationwide_filters_unknowns_expiry_and_stable_pagination(
     assert search(page_size=1, page=2)["results"][0]["id"] == "irs-unknown"
     assert search(location="%")["total"] == 0
     assert client.get("/api/properties/irs-past").json()["active"] is False
-    assert client.put("/api/saved/irs-past", json={}, headers=signed_in).status_code == 200
-    assert search(saved_only=True)["results"][0]["id"] == "irs-past"
     for query in [{"state": "ZZ"}, {"source": "unknown"}]:
         assert client.post("/api/search", json=query, headers=signed_in).status_code == 422

@@ -117,7 +117,6 @@ class SearchQuery(Contract):
     sort: Literal["price_asc", "price_desc", "acres_desc", "county"] = "price_asc"
     page: int = Field(default=1, ge=1, le=10000)
     page_size: int = Field(default=12, ge=1, le=100)
-    saved_only: bool = False
 
     @field_validator("state")
     @classmethod

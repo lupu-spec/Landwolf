@@ -26,10 +26,9 @@ pytestmark = pytest.mark.browser
 
 @pytest.mark.parametrize("width", [390, 1440])
 @pytest.mark.parametrize("browser_server", ["research"], indirect=True)
-def test_explore_save_and_research_saved_navigation(
+def test_saved_feature_absent_and_research_handoff_remains(
     browser_server: tuple[str, int], width: int
 ) -> None:
-    """Exercise the two reported controls, including a failed Saved request."""
     origin, _ = browser_server
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(
@@ -38,195 +37,84 @@ def test_explore_save_and_research_saved_navigation(
         )
         page = browser.new_page(viewport={"width": width, "height": 844})
         errors: list[str] = []
-        page.on("pageerror", lambda error: errors.append(str(error)))
-        response = page.goto(origin)
-        assert response is not None and response.headers["cache-control"] == "no-cache"
-        page.get_by_role("button", name="Create account", exact=True).click()
-        page.get_by_label("Email address", exact=True).fill(f"navigation-{width}@example.com")
-        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
-        page.locator("#auth-submit").click()
-        card = page.locator(".property-card").filter(has_text="Test fixture 99002")
-        save = card.locator("[data-save-id]")
-        expect(save).to_be_visible()
-        # Scroll only to the card, not the button: auto-scrolling a click hid this defect.
-        card.evaluate("el => el.scrollIntoView({block: 'start'})")
-        expect(save).to_be_in_viewport(ratio=1)
-        assert (
-            save.evaluate(
-                "el => el.getBoundingClientRect().top - "
-                "el.closest('.property-card').getBoundingClientRect().top"
-            )
-            < 80
-        ), "Save must be at the top of the card, before its photo and details"
-        Path("test-results").mkdir(exist_ok=True)
-        page.screenshot(path=f"test-results/explore-save-{width}.png")
-        save.click()
-        expect(save).to_have_attribute("aria-pressed", "true")
-        card.get_by_role("button", name="Research property", exact=True).click()
-        expect(page.locator("#research-panel")).to_be_visible()
-        page.get_by_role("button", name="View Saved properties", exact=False).click()
-        expect(page.locator("#research-panel")).to_be_hidden()
-        expect(page.locator("#saved-toolbar")).to_be_visible()
-        expect(page.locator("#workspace-title")).to_have_text("Saved properties")
-        expect(page.locator("#workspace-title")).to_be_in_viewport(ratio=1)
-        expect(page.locator("#workspace-title")).to_be_focused()
-        expect(page.locator('#main-nav [data-nav="saved"]')).to_have_attribute(
-            "aria-current", "page"
-        )
-        expect(page.locator(".property-card")).to_have_count(1)
-        expect(page.locator("#search-form")).to_be_hidden()
-        expect(page.locator("#workspace-error")).to_be_empty()
-        page.screenshot(path=f"test-results/research-to-saved-{width}.png", full_page=True)
-
-        # A failed load must not display Explore inventory as saved records.
-        page.get_by_role("button", name="Explore properties", exact=True).click()
-        expect(page.locator(".property-card")).to_have_count(2)
-        page.get_by_role("button", name="Property research", exact=True).click()
-
-        def fail_saved(route: Route) -> None:
-            route.fulfill(status=503, json={"detail": "Synthetic saved-list outage"})
-
-        page.route("**/api/saved?*", fail_saved)
-        page.locator("#research-view-saved").click()
-        expect(page.locator("#workspace-error")).to_contain_text("Synthetic saved-list outage")
-        expect(page.locator(".property-card")).to_have_count(0)
-        expect(page.locator("#empty-state")).to_be_hidden()
-        page.unroute("**/api/saved?*", fail_saved)
-        page.get_by_role("button", name="Retry loading properties", exact=True).click()
-        expect(page.locator(".property-card")).to_have_count(1)
-        expect(page.locator("#workspace-error")).to_be_empty()
-        page.locator(".property-card [data-save-id]").click()
-        expect(page.locator("#empty-title")).to_have_text("No saved properties yet.")
-        page.get_by_role("button", name="Property research", exact=True).click()
-        page.locator("#research-view-saved").click()
-        expect(page.locator("#empty-state")).to_be_visible()
-        expect(page.locator("#workspace-title")).to_be_in_viewport(ratio=1)
-        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-        assert errors == []
-        browser.close()
-
-
-@pytest.mark.parametrize("browser_server", ["research"], indirect=True)
-def test_saved_locations_and_manual_properties_survive_reload(
-    browser_server: tuple[str, int],
-) -> None:
-    origin, _ = browser_server
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(
-            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
-            args=["--no-sandbox", "--disable-gpu"],
-        )
-        page = browser.new_page(viewport={"width": 390, "height": 844})
-        errors: list[str] = []
+        saved_requests: list[str] = []
         research_requests: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
             lambda request: (
-                research_requests.append(request.method)
+                saved_requests.append(request.url) if "/api/saved" in request.url else None
+            ),
+        )
+        page.on(
+            "request",
+            lambda request: (
+                research_requests.append(request.url)
                 if request.url.endswith("/api/research")
                 else None
             ),
         )
-        page.goto(origin)
+        response = page.goto(origin)
+        assert response is not None and response.headers["cache-control"] == "no-cache"
         page.get_by_role("button", name="Create account", exact=True).click()
-        page.get_by_label("Email address", exact=True).fill("saved-locations@example.com")
+        page.get_by_label("Email address", exact=True).fill(f"removal-{width}@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        expect(page.get_by_role("button", name=re.compile(r"save", re.I))).to_have_count(0)
+        expect(page.locator("#main-nav button")).to_have_count(3)
         card = page.locator(".property-card").filter(has_text="Test fixture 99002")
-        save = card.get_by_role("button", name="Save property 99002", exact=True)
-        expect(save).to_be_visible()
-        expect(save).to_have_text("Save property")
-        save.click()
-        expect(
-            card.get_by_role("button", name="Remove saved property 99002", exact=True)
-        ).to_have_attribute("aria-pressed", "true")
+        card.scroll_into_view_if_needed()
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path=f"test-results/explore-without-saves-{width}.png", full_page=True)
         card.get_by_role("button", name="View property 99002", exact=True).click()
-        expect(page.locator("#detail-actions .property-save")).to_be_visible()
+        expect(page.get_by_role("button", name=re.compile(r"save", re.I))).to_have_count(0)
         page.locator("#close-detail").click()
-        # The top navigation must carry the last opened property, too.
         page.get_by_role("button", name="Property research", exact=True).click()
         expect(page.locator("#research-address")).to_have_value(
             "123 Fixture St, Test City, TX 75000"
         )
         expect(page.locator("#research-status")).to_contain_text("Review it")
         assert research_requests == []
+        expect(page.get_by_role("button", name=re.compile(r"save", re.I))).to_have_count(0)
         page.locator("#research-address").fill("456 Revised St, Test City, TX 75000")
-        page.locator("#research-save").click()
-        expect(page.locator("#research-save-status")).to_contain_text("Saved to your account")
-        page.reload()
-        page.get_by_role("button", name="Saved properties", exact=True).click()
-        expect(page.locator(".property-card")).to_have_count(1)
-        page.locator(".property-card").get_by_role(
-            "button", name="Research property", exact=True
-        ).click()
-        expect(page.locator("#research-address")).to_have_value(
-            "456 Revised St, Test City, TX 75000"
-        )
-        assert research_requests == []
-
-        page.locator("#research-new").click()
+        page.get_by_role("button", name="Research location", exact=True).click()
+        expect(page.locator(".research-source")).to_have_count(5)
+        page.get_by_role("button", name="New research", exact=True).click()
         expect(page.locator("#research-address")).to_have_value("")
-        page.locator("#research-name").fill("My synthetic property")
-        page.locator("#research-address").fill("789 Manual St, Test City, TX 75000")
-
-        def fail_save(route: Route) -> None:
-            expect(page.locator("#research-save")).to_be_disabled()
-            route.fulfill(status=503, json={"detail": "Synthetic database outage"})
-
-        page.route("**/api/saved", fail_save)
-        page.locator("#research-save").click()
-        expect(page.locator("#research-save-status")).to_contain_text("Save failed")
-        page.unroute("**/api/saved", fail_save)
-        page.locator("#research-save").click()
-        expect(page.locator("#research-save-status")).to_contain_text("Saved to your account")
-        page.locator("#research-view-saved").click()
-        expect(page.locator(".property-card")).to_have_count(2)
-        expect(page.locator(".manual-property")).to_contain_text("789 Manual St")
-        expect(page.locator("#workspace-title")).to_be_in_viewport(ratio=1)
-        page.reload()
-        page.get_by_role("button", name="Saved properties", exact=True).click()
-        expect(page.locator(".property-card")).to_have_count(2)
-        manual = page.locator(".manual-property")
-        expect(manual).to_contain_text("789 Manual St")
-        manual.get_by_role("button", name="Research property", exact=True).click()
-        expect(page.locator("#research-name")).to_have_value("My synthetic property")
-        expect(page.locator("#research-address")).to_have_value(
-            "789 Manual St, Test City, TX 75000"
-        )
+        expect(page.locator("#research-results")).to_be_empty()
         page.locator("#research-mode").select_option("coordinates")
         page.locator("#research-latitude").fill("35.7804")
         page.locator("#research-longitude").fill("-78.6391")
-        page.locator("#research-save").click()
-        expect(page.locator("#research-save-status")).to_contain_text("Saved to your account")
-        page.reload()
-        page.get_by_role("button", name="Saved properties", exact=True).click()
-        page.locator(".manual-property").get_by_role(
-            "button", name="Research property", exact=True
-        ).click()
-        expect(page.locator("#research-mode")).to_have_value("coordinates")
-        expect(page.locator("#research-latitude")).to_have_value("35.7804")
-        expect(page.locator("#research-longitude")).to_have_value("-78.6391")
         page.get_by_role("button", name="Research location", exact=True).click()
         expect(page.locator(".research-source")).to_have_count(5)
-        expect(page.locator(".research-context")).to_contain_text("User-supplied coordinate")
+        page.screenshot(path=f"test-results/research-without-saves-{width}.png", full_page=True)
+        page.reload()
+        expect(page.locator(".property-card")).to_have_count(2)
+        page.get_by_role("button", name="Property research", exact=True).click()
+        expect(page.locator("#research-address")).to_have_value("")
+        expect(page.locator("#research-latitude")).to_have_value("")
+        expect(page.locator("#research-results")).to_be_empty()
+
+        def fail_search(route: Route) -> None:
+            route.fulfill(status=503, json={"detail": "Synthetic search outage"})
+
+        page.route("**/api/search", fail_search)
+        page.get_by_role("button", name="Explore properties", exact=True).click()
+        expect(page.locator("#workspace-error")).to_contain_text("Synthetic search outage")
+        expect(page.locator(".property-card")).to_have_count(0)
+        page.unroute("**/api/search", fail_search)
+        page.get_by_role("button", name="Retry loading properties", exact=True).click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        expect(page.locator("#workspace-error")).to_be_empty()
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-        Path("test-results").mkdir(exist_ok=True)
-        page.screenshot(path="test-results/saved-location-mobile.png", full_page=True)
-        page.get_by_role("button", name="Saved properties", exact=True).click()
-        page.screenshot(path="test-results/saved-properties-mobile.png", full_page=True)
-        page.locator(".manual-property").get_by_role(
-            "button", name="Remove from Saved", exact=True
-        ).click()
-        expect(page.locator(".property-card")).to_have_count(1)
-        page.get_by_role("button", name="Sign out", exact=True).click()
-        expect(page.locator("#research-name")).to_have_value("")
+        assert saved_requests == []
         assert errors == []
         browser.close()
 
 
 @pytest.mark.parametrize("browser_server", ["research"], indirect=True)
-def test_save_scenario_defaults_and_property_handoffs(browser_server: tuple[str, int]) -> None:
+def test_scenario_defaults_and_property_handoffs(browser_server: tuple[str, int]) -> None:
     origin, _ = browser_server
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(
@@ -242,21 +130,6 @@ def test_save_scenario_defaults_and_property_handoffs(browser_server: tuple[str,
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
         page.locator(".property-card").first.get_by_role("button", name="View property").click()
-        save = page.locator(".property-save")
-
-        def fail_save(route: Route) -> None:
-            expect(save).to_be_disabled()
-            route.fulfill(status=503, json={"detail": "Synthetic save failure"})
-
-        page.route("**/api/saved/*", fail_save)
-        save.click()
-        expect(page.locator("#detail-save-status")).to_contain_text("failed")
-        expect(save).to_have_attribute("aria-pressed", "false")
-        expect(save).to_be_enabled()
-        page.unroute("**/api/saved/*", fail_save)
-        save.click()
-        expect(save).to_have_attribute("aria-pressed", "true")
-        expect(page.locator("#detail-save-status")).to_contain_text("Saved to your account")
 
         def field(name: str):
             return page.locator(f'input[name="{name}"]')
@@ -299,10 +172,10 @@ def test_save_scenario_defaults_and_property_handoffs(browser_server: tuple[str,
         page.locator("#state").select_option("CA")
         page.locator("#search-submit").click()
         expect(page.locator("#empty-state")).to_be_visible()
-        page.get_by_role("button", name="Saved properties", exact=True).click()
+        page.get_by_role("button", name="Reset filters", exact=True).click()
         expect(page.locator("#state")).to_have_value("US")
-        expect(page.locator(".property-card")).to_have_count(1)
-        page.locator(".property-card").get_by_role("button", name="View property").click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        page.locator(".property-card").first.get_by_role("button", name="View property").click()
         expect(field("resale_high")).to_have_value("155000")
         page.locator("#reapply-bid-range").click()
         expect(field("resale_high")).to_have_value("132000")
@@ -315,12 +188,8 @@ def test_save_scenario_defaults_and_property_handoffs(browser_server: tuple[str,
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         assert page.locator("#property-dialog").evaluate("el => el.scrollWidth <= el.clientWidth")
         Path("test-results").mkdir(exist_ok=True)
-        page.screenshot(path="test-results/property-save-scenario-mobile.png", full_page=True)
-        save.click()
-        expect(save).to_have_attribute("aria-pressed", "false")
-        expect(page.locator("#detail-save-status")).to_contain_text("Removed")
+        page.screenshot(path="test-results/property-scenario-mobile.png", full_page=True)
         page.locator("#close-detail").click()
-        expect(page.locator("#empty-state")).to_be_visible()
         page.get_by_role("button", name="Sign out", exact=True).click()
         page.locator("#login-tab").click()
         page.get_by_label("Email address", exact=True).fill("handoff@example.com")
@@ -610,10 +479,6 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         page.locator("#search-submit").click()
         expect(page.locator(".property-card")).to_have_count(min(12, count))
 
-        first = page.locator(".property-card").first
-        first.locator(".save-button").click()
-        page.get_by_role("button", name="Saved properties", exact=True).click()
-        expect(page.locator(".property-card")).to_have_count(1)
         page.locator(".property-card").first.get_by_role("button", name="View property").click()
         expect(page.locator("#property-dialog")).to_be_visible()
         assert "glo.texas.gov" in page.get_by_role(
@@ -668,8 +533,7 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         page.screenshot(path=str(screenshots / "mobile.png"), full_page=True)
         page.reload()
         expect(page.locator("#workspace")).to_be_visible()
-        page.get_by_role("button", name="Saved properties", exact=True).click()
-        expect(page.locator(".property-card")).to_have_count(1)
+        expect(page.locator(".property-card")).to_have_count(min(12, count))
         page.get_by_role("button", name="Sign out", exact=True).click()
         expect(page.locator("#auth-form")).to_be_visible()
         expect(page.locator("#property-list")).to_be_empty()

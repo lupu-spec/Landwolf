@@ -76,6 +76,6 @@ Failures produce per-source unknown/unavailable states without hiding successful
 sources. A bounded 128-entry memory cache retains ready reports for six hours and
 other statuses for 60 seconds. Original retrieval timestamps survive cache hits;
 they are distinct from acquisition, revision or transformation dates. No public
-reference result changes listing coordinates, asking prices, accounts, saved records
+reference result changes listing coordinates, asking prices, accounts
 or scenario assumptions. Public providers receive the address or resolved point
 necessary for their queries; those inputs are not added to application logs.

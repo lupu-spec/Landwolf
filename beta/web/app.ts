@@ -1,27 +1,11 @@
 import L from "leaflet";
 import { bidRange, similarFilters } from "./property-context";
 
-type SavedLocation = {
+type ResearchLocation = {
   address: string | null;
   latitude: number | null;
   longitude: number | null;
 };
-type SavedEntry = {
-  id: string;
-  listing_id: string | null;
-  title: string;
-  location: SavedLocation | null;
-  location_origin: "source" | "user";
-  revision: number;
-  property?: PropertyRecord | null;
-};
-type SavedResult = {
-  results: SavedEntry[];
-  total: number;
-  page: number;
-  page_size: number;
-};
-
 type PropertyRecord = {
   id: string;
   source: string;
@@ -54,10 +38,7 @@ type PropertyRecord = {
   data_completeness: number;
   risk_notes: string[];
   active: boolean;
-  saved: boolean;
-  saved_record: SavedEntry | null;
-  research_location: SavedLocation | null;
-  location_origin: "source" | "user";
+  research_location: ResearchLocation | null;
 };
 type Source = {
   id: string;
@@ -174,7 +155,6 @@ const dialog = byId<HTMLDialogElement>("property-dialog");
 let csrf = "";
 let registerMode = false;
 let page = 1;
-let savedOnly = false;
 let requestSequence = 0;
 let detailSequence = 0;
 let analysisSequence = 0;
@@ -183,26 +163,19 @@ let navigationSequence = 0;
 let researchListingId: string | null = null;
 let currentProperty: PropertyRecord | null = null;
 let pendingResearchProperty: PropertyRecord | null = null;
-let lastResult: SearchResult | null = null;
 let map: L.Map | null = null;
 let markers: L.LayerGroup | null = null;
 let mapRecords: PropertyRecord[] = [];
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
 let coverageSources: Source[] = [];
 let coverageStates: StateCoverage[] = [];
-const saving = new Set<string>();
 const resaleNames = ["resale_low", "resale_likely", "resale_high"];
 let resaleOverrides = new Set<string>();
 const scenarioDrafts = new Map<
   string,
   { values: Record<string, string>; overrides: string[] }
 >();
-let filterView = "explore";
-const filterDrafts = new Map<string, Record<string, string>>();
 let researchProperty: PropertyRecord | null = null;
-let researchSaved: SavedEntry | null = null;
-let researchManualId = "";
-let researchSaving = false;
 let researchContextSequence = 0;
 const categoryNames: Record<string, string> = {
   government_land: "DNR & government land",
@@ -237,11 +210,8 @@ function notify(message: string): void {
 
 function clearSession(): void {
   csrf = "";
-  saving.clear();
   scenarioDrafts.clear();
   resaleOverrides.clear();
-  filterDrafts.clear();
-  filterView = "explore";
   form.reset();
   byId<HTMLSelectElement>("state").value = "US";
   requestSequence++;
@@ -250,7 +220,6 @@ function clearSession(): void {
   resetResearch();
   currentProperty = null;
   pendingResearchProperty = null;
-  lastResult = null;
   dialog.close();
   byId("detail-content").replaceChildren();
   byId("detail-actions").replaceChildren();
@@ -438,7 +407,6 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   byId("workspace").hidden = false;
   byId("main-nav").hidden = false;
   byId("signout").hidden = false;
-  savedOnly = false;
   page = 1;
   await navigate("explore");
 }
@@ -446,16 +414,7 @@ async function navigate(
   view: string,
   preset?: Record<string, string>,
 ): Promise<void> {
-  if (view === "explore" || view === "saved") {
-    if (view !== filterView) {
-      filterDrafts.set(filterView, formValues(form));
-      form.reset();
-      byId<HTMLSelectElement>("state").value = "US";
-      fillForm(form, filterDrafts.get(view) ?? {});
-      filterView = view;
-    }
-    if (preset) fillForm(form, preset);
-  }
+  if (view === "explore" && preset) fillForm(form, preset);
   const navigation = ++navigationSequence;
   const sessionToken = csrf;
   requestSequence++;
@@ -469,7 +428,6 @@ async function navigate(
     });
   const sources = view === "sources";
   const researching = view === "research";
-  savedOnly = view === "saved";
   if (view === "explore")
     byId("results-layout").dataset.view =
       document.querySelector<HTMLButtonElement>(
@@ -479,31 +437,16 @@ async function navigate(
   byId("source-panel").hidden = !sources;
   byId("research-panel").hidden = !researching;
   byId("explore-panel").hidden = sources || researching;
-  form.hidden = savedOnly;
-  byId("saved-toolbar").hidden = !savedOnly;
-  byId("reset-filters").hidden = savedOnly;
-  if (savedOnly) byId("results-layout").dataset.view = "list";
-  document
-    .querySelectorAll<HTMLElement>(
-      ".source-filter-row, .coverage-strip, .results-controls",
-    )
-    .forEach((node) => {
-      node.hidden = savedOnly;
-    });
   byId("workspace-title").textContent = sources
     ? "Know the source. Know the limits."
     : researching
       ? "Understand the location."
-      : savedOnly
-        ? "Saved properties"
-        : "Find your next opportunity.";
+      : "Find your next opportunity.";
   byId("workspace-description").textContent = sources
     ? "A transparent view of connected data and current gaps."
     : researching
       ? "Public records, with their source and uncertainty in view."
-      : savedOnly
-        ? "Saved to your account. Open Research to continue with the saved address or coordinates."
-        : "Real listings. Clear sources. A closer look at what matters.";
+      : "Real listings. Clear sources. A closer look at what matters.";
   // A tab switch must expose its destination even from a long Research report.
   byId("workspace-title").focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "instant" });
@@ -557,7 +500,6 @@ function query(): Record<string, unknown> {
     sort: byId<HTMLSelectElement>("sort").value,
     page,
     page_size: 12,
-    saved_only: savedOnly,
   };
 }
 function setLoading(loading: boolean): void {
@@ -572,40 +514,22 @@ async function search(): Promise<void> {
   byId("empty-state").hidden = true;
   byId("pagination").hidden = true;
   byId("results-layout").hidden = false;
-  byId("results-title").textContent = savedOnly
-    ? "Loading saved properties…"
-    : "Loading properties…";
+  byId("results-title").textContent = "Loading properties…";
   byId("results-subtitle").textContent = "";
-  // Never label a previous Explore response as the user's Saved collection.
+  // Do not present prior search results while loading a new selection.
   byId("property-list").replaceChildren(
     ...Array.from({ length: 4 }, () => element("div", "loading-card")),
   );
   try {
-    if (savedOnly) {
-      const result = await api<SavedResult>(
-        `/api/saved?page=${page}&page_size=12`,
-      );
-      if (sequence !== requestSequence || !csrf) return;
-      if (result.results.length === 0 && page > 1) {
-        page--;
-        void search();
-        return;
-      }
-      renderSaved(result);
-      return;
-    }
     const result = await api<SearchResult>("/api/search", "POST", query());
     if (sequence !== requestSequence || !csrf) return;
-    lastResult = result;
     renderResults(result);
   } catch (error) {
     if (sequence === requestSequence) {
       byId("workspace-error").textContent = errorText(error);
       byId("property-list").replaceChildren();
       byId("results-layout").hidden = true;
-      byId("results-title").textContent = savedOnly
-        ? "Saved properties could not load."
-        : "Properties could not load.";
+      byId("results-title").textContent = "Properties could not load.";
       byId("workspace-retry").hidden = false;
     }
   } finally {
@@ -645,7 +569,7 @@ byId("next").addEventListener("click", () => {
 function renderResults(result: SearchResult): void {
   const total = result.total;
   byId("results-title").textContent =
-    `${total} ${savedOnly ? "saved " : ""}${total === 1 ? "property" : "properties"}`;
+    `${total} ${total === 1 ? "property" : "properties"}`;
   byId("results-subtitle").textContent =
     "Connected sale inventories · Published prices and bids are not appraisals";
   const feeds = result.sources.filter((source) => source.automated);
@@ -664,9 +588,7 @@ function renderResults(result: SearchResult): void {
   if (empty) {
     byId("empty-title").textContent = !result.coverage_supported
       ? "This coverage is not connected yet."
-      : savedOnly
-        ? "No saved properties match these filters."
-        : "No matching listings in connected sources.";
+      : "No matching listings in connected sources.";
     byId("empty-description").textContent = !result.coverage_supported
       ? "An automated feed for this selection is not connected. Open Data coverage for official source links and current gaps. A pre-foreclosure notice is not a confirmed sale."
       : result.coverage_note +
@@ -681,187 +603,13 @@ function renderResults(result: SearchResult): void {
   if (!empty) drawMap(result.results);
 }
 
-function renderSaved(result: SavedResult): void {
-  const linked = result.results.flatMap((entry) =>
-    entry.property ? [entry.property] : [],
-  );
-  // Reuse the same result shell, while keeping manual records out of the source map.
-  renderResults({
-    ...result,
-    results: linked,
-    sources: [],
-    coverage_supported: true,
-    coverage_note: "",
-  });
-  byId("results-title").textContent =
-    `${result.total} saved ${result.total === 1 ? "property" : "properties"}`;
-  byId("results-subtitle").textContent =
-    "Most recently saved or updated first · Includes properties you added";
-  byId("empty-state").hidden = result.total > 0;
-  byId("results-layout").hidden = result.total === 0;
-  byId("results-layout").dataset.view = "list";
-  byId("empty-title").textContent = "No saved properties yet.";
-  byId("empty-description").textContent =
-    "Use Save property on a listing, or Add a property to save an address or coordinates.";
-  byId("property-list").replaceChildren(
-    ...result.results.map((entry) =>
-      entry.property ? propertyCard(entry.property) : manualCard(entry),
-    ),
-  );
-}
-
-function locationLabel(value: SavedLocation | null): string {
+function locationLabel(value: ResearchLocation | null): string {
   if (!value)
-    return "Location needed — add an address or coordinates in Research.";
+    return "Location needed — enter an address or coordinates in Research.";
   return value.address ?? `${value.latitude}, ${value.longitude}`;
-}
-
-function manualCard(entry: SavedEntry): HTMLElement {
-  const card = element("article", "property-card manual-property");
-  const body = element("div", "card-body");
-  body.append(
-    element("p", "eyebrow", "PROPERTY YOU ADDED"),
-    element("h3", "", entry.title),
-    element("p", "saved-location", locationLabel(entry.location)),
-    element(
-      "p",
-      "input-note",
-      "User-entered research location. Sale status and parcel boundaries are not verified.",
-    ),
-  );
-  const actions = element("div", "property-actions");
-  const research = element("button", "button primary", "Research property");
-  research.type = "button";
-  research.addEventListener("click", () => {
-    void openSaved(entry.id);
-  });
-  const remove = element("button", "button secondary", "Remove from Saved");
-  remove.type = "button";
-  remove.addEventListener("click", async () => {
-    const token = csrf;
-    remove.disabled = true;
-    try {
-      await api(`/api/saved/${encodeURIComponent(entry.id)}`, "DELETE");
-      if (token !== csrf) return;
-      if (researchSaved?.id === entry.id) resetResearch();
-      notify("Removed from Saved properties.");
-      if (savedOnly) await search();
-    } catch (error) {
-      if (token === csrf) notify(errorText(error));
-    } finally {
-      remove.disabled = false;
-    }
-  });
-  actions.append(research, remove);
-  body.append(actions);
-  card.append(body);
-  return card;
-}
-
-function bookmarkIcon(): SVGSVGElement {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("aria-hidden", "true");
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", "M6 3h12v18l-6-4-6 4z");
-  svg.append(path);
-  return svg;
-}
-function saveControl(
-  record: PropertyRecord,
-  compact = false,
-): HTMLButtonElement {
-  const button = element(
-    "button",
-    compact ? "button secondary save-button" : "button primary property-save",
-  );
-  button.type = "button";
-  button.dataset.saveId = record.id;
-  button.dataset.tract = record.tract;
-  button.dataset.compact = String(compact);
-  paintSave(button, record.saved, saving.has(record.id));
-  button.addEventListener("click", () => {
-    void toggleSave(record);
-  });
-  return button;
-}
-function paintSave(
-  button: HTMLButtonElement,
-  saved: boolean,
-  busy: boolean,
-): void {
-  button.disabled = busy;
-  button.setAttribute("aria-pressed", String(saved));
-  button.setAttribute(
-    "aria-label",
-    `${saved ? "Remove saved property" : "Save property"} ${button.dataset.tract ?? ""}`,
-  );
-  button.title = saved
-    ? "Remove from Saved properties"
-    : "Save to your account";
-  button.replaceChildren(
-    bookmarkIcon(),
-    document.createTextNode(
-      busy ? "Updating…" : saved ? "Saved ✓" : "Save property",
-    ),
-  );
-}
-function syncSaveControls(record: PropertyRecord): void {
-  document
-    .querySelectorAll<HTMLButtonElement>("[data-save-id]")
-    .forEach((button) => {
-      if (button.dataset.saveId === record.id)
-        paintSave(button, record.saved, saving.has(record.id));
-    });
-}
-async function toggleSave(record: PropertyRecord): Promise<void> {
-  if (!csrf || saving.has(record.id)) return;
-  const sessionToken = csrf;
-  saving.add(record.id);
-  syncSaveControls(record);
-  const report = (message: string) => {
-    if (dialog.open && currentProperty?.id === record.id)
-      byId("detail-save-status").textContent = message;
-    else notify(message);
-  };
-  try {
-    const result = await api<{ saved: boolean }>(
-      `/api/saved/${encodeURIComponent(record.id)}`,
-      record.saved ? "DELETE" : "PUT",
-    );
-    if (csrf !== sessionToken) return;
-    record.saved = result.saved;
-    for (const item of lastResult?.results ?? [])
-      if (item.id === record.id) item.saved = result.saved;
-    if (currentProperty?.id === record.id) currentProperty.saved = result.saved;
-    if (researchProperty?.id === record.id)
-      researchProperty.saved = result.saved;
-    if (!result.saved) {
-      record.saved_record = null;
-      if (currentProperty?.id === record.id)
-        currentProperty.saved_record = null;
-      if (researchSaved?.id === record.id) researchSaved = null;
-    }
-    report(
-      result.saved
-        ? "Saved to your account. Find it in Saved properties."
-        : "Removed from Saved properties.",
-    );
-    if (savedOnly) void search();
-  } catch (error) {
-    if (csrf === sessionToken)
-      report(`Save change failed: ${errorText(error)} Try again.`);
-  } finally {
-    if (csrf === sessionToken) {
-      saving.delete(record.id);
-      syncSaveControls(record);
-    }
-  }
 }
 function propertyCard(record: PropertyRecord): HTMLElement {
   const card = element("article", "property-card");
-  const toolbar = element("div", "property-card-toolbar");
-  toolbar.append(saveControl(record, true));
   const image = element("div", "property-image");
   image.append(photo(record, ""));
   image.append(
@@ -906,10 +654,10 @@ function propertyCard(record: PropertyRecord): HTMLElement {
   const actions = propertyActions(record);
   body.append(
     footer,
-    element("p", "saved-location", locationLabel(record.research_location)),
+    element("p", "research-location", locationLabel(record.research_location)),
     actions,
   );
-  card.append(toolbar, image, body);
+  card.append(image, body);
   return card;
 }
 
@@ -1128,13 +876,6 @@ function resetResearch(): void {
   invalidateResearch();
   researchContextSequence++;
   researchProperty = null;
-  researchSaved = null;
-  researchManualId = "";
-  researchSaving = false;
-  byId<HTMLInputElement>("research-name").value = "";
-  byId("research-save-status").textContent = "";
-  byId<HTMLButtonElement>("research-save").disabled = false;
-  byId("research-save").textContent = "Save property";
   byId("research-property-context").replaceChildren();
   byId<HTMLFormElement>("research-form").reset();
   researchMode();
@@ -1165,175 +906,57 @@ async function researchPropertyLocation(record: PropertyRecord): Promise<void> {
       `/api/properties/${encodeURIComponent(record.id)}`,
     );
     if (sequence !== researchContextSequence || token !== csrf) return;
-    await showResearchProperty(fresh, fresh.saved_record);
+    await showResearchProperty(fresh);
   } catch (error) {
     if (token === csrf) notify(errorText(error));
   }
 }
 
-async function openSaved(id: string): Promise<void> {
-  const sequence = ++researchContextSequence;
-  const token = csrf;
-  try {
-    const entry = await api<SavedEntry>(`/api/saved/${encodeURIComponent(id)}`);
-    if (sequence !== researchContextSequence || token !== csrf) return;
-    await showResearchProperty(entry.property ?? null, entry);
-  } catch (error) {
-    if (token === csrf) notify(errorText(error));
-  }
-}
-
-async function showResearchProperty(
-  record: PropertyRecord | null,
-  entry: SavedEntry | null,
-): Promise<void> {
+async function showResearchProperty(record: PropertyRecord): Promise<void> {
   rememberScenario();
   dialog.close();
   detailSequence++;
   resetResearch();
   researchProperty = record;
   pendingResearchProperty = null;
-  researchSaved = entry;
   const contextSequence = researchContextSequence;
-  const point = entry?.location ?? record?.research_location ?? null;
-  const origin = entry?.location_origin ?? record?.location_origin;
+  const point = record.research_location;
   const hasPoint = point?.latitude != null && point.longitude !== null;
   const address = point?.address;
-  byId<HTMLInputElement>("research-name").value =
-    entry?.title ?? record?.title ?? "";
-  byId("research-save").textContent = entry ? "Save changes" : "Save property";
   if (hasPoint) {
     byId<HTMLSelectElement>("research-mode").value = "coordinates";
     byId<HTMLInputElement>("research-latitude").value = String(point.latitude);
     byId<HTMLInputElement>("research-longitude").value = String(
       point.longitude,
     );
-    if (origin === "source" && record) researchListingId = record.id;
+    researchListingId = record.id;
   } else if (address)
     byId<HTMLInputElement>("research-address").value = address;
   researchMode();
   const context = byId("research-property-context");
   context.append(
-    element("h3", "", entry?.title ?? record?.title ?? "Your property"),
-    element(
-      "p",
-      "",
-      record
-        ? `${location(record)} · ${area(record.acres)}`
-        : "Property you added",
-    ),
+    element("h3", "", record.title),
+    element("p", "", `${location(record)} · ${area(record.acres)}`),
     element(
       "p",
       "input-note",
-      `${origin === "user" ? "Your saved location" : "Source-reported location"}. Review the fields before researching. Save changes to keep edits in your account. Coordinates and address results are not surveyed parcel boundaries.`,
+      "Source-reported location. Coordinates and address results are not surveyed parcel boundaries.",
     ),
   );
   const analyze = element("button", "button quiet", "Open deal scenario");
   analyze.addEventListener("click", () => {
     if (researchProperty) void openDetail(researchProperty.id);
   });
-  if (record) context.append(analyze, propertyActions(record));
+  context.append(analyze, propertyActions(record));
   await navigate("research");
   if (contextSequence !== researchContextSequence || !csrf) return;
-  if (hasPoint && origin === "source") await runResearch();
+  if (hasPoint) await runResearch();
   else
     byId("research-status").textContent = address
       ? "Address prefilled. Review it, then select Research location."
-      : hasPoint
-        ? "Saved coordinates prefilled. Review them, then select Research location."
-        : "This listing has no usable published address or point. Enter an address or coordinates, then Save changes to keep this research location. County and tract identifiers cannot locate a parcel.";
+      : "This listing has no usable published address or point. Enter an address or coordinates. County and tract identifiers cannot locate a parcel.";
 }
 
-function researchLocationInput(): SavedLocation {
-  if (byId<HTMLSelectElement>("research-mode").value === "address")
-    return {
-      address: byId<HTMLInputElement>("research-address").value.trim(),
-      latitude: null,
-      longitude: null,
-    };
-  return {
-    address: null,
-    latitude: Number(byId<HTMLInputElement>("research-latitude").value),
-    longitude: Number(byId<HTMLInputElement>("research-longitude").value),
-  };
-}
-
-async function saveResearchProperty(): Promise<void> {
-  if (
-    !csrf ||
-    researchSaving ||
-    !byId<HTMLFormElement>("research-form").reportValidity()
-  )
-    return;
-  const selectedLocation = researchLocationInput();
-  const title =
-    byId<HTMLInputElement>("research-name").value.trim() ||
-    researchProperty?.title ||
-    locationLabel(selectedLocation);
-  if (!byId<HTMLInputElement>("research-name").reportValidity()) return;
-  const token = csrf;
-  const sequence = researchContextSequence;
-  const originalEntry = researchSaved;
-  if (!researchManualId) researchManualId = crypto.randomUUID();
-  researchSaving = true;
-  const button = byId<HTMLButtonElement>("research-save");
-  button.disabled = true;
-  byId("research-save-status").textContent =
-    "Saving property and research location…";
-  try {
-    const body = originalEntry
-      ? { title, location: selectedLocation, revision: originalEntry.revision }
-      : {
-          title,
-          location: selectedLocation,
-          ...(researchProperty
-            ? { listing_id: researchProperty.id }
-            : { manual_id: researchManualId }),
-        };
-    const result = await api<SavedEntry>(
-      originalEntry
-        ? `/api/saved/${encodeURIComponent(originalEntry.id)}`
-        : "/api/saved",
-      originalEntry ? "PATCH" : "POST",
-      body,
-    );
-    if (token !== csrf || sequence !== researchContextSequence) return;
-    researchSaved = result;
-    if (researchProperty) {
-      researchProperty.saved = true;
-      researchProperty.saved_record = result;
-      researchProperty.research_location = result.location;
-      researchProperty.location_origin = result.location_origin;
-      syncSaveControls(researchProperty);
-    }
-    button.textContent = "Save changes";
-    const edited =
-      JSON.stringify(researchLocationInput()) !==
-        JSON.stringify(selectedLocation) ||
-      (byId<HTMLInputElement>("research-name").value.trim() ||
-        researchProperty?.title ||
-        locationLabel(researchLocationInput())) !== title;
-    byId("research-save-status").textContent = edited
-      ? "The submitted property was saved. Your newer edits are not saved yet."
-      : "Saved to your account with this research location. Open it from Saved properties on any device.";
-  } catch (error) {
-    if (token === csrf && sequence === researchContextSequence)
-      byId("research-save-status").textContent =
-        `Save failed: ${errorText(error)}`;
-  } finally {
-    if (token === csrf && sequence === researchContextSequence) {
-      researchSaving = false;
-      button.disabled = false;
-    }
-  }
-}
-
-byId("research-save").addEventListener("click", () => {
-  void saveResearchProperty();
-});
-byId("research-name").addEventListener("input", () => {
-  byId("research-save-status").textContent = "Unsaved name changes.";
-});
 function newResearchProperty(): void {
   rememberScenario();
   dialog.close();
@@ -1344,7 +967,6 @@ function newResearchProperty(): void {
   byId<HTMLInputElement>("research-address").focus();
 }
 byId("research-new").addEventListener("click", newResearchProperty);
-byId("saved-add").addEventListener("click", newResearchProperty);
 function renderResearch(report: ResearchReport): void {
   const container = byId("research-results");
   container.replaceChildren();
@@ -1457,8 +1079,6 @@ async function runResearch(): Promise<void> {
 byId("research-mode").addEventListener("change", researchMode);
 byId("research-form").addEventListener("input", () => {
   invalidateResearch();
-  byId("research-save-status").textContent =
-    "Unsaved location changes. Select Save changes to keep them.";
   const note = byId("research-property-context").querySelector(".input-note");
   if (researchProperty && note)
     note.textContent =
@@ -1505,10 +1125,7 @@ async function openDetail(id: string): Promise<void> {
   }
 }
 function renderDetail(record: PropertyRecord): void {
-  byId("detail-actions").replaceChildren(
-    saveControl(record),
-    propertyActions(record),
-  );
+  byId("detail-actions").replaceChildren(propertyActions(record));
   const hero = element("div", "detail-hero");
   hero.append(photo(record, "detail-photo"));
   const overview = element("div", "detail-overview");
@@ -1579,15 +1196,11 @@ function renderDetail(record: PropertyRecord): void {
     facts.append(fact);
   }
   overview.append(facts);
-  const saveStatus = element("p", "input-note");
-  saveStatus.id = "detail-save-status";
-  saveStatus.setAttribute("role", "status");
   overview.append(
-    saveStatus,
     element(
       "p",
       "input-note",
-      "Save property keeps this listing in your account. Research property opens its saved address or coordinates. Save changes in Research to retain location edits. Scenario edits remain in this page session only.",
+      "Research property opens the source address or coordinates. Scenario edits remain in this page session only.",
     ),
   );
   hero.append(overview);

@@ -150,7 +150,7 @@ def test_untrusted_headers_cannot_widen_access(
         assert response.status_code == expected
 
 
-def test_accounts_and_saves_survive_signing_in_on_new_domain(tmp_path: Path) -> None:
+def test_accounts_survive_signing_in_on_new_domain(tmp_path: Path) -> None:
     app = create_app(domain_settings(tmp_path))
     with TestClient(app, base_url=ORIGINS[2]) as client:
         seed(app.state.factory)
@@ -158,7 +158,6 @@ def test_accounts_and_saves_survive_signing_in_on_new_domain(tmp_path: Path) -> 
         registration = client.post("/api/auth/register", json=CREDENTIALS, headers=old_headers)
         assert registration.status_code == 201
         old_headers["X-CSRF-Token"] = registration.json()["csrf"]
-        assert client.put("/api/saved/glo-99001", json={}, headers=old_headers).status_code == 200
 
         # Browser cookies do not cross hosts. The same account can sign in again.
         assert client.get(f"{ORIGINS[0]}/api/sources").status_code == 401
@@ -166,11 +165,9 @@ def test_accounts_and_saves_survive_signing_in_on_new_domain(tmp_path: Path) -> 
         login = client.post(f"{ORIGINS[0]}/api/auth/login", json=CREDENTIALS, headers=new_headers)
         assert login.status_code == 200
         new_headers["X-CSRF-Token"] = login.json()["csrf"]
-        search = client.post(
-            f"{ORIGINS[0]}/api/search", json={"saved_only": True}, headers=new_headers
-        )
+        search = client.post(f"{ORIGINS[0]}/api/search", json={}, headers=new_headers)
         assert search.status_code == 200
-        assert [item["id"] for item in search.json()["results"]] == ["glo-99001"]
+        assert [item["id"] for item in search.json()["results"]] == ["glo-99001", "glo-99002"]
         assert (
             client.post(
                 f"{ORIGINS[0]}/api/search",

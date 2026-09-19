@@ -1,5 +1,4 @@
 import pytest
-from conftest import register
 from fastapi.testclient import TestClient
 
 
@@ -28,39 +27,6 @@ def test_filters_sorting_pagination_and_uncovered_sources(
     assert search(location="missing")["coverage_supported"] is True
 
 
-def test_saved_properties_belong_to_each_account_and_survive_logout(
-    client: TestClient, signed_in: dict[str, str], inventory: None
-) -> None:
-    for _ in range(2):
-        assert client.put("/api/saved/glo-99001", json={}, headers=signed_in).status_code == 200
-    assert (
-        client.post("/api/search", json={"saved_only": True}, headers=signed_in).json()["total"]
-        == 1
-    )
-    client.post("/api/auth/logout", json={}, headers=signed_in)
-    second = register(client, "second@example.com")
-    assert not client.get("/api/properties/glo-99001").json()["saved"]
-    assert (
-        client.post("/api/search", json={"saved_only": True}, headers=second).json()["total"] == 0
-    )
-    client.request("DELETE", "/api/saved/glo-99001", json={}, headers=second)
-    client.post("/api/auth/logout", json={}, headers=second)
-    response = client.post(
-        "/api/auth/login",
-        json={
-            "email": "investor@example.com",
-            "password": "Test-only passphrase 847!",
-        },
-        headers=signed_in,
-    )
-    first = {**signed_in, "X-CSRF-Token": response.json()["csrf"]}
-    assert client.get("/api/properties/glo-99001").json()["saved"]
-    assert (
-        client.request("DELETE", "/api/saved/glo-99001", json={}, headers=first).status_code == 200
-    )
-    assert not client.get("/api/properties/glo-99001").json()["saved"]
-
-
 @pytest.mark.parametrize(
     "query",
     [
@@ -77,6 +43,5 @@ def test_search_rejects_bad_contracts(
     assert client.post("/api/search", json=query, headers=signed_in).status_code == 422
 
 
-def test_missing_detail_and_save_are_404(client: TestClient, signed_in: dict[str, str]) -> None:
+def test_missing_detail_is_404(client: TestClient, signed_in: dict[str, str]) -> None:
     assert client.get("/api/properties/missing").status_code == 404
-    assert client.put("/api/saved/missing", json={}, headers=signed_in).status_code == 404

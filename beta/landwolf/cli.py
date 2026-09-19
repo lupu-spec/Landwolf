@@ -30,7 +30,10 @@ def main() -> None:
                 raise SystemExit(1)
         elif args.command == "init-db":
             initialize(engine)
-            print(f"Beta schema version {SCHEMA_VERSION} ready; existing records preserved")
+            print(
+                f"Beta schema version {SCHEMA_VERSION} ready; retired Saved tables removed; "
+                "accounts, sessions and source listings preserved"
+            )
         else:
             result = asyncio.run(Catalog(factory).refresh())
             print(json.dumps(result, indent=2))

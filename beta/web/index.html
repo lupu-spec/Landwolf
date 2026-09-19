@@ -27,7 +27,6 @@
         <button class="nav-link active" data-nav="explore">
           Explore properties
         </button>
-        <button class="nav-link" data-nav="saved">Saved properties</button>
         <button class="nav-link" data-nav="research">Property research</button>
         <button class="nav-link" data-nav="sources">Data coverage</button>
       </nav>
@@ -72,8 +71,8 @@
               <span class="auth-heading-line">starts here.</span>
             </h2>
             <p class="muted">
-              Sign in to search, save properties, and run deal scenarios. All
-              features are free.
+              Sign in to search, research properties, and run deal scenarios.
+              All features are free.
             </p>
             <div
               class="segmented auth-tabs"
@@ -243,36 +242,13 @@
             id="research-property-context"
             class="research-property-context"
           ></div>
-          <div class="research-save-bar">
-            <div class="field">
-              <label for="research-name">Saved property name (optional)</label>
-              <input
-                id="research-name"
-                maxlength="300"
-                placeholder="e.g. Land near Melissa"
-              />
-            </div>
-            <button id="research-save" type="button" class="button primary">
-              Save property
-            </button>
-            <button id="research-new" type="button" class="button secondary">
-              New property
-            </button>
-            <button
-              id="research-view-saved"
-              data-nav="saved"
-              type="button"
-              class="button secondary"
-            >
-              View Saved properties →
-            </button>
-          </div>
-          <p
-            id="research-save-status"
-            class="input-note"
-            role="status"
-            aria-live="polite"
-          ></p>
+          <button
+            id="research-new"
+            type="button"
+            class="button secondary research-new"
+          >
+            New research
+          </button>
           <form
             id="research-form"
             class="research-form"
@@ -341,15 +317,6 @@
         </section>
 
         <section id="explore-panel">
-          <div id="saved-toolbar" class="saved-toolbar" hidden>
-            <p>
-              Listings and properties you added, with their saved research
-              locations.
-            </p>
-            <button id="saved-add" class="button primary" type="button">
-              Add a property
-            </button>
-          </div>
           <form
             id="search-form"
             class="search-bar"

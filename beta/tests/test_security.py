@@ -20,8 +20,6 @@ from landwolf.schemas import AnalysisInput
         ("POST", "/api/search", {}),
         ("GET", "/api/sources", None),
         ("GET", "/api/properties/glo-99001", None),
-        ("PUT", "/api/saved/glo-99001", {}),
-        ("DELETE", "/api/saved/glo-99001", {}),
     ],
 )
 def test_property_access_requires_server_session(

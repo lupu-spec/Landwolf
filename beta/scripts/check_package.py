@@ -9,8 +9,11 @@ if not wheels:
     raise SystemExit("No LandWolf wheel found; run the production build")
 with ZipFile(wheels[-1]) as wheel:
     names = set(wheel.namelist())
+    if "landwolf/saved.py" in names:
+        raise SystemExit("Wheel contains retired Saved implementation")
     required = {
         "landwolf/main.py",
+        "landwolf/locations.py",
         "landwolf/static/index.html",
         "landwolf/static/assets/app.js",
         "landwolf/static/assets/styles.css",
