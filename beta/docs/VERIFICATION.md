@@ -1,6 +1,6 @@
 # LandWolf beta verification
 
-## Permanent Saved feature removal — 2026-09-19
+## Permanent Saved feature removal — 2026-09-19 (deployed)
 
 The owner explicitly requested removal and then confirmed: “Delete it permanently
 and push to production.” This supersedes the earlier request to retain saved data.
@@ -37,7 +37,7 @@ Local results (commands from beta unless noted):
 | `.venv/bin/pytest -q -m 'not browser'` | Passed, 233 tests; 6 browser cases deselected |
 | `.venv/bin/python scripts/check_postgres.py` | Failed locally, disposable database unavailable, exit 1; hosted gate required |
 | `npm run build`; `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed; retired implementation excluded from wheel |
-| `.venv/bin/pytest -q -m browser` | Local Chromium unavailable; hosted gate required |
+| `.venv/bin/pytest -q -m browser` | Failed locally, 6 launch failures because Chromium executable is absent, exit 1; hosted gate required |
 | `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | Passed, no findings |
 | `git diff --check`; `git status --short` (root) | Passed, expected changes only |
 | `.venv/bin/pytest -q` (root) | Failed, legacy environment absent, exit 127 |
@@ -46,8 +46,64 @@ An initial test collection failure (shared migration-fixture import) and formatt
 findings were corrected before the successful local suite. No verification gate
 was weakened. Security review found no new dependencies or secrets, no SQL built
 from untrusted input, and no changes to auth/CSRF/host/origin protections. Database
-deletion is limited to the two explicitly retired tables. Hosted gates and deployment
-verification are pending.
+deletion is limited to the two explicitly retired tables.
+
+**Hosted gates passed** on runtime commit
+`5f65178540e24f10f49530dbd6ad14d6a9809264`:
+[push run 35472690390](https://github.com/lupu-spec/Landwolf/actions/runs/35472690390),
+job `105976434729`; PR run `35472692824` / job `105976441808` also passed.
+All rebuilt-app canonical commands passed, including `.venv/bin/mypy landwolf`,
+`.venv/bin/python scripts/check_postgres.py` against disposable PostgreSQL 18,
+and `.venv/bin/pytest -q -m browser` (6 journeys). **243 tests passed:** 233 Python,
+4 frontend and 6 Chromium. PostgreSQL migration checks confirmed both retired
+tables absent, with pre-existing accounts/sessions/listings unchanged. Packaging,
+format/lint/types, security, secret scanning and diff checks passed.
+
+CI screenshot artifact `10593300843` was downloaded and hash-verified:
+`0cf32fe1f6f9a8556b11ebb6e2d4b07fce49196487dc568ac563dede8ce51604`.
+Mobile Explore and Research screenshots were inspected; Saved controls are absent,
+source handoff/manual Research remain usable, and the logo/theme are retained.
+Screenshots and browser tests use synthetic upstream records.
+
+**Production deployment `dep-dangjc142hec73eebq10` is live** on the existing service,
+serving the exact tested commit. Started 22:16:16 UTC; live **22:16:55 UTC**.
+At 22:16:40 UTC the predeploy migration logged:
+“Beta schema version 3 ready; retired Saved tables removed; accounts, sessions and
+source listings preserved”. No replacement service/database, pricing change or DNS
+edit occurred. The v3 migration is the only production database change.
+
+Live command `.venv/bin/python -u /workspace/scratch/bae2278276c6/landwolf-removal-production-smoke.py`
+passed (exit 0). Before deployment it created one synthetic QA account/session and
+two disposable saved records; credentials stayed in process memory. After deployment:
+
+- The existing session remained authenticated; the same credentials still worked
+  after logout/login. QA session was revoked; account remains, credentials discarded.
+- Database health returned 200 and payments remain disabled.
+- All six retired Saved method/path combinations returned 404 for that authenticated
+  session; the obsolete saved-only filter returned 422.
+- Search, property detail/source coordinates and all-50-state coverage remained
+  accessible; responses contain no saved state.
+- HTML/JavaScript/CSS exactly match the tested build and return `no-cache` headers.
+
+Deployed SHA-256:
+
+- HTML: `54d2863c008570c0d6143b9c67ded543d6604b6a242478186b84fd2b633fb031`
+- JavaScript: `e81ce77b1a211ab220258397371b1f6840a0a563a7fbc5baec19a10b758d68a5`
+- CSS: `f44c92095eed9f26ad61ea8d5b995c9dc6c798253b6d027ffa0c2131fa5e46f2`
+
+The platform sign-in page was reloaded and inspected in the cloud browser; its
+copy now describes search/research/scenarios. Authenticated UI verification ran
+in hosted Chromium; production authenticated checks used HTTPX. Render's warning/error
+log query for 22:16:55–22:19:02 UTC returned no entries. A direct production
+SQL metadata query could not connect (connector SSL/TLS-required/EOF failure); no
+database allowlist/security setting was changed. Production deletion evidence is
+the successful transactional v3 predeploy migration, its log and healthy v3 runtime.
+`landwolf.ai/api/health` and `www.landwolf.ai/api/health` again timed out from this
+environment after deployment; custom-domain reachability remains **unverified**.
+
+Separate legacy CI remains **Failed**: job `105976442217` / run `35472692933`
+cannot import `investment_engine`; job `105976442094` / run `35472692901` cannot
+import `numpy`. These failure logs were read and are unrelated to the rebuilt app.
 
 ## Explore Save and Research → Saved navigation — 2026-09-19 (deployed)
 
