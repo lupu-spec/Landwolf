@@ -144,7 +144,9 @@
             <p class="eyebrow" id="workspace-eyebrow">
               DISCOVER • RESEARCH • EVALUATE
             </p>
-            <h1 id="workspace-title">Find your next opportunity.</h1>
+            <h1 id="workspace-title" tabindex="-1">
+              Find your next opportunity.
+            </h1>
             <p class="muted" id="workspace-description">
               Real listings. Clear sources. A closer look at what matters.
             </p>
@@ -256,7 +258,12 @@
             <button id="research-new" type="button" class="button secondary">
               New property
             </button>
-            <button id="research-view-saved" type="button" class="text-button">
+            <button
+              id="research-view-saved"
+              data-nav="saved"
+              type="button"
+              class="button secondary"
+            >
               View Saved properties →
             </button>
           </div>
@@ -436,6 +443,14 @@
             </button>
           </div>
           <p id="workspace-error" class="form-message" role="alert"></p>
+          <button
+            id="workspace-retry"
+            type="button"
+            class="button secondary"
+            hidden
+          >
+            Retry loading properties
+          </button>
           <div class="results-toolbar">
             <div>
               <h2 id="results-title">Property results</h2>

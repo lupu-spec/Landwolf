@@ -615,6 +615,21 @@ input::placeholder {
   border-radius: 4px;
   color: var(--navy);
 }
+.property-card-toolbar {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--soft);
+}
+.property-card-toolbar .save-button {
+  width: 100%;
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+}
+.property-card-toolbar .save-button[aria-pressed="true"] {
+  background: var(--green);
+  border-color: var(--green);
+}
 .save-button {
   position: static;
   min-height: 44px;

@@ -107,7 +107,11 @@ probability with a sampling interval, and a scenario score. It does not infer ma
 value from the seller's asking price. The current feeds lack calibrated local or
 broader-area cost estimates; no ChatGPT-generated figures are presented as evidence.
 
-**Save property / Saved ✓** is beside the card actions and in the sticky detail bar.
+**Save property / Saved ✓** is at the top of every listing card, before the photo,
+and in the sticky detail bar. **View Saved properties →** in Research uses the same
+navigation as the Saved tab, brings its heading into view and focuses it.
+Failed loads show an explicit retry action and never present previous Explore
+results as saved records. HTML and browser assets revalidate after deployments.
 **Saved properties** lists all account-owned saves, including manually entered
 properties, most recently updated first, with pagination and no inherited Explore
 filters. **Add a property** opens Research; enter an address or coordinate pair and

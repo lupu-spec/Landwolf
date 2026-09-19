@@ -460,10 +460,13 @@ async function navigate(
   const sessionToken = csrf;
   requestSequence++;
   document
-    .querySelectorAll<HTMLButtonElement>("[data-nav]")
-    .forEach((button) =>
-      button.classList.toggle("active", button.dataset.nav === view),
-    );
+    .querySelectorAll<HTMLButtonElement>("#main-nav [data-nav]")
+    .forEach((button) => {
+      const active = button.dataset.nav === view;
+      button.classList.toggle("active", active);
+      if (active) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
   const sources = view === "sources";
   const researching = view === "research";
   savedOnly = view === "saved";
@@ -478,6 +481,8 @@ async function navigate(
   byId("explore-panel").hidden = sources || researching;
   form.hidden = savedOnly;
   byId("saved-toolbar").hidden = !savedOnly;
+  byId("reset-filters").hidden = savedOnly;
+  if (savedOnly) byId("results-layout").dataset.view = "list";
   document
     .querySelectorAll<HTMLElement>(
       ".source-filter-row, .coverage-strip, .results-controls",
@@ -490,7 +495,7 @@ async function navigate(
     : researching
       ? "Understand the location."
       : savedOnly
-        ? "Your opportunities, in one place."
+        ? "Saved properties"
         : "Find your next opportunity.";
   byId("workspace-description").textContent = sources
     ? "A transparent view of connected data and current gaps."
@@ -499,6 +504,9 @@ async function navigate(
       : savedOnly
         ? "Saved to your account. Open Research to continue with the saved address or coordinates."
         : "Real listings. Clear sources. A closer look at what matters.";
+  // A tab switch must expose its destination even from a long Research report.
+  byId("workspace-title").focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: "instant" });
   if (sources) {
     try {
       const result = await api<{
@@ -560,11 +568,18 @@ async function search(): Promise<void> {
   const sequence = ++requestSequence;
   setLoading(true);
   byId("workspace-error").textContent = "";
-  if (!lastResult) {
-    byId("property-list").replaceChildren(
-      ...Array.from({ length: 4 }, () => element("div", "loading-card")),
-    );
-  }
+  byId("workspace-retry").hidden = true;
+  byId("empty-state").hidden = true;
+  byId("pagination").hidden = true;
+  byId("results-layout").hidden = false;
+  byId("results-title").textContent = savedOnly
+    ? "Loading saved properties…"
+    : "Loading properties…";
+  byId("results-subtitle").textContent = "";
+  // Never label a previous Explore response as the user's Saved collection.
+  byId("property-list").replaceChildren(
+    ...Array.from({ length: 4 }, () => element("div", "loading-card")),
+  );
   try {
     if (savedOnly) {
       const result = await api<SavedResult>(
@@ -586,7 +601,12 @@ async function search(): Promise<void> {
   } catch (error) {
     if (sequence === requestSequence) {
       byId("workspace-error").textContent = errorText(error);
-      if (!lastResult) byId("property-list").replaceChildren();
+      byId("property-list").replaceChildren();
+      byId("results-layout").hidden = true;
+      byId("results-title").textContent = savedOnly
+        ? "Saved properties could not load."
+        : "Properties could not load.";
+      byId("workspace-retry").hidden = false;
     }
   } finally {
     if (sequence === requestSequence) setLoading(false);
@@ -602,6 +622,9 @@ byId("sort").addEventListener("change", () => {
   void search();
 });
 byId("refresh-results").addEventListener("click", () => {
+  void search();
+});
+byId("workspace-retry").addEventListener("click", () => {
   void search();
 });
 byId("reset-filters").addEventListener("click", () => {
@@ -837,6 +860,8 @@ async function toggleSave(record: PropertyRecord): Promise<void> {
 }
 function propertyCard(record: PropertyRecord): HTMLElement {
   const card = element("article", "property-card");
+  const toolbar = element("div", "property-card-toolbar");
+  toolbar.append(saveControl(record, true));
   const image = element("div", "property-image");
   image.append(photo(record, ""));
   image.append(
@@ -879,13 +904,12 @@ function propertyCard(record: PropertyRecord): HTMLElement {
   });
   footer.append(detail);
   const actions = propertyActions(record);
-  actions.prepend(saveControl(record, true));
   body.append(
     footer,
     element("p", "saved-location", locationLabel(record.research_location)),
     actions,
   );
-  card.append(image, body);
+  card.append(toolbar, image, body);
   return card;
 }
 
@@ -1309,9 +1333,6 @@ byId("research-save").addEventListener("click", () => {
 });
 byId("research-name").addEventListener("input", () => {
   byId("research-save-status").textContent = "Unsaved name changes.";
-});
-byId("research-view-saved").addEventListener("click", () => {
-  void navigate("saved");
 });
 function newResearchProperty(): void {
   rememberScenario();

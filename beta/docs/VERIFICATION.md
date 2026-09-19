@@ -1,5 +1,54 @@
 # LandWolf beta verification
 
+## Explore Save and Research → Saved navigation — 2026-09-19
+
+Triage found Save below each card's photo/details, navigation preserving the prior
+scroll position and keyboard focus, and stale Explore cards surviving a failed
+Saved request. The Research control already had a click handler; a missing handler
+was not established as the cause. The platform production bundle matched the prior
+release. No authenticated production browser reproduction was available.
+
+The patch moves the labeled Save button above the photo, shares one navigation
+handler between Research's button and the Saved tab, focuses the destination
+heading and scrolls to the top, clears prior results while loading, and provides
+an explicit retry on failure. HTML/assets now revalidate on requests. Account data,
+database schema, source adapters, payments and deal calculations are unchanged.
+
+**Regression established before the runtime patch:** test-only commit
+`7f7a0b8a00af8c74a36e299d522c8a45e5defc97`, hosted
+[run 35471185769](https://github.com/lupu-spec/Landwolf/actions/runs/35471185769),
+job `105972320917`: two new desktop/mobile cases failed at the assertion that Save
+must be at the top of the card; the five prior browser journeys passed. The new
+cases also exercise the exact Research button, heading visibility/focus, selected
+Saved tab, saved-record rendering, empty Saved, failed load and successful retry.
+The manual-property journey now clicks that same Research button after saving.
+
+Local command results after the runtime patch (exit 0 unless specified):
+
+| Command from beta unless noted | Result |
+| --- | --- |
+| `.venv/bin/ruff format landwolf tests scripts`; `npm run format` | Passed |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed (initial long test line corrected) |
+| `.venv/bin/mypy landwolf` | Failed, existing local mypy internal error, exit 2 |
+| `.venv/bin/mypy --no-incremental --cache-dir=/dev/null landwolf`; `npm run typecheck` | Passed |
+| `npm run test:unit`; `.venv/bin/pytest -q -m 'not browser'` | Passed, 4 Node and 235 Python tests |
+| `.venv/bin/python scripts/check_postgres.py` | Failed locally, disposable database unavailable, exit 1; hosted gate required |
+| `npm run build` | Passed |
+| `.venv/bin/pytest -q -m browser` | Failed locally, Chromium executable absent; 7 launch failures, exit 1; hosted gate required |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | Passed, no findings |
+| `git diff --check`; `git status --short` (root) | Passed, expected changes only |
+| `.venv/bin/pytest -q` (root) | Failed, legacy environment missing, exit 127 |
+
+Diff security review: labels remain text nodes, authentication/ownership/CSRF
+checks are unchanged, and API responses retain `Cache-Control: no-store`.
+No dependencies, credentials, private records or infrastructure access rules changed.
+Hosted final gates, screenshot review and deployment verification are pending.
+Custom-domain root/assets requests timed out or returned 502 from this environment;
+the platform root and JavaScript returned 200 with the previously deployed content.
+Render Dashboard domain inspection required a new sign-in and was not completed.
+
 ## Saved property persistence revision — 2026-09-19 (deployed and live API verified)
 
 Implemented prominent Save actions, manually entered private saved properties,

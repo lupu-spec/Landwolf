@@ -39,7 +39,8 @@ def test_explore_save_and_research_saved_navigation(
         page = browser.new_page(viewport={"width": width, "height": 844})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(origin)
+        response = page.goto(origin)
+        assert response is not None and response.headers["cache-control"] == "no-cache"
         page.get_by_role("button", name="Create account", exact=True).click()
         page.get_by_label("Email address", exact=True).fill(f"navigation-{width}@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
@@ -179,6 +180,10 @@ def test_saved_locations_and_manual_properties_survive_reload(
         page.unroute("**/api/saved", fail_save)
         page.locator("#research-save").click()
         expect(page.locator("#research-save-status")).to_contain_text("Saved to your account")
+        page.locator("#research-view-saved").click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        expect(page.locator(".manual-property")).to_contain_text("789 Manual St")
+        expect(page.locator("#workspace-title")).to_be_in_viewport(ratio=1)
         page.reload()
         page.get_by_role("button", name="Saved properties", exact=True).click()
         expect(page.locator(".property-card")).to_have_count(2)

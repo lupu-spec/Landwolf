@@ -152,6 +152,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
+        elif request.url.path == "/" or request.url.path.startswith("/assets/"):
+            # Stable asset names must revalidate after a deployment.
+            response.headers["Cache-Control"] = "no-cache"
         if settings.secure_cookies:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
         return response
