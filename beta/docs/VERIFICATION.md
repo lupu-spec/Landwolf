@@ -797,3 +797,20 @@ configuration validation; Render CLI/platform Blueprint validation remains Not r
 This follow-up records evidence only. The deployed runtime is unchanged. Email
 verification/password recovery, a tested backup restoration, MLS access and complete
 county-level foreclosure/tax/parcel coverage remain outside this release.
+
+## Responsive heading spacing — September 19, 2026
+
+The login-page headings now retain a literal space when responsive CSS hides their
+decorative line breaks. A Chromium regression assertion checks the rendered 900px
+text for “Understand the opportunity.” and “Your next opportunity starts here.”
+
+After the final code change, these commands passed locally: `uv sync --frozen --dev`;
+both configured format checks; both linters; Python and TypeScript type checks;
+`.venv/bin/pytest -q -m 'not browser'` (210 passed); `npm run build`; Python package
+build and package inspection; Bandit; pip and npm dependency audits; secret scanning;
+and `git diff --check`. The first browser-suite attempt ran but failed all three cases
+before page load because the Chromium executable was absent. A subsequent
+`.venv/bin/playwright install chromium` attempt was interrupted after the approved
+download endpoint returned HTTP 502 and then timed out. These are **Failed**, not
+passed browser gates. Hosted CI must run and pass the three Chromium journeys before
+deployment. No dependency or lockfile changed.

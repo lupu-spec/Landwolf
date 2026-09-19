@@ -227,6 +227,10 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         page.goto(origin)
         expect(page.locator("#auth-form")).to_be_visible()
         expect(page.locator("#search-form")).to_be_hidden()
+        page.set_viewport_size({"width": 900, "height": 1000})
+        assert "Understand the opportunity." in page.locator(".story-copy h1").inner_text()
+        assert "Your next opportunity starts here." in page.locator("#auth-title").inner_text()
+        page.set_viewport_size({"width": 1440, "height": 1000})
         page.screenshot(path=str(screenshots / "login.png"), full_page=True)
 
         page.get_by_role("button", name="Create account", exact=True).click()
