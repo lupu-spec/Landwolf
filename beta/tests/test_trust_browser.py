@@ -91,7 +91,8 @@ def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine
         page.screenshot(path=f"test-results/trust-zoom-{engine_name}-{width}.png", full_page=True)
         overflow = page.evaluate("""() => Array.from(document.querySelectorAll('body *'))
           .filter(el => el.getBoundingClientRect().width > 0 &&
-                        el.getBoundingClientRect().right > innerWidth)
+                        el.getBoundingClientRect().right > innerWidth &&
+                        !el.closest('.table-scroll'))
           .map(el => ({tag:el.tagName, id:el.id, css:el.className,
                       right:el.getBoundingClientRect().right})).slice(0,20)""")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), overflow

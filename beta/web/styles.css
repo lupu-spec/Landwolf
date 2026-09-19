@@ -1024,6 +1024,7 @@ input::placeholder {
   border: 1px solid var(--line);
   border-radius: 10px;
   margin: 15px 0 50px;
+  overflow-wrap: anywhere;
 }
 .source-panel > p:not(.eyebrow) {
   margin: 12px 0 26px;
@@ -1862,6 +1863,15 @@ select {
     overflow-wrap: anywhere;
   }
   .main-nav {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
   }
+}
+@media (max-width: 480px) {
+  .source-panel h2 {
+    font-size: 1.5rem;
+  }
+}
+.table-scroll:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
 }

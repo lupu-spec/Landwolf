@@ -1377,3 +1377,15 @@ the 390px Explore and 1440px Research views were downloaded and visually inspect
 the source fixtures are synthetic, not live listings. A new passing hosted run is
 required for the corrected implementation. The subsequent local backend run passed
 265 tests (exit 0), including rejection of unsupported valuations and implicit consent.
+
+
+Second hosted beta run [35476124085](https://github.com/lupu-spec/Landwolf/actions/runs/35476124085)
+(commit `a3bad133d595ecab14dd8bf10f4d74e9b408b628`) passed the earlier code/database
+steps again, with 265 backend tests. Browser result: 14 passed, 2 failed. Both
+email verification/recovery journeys now passed. Only the 320px doubled-text page
+width assertion failed in both engines. Downloaded screenshots measured 329px wide
+and showed the oversized Coverage heading extending past its card. The correction
+uses a smaller responsive heading, normal text wrapping, and a navigation grid that
+stacks based on available space and font size. The horizontally scrollable data
+table receives a keyboard focus target and accessible label. Global page-width
+assertions remain unchanged; another hosted run is required.
