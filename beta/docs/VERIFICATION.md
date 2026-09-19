@@ -829,3 +829,19 @@ the sentence-substring assertion while the other two journeys passed. The regres
 now asserts the actual rendering invariant (`display: inline`) and uses DOM text with
 whitespace-aware matching to prove the words cannot concatenate. A fourth hosted run
 is required; the preceding failed runs remain recorded as failures.
+
+Final hosted push run
+[35462636178](https://github.com/lupu-spec/Landwolf/actions/runs/35462636178),
+job `105949119339`, **Passed** every configured step: locked installs, format,
+lint, types, 210 unit/API tests, disposable PostgreSQL integration, all three
+Chromium journeys (including the 790px heading-spacing regression), production
+package, security scans and diff integrity. Runtime commit
+`81b1efb776077ad6063a08501006785f4c1af9b2` was manually deployed because
+auto-deploy remains off. Render deploy `dep-dandlm6gekts738ko650` reached **live**
+at 18:57:21 UTC on September 19, 2026.
+
+After deployment, the explicit HTTPS check against the Render address exited 0:
+`/api/health` and `/` returned 200, payments remained disabled, and deployed HTML/CSS
+contained both responsive heading spans and the block-to-inline `max-width: 800px`
+rules. Neither joined-word string appeared in the HTML. A bounded Render application
+warning/error query covering deployment through 18:57:55 UTC returned zero entries.
