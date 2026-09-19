@@ -1,9 +1,74 @@
 # LandWolf beta verification
 
-## Current patch — property saving and scenario handoffs (2026-09-19)
+## Production release — property workflows (2026-09-19)
+
+Runtime commit `866ff7dbdb07a219980f5cff3b5f598a73f54ad8` was pushed to
+`codex/landwolf-beta-rebuild`, verified in hosted CI, then manually deployed to
+the existing `landwolf-free-beta` service (`srv-dak1lvh42hec73blur00`).
+Render deployment `dep-daneslbm8hqs73b3gha0` became **live at 20:20:21 UTC**.
+The code push did not auto-deploy: Render's `autoDeploy=no`, trigger `off`, and
+PR previews were confirmed off before pushing. No new Render service/database,
+database reset, migration, billing change, or DNS change was made.
+
+### Hosted gates — passed for the deployed commit
+
+The missing Chromium and disposable PostgreSQL infrastructure was provided by
+GitHub Actions, not by bypassing this workspace's package-install restrictions.
+Local package installation remains restricted; local browser checks remain unavailable.
+The isolated runner started PostgreSQL 18 and installed Chromium with its OS dependencies.
+
+[Push run 35466903356](https://github.com/lupu-spec/Landwolf/actions/runs/35466903356),
+job `105960801784`, completed successfully. The rebuilt-app PR run
+`35466905035`, job `105960806899`, also succeeded.
+These exact commands ran successfully in the push job:
+
+| Commands (from beta/) | Observed result |
+| --- | --- |
+| `pip install uv==0.12.11`; `uv sync --frozen --dev`; `npm ci`; `.venv/bin/playwright install --with-deps chromium` | Passed: isolated locked environments and browser installation. |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed. |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed. |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | Passed. |
+| `npm run test:unit` | Passed: 5 frontend arithmetic/location/filter tests. |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed: 212 tests; 4 browser tests reserved for the next gate. |
+| `.venv/bin/python scripts/check_postgres.py` | Passed against disposable `landwolf_ci`: authentication, nationwide JSON filters, nulls, dates, pagination and saves. |
+| `npm run build`; `.venv/bin/pytest -q -m browser` | Passed: 4 Chromium journeys, including save failure/retry, synchronized saved state, zero defaults/acknowledgment, bid overrides, research handoffs, independent filters and mobile layout. |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed: wheel/source archive and required runtime/source/test assets. |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | Passed: no reported vulnerabilities or scanner findings. |
+| `git diff --check`; `git status --short` | Passed. |
+
+### Post-deploy observations
+
+An HTTPX check from this workspace observed the following at the Render platform
+origin `https://landwolf-free-beta.onrender.com` after the deployment became live:
+
+- `/api/health`: HTTP 200, `status=ok`, `payments_enabled=false`.
+- `/`: HTTP 200; new downside/upside, zero-cost acknowledgment and research-context
+  fields present.
+- `/assets/app.js` and `/assets/styles.css`: HTTP 200. SHA-256 values matched the
+  locally built assets exactly:
+  - JS: `a651dae7e2886f070319e4550c490a1edd01078bd40aae9b80bdbad7064c1523`
+  - CSS: `e36d77181a62c2a63d4e796e19b360de36f92b68db9a7c8c5965502e482f0621`
+- Anonymous `/api/properties/verification-no-session`: HTTP 401 as required.
+- Render log query returned no warning/error entries between deployment start
+  (20:19:33 UTC) and 20:20:59 UTC.
+
+**Verification limits:** `https://landwolf.ai/api/health` and the `www` equivalent
+timed out from this workspace. The cloud browser also timed out opening the custom
+domain. This does not establish a domain outage, but custom-domain HTTPS/redirects
+and authenticated live-browser save persistence were not verified in this release.
+No production test account or records were created. CI browser/database tests use
+isolated accounts and synthetic fixtures; they do not establish live source coverage.
+
+Separate legacy workflows remain failing and were not changed or claimed as passed:
+the legacy Test job failed importing `investment_engine`, and Release Preflight
+failed importing `numpy`. The existing legacy release workflow also reported failure.
+They are separate from the rebuilt application's successful release gates.
+
+## Local patch preparation — property saving and scenario handoffs (2026-09-19)
 
 Prepared locally against `050ba89a5410c1e6f6d59fa3a2eae845aa3bea2b`.
-**Not pushed or deployed. Browser and PostgreSQL verification remain blocked.**
+**Historical local result:** initially not pushed/deployed, with browser and PostgreSQL
+checks blocked. The production-release section above supersedes that status.
 The historical deployment observations below are not a verification of this patch.
 
 ### Behavior and limits
