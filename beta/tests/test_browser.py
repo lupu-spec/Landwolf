@@ -60,7 +60,8 @@ def test_public_research_authentication_sources_mobile_and_stale_results(
         assert "0.00" in text and "even Zone X can flood" in text
         assert page.get_by_role("link", name="View public source & limitations").count() == 5
         assert page.locator('input[name="resale_likely"]').input_value() == ""
-        page.set_viewport_size({"width": 900, "height": 1000})
+        # At this breakpoint the decorative breaks are hidden; words must not join.
+        page.set_viewport_size({"width": 790, "height": 1000})
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         page.set_viewport_size({"width": 390, "height": 844})
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")

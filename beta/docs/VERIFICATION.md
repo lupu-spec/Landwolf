@@ -801,7 +801,7 @@ county-level foreclosure/tax/parcel coverage remain outside this release.
 ## Responsive heading spacing — September 19, 2026
 
 The login-page headings now retain a literal space when responsive CSS hides their
-decorative line breaks. A Chromium regression assertion checks the rendered 900px
+decorative line breaks. A Chromium regression assertion checks the rendered 790px
 text for “Understand the opportunity.” and “Your next opportunity starts here.”
 
 After the final code change, these commands passed locally: `uv sync --frozen --dev`;
