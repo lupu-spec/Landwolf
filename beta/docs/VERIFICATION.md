@@ -1389,3 +1389,55 @@ uses a smaller responsive heading, normal text wrapping, and a navigation grid t
 stacks based on available space and font size. The horizontally scrollable data
 table receives a keyboard focus target and accessible label. Global page-width
 assertions remain unchanged; another hosted run is required.
+
+
+### Final implemented runtime: passed beta gates
+
+[Hosted run 35476407770](https://github.com/lupu-spec/Landwolf/actions/runs/35476407770),
+job `105986296342`, completed successfully for runtime commit
+`7c1e5947d8cef02a0b2861d61fe9849ba5ac0f00`.
+
+Every configured beta step passed, with exit 0 for its commands: locked environment
+installation (`uv sync --frozen --dev`, `npm ci`, Playwright Chromium/WebKit install),
+Ruff/Prettier format checks, Ruff/ESLint, canonical `.venv/bin/mypy landwolf` and
+TypeScript, `npm run test:unit` (4 passed), `.venv/bin/pytest -q -m 'not browser'`
+(265 passed), `.venv/bin/python scripts/check_postgres.py`, and
+`.venv/bin/python scripts/check_restore.py` (11 tables restored with exact row digests).
+`npm run build`, `.venv/bin/pytest -q -m browser` (16 passed),
+`.venv/bin/python -m build`, `.venv/bin/python scripts/check_package.py`,
+`.venv/bin/bandit -r landwolf`, `.venv/bin/pip-audit --local --skip-editable`,
+`npm audit --audit-level=moderate`, `npm run secrets`, `git diff --check` and
+`git status --short` also passed. Security scanners reported no issues/known
+vulnerabilities; this is not a guarantee that no vulnerability exists.
+
+Browser coverage: Chromium and WebKit at 320, 390, 768 and 1440 CSS-pixel widths;
+authentication, Explore/list defaults, property evidence, Research handoff/summary,
+source details and roadmap, county gaps, no horizontal page overflow, and the
+coverage page with 200% root text size. Two additional journeys consume real
+one-use account tokens with a locally captured test mail transport. Existing
+Saved-removal, scenario, map/list and stale-response regressions also passed.
+These are emulated viewport checks on Linux engines, not physical-device Safari
+certification, a full accessibility audit, or real email-delivery verification.
+
+The run's `beta-browser-evidence` artifact retains screenshots for seven days.
+The earlier failed runs remain documented above. Separate legacy workflow/test
+failures do not become passes because the beta workflow is green.
+
+Not run/not provisioned: staging service and database creation, a new container
+build, Render platform Blueprint validation, hosted staging HTTPS/browser checks,
+a staging/production backup restore, real Resend delivery and sender-domain setup.
+The public Blueprint JSON Schema check passed separately. As selected by the owner,
+resource provisioning follows review of `render.staging.yaml`; no production
+service, domain binding or database was changed. The free review database expires
+after 30 days; hosted backups require separate configuration. IRS live-filter
+validation remains unavailable, and nationwide county/MLS coverage remains partial.
+
+
+Final screenshot inspection covered 390px WebKit Explore, 1440px Chromium Research,
+and the top of the 320px Chromium coverage page at doubled text. Navigation now
+stacks without splitting labels across narrow columns, and the Coverage heading
+fits its card. Final doubled-text screenshots from both engines measured exactly
+320px wide. Large data tables scroll inside their labeled region; no global page
+clipping rule hides overflow. Local final diff checks and a repeated secret scan
+passed. The follow-up commit changes documentation only; the runtime remains the
+one verified by the successful hosted run above.
