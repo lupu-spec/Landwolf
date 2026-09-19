@@ -1,6 +1,6 @@
 # LandWolf beta verification
 
-## Explore Save and Research → Saved navigation — 2026-09-19
+## Explore Save and Research → Saved navigation — 2026-09-19 (deployed)
 
 Triage found Save below each card's photo/details, navigation preserving the prior
 scroll position and keyboard focus, and stale Explore cards surviving a failed
@@ -44,10 +44,58 @@ Local command results after the runtime patch (exit 0 unless specified):
 Diff security review: labels remain text nodes, authentication/ownership/CSRF
 checks are unchanged, and API responses retain `Cache-Control: no-store`.
 No dependencies, credentials, private records or infrastructure access rules changed.
-Hosted final gates, screenshot review and deployment verification are pending.
-Custom-domain root/assets requests timed out or returned 502 from this environment;
-the platform root and JavaScript returned 200 with the previously deployed content.
-Render Dashboard domain inspection required a new sign-in and was not completed.
+
+**Hosted final gates passed on runtime commit
+`7943395e09e15a9fdf41de4192681ff3bddc77c7`:**
+[push run 35471440084](https://github.com/lupu-spec/Landwolf/actions/runs/35471440084),
+job `105973005074`; PR run `35471441912` / job `105973009978` also passed.
+All canonical commands listed above passed in the hosted environment, including
+`.venv/bin/mypy landwolf`, `.venv/bin/python scripts/check_postgres.py` against
+disposable PostgreSQL 18 and `.venv/bin/pytest -q -m browser` (7 journeys).
+**246 tests passed**: 235 Python, 4 frontend and 7 Chromium journeys. The package,
+format/lint/types, dependency audits, Bandit, secret scan and diff gates passed.
+No gates were weakened. Artifact `10593085071` was downloaded and its SHA-256
+`215789eb844406cbcc49988fd36be5054fbb5887c72dc8134c4b29dc96b9047d`
+verified. Reviewed desktop/mobile Explore and mobile Research→Saved screenshots:
+Save is above each photo, Saved has a selected tab and visible heading, and the
+original logo/theme remain. These screenshots use explicitly synthetic test data.
+
+**Production:** Render deployment `dep-dang76ek1f9s738kn5ng` serves that exact
+runtime commit; started 21:50:17 UTC, live **21:50:59 UTC**. The predeploy log at
+21:50:45 UTC confirms schema v2 ready with existing records preserved. No database
+migration or replacement was needed for this UI patch.
+
+Command `.venv/bin/python /workspace/scratch/bae2278276c6/landwolf-nav-production-smoke.py`
+passed (exit 0) against `https://landwolf-free-beta.onrender.com`. It verified:
+
+- Database health 200, payments disabled, API `Cache-Control: no-store`.
+- HTML, JavaScript and CSS exactly match the local production build and carry
+  `Cache-Control: no-cache` to revalidate stable filenames after deployment.
+- Anonymous Saved access returns 401; a fresh synthetic QA account can save a
+  real source listing and a manually entered public address; both appear in Saved.
+- Both records and the address survive logout/login. Cleanup removed both QA
+  saves and revoked the session. The QA account remains; credentials were discarded.
+
+Deployed SHA-256:
+
+- HTML: `6ca6b95dabeffccaa6ef159792f558fdeab0f18615631ded459da6d128d704b6`
+- JavaScript: `0a22cdb562315f7a96b3a938c93d2bb6dd3a47cd20b6ec4a1b8b44cec9783e8e`
+- CSS: `3d9b71236b9c38c96407f88b3c40659211c32d4d610fe9a7fb2990ecd9074795`
+
+The production cloud-browser sign-in page loaded after deployment. Authenticated
+button clicks were verified in hosted Chromium, not in the production cloud browser.
+Render's warning/error log query for 21:50:59–21:53:00 UTC returned no entries,
+covering the first two minutes after the deployment became live.
+**Custom domains remain unverified:** root/assets requests timed out or returned
+502 before deployment; both `landwolf.ai/api/health` and `www.landwolf.ai/api/health`
+timed out after deployment. This does not establish an outage for other clients.
+Render Dashboard domain inspection required a new sign-in and was not completed;
+no DNS records were changed.
+
+Unrelated legacy CI remains **Failed**: run `35471441923` / job `105973009998`
+cannot import `investment_engine`; run `35471441922` / job `105973010099` cannot
+import `numpy`. Actual failure logs were inspected. The rebuilt application's
+passed gates do not mean all repository workflows pass.
 
 ## Saved property persistence revision — 2026-09-19 (deployed and live API verified)
 
