@@ -800,8 +800,9 @@ county-level foreclosure/tax/parcel coverage remain outside this release.
 
 ## Responsive heading spacing — September 19, 2026
 
-The login-page headings now retain a literal space when responsive CSS hides their
-decorative line breaks. A Chromium regression assertion checks the rendered 790px
+The login-page headings now use responsive line spans instead of hidden decorative
+break elements, retaining natural word spacing at small widths. A Chromium regression
+assertion checks the rendered 790px
 text for “Understand the opportunity.” and “Your next opportunity starts here.”
 
 After the final code change, these commands passed locally: `uv sync --frozen --dev`;
@@ -814,3 +815,10 @@ before page load because the Chromium executable was absent. A subsequent
 download endpoint returned HTTP 502 and then timed out. These are **Failed**, not
 passed browser gates. Hosted CI must run and pass the three Chromium journeys before
 deployment. No dependency or lockfile changed.
+
+The first hosted browser run checked 900px, outside the affected `max-width: 800px`
+rule, and failed the new assertion. The second checked 790px but confirmed that a
+hidden `br` still contributed an accessibility-text line boundary. Both runs had two
+other browser journeys pass, and neither was treated as verification. The final
+implementation replaces those breaks with block/inline responsive spans; a new hosted
+run is required before deployment.

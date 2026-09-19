@@ -289,6 +289,10 @@ svg {
   font-style: normal;
   color: #c6dfeb;
 }
+.story-heading-line,
+.auth-heading-line {
+  display: block;
+}
 .story-copy > p:not(.eyebrow) {
   font-size: 1.06rem;
   color: #e1eaf0;
@@ -1487,8 +1491,9 @@ input::placeholder {
     font-size: 2.4rem;
     margin: 12px 0;
   }
-  .story-copy h1 br:nth-of-type(2) {
-    display: none;
+  .story-heading-line,
+  .auth-heading-line {
+    display: inline;
   }
   .story-copy > p:not(.eyebrow) {
     font-size: 0.93rem;
@@ -1508,9 +1513,6 @@ input::placeholder {
   }
   .auth-content h2 {
     font-size: 1.7rem;
-  }
-  .auth-content h2 br {
-    display: none;
   }
   .site-footer {
     flex-direction: column;
