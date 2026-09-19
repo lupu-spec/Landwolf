@@ -6,7 +6,7 @@ import json
 
 from landwolf.catalog import Catalog
 from landwolf.config import Settings
-from landwolf.db import database, initialize
+from landwolf.db import SCHEMA_VERSION, database, initialize
 from landwolf.research import ResearchQuery, ResearchService
 
 
@@ -30,7 +30,7 @@ def main() -> None:
                 raise SystemExit(1)
         elif args.command == "init-db":
             initialize(engine)
-            print("Beta schema version 1 initialized; legacy tables unchanged")
+            print(f"Beta schema version {SCHEMA_VERSION} ready; existing records preserved")
         else:
             result = asyncio.run(Catalog(factory).refresh())
             print(json.dumps(result, indent=2))

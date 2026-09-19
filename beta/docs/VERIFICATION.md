@@ -1,5 +1,43 @@
 # LandWolf beta verification
 
+## Saved property persistence revision — 2026-09-19 (awaiting hosted gates)
+
+Implemented prominent Save actions, manually entered private saved properties,
+account-persistent research addresses/coordinates, cross-feed address handoff,
+revision conflict checks, and an additive v1 → v2 database migration. The old
+frontend address test moved to five server-side source-location cases alongside
+new persistence/security tests; the obsolete frontend helper was removed.
+No source adapters or deal equations were changed.
+
+Observed local commands after implementation:
+
+| Command (from beta unless noted) | Result |
+| --- | --- |
+| `.venv/bin/ruff format landwolf tests scripts`; `npm run format` | Passed, formatting applied |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed after correcting unused/unsorted imports |
+| `npm run typecheck` | Passed |
+| `.venv/bin/mypy landwolf` | Failed: generated cache SQLite database malformed |
+| `.venv/bin/mypy --no-incremental --cache-dir=/dev/null landwolf` | Passed, 16 source files |
+| `npm run test:unit` | Passed, 4 tests |
+| `.venv/bin/pytest -q tests/test_saved.py tests/test_search.py` | Passed, 31 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed, 235 tests; 5 browser tests deselected |
+| `.venv/bin/python scripts/check_postgres.py` | Failed locally: disposable `landwolf_ci` URL unavailable; hosted gate required |
+| `npm run build` | Passed |
+| `.venv/bin/pytest -q -m browser` | Failed: Chromium executable absent; all 5 failed before browser launch |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed |
+| `.venv/bin/bandit -r landwolf` | Passed, no findings |
+| `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate` | Passed, no known vulnerabilities |
+| `npm run secrets` | Passed |
+| `git diff --check`; `git status --short` (root) | Passed; expected patch files only |
+| `.venv/bin/pytest -q` (root legacy environment) | Failed: root test environment absent, exit 127 |
+
+Render read-only preflight confirms the existing service uses the rebuild branch,
+manual deploys, and `python -m landwolf.cli init-db` before deploy. The connector's
+read-only production PostgreSQL query failed with an SSL/TLS connection error;
+no production values or records were read or changed. No database allowlist was
+relaxed. Hosted PostgreSQL/Chromium and production verification are still pending.
+
 ## Production release — property workflows (2026-09-19)
 
 Runtime commit `866ff7dbdb07a219980f5cff3b5f598a73f54ad8` was pushed to

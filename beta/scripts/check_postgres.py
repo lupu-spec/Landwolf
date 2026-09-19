@@ -5,9 +5,19 @@ import uuid
 from urllib.parse import urlsplit
 
 from fastapi.testclient import TestClient
+from sqlalchemy import inspect, select
 
 from landwolf.config import Settings
-from landwolf.db import Listing
+from landwolf.db import (
+    Account,
+    Base,
+    Listing,
+    SavedProperty,
+    SavedRecord,
+    SchemaVersion,
+    database,
+    initialize,
+)
 from landwolf.main import create_app
 from landwolf.schemas import PropertyRecord
 
@@ -24,8 +34,57 @@ def main() -> None:
     settings = Settings(
         environment="test", database_url=url, public_origin="http://testserver", auto_sync=False
     )
-    app = create_app(settings)
     suffix = uuid.uuid4().hex[:12]
+    engine, factory = database(url)
+    if not inspect(engine).has_table(SchemaVersion.__tablename__):
+        Base.metadata.create_all(
+            engine,
+            tables=[
+                table
+                for table in Base.metadata.sorted_tables
+                if table.name != SavedRecord.__tablename__
+            ],
+        )
+        with factory() as session, session.begin():
+            session.add(SchemaVersion(version=1))
+            session.add(
+                Account(
+                    id="migration-fixture",
+                    email="migration@example.com",
+                    password_hash="synthetic-hash",
+                )
+            )
+            session.add(
+                Listing(
+                    id="migration-fixture",
+                    source="tx_glo_public",
+                    active=False,
+                    payload={"title": "Synthetic migration fixture"},
+                )
+            )
+            session.flush()
+            session.add(
+                SavedProperty(
+                    account_id="migration-fixture", listing_id="migration-fixture", created_at=123
+                )
+            )
+    initialize(engine)
+    initialize(engine)
+    with factory() as session:
+        require(
+            session.scalars(select(SchemaVersion.version)).all() == [2], "Migration version failed"
+        )
+        migrated = session.get(SavedRecord, ("migration-fixture", "migration-fixture"))
+        require(
+            migrated is not None and migrated.created_at == 123,
+            "PostgreSQL bookmark migration failed",
+        )
+        require(
+            session.get(SavedProperty, ("migration-fixture", "migration-fixture")) is not None,
+            "Old bookmark removed",
+        )
+    engine.dispose()
+    app = create_app(settings)
     with TestClient(app) as client:
         with app.state.factory() as session, session.begin():
             for label, state, price, acres, deadline in [
@@ -88,6 +147,33 @@ def main() -> None:
                 "Save failed",
             )
         require(search(saved_only=True)["total"] == 1, "Saved search duplicated or lost property")
+        saved = client.get(f"/api/saved/{listing_id}").json()
+        edited = client.patch(
+            f"/api/saved/{listing_id}",
+            json={
+                "title": "CI saved location",
+                "location": {"latitude": 35.7804, "longitude": -78.6391},
+                "revision": saved["revision"],
+            },
+            headers=headers,
+        )
+        require(
+            edited.status_code == 200 and edited.json()["revision"] == 2, "Location update failed"
+        )
+        manual = {
+            "manual_id": str(uuid.uuid4()),
+            "title": "CI manual property",
+            "location": {"address": "123 Fixture St, Test City, TX 75000"},
+        }
+        for _ in range(2):
+            require(
+                client.post("/api/saved", json=manual, headers=headers).status_code == 200,
+                "Manual save failed",
+            )
+        require(
+            client.get("/api/saved").json()["total"] == 2,
+            "Manual save retry duplicated or lost property",
+        )
         require(
             len(client.get("/api/sources").json()["states"]) == 50, "Coverage aggregation failed"
         )
@@ -107,7 +193,7 @@ def main() -> None:
         )
     print(
         "Passed: PostgreSQL authentication, nationwide JSON filters, "
-        "nulls, dates, pagination and saves"
+        "nulls, dates, pagination, v1 migration, manual saves and persistent research locations"
     )
 
 

@@ -241,6 +241,31 @@
             id="research-property-context"
             class="research-property-context"
           ></div>
+          <div class="research-save-bar">
+            <div class="field">
+              <label for="research-name">Saved property name (optional)</label>
+              <input
+                id="research-name"
+                maxlength="300"
+                placeholder="e.g. Land near Melissa"
+              />
+            </div>
+            <button id="research-save" type="button" class="button primary">
+              Save property
+            </button>
+            <button id="research-new" type="button" class="button secondary">
+              New property
+            </button>
+            <button id="research-view-saved" type="button" class="text-button">
+              View Saved properties →
+            </button>
+          </div>
+          <p
+            id="research-save-status"
+            class="input-note"
+            role="status"
+            aria-live="polite"
+          ></p>
           <form
             id="research-form"
             class="research-form"
@@ -309,6 +334,15 @@
         </section>
 
         <section id="explore-panel">
+          <div id="saved-toolbar" class="saved-toolbar" hidden>
+            <p>
+              Listings and properties you added, with their saved research
+              locations.
+            </p>
+            <button id="saved-add" class="button primary" type="button">
+              Add a property
+            </button>
+          </div>
           <form
             id="search-form"
             class="search-bar"
@@ -479,8 +513,8 @@
       aria-labelledby="detail-title"
     >
       <div class="detail-topbar">
-        <span>PROPERTY INTELLIGENCE</span
-        ><button
+        <div id="detail-actions" class="detail-actions"></div>
+        <button
           id="close-detail"
           class="icon-button"
           aria-label="Close property details"

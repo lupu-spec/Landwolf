@@ -17,27 +17,6 @@ export function bidRange(bid: number, downside = 5, upside = 20) {
   return { low, likely, high };
 }
 
-type LocationRecord = {
-  source: string;
-  state: string;
-  location_description: string | null;
-};
-
-export function sourceAddress(record: LocationRecord): string {
-  // Only these adapters populate location_description from a street-address field.
-  // Never reinterpret legal descriptions, tract IDs, or a county as an address.
-  const value = record.location_description?.trim() ?? "";
-  if (
-    !["usda_resales", "irs_auctions"].includes(record.source) ||
-    value.length > 300
-  )
-    return "";
-  const ending = /\b([A-Z]{2}),?\s+\d{5}(?:-\d{4})?$/.exec(value);
-  return /^\d+[A-Za-z-]*\s+\S/.test(value) && ending?.[1] === record.state
-    ? value
-    : "";
-}
-
 export function similarFilters(record: {
   state: string;
   county: string | null;

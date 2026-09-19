@@ -616,20 +616,8 @@ input::placeholder {
   color: var(--navy);
 }
 .save-button {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  min-width: 72px;
-  min-height: 36px;
-  border: 0;
-  background: #fffffff0;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 6px 10px;
-  color: var(--navy);
+  position: static;
+  min-height: 44px;
 }
 .save-button svg,
 .property-save svg {
@@ -638,13 +626,47 @@ input::placeholder {
 }
 .save-button[aria-pressed="true"] svg,
 .property-save[aria-pressed="true"] svg {
-  fill: var(--navy);
+  fill: currentColor;
 }
 .property-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 14px;
+}
+.saved-location {
+  margin: 14px 0;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.saved-toolbar,
+.research-save-bar,
+.detail-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.saved-toolbar,
+.research-save-bar {
+  margin: 20px 0;
+}
+.research-save-bar .field {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.detail-actions .property-actions {
+  margin-top: 0;
+}
+.detail-topbar {
+  gap: 12px;
+}
+.detail-topbar > .icon-button {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.manual-property h3 {
+  overflow-wrap: anywhere;
 }
 .research-property-context:not(:empty),
 .zero-cost-warning {

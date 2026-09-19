@@ -9,11 +9,13 @@ from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import urlsplit
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import delete, func, select, text
+from sqlalchemy import delete, func, select, text, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -24,10 +26,12 @@ from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
 from landwolf.db import (
+    SCHEMA_VERSION,
     Account,
     Listing,
     LoginSession,
     SavedProperty,
+    SavedRecord,
     SchemaVersion,
     database,
     initialize,
@@ -40,6 +44,7 @@ from landwolf.research import (
     ResearchReport,
     ResearchService,
 )
+from landwolf.saved import SavedCreate, SavedUpdate, saved_payload, source_location
 from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, SearchQuery
 from landwolf.sources import SOURCE_BY_ID
 
@@ -95,7 +100,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if settings.environment != "production":
             initialize(engine)
         with factory() as session:
-            if session.scalars(select(SchemaVersion.version)).all() != [1]:
+            if session.scalars(select(SchemaVersion.version)).all() != [SCHEMA_VERSION]:
                 raise RuntimeError("Run the explicit beta schema initialization before serving")
         task = asyncio.create_task(provider.run()) if settings.auto_sync else None
         try:
@@ -170,7 +175,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             session.execute(text("SELECT 1"))
             version = session.scalars(select(SchemaVersion.version)).all()
-            if version != [1]:
+            if version != [SCHEMA_VERSION]:
                 raise HTTPException(503, "Schema is not ready")
         except SQLAlchemyError as exc:
             raise HTTPException(503, "Database is not ready") from exc
@@ -255,22 +260,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 headers={"Retry-After": "5"},
             ) from exc
 
-    def record_payload(item: Listing, saved: set[str]) -> dict[str, Any]:
-        value = PropertyRecord.model_validate(item.payload).model_dump(mode="json")
-        value.update(active=item.active, saved=item.id in saved)
+    def record_payload(item: Listing, session: Session, account: Account) -> dict[str, Any]:
+        record = PropertyRecord.model_validate(item.payload)
+        value = record.model_dump(mode="json")
+        entry = session.get(SavedRecord, (account.id, item.id))
+        saved = saved_payload(session, entry) if entry else None
+        location = source_location(record)
+        value.update(
+            active=item.active,
+            saved=entry is not None,
+            saved_record=saved,
+            research_location=saved["location"]
+            if saved
+            else location.model_dump()
+            if location
+            else None,
+            location_origin=saved["location_origin"] if saved else "source",
+        )
         today = datetime.now(UTC).date().isoformat()
         if any(
             value.get(key) and value[key] < today for key in ("auction_date", "bidding_deadline")
         ):
             value.update(active=False, sale_status="Date passed — verify outcome")
         return value
-
-    def saved_ids(session: Session, account: Account) -> set[str]:
-        return set(
-            session.scalars(
-                select(SavedProperty.listing_id).where(SavedProperty.account_id == account.id)
-            )
-        )
 
     @app.post("/api/search")
     def search(query: SearchQuery, request: Request, session: DB) -> dict[str, Any]:
@@ -280,12 +292,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(422, "Select a known source")
         sources = provider.statuses(query.state, query.category, query.source)
         supported = any(source["automated"] for source in sources)
-        saved = saved_ids(session, account)
         stmt = select(Listing)
         if query.saved_only:
             stmt = stmt.where(
                 Listing.id.in_(
-                    select(SavedProperty.listing_id).where(SavedProperty.account_id == account.id)
+                    select(SavedRecord.listing_id).where(SavedRecord.account_id == account.id)
                 )
             )
         else:
@@ -328,7 +339,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             .offset((query.page - 1) * query.page_size)
             .limit(query.page_size)
         )
-        rows = [record_payload(item, saved) for item in session.scalars(stmt)]
+        rows = [record_payload(item, session, account) for item in session.scalars(stmt)]
         return {
             "results": rows,
             "total": total,
@@ -349,23 +360,123 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         item = session.get(Listing, listing_id)
         if item is None:
             raise HTTPException(404, "Property not found")
-        return record_payload(item, saved_ids(session, account))
+        return record_payload(item, session, account)
+
+    def entry_payload(entry: SavedRecord, session: Session, account: Account) -> dict[str, Any]:
+        value = saved_payload(session, entry)
+        item = session.get(Listing, entry.listing_id) if entry.listing_id else None
+        value["property"] = record_payload(item, session, account) if item else None
+        return value
+
+    @app.get("/api/saved")
+    def saved_list(
+        request: Request,
+        session: DB,
+        page: int = Query(default=1, ge=1, le=10000),
+        page_size: int = Query(default=12, ge=1, le=100),
+    ) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings)
+        stmt = select(SavedRecord).where(SavedRecord.account_id == account.id)
+        total = session.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+        rows = session.scalars(
+            stmt.order_by(SavedRecord.updated_at.desc(), SavedRecord.id)
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return {
+            "results": [entry_payload(row, session, account) for row in rows],
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+        }
+
+    @app.get("/api/saved/{saved_id}")
+    def saved_detail(saved_id: str, request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings)
+        entry = session.get(SavedRecord, (account.id, saved_id))
+        if entry is None:
+            raise HTTPException(404, "Saved property not found")
+        return entry_payload(entry, session, account)
+
+    def insert_saved(session: Session, values: dict[str, Any]) -> None:
+        insert = sqlite_insert if engine.dialect.name == "sqlite" else pg_insert
+        session.execute(insert(SavedRecord).values(**values).on_conflict_do_nothing())
+
+    @app.post("/api/saved")
+    def create_saved(spec: SavedCreate, request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"save:{account.id}", 60)
+        if spec.listing_id and session.get(Listing, spec.listing_id) is None:
+            raise HTTPException(404, "Property not found")
+        saved_id = spec.listing_id or f"manual-{spec.manual_id}"
+        location = spec.location.model_dump()
+        insert_saved(
+            session,
+            {
+                "account_id": account.id,
+                "id": saved_id,
+                "listing_id": spec.listing_id,
+                "title": spec.title,
+                "research_location": location,
+            },
+        )
+        entry = session.get(SavedRecord, (account.id, saved_id))
+        if entry is None:
+            raise HTTPException(409, "Save changed. Reopen the property and try again.")
+        if entry.title != spec.title or entry.research_location != location:
+            raise HTTPException(409, "Already saved. Reopen from Saved properties before editing.")
+        session.commit()
+        return entry_payload(entry, session, account)
+
+    @app.patch("/api/saved/{saved_id}")
+    def update_saved(
+        saved_id: str, spec: SavedUpdate, request: Request, session: DB
+    ) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"save:{account.id}", 60)
+        if session.get(SavedRecord, (account.id, saved_id)) is None:
+            raise HTTPException(404, "Saved property not found")
+        changed = session.execute(
+            update(SavedRecord)
+            .where(
+                SavedRecord.account_id == account.id,
+                SavedRecord.id == saved_id,
+                SavedRecord.revision == spec.revision,
+            )
+            .values(
+                title=spec.title,
+                research_location=spec.location.model_dump(),
+                revision=SavedRecord.revision + 1,
+                updated_at=int(time.time()),
+            )
+            .returning(SavedRecord.id)
+        ).scalar_one_or_none()
+        if changed is None:
+            raise HTTPException(
+                409, "Changed in another tab. Reopen from Saved properties before editing."
+            )
+        session.commit()
+        entry = session.get(SavedRecord, (account.id, saved_id))
+        if entry is None:
+            raise HTTPException(404, "Saved property not found")
+        return entry_payload(entry, session, account)
 
     @app.put("/api/saved/{listing_id}")
     def save(listing_id: str, request: Request, session: DB) -> dict[str, bool]:
         account = auth.authenticate(request, session, settings, write=True)
         auth.limit(session, f"save:{account.id}", 60)
-        if session.get(Listing, listing_id) is None:
+        item = session.get(Listing, listing_id)
+        if item is None:
             raise HTTPException(404, "Property not found")
-        # Per-user idempotent upsert handles double-clicks and concurrent requests.
-        from sqlalchemy.dialects.postgresql import insert as pg_insert
-        from sqlalchemy.dialects.sqlite import insert as sqlite_insert
-
-        insert = sqlite_insert if engine.dialect.name == "sqlite" else pg_insert
-        session.execute(
-            insert(SavedProperty)
-            .values(account_id=account.id, listing_id=listing_id, created_at=int(time.time()))
-            .on_conflict_do_nothing()
+        # Repeated bookmarks must not overwrite a user's edited research location.
+        insert_saved(
+            session,
+            {
+                "account_id": account.id,
+                "id": listing_id,
+                "listing_id": listing_id,
+                "title": PropertyRecord.model_validate(item.payload).title,
+            },
         )
         session.commit()
         return {"saved": True}
@@ -373,6 +484,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.delete("/api/saved/{listing_id}")
     def unsave(listing_id: str, request: Request, session: DB) -> dict[str, bool]:
         account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"save:{account.id}", 60)
+        session.execute(
+            delete(SavedRecord).where(
+                SavedRecord.account_id == account.id, SavedRecord.id == listing_id
+            )
+        )
         session.execute(
             delete(SavedProperty).where(
                 SavedProperty.account_id == account.id, SavedProperty.listing_id == listing_id

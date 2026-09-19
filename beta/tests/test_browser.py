@@ -25,6 +25,119 @@ pytestmark = pytest.mark.browser
 
 
 @pytest.mark.parametrize("browser_server", ["research"], indirect=True)
+def test_saved_locations_and_manual_properties_survive_reload(
+    browser_server: tuple[str, int],
+) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": 390, "height": 844})
+        errors: list[str] = []
+        research_requests: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on(
+            "request",
+            lambda request: (
+                research_requests.append(request.method)
+                if request.url.endswith("/api/research")
+                else None
+            ),
+        )
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("saved-locations@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        card = page.locator(".property-card").filter(has_text="Test fixture 99002")
+        save = card.get_by_role("button", name="Save property 99002", exact=True)
+        expect(save).to_be_visible()
+        expect(save).to_have_text("Save property")
+        save.click()
+        expect(save).to_have_attribute("aria-pressed", "true")
+        card.get_by_role("button", name="View property 99002", exact=True).click()
+        expect(page.locator("#detail-actions .property-save")).to_be_visible()
+        page.locator("#close-detail").click()
+        # The top navigation must carry the last opened property, too.
+        page.get_by_role("button", name="Property research", exact=True).click()
+        expect(page.locator("#research-address")).to_have_value(
+            "123 Fixture St, Test City, TX 75000"
+        )
+        expect(page.locator("#research-status")).to_contain_text("Review it")
+        assert research_requests == []
+        page.locator("#research-address").fill("456 Revised St, Test City, TX 75000")
+        page.locator("#research-save").click()
+        expect(page.locator("#research-save-status")).to_contain_text("Saved to your account")
+        page.reload()
+        page.get_by_role("button", name="Saved properties", exact=True).click()
+        expect(page.locator(".property-card")).to_have_count(1)
+        page.locator(".property-card").get_by_role(
+            "button", name="Research property", exact=True
+        ).click()
+        expect(page.locator("#research-address")).to_have_value(
+            "456 Revised St, Test City, TX 75000"
+        )
+        assert research_requests == []
+
+        page.locator("#research-new").click()
+        expect(page.locator("#research-address")).to_have_value("")
+        page.locator("#research-name").fill("My synthetic property")
+        page.locator("#research-address").fill("789 Manual St, Test City, TX 75000")
+
+        def fail_save(route: Route) -> None:
+            expect(page.locator("#research-save")).to_be_disabled()
+            route.fulfill(status=503, json={"detail": "Synthetic database outage"})
+
+        page.route("**/api/saved", fail_save)
+        page.locator("#research-save").click()
+        expect(page.locator("#research-save-status")).to_contain_text("Save failed")
+        page.unroute("**/api/saved", fail_save)
+        page.locator("#research-save").click()
+        expect(page.locator("#research-save-status")).to_contain_text("Saved to your account")
+        page.reload()
+        page.get_by_role("button", name="Saved properties", exact=True).click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        manual = page.locator(".manual-property")
+        expect(manual).to_contain_text("789 Manual St")
+        manual.get_by_role("button", name="Research property", exact=True).click()
+        expect(page.locator("#research-name")).to_have_value("My synthetic property")
+        expect(page.locator("#research-address")).to_have_value(
+            "789 Manual St, Test City, TX 75000"
+        )
+        page.locator("#research-mode").select_option("coordinates")
+        page.locator("#research-latitude").fill("35.7804")
+        page.locator("#research-longitude").fill("-78.6391")
+        page.locator("#research-save").click()
+        expect(page.locator("#research-save-status")).to_contain_text("Saved to your account")
+        page.reload()
+        page.get_by_role("button", name="Saved properties", exact=True).click()
+        page.locator(".manual-property").get_by_role(
+            "button", name="Research property", exact=True
+        ).click()
+        expect(page.locator("#research-mode")).to_have_value("coordinates")
+        expect(page.locator("#research-latitude")).to_have_value("35.7804")
+        expect(page.locator("#research-longitude")).to_have_value("-78.6391")
+        page.get_by_role("button", name="Research location", exact=True).click()
+        expect(page.locator(".research-source")).to_have_count(5)
+        expect(page.locator(".research-context")).to_contain_text("User-supplied coordinate")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path="test-results/saved-location-mobile.png", full_page=True)
+        page.get_by_role("button", name="Saved properties", exact=True).click()
+        page.screenshot(path="test-results/saved-properties-mobile.png", full_page=True)
+        page.locator(".manual-property").get_by_role(
+            "button", name="Remove from Saved", exact=True
+        ).click()
+        expect(page.locator(".property-card")).to_have_count(1)
+        page.get_by_role("button", name="Sign out", exact=True).click()
+        expect(page.locator("#research-name")).to_have_value("")
+        assert errors == []
+        browser.close()
+
+
+@pytest.mark.parametrize("browser_server", ["research"], indirect=True)
 def test_save_scenario_defaults_and_property_handoffs(browser_server: tuple[str, int]) -> None:
     origin, _ = browser_server
     with sync_playwright() as playwright:
@@ -246,6 +359,16 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
         seed_national(factory)
     else:
         seed(factory)
+        if getattr(request, "param", "") == "research":
+            with factory() as session, session.begin():
+                entry = session.get(Listing, "glo-99002")
+                entry.payload = {
+                    **entry.payload,
+                    "source": "us_treasury",
+                    "latitude": None,
+                    "longitude": None,
+                    "location_description": "123 Fixture St, Test City, TX 75000",
+                }
     with factory() as session:
         count = len(session.scalars(select(Listing).where(Listing.active.is_(True))).all())
     engine.dispose()

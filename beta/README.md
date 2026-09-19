@@ -77,8 +77,10 @@ No MLS, paid provider account or usage-based API subscription is enabled.
 
 An address result is an interpolated Census point; it may fall on a road or
 neighboring parcel. It never becomes a listing map marker. Reference values do not
-prefill a valuation. **Research property** uses a published point, or prefills a
-usable IRS/USDA source-address field for review. Otherwise it asks for an address
+prefill a valuation. **Research property** restores your saved research location,
+or uses a published point or full street-shaped source-address field for review.
+Address handoff is available across the connected feeds, not limited to IRS/USDA.
+Otherwise it asks for an address
 or verified point; it never geocodes a tract or county as a parcel.
 Failures are independent and missing flood data stays unknown. Reports are held in
 a bounded memory cache for up to six hours, not saved to accounts or the database.
@@ -105,8 +107,20 @@ probability with a sampling interval, and a scenario score. It does not infer ma
 value from the seller's asking price. The current feeds lack calibrated local or
 broader-area cost estimates; no ChatGPT-generated figures are presented as evidence.
 
-**Save property / Saved ✓** is available on cards and inside details. Saved filters
-are independent from Explore filters. Saving bookmarks the listing, not its scenario.
+**Save property / Saved ✓** is beside the card actions and in the sticky detail bar.
+**Saved properties** lists all account-owned saves, including manually entered
+properties, most recently updated first, with pagination and no inherited Explore
+filters. **Add a property** opens Research; enter an address or coordinate pair and
+select **Save property**. No matching source listing or successful upstream lookup
+is required. Saved manual properties are private research records, not published
+listings or confirmed sales. **Save changes** retains a name and selected address
+or coordinates across reloads, sign-outs and devices. A stale revision returns 409
+and asks the user to reopen the record rather than overwrite newer edits.
+Address-only handoffs always wait for the user to select **Research location**.
+The Research navigation also carries the most recently opened property.
+Missing locations remain missing until the user supplies one; user locations never
+overwrite source coordinates or become official map markers. A repeated bookmark
+does not overwrite a saved location. Saving does not persist scenarios or reports.
 Scenario drafts are kept in bounded page-session memory (up to 50 properties), cleared
 on reload/sign-out. **Research property** retains the property context and offers
 **Open deal scenario**. **Find similar properties** prefills state, county, sale
@@ -132,8 +146,16 @@ seed are displayed. See [MODEL.md](docs/MODEL.md) for equations and limitations.
   multi-instance rollout requires a distributed scheduler lease. Configure trusted
   proxy addresses deliberately; never trust arbitrary client forwarding headers.
 
-Schema version 1 uses `lw2_` tables. `init-db` bootstraps only this initial schema;
-future changes need reviewed migrations. Production requires a separate PostgreSQL
+Schema version 2 uses `lw2_` tables. `init-db` bootstraps v2 or runs the additive,
+transactional v1 → v2 migration. It adds `lw2_saved_records`, copies existing account
+bookmarks and creation times, and retains the old bookmark table, accounts, sessions
+and source listings. Repeated runs are idempotent; unknown versions fail before DDL.
+Migration calls are serialized with a PostgreSQL transaction advisory lock or SQLite
+immediate transaction. No dependency, database instance or plan change is needed.
+The predeploy command runs the migration before serving the new image. V1 images
+require schema 1 and are not a direct rollback after migration: use a v2-compatible
+fix-forward release, preserving the new records. There may be a brief health-check
+transition during the initial v1 → v2 cutover. Production requires a separate PostgreSQL
 database and a validated HTTPS origin; it does not auto-create tables during request
 startup. On Render, the default is the service's platform-assigned
 [`RENDER_EXTERNAL_URL`](https://render.com/docs/environment-variables), available

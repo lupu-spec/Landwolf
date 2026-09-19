@@ -1,10 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  bidRange,
-  sourceAddress,
-  similarFilters,
-} from "../web/property-context.ts";
+import { bidRange, similarFilters } from "../web/property-context.ts";
 
 test("bid anchor uses -5% / +20%, with editable percentages and cents", () => {
   assert.deepEqual(bidRange(100000), {
@@ -44,28 +40,6 @@ test("default ranges are finite, positive, ordered and proportional across bid s
     assert.ok(Math.abs(range.low - bid * 0.95) <= 0.0051);
     assert.ok(Math.abs(range.high - bid * 1.2) <= 0.0051);
   }
-});
-test("only source-identified full addresses prefill public research", () => {
-  const record = {
-    source: "usda_resales",
-    state: "TX",
-    location_description: "123 Fixture St, Test City, TX 75000",
-  };
-  assert.equal(sourceAddress(record), record.location_description);
-  assert.equal(
-    sourceAddress({ ...record, source: "irs_auctions" }),
-    record.location_description,
-  );
-  for (const source of ["tx_glo_public", "ak_dnr", "unknown"])
-    assert.equal(sourceAddress({ ...record, source }), "");
-  for (const location_description of [
-    null,
-    "tract 123",
-    "123 county parcel",
-    "123 Test St, City, CA 75000",
-    "x".repeat(301),
-  ])
-    assert.equal(sourceAddress({ ...record, location_description }), "");
 });
 test("similar filters carry county, state, category and minimum area, not stale price/source", () => {
   assert.deepEqual(
