@@ -88,7 +88,13 @@ def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine
             path=f"test-results/trust-coverage-{engine_name}-{width}.png", full_page=True
         )
         page.add_style_tag(content="html { font-size: 200% !important; }")
-        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.screenshot(path=f"test-results/trust-zoom-{engine_name}-{width}.png", full_page=True)
+        overflow = page.evaluate("""() => Array.from(document.querySelectorAll('body *'))
+          .filter(el => el.getBoundingClientRect().width > 0 &&
+                        el.getBoundingClientRect().right > innerWidth)
+          .map(el => ({tag:el.tagName, id:el.id, css:el.className,
+                      right:el.getBoundingClientRect().right})).slice(0,20)""")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), overflow
         assert page.locator("#main-nav button").first.evaluate(
             "el => parseFloat(getComputedStyle(el).fontSize) >= 28"
         )
@@ -124,6 +130,7 @@ def test_account_email_and_recovery_journey(browser_server, engine_name, tmp_pat
         page.locator("#auth-submit").click()
         page.locator("#verify-email").click()
         token = received("verify")
+        page.goto("about:blank")
         page.goto(f"{origin}/#action=verify&token={token}")
         expect(page.locator("#account-dialog")).to_be_visible()
         assert page.evaluate("location.hash") == ""
@@ -140,6 +147,7 @@ def test_account_email_and_recovery_journey(browser_server, engine_name, tmp_pat
             "If the account is eligible"
         )
         token = received("reset")
+        page.goto("about:blank")
         page.goto(f"{origin}/#action=reset&token={token}")
         expect(page.locator("#account-dialog")).to_be_visible()
         assert page.evaluate("location.hash") == ""

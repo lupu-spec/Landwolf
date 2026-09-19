@@ -141,20 +141,21 @@ seed are displayed. See [MODEL.md](docs/MODEL.md) for equations and limitations.
   same-origin APIs, body limits, shared database rate limits, and restrictive CSP.
 - Secrets and personal records never belong in Git or log messages. Source HTML is
   parsed into validated fields; the browser uses text nodes and allowlisted URLs.
-- Accounts have no roles or billing privileges. Email ownership verification and
-  automated password recovery are not implemented. No transactional email is sent.
+- Accounts have no roles or billing privileges. One-use email verification and
+  password recovery are implemented, but delivery is disabled until a verified
+  sender and provider credential are configured. See the framework setup guide.
 - Use one application instance/worker for the initial source scheduler. A future
   multi-instance rollout requires a distributed scheduler lease. Configure trusted
   proxy addresses deliberately; never trust arbitrary client forwarding headers.
 
-Schema version 3 uses `lw2_` tables. `init-db` bootstraps v3 or migrates v1/v2
-in one transaction. It permanently drops `lw2_saved_records` and
+Schema version 4 uses `lw2_` tables. `init-db` bootstraps v4 or migrates v1/v2/v3
+in one transaction. It adds trust/recovery storage and permanently drops `lw2_saved_records` and
 `lw2_saved_properties`, including user-entered research addresses/coordinates.
 Accounts, sessions, source listings and source status remain. No archive is created.
 Repeated runs are idempotent; unknown versions fail before DDL. PostgreSQL advisory
 locks / SQLite immediate transactions serialize migration; a failure rolls it back.
 The predeploy command runs this migration before serving the new image. Old v1/v2
-images are incompatible afterward: use a v3-compatible fix-forward release.
+images are incompatible afterward: use a v4-compatible fix-forward release.
 The deleted records cannot be restored through the application. Hosting backups
 follow their existing retention policy; this change does not purge whole-database
 backups containing unrelated accounts/listings. A brief health transition can occur
@@ -168,8 +169,9 @@ this override takes precedence and must also pass validation. Optional
 `LANDWOLF_ADDITIONAL_ORIGINS` is a JSON array of at most four explicit origins.
 Every write must match both a configured origin and that request's Host; one allowed
 domain cannot write to another. Cookies are host-only, Secure and SameSite=Strict.
-Request headers never select the trusted origins. Backup restoration remains an
-outstanding operational check.
+Request headers never select the trusted origins. CI includes a disposable database
+restore rehearsal; restoration of a hosted staging/production backup remains a
+separate operational gate.
 
 ## Deployment and verification
 

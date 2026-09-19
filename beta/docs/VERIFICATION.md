@@ -1292,3 +1292,88 @@ After deployment, the explicit HTTPS check against the Render address exited 0:
 contained both responsive heading spans and the block-to-inline `max-width: 800px`
 rules. Neither joined-word string appeared in the HTML. A bounded Render application
 warning/error query covering deployment through 18:57:55 UTC returned zero entries.
+
+
+## Premium trust beta — September 19, 2026
+
+Scope: isolated `codex/landwolf-premium-staging` branch and
+[PR 2](https://github.com/lupu-spec/Landwolf/pull/2). Production resources and DNS
+were not changed. Priorities 2–4 are typed extension contracts, not enabled products.
+
+Initial local gates on the priority-one implementation:
+
+| Command (from beta unless noted) | Observed result |
+| --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts` | Exit 0 |
+| `npm run format:check` | Exit 0 |
+| `.venv/bin/ruff check landwolf tests scripts` | Exit 0 |
+| `npm run lint` | Exit 0 |
+| `.venv/bin/mypy landwolf` | Exit 2: local cache/internal error |
+| `MYPY_CACHE_DIR=/dev/null .venv/bin/mypy landwolf` | Exit 0, 20 source files |
+| `npm run typecheck` | Exit 0 |
+| `npm run test:unit` | Exit 0, 4 passed |
+| `.venv/bin/pytest -q -m 'not browser'` | Exit 0, 264 passed; two dependency deprecation warnings |
+| `npm run build` | Exit 0 |
+| `.venv/bin/python -m build` | Exit 0 |
+| `.venv/bin/python scripts/check_package.py` | Exit 0 |
+| `.venv/bin/bandit -r landwolf` | Exit 0, no issues identified |
+| `.venv/bin/pip-audit --local --skip-editable` | Exit 0, no known vulnerabilities |
+| `npm audit --audit-level=moderate` | Exit 0, zero vulnerabilities |
+| `npm run secrets` | Exit 0, including staging Blueprint |
+| `git diff --check` (repository root) | Exit 0 |
+
+Local `.venv/bin/playwright install --with-deps chromium webkit` failed (exit 1):
+system-package installation denied setgroups/setuid operations. The bounded browser-only
+install also failed (exit 1) with CDN timeouts/502. The actual browser command
+`.venv/bin/pytest -q -m browser` exited 1: all 16 journeys failed before page load
+because their executables were missing. These runs are not browser verification.
+Hosted CI installs both engines and must supply the browser evidence.
+
+A disposable SQLite live database was initialized explicitly with `init-db` (exit 0)
+after an initial sync failed because the empty database had no tables (exit 1).
+The subsequent real `.venv/bin/python -m landwolf.cli sync` also exited 1: seven feeds
+were ready, one unavailable. Observed record counts: Arkansas 277, Texas 30, USDA 18,
+Treasury 15, Alaska 170, Michigan 8, Minnesota DOT 4; total 522. The IRS adapter failed
+closed because the site did not apply the requested real-estate/tax-seizure filters.
+A separate bounded diagnostic reproduced that exact parser rejection. No IRS records
+were fabricated or imported with unconfirmed filters.
+
+The Minnesota records were 139624 (5.03 acres, September 30 bid opening), 139574
+(17,005 square feet converted to acres), 139595 (6.74 acres), and 139662 (17,962 square
+feet converted to acres). Asking prices, parcel IDs and coordinates remained null.
+Original source links and page-level update dates were retained. Successful retrieval
+does not establish continued availability, title, a valuation or complete coverage.
+
+Legacy checks ran in the separate existing legacy environment. Bare `pytest -q`
+was unavailable (127); that environment's `pytest -q` without `PYTHONPATH` failed
+collection (4). With `PYTHONPATH=.`, the actual run completed: 48 passed, 5 failed,
+exit 1. Those five legacy billing tests require absent `.env.live.example` or
+`.env.sandbox.example` files. Legacy application/billing tests were not changed.
+
+The Render Blueprint passed JSON Schema validation against
+`https://render.com/schema/render.yaml.json` (exit 0) using an isolated tooling
+environment. Initial attempts lacked tooling dependencies and then used a nonexistent
+SchemaStore URL; neither was a successful validation. Render CLI/platform validation,
+container build, hosted staging HTTPS and actual sender delivery are not established
+by JSON Schema validation. The Blueprint has not been provisioned.
+
+The first Git push was rejected by automatic approval review until destination
+ownership could be established. GitHub confirmed authenticated user `lupu-spec` owns
+the public repository and has push permission. The retry passed review but the shell
+had no GitHub credential. The authenticated GitHub connector then published the
+branch; the remote tree was checked equal to the local committed tree.
+
+
+First hosted beta run [35475761587](https://github.com/lupu-spec/Landwolf/actions/runs/35475761587)
+(commit `fb5b1d6880080f49202d457b805979ff419c3950`) passed locked installs, both
+formatters/linters/type checkers, unit/API tests, PostgreSQL integration and exact
+row-digest backup restoration across all 11 tables. Browser result: 12 passed,
+4 failed. Two failures were 320px coverage overflow with 200% text in Chromium
+and WebKit; the other two were test email links navigating within the same document,
+so the startup token handler was not invoked. Corrections allow source cards,
+filter controls and navigation to wrap, and open email links from a fresh document.
+The tests retain their original functional and overflow assertions. Screenshots of
+the 390px Explore and 1440px Research views were downloaded and visually inspected;
+the source fixtures are synthetic, not live listings. A new passing hosted run is
+required for the corrected implementation. The subsequent local backend run passed
+265 tests (exit 0), including rejection of unsupported valuations and implicit consent.

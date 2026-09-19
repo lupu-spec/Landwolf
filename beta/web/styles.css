@@ -1034,6 +1034,8 @@ input::placeholder {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 24px;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 .source-card p {
   color: var(--muted);
@@ -1770,6 +1772,14 @@ input::placeholder {
 }
 
 /* Responsive overrides follow the original brand rules. */
+.coverage-filters .field {
+  flex: 1 1 12rem;
+  min-width: 0;
+  max-width: 100%;
+}
+.coverage-filters select {
+  width: 100%;
+}
 .workspace {
   padding-top: 1.25rem;
 }
@@ -1848,5 +1858,10 @@ select {
   }
   .nav-link {
     font-size: 0.875rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .main-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

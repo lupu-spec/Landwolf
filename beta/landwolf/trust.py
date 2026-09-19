@@ -20,7 +20,12 @@ HISTORY_LIMIT = 40
 def parcel_key(record: PropertyRecord) -> str | None:
     # Never merge parcels from coordinates, street names, tract IDs or agency account IDs.
     # Preserve APN punctuation and leading zeros; jurisdiction-specific rules differ.
-    if not record.county or not record.parcel_number:
+    if (
+        not record.county
+        or not record.county.strip()
+        or not record.parcel_number
+        or not record.parcel_number.strip()
+    ):
         return None
     key = [record.state, " ".join(record.county.casefold().split()), record.parcel_number.strip()]
     return hashlib.sha256(json.dumps(key).encode()).hexdigest()
@@ -237,7 +242,12 @@ def property_evidence(record: PropertyRecord, state: SourceState | None) -> dict
                     if record.source_effective_date
                     else None
                 ),
-                limitation="Retrieval is not a publisher update date. Check the original record.",
+                limitation=(
+                    "Publisher date applies to the source page, not this individual parcel. "
+                    if record.source == "mn_dot"
+                    else ""
+                )
+                + "Retrieval is not a publisher update date. Check the original record.",
             ).model_dump()
         )
     fresh = bool(

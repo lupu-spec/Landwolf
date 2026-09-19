@@ -1402,7 +1402,7 @@ function renderDetail(record: PropertyRecord): void {
   research.append(description, risks);
   byId("detail-content").replaceChildren(hero, research);
   if (record.trust)
-    byId("detail-content").append(propertyTrustCard(record.trust));
+    byId("detail-content").append(propertyTrustCard(record.trust, sourceLink));
 }
 byId("close-detail").addEventListener("click", () => {
   rememberScenario();

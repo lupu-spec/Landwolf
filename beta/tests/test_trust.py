@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
 from landwolf.db import Listing, ParcelIdentity, SaleEvent, SourceRun, SourceState
-from landwolf.framework import PartnerConsent, SourceReadiness
+from landwolf.framework import PartnerConsent, SourceReadiness, ValuationResult
 from landwolf.schemas import PropertyRecord
 from landwolf.trust import fingerprint, parcel_key, publish_snapshot
 
@@ -36,6 +36,7 @@ def test_identity_is_county_scoped_and_never_inferred_from_point():
         assert parcel_key(first) != parcel_key(item(1, **change))
     assert parcel_key(item(1, parcel_number=None, latitude=30, longitude=-100)) is None
     assert parcel_key(item(1, county=None)) is None
+    assert parcel_key(item(1, parcel_number="   ")) is None
 
 
 def test_fingerprint_ignores_retrieval_time_but_not_price():
@@ -130,4 +131,17 @@ def test_framework_does_not_expose_unimplemented_services(client):
             shared_fields=["email"],
             disclosure_version="v1",
             consent=False,
+        )
+
+
+def test_decision_contract_cannot_publish_unsupported_value():
+    with pytest.raises(ValueError, match="require"):
+        ValuationResult(status="supported", resale={"low": 10, "likely": 20, "high": 30})
+    with pytest.raises(ValueError, match="insufficient"):
+        ValuationResult(
+            status="insufficient_evidence", resale={"low": 10, "likely": 20, "high": 30}
+        )
+    with pytest.raises(ValueError, match="Explicit boolean consent"):
+        PartnerConsent(
+            recipient_ids=["fixture"], shared_fields=["email"], disclosure_version="v1", consent=1
         )

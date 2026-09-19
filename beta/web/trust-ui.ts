@@ -5,6 +5,8 @@ export type Evidence = {
   basis: "reported" | "calculated" | "estimated" | "unknown";
   retrieved_at: string | null;
   effective_date: string | null;
+  source_url: string | null;
+  limitation: string;
 };
 export type PropertyTrust = {
   identity: { id: string | null; status: string; message: string };
@@ -28,7 +30,10 @@ function node<K extends keyof HTMLElementTagNameMap>(
   return result;
 }
 
-export function propertyTrustCard(trust: PropertyTrust): HTMLElement {
+export function propertyTrustCard(
+  trust: PropertyTrust,
+  sourceLink: (url: string, label: string) => HTMLAnchorElement,
+): HTMLElement {
   const card = node("section", "", "trust-panel");
   card.append(node("h3", "Evidence and next steps"));
   card.append(node("p", trust.identity.message));
@@ -58,6 +63,9 @@ export function propertyTrustCard(trust: PropertyTrust): HTMLElement {
     value.append(
       node("span", `Publisher date: ${fact.effective_date ?? "not supplied"}`),
     );
+    if (fact.limitation) value.append(node("span", fact.limitation));
+    if (fact.source_url)
+      value.append(sourceLink(fact.source_url, "Check field source"));
     list.append(node("dt", fact.label), value);
   }
   details.append(
