@@ -24,6 +24,87 @@ from landwolf.db import Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
+@pytest.mark.parametrize("width", [390, 1440])
+@pytest.mark.parametrize("browser_server", ["research"], indirect=True)
+def test_explore_save_and_research_saved_navigation(
+    browser_server: tuple[str, int], width: int
+) -> None:
+    """Exercise the two reported controls, including a failed Saved request."""
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": width, "height": 844})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill(f"navigation-{width}@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        card = page.locator(".property-card").filter(has_text="Test fixture 99002")
+        save = card.locator("[data-save-id]")
+        expect(save).to_be_visible()
+        # Scroll only to the card, not the button: auto-scrolling a click hid this defect.
+        card.evaluate("el => el.scrollIntoView({block: 'start'})")
+        expect(save).to_be_in_viewport(ratio=1)
+        assert (
+            save.evaluate(
+                "el => el.getBoundingClientRect().top - "
+                "el.closest('.property-card').getBoundingClientRect().top"
+            )
+            < 80
+        ), "Save must be at the top of the card, before its photo and details"
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path=f"test-results/explore-save-{width}.png")
+        save.click()
+        expect(save).to_have_attribute("aria-pressed", "true")
+        card.get_by_role("button", name="Research property", exact=True).click()
+        expect(page.locator("#research-panel")).to_be_visible()
+        page.get_by_role("button", name="View Saved properties", exact=False).click()
+        expect(page.locator("#research-panel")).to_be_hidden()
+        expect(page.locator("#saved-toolbar")).to_be_visible()
+        expect(page.locator("#workspace-title")).to_have_text("Saved properties")
+        expect(page.locator("#workspace-title")).to_be_in_viewport(ratio=1)
+        expect(page.locator("#workspace-title")).to_be_focused()
+        expect(page.locator('#main-nav [data-nav="saved"]')).to_have_attribute(
+            "aria-current", "page"
+        )
+        expect(page.locator(".property-card")).to_have_count(1)
+        expect(page.locator("#search-form")).to_be_hidden()
+        expect(page.locator("#workspace-error")).to_be_empty()
+        page.screenshot(path=f"test-results/research-to-saved-{width}.png", full_page=True)
+
+        # A failed load must not display Explore inventory as saved records.
+        page.get_by_role("button", name="Explore properties", exact=True).click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        page.get_by_role("button", name="Property research", exact=True).click()
+
+        def fail_saved(route: Route) -> None:
+            route.fulfill(status=503, json={"detail": "Synthetic saved-list outage"})
+
+        page.route("**/api/saved?*", fail_saved)
+        page.locator("#research-view-saved").click()
+        expect(page.locator("#workspace-error")).to_contain_text("Synthetic saved-list outage")
+        expect(page.locator(".property-card")).to_have_count(0)
+        expect(page.locator("#empty-state")).to_be_hidden()
+        page.unroute("**/api/saved?*", fail_saved)
+        page.get_by_role("button", name="Retry loading properties", exact=True).click()
+        expect(page.locator(".property-card")).to_have_count(1)
+        expect(page.locator("#workspace-error")).to_be_empty()
+        page.locator(".property-card [data-save-id]").click()
+        expect(page.locator("#empty-title")).to_have_text("No saved properties yet.")
+        page.get_by_role("button", name="Property research", exact=True).click()
+        page.locator("#research-view-saved").click()
+        expect(page.locator("#empty-state")).to_be_visible()
+        expect(page.locator("#workspace-title")).to_be_in_viewport(ratio=1)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        assert errors == []
+        browser.close()
+
+
 @pytest.mark.parametrize("browser_server", ["research"], indirect=True)
 def test_saved_locations_and_manual_properties_survive_reload(
     browser_server: tuple[str, int],
