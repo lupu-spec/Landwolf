@@ -822,3 +822,10 @@ hidden `br` still contributed an accessibility-text line boundary. Both runs had
 other browser journeys pass, and neither was treated as verification. The final
 implementation replaces those breaks with block/inline responsive spans; a new hosted
 run is required before deployment.
+
+The third hosted run showed that Playwright `inner_text()` preserves a line boundary
+around the inline span even though the responsive CSS applies. It therefore failed
+the sentence-substring assertion while the other two journeys passed. The regression
+now asserts the actual rendering invariant (`display: inline`) and uses DOM text with
+whitespace-aware matching to prove the words cannot concatenate. A fourth hosted run
+is required; the preceding failed runs remain recorded as failures.

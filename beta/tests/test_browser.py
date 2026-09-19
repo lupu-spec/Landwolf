@@ -5,6 +5,7 @@ listing/source records from a successful local live sync, never existing account
 """
 
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -228,9 +229,16 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         page.goto(origin)
         expect(page.locator("#auth-form")).to_be_visible()
         expect(page.locator("#search-form")).to_be_hidden()
-        page.set_viewport_size({"width": 900, "height": 1000})
-        assert "Understand the opportunity." in page.locator(".story-copy h1").inner_text()
-        assert "Your next opportunity starts here." in page.locator("#auth-title").inner_text()
+        # At this breakpoint the decorative line spans are inline; words must not join.
+        page.set_viewport_size({"width": 790, "height": 1000})
+        expect(page.locator(".story-heading-line")).to_have_css("display", "inline")
+        expect(page.locator(".auth-heading-line")).to_have_css("display", "inline")
+        assert re.search(
+            r"Understand\s+the opportunity\.", page.locator(".story-copy h1").text_content()
+        )
+        assert re.search(
+            r"Your next opportunity\s+starts here\.", page.locator("#auth-title").text_content()
+        )
         page.set_viewport_size({"width": 1440, "height": 1000})
         page.screenshot(path=str(screenshots / "login.png"), full_page=True)
 
