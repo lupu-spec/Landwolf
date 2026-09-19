@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "build": "node scripts/build.mjs",
     "audit": "npm audit --audit-level=moderate",
-    "secrets": "secretlint \"**/*\" ../AGENTS.md ../render.beta.yaml ../.github/workflows/beta.yml --no-terminalLink"
+    "secrets": "secretlint \"**/*\" ../AGENTS.md ../render.beta.yaml ../render.staging.yaml ../.github/workflows/beta.yml --no-terminalLink"
   },
   "dependencies": {
     "leaflet": "1.9.4"

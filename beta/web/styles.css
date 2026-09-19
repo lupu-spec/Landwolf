@@ -24,6 +24,109 @@
   font-size: 16px;
   font-synthesis: none;
 }
+
+/* Trust beta: keep the working surface compact and the evidence readable. */
+.trust-panel,
+.beta-framework {
+  padding: 1.25rem;
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--white);
+  overflow-wrap: anywhere;
+}
+.trust-panel h3 {
+  margin-bottom: 0.75rem;
+}
+.trust-panel li {
+  margin: 0.6rem 0;
+  line-height: 1.5;
+}
+.trust-panel p,
+.source-history p {
+  margin: 0.5rem 0;
+}
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+.summary-grid h4 {
+  margin: 0.5rem 0;
+}
+.evidence-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 0.75rem;
+}
+.evidence-list dt,
+.evidence-list dd {
+  margin: 0;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+.evidence-list dd span {
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.evidence-badge {
+  font-size: 0.875rem;
+  color: var(--amber);
+  line-height: 1.5;
+}
+.email-verification {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+.email-verification:has(#email-status:empty) {
+  display: none;
+}
+.research-evidence summary,
+.source-history summary,
+.evidence-details summary,
+.beta-framework summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0.75rem 0;
+  font-weight: 600;
+}
+.roadmap-item {
+  border-top: 1px solid var(--line);
+  padding: 0.75rem 0;
+}
+.account-dialog {
+  width: min(32rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  color: var(--ink);
+}
+.account-dialog::backdrop {
+  background: #092d4faa;
+}
+.account-dialog form {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.account-dialog input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  padding: 0.75rem;
+  border-radius: 0.4rem;
+}
+.account-dialog h2 {
+  font-size: 1.4rem;
+  margin: 1rem 0;
+}
 * {
   box-sizing: border-box;
 }
@@ -1663,5 +1766,87 @@ input::placeholder {
   }
   .search-bar .field label {
     font-size: 0.72rem;
+  }
+}
+
+/* Responsive overrides follow the original brand rules. */
+.workspace {
+  padding-top: 1.25rem;
+}
+.workspace-heading {
+  margin-bottom: 1rem;
+}
+.workspace-heading h1 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+.nav-link,
+.field label,
+.search-bar label,
+.source-card p,
+.source-state,
+.card-sale-status,
+.card-price-note,
+.card-location,
+.card-source,
+.coverage-strip p {
+  font-size: 0.875rem;
+}
+button,
+select {
+  min-height: 44px;
+}
+.research-panel {
+  max-width: 1200px;
+}
+#research-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+#research-results > .research-context,
+#research-results > .research-summary {
+  grid-column: 1 / -1;
+}
+#research-results .research-source {
+  min-width: 0;
+  margin: 0;
+}
+.research-summary {
+  border-top: 4px solid var(--blue);
+}
+@media (max-width: 800px) {
+  .workspace {
+    padding-top: 1rem;
+  }
+  .workspace-heading .eyebrow {
+    display: none;
+  }
+  .workspace-heading p {
+    font-size: 0.875rem;
+  }
+  .summary-grid,
+  #research-results {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .summary-grid {
+    gap: 0.25rem;
+  }
+  .results-layout[data-view="split"] .map-panel {
+    order: 1;
+  }
+  .trust-panel {
+    padding: 1rem;
+  }
+  .evidence-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .evidence-list dt {
+    border-bottom: 0;
+    font-weight: 600;
+    padding-bottom: 0;
+  }
+  .nav-link {
+    font-size: 0.875rem;
   }
 }

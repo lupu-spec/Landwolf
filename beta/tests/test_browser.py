@@ -233,6 +233,8 @@ def test_public_research_authentication_sources_mobile_and_stale_results(
         expect(page.locator(".research-source")).to_have_count(5)
         expect(page.locator(".research-context")).to_contain_text("Census address approximation")
         expect(page.locator(".research-context")).to_contain_text("neighboring land")
+        for detail in page.locator(".research-evidence summary").all():
+            detail.click()
         text = page.locator("#research-results").inner_text()
         assert "FIXTURE-999" in text and "Not published" in text
         assert "OWNER FIELD" not in text
@@ -340,6 +342,8 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
         "LANDWOLF_PUBLIC_ORIGIN": origin,
         "LANDWOLF_AUTO_SYNC": "false",
     }
+    if getattr(request, "param", "") == "mail":
+        environment["LANDWOLF_TEST_MAILBOX"] = str(tmp_path / "mailbox.json")
     with (tmp_path / "server.log").open("w") as log:
         process = subprocess.Popen(
             [
@@ -347,7 +351,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 "-m",
                 "uvicorn",
                 "research_fixture:create_fixture_app"
-                if getattr(request, "param", "") == "research"
+                if getattr(request, "param", "") in {"research", "mail"}
                 else "landwolf.main:create_app",
                 "--app-dir",
                 "tests",

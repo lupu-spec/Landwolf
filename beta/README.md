@@ -5,6 +5,11 @@ palette, and rural photography. Fresh email/password accounts unlock source-back
 property search, map/list browsing, public-record research, and reproducible deal analysis.
 All features are free. This application contains no checkout or Stripe gate.
 
+The premium staging branch implements trust/usability and scaffolds decision
+quality, partner consent and source expansion. See
+[PREMIUM_FRAMEWORK.md](docs/PREMIUM_FRAMEWORK.md) for implemented scope, email setup,
+quarantine review commands and the separate staging deployment.
+
 ## Run locally
 
 Prerequisites: Python 3.12+, Node 24, and uv. From this directory:
@@ -37,6 +42,7 @@ read these official inventories:
 | IRS | Federal tax-seizure real estate auctions across the 50 states |
 | Alaska DNR | State land auctions and direct-sale inventory |
 | Michigan DNR | General-public BuyNow parcels marked available |
+| Minnesota DOT | Published sealed-bid and over-the-counter surplus properties |
 
 This is **partial inventory coverage**, not every listing in every state or county.
 A federal program may have no current records in a state. HUD and GSA are directory
@@ -109,7 +115,8 @@ broader-area cost estimates; no ChatGPT-generated figures are presented as evide
 
 The Saved property feature has been permanently removed: there are no Save
 buttons, Saved tab, manual saved records, saved search filters or Saved API routes.
-Schema v3 deletes both retired tables and their records as authorized by the owner.
+Schema v3 deleted both retired tables and their records as authorized by the owner.
+Schema v4 retains that removal and adds trust, source history and recovery storage.
 **Research property** still prefills a source address or published coordinates.
 Address-only handoffs wait for **Research location**. You can also enter a location
 directly in Research; it is not stored in your account. **New research** clears the

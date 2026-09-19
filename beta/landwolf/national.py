@@ -9,6 +9,7 @@ from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
 import httpx
 from bs4 import BeautifulSoup, Tag
 
+from landwolf.minnesota import PAGES, parse_minnesota
 from landwolf.provider import SourceUnavailable, stamp
 from landwolf.schemas import PropertyRecord
 from landwolf.sources import SOURCE_BY_ID
@@ -73,6 +74,8 @@ def approved_url(source: str, url: str) -> bool:
             return p.path in {"/mlw/landsales/", "/mlw/landsales/parcels"} and not query
         if source == "mi_dnr" and p.netloc == "www.dnr.state.mi.us":
             return p.path == "/LandSale/Parcels/PublicSearch" and not query
+        if source == "mn_dot":
+            return url in PAGES
     except ValueError:
         return False
     return False
@@ -198,6 +201,7 @@ def parse_arkansas(html: str, url: str, day: date) -> list[PropertyRecord]:
             "ar_cosl",
             id=f"ar-cosl-{day.year}-{county.lower().replace(' ', '-')}-{sale_id}",
             tract=parcel,
+            parcel_number=parcel,
             title="Tax-sale parcel " + parcel,
             state="AR",
             county=county.title(),
@@ -569,6 +573,10 @@ def parse_usda_detail(html: str) -> dict[str, Any]:
 
 
 async def retrieve(source: str, reader: PublicReader) -> list[PropertyRecord]:
+    if source == "mn_dot":
+        by_bid = parse_minnesota(await reader.read(PAGES[0]), by_bid=True)
+        immediate = parse_minnesota(await reader.read(PAGES[1]), by_bid=False)
+        return checked([*by_bid, *immediate])
     if source == "ar_cosl":
         records: list[PropertyRecord] = []
         catalogs = arkansas_catalog(

@@ -1,5 +1,11 @@
 import L from "leaflet";
 import { bidRange, similarFilters } from "./property-context";
+import {
+  propertyTrustCard,
+  researchSummary,
+  type PropertyTrust,
+} from "./trust-ui";
+import { setupAccountActions } from "./account-actions";
 
 type ResearchLocation = {
   address: string | null;
@@ -7,6 +13,7 @@ type ResearchLocation = {
   longitude: number | null;
 };
 type PropertyRecord = {
+  trust?: PropertyTrust;
   id: string;
   source: string;
   tract: string;
@@ -41,6 +48,14 @@ type PropertyRecord = {
   research_location: ResearchLocation | null;
 };
 type Source = {
+  last_attempt?: number | null;
+  reuse_note?: string;
+  history?: {
+    finished_at: number;
+    status: string;
+    record_count: number;
+    message: string;
+  }[];
   id: string;
   name: string;
   url: string;
@@ -70,7 +85,14 @@ type SearchResult = {
   sources: Source[];
   coverage_note: string;
 };
-type SessionInfo = { authenticated?: boolean; email: string; csrf: string };
+type SessionInfo = {
+  authenticated?: boolean;
+  email: string;
+  csrf: string;
+  email_verified?: boolean;
+  email_delivery_enabled?: boolean;
+  environment?: string;
+};
 type ResearchCatalog = {
   id: string;
   name: string;
@@ -169,6 +191,12 @@ let mapRecords: PropertyRecord[] = [];
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
 let coverageSources: Source[] = [];
 let coverageStates: StateCoverage[] = [];
+let coverageCounties: {
+  state: string;
+  county: string;
+  source: string;
+  record_count: number;
+}[] = [];
 const resaleNames = ["resale_low", "resale_likely", "resale_high"];
 let resaleOverrides = new Set<string>();
 const scenarioDrafts = new Map<
@@ -231,7 +259,11 @@ function clearSession(): void {
   byId("research-catalog").replaceChildren();
   coverageSources = [];
   coverageStates = [];
+  coverageCounties = [];
+  byId("county-coverage").replaceChildren();
   byId("account-email").textContent = "";
+  byId("email-status").textContent = "";
+  byId("beta-roadmap").replaceChildren();
   markers?.clearLayers();
   mapRecords = [];
   map?.closePopup();
@@ -325,6 +357,10 @@ function sourceLink(url: string, label: string): HTMLAnchorElement {
         "epqs.nationalmap.gov",
         "sdmdataaccess.nrcs.usda.gov",
         "www.nconemap.gov",
+        "www.dot.state.mn.us",
+        "edocs-public.dot.state.mn.us",
+        "www.dnr.state.mn.us",
+        "land.az.gov",
       ].includes(parsed.hostname)
     )
       a.href = url;
@@ -407,6 +443,14 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   byId("workspace").hidden = false;
   byId("main-nav").hidden = false;
   byId("signout").hidden = false;
+  const current = await api<SessionInfo>("/api/session");
+  byId("email-status").textContent = current.email_verified
+    ? "Email verified"
+    : current.email_delivery_enabled
+      ? "Email not yet verified"
+      : "Email delivery is not configured in this beta.";
+  byId("verify-email").hidden =
+    Boolean(current.email_verified) || !current.email_delivery_enabled;
   page = 1;
   await navigate("explore");
 }
@@ -456,11 +500,13 @@ async function navigate(
         sources: Source[];
         states: StateCoverage[];
         research_sources: ResearchCatalog[];
+        counties: typeof coverageCounties;
       }>("/api/sources");
       if (!csrf || csrf !== sessionToken || navigation !== navigationSequence)
         return;
       coverageSources = result.sources;
       coverageStates = result.states;
+      coverageCounties = result.counties;
       renderCoverage();
       byId("research-catalog").replaceChildren(
         ...result.research_sources.map((source) => {
@@ -471,6 +517,30 @@ async function navigate(
             sourceLink(source.url, "View public source ↗"),
           );
           return card;
+        }),
+      );
+      const framework = await api<{
+        priorities: {
+          priority: number;
+          name: string;
+          status: string;
+          description: string;
+        }[];
+      }>("/api/capabilities");
+      if (!csrf || csrf !== sessionToken || navigation !== navigationSequence)
+        return;
+      byId("beta-roadmap").replaceChildren(
+        ...framework.priorities.map((item) => {
+          const row = element("article", "roadmap-item");
+          row.append(
+            element(
+              "h4",
+              "",
+              `${item.priority}. ${item.name} · ${item.status}`,
+            ),
+            element("p", "", item.description),
+          );
+          return row;
         }),
       );
     } catch (error) {
@@ -588,7 +658,9 @@ function renderResults(result: SearchResult): void {
   if (empty) {
     byId("empty-title").textContent = !result.coverage_supported
       ? "This coverage is not connected yet."
-      : "No matching listings in connected sources.";
+      : attention
+        ? "Results are incomplete while sources need attention."
+        : "No matching listings in connected sources.";
     byId("empty-description").textContent = !result.coverage_supported
       ? "An automated feed for this selection is not connected. Open Data coverage for official source links and current gaps. A pre-foreclosure notice is not a confirmed sale."
       : result.coverage_note +
@@ -629,6 +701,16 @@ function propertyCard(record: PropertyRecord): HTMLElement {
     element("span", "", area(record.acres)),
   );
   body.append(heading);
+  if (record.trust)
+    body.append(
+      element(
+        "p",
+        "evidence-badge",
+        record.trust.identity.id
+          ? "Publisher parcel ID available"
+          : "Parcel match needs review",
+      ),
+    );
   body.append(
     element("p", "card-price", money(record.asking_price)),
     element(
@@ -805,6 +887,43 @@ function renderSources(sources: Source[]): void {
         element("p", "", source.message),
         sourceLink(source.url, "Inspect the original inventory ↗"),
       );
+      if (source.automated) {
+        card.append(
+          element(
+            "p",
+            "input-note",
+            `Last attempted: ${date(source.last_attempt ?? null)} · Scheduled every 6 hours. Retrieval does not establish publisher freshness.`,
+          ),
+        );
+        const history = element("details", "source-history");
+        history.append(
+          element("summary", "", "Recent refreshes and reuse limits"),
+        );
+        history.append(
+          element(
+            "p",
+            "",
+            source.reuse_note ?? "Review source terms before redistribution.",
+          ),
+        );
+        for (const run of source.history ?? [])
+          history.append(
+            element(
+              "p",
+              "",
+              `${date(run.finished_at)} · ${run.status} · ${run.record_count} candidate records. ${run.message}`,
+            ),
+          );
+        if (!source.history?.length)
+          history.append(
+            element(
+              "p",
+              "",
+              "No refresh history recorded for this source yet.",
+            ),
+          );
+        card.append(history);
+      }
       return card;
     }),
   );
@@ -853,6 +972,34 @@ function renderCoverage(): void {
   }
   table.append(head, body);
   byId("state-coverage").replaceChildren(table);
+  const countyList = element("ul", "county-list");
+  const counties = coverageCounties.filter(
+    (item) =>
+      (state === "US" || item.state === state) &&
+      coverageSources.some(
+        (source) =>
+          source.id === item.source &&
+          (category === "all" || source.categories.includes(category)),
+      ),
+  );
+  for (const item of counties.slice(0, 40))
+    countyList.append(
+      element(
+        "li",
+        "",
+        `${item.county}, ${item.state}: ${item.record_count} records · ${coverageSources.find((source) => source.id === item.source)?.name ?? item.source} · partial coverage`,
+      ),
+    );
+  byId("county-coverage").replaceChildren(
+    element(
+      "p",
+      "",
+      counties.length
+        ? `Observed county coverage (${Math.min(40, counties.length)} of ${counties.length} source/county groups). Select a state to narrow the view.`
+        : "No county records available for this selection. This does not establish that no properties are for sale.",
+    ),
+    countyList,
+  );
 }
 byId("coverage-state").addEventListener("change", renderCoverage);
 byId("coverage-category").addEventListener("change", renderCoverage);
@@ -970,6 +1117,7 @@ byId("research-new").addEventListener("click", newResearchProperty);
 function renderResearch(report: ResearchReport): void {
   const container = byId("research-results");
   container.replaceChildren();
+  container.append(researchSummary(report));
   if (report.location) {
     const point = report.location;
     const context = element("div", "research-context");
@@ -1017,6 +1165,8 @@ function renderResearch(report: ResearchReport): void {
       element("h3", "", source.name),
       element("p", "", source.summary),
     );
+    const evidence = element("details", "research-evidence");
+    evidence.append(element("summary", "", "Inspect source evidence"));
     for (const section of source.sections) {
       const group = element("section", "research-section");
       const facts = element("dl", "research-facts");
@@ -1027,8 +1177,9 @@ function renderResearch(report: ResearchReport): void {
           element("dd", "", fact.value),
         );
       group.append(facts);
-      card.append(group);
+      evidence.append(group);
     }
+    card.append(evidence);
     card.append(
       element("p", "input-note", source.limitation),
       element(
@@ -1250,6 +1401,8 @@ function renderDetail(record: PropertyRecord): void {
   );
   research.append(description, risks);
   byId("detail-content").replaceChildren(hero, research);
+  if (record.trust)
+    byId("detail-content").append(propertyTrustCard(record.trust));
 }
 byId("close-detail").addEventListener("click", () => {
   rememberScenario();
@@ -1572,10 +1725,25 @@ for (const state of states.split("|")) {
   byId<HTMLSelectElement>("coverage-state").append(option.cloneNode(true));
 }
 byId("year").textContent = String(new Date().getFullYear());
+if (window.matchMedia("(max-width: 800px)").matches) {
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-view]")
+    .forEach((button) =>
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.view === "list"),
+      ),
+    );
+}
+const accountLinkOpen = setupAccountActions(api, clearSession);
 void (async () => {
   try {
     const info = await api<SessionInfo>("/api/session");
-    if (info.authenticated) await enterWorkspace(info);
+    if (info.environment === "staging") {
+      const badge = document.querySelector(".beta-tag");
+      if (badge) badge.textContent = "STAGING BETA";
+    }
+    if (info.authenticated && !accountLinkOpen) await enterWorkspace(info);
   } catch {
     byId("auth-message").textContent =
       "Unable to reach LandWolf. Check your connection and try again.";

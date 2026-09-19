@@ -1,0 +1,34 @@
+# Isolated review environment. No production domains, database, or secrets are copied.
+# Free resources may sleep and the free database has a limited lifetime.
+services:
+  - type: web
+    name: landwolf-premium-staging
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: codex/landwolf-premium-staging
+    dockerfilePath: ./beta/Dockerfile
+    dockerContext: ./beta
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/health
+    # Free services do not have pre-deploy commands. Only this isolated staging
+    # container runs the explicit, transaction-locked migration before serving.
+    dockerCommand: sh -c 'python -m landwolf.cli init-db && python -m landwolf.serve'
+    envVars:
+      - key: LANDWOLF_ENVIRONMENT
+        value: staging
+      - key: LANDWOLF_PAYMENTS_ENABLED
+        value: "false"
+      - key: LANDWOLF_MAIL_PROVIDER
+        value: disabled
+      - key: LANDWOLF_DATABASE_URL
+        fromDatabase:
+          name: landwolf-premium-staging-db
+          property: connectionString
+databases:
+  - name: landwolf-premium-staging-db
+    databaseName: landwolf_staging
+    user: landwolf_staging
+    plan: free
+    region: oregon
+    ipAllowList: []

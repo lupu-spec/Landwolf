@@ -8,7 +8,19 @@ from landwolf.db import Account, Base, Listing, LoginSession, SchemaVersion, Sou
 
 
 def legacy_fixture(engine: Engine, version: int) -> None:
-    Base.metadata.create_all(engine)
+    # Materialize the actual pre-v4 tables, not the current schema disguised
+    # by an old version marker. This catches missing additive migrations.
+    names = {
+        "lw2_schema_version",
+        "lw2_accounts",
+        "lw2_sessions",
+        "lw2_rate_buckets",
+        "lw2_listings",
+        "lw2_sources",
+    }
+    Base.metadata.create_all(
+        engine, tables=[t for t in Base.metadata.sorted_tables if t.name in names]
+    )
     with Session(engine) as session, session.begin():
         session.add(SchemaVersion(version=version))
         session.add(
@@ -39,6 +51,8 @@ def legacy_fixture(engine: Engine, version: int) -> None:
         )
         session.add(SourceState(id="tx_glo_public", status="ready", record_count=1))
     with engine.begin() as connection:
+        if version == 3:
+            return
         connection.execute(
             text("""
             CREATE TABLE lw2_saved_properties (

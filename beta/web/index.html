@@ -119,6 +119,9 @@
               <p id="auth-message" class="form-message" role="alert"></p>
             </form>
             <p class="auth-support">
+              <button type="button" class="text-button" id="forgot-password">
+                Forgot password?
+              </button>
               Need help accessing your account?
               <a href="mailto:support.landwolf@gmail.com">Contact support</a>.
             </p>
@@ -158,6 +161,13 @@
           </div>
         </div>
 
+        <div class="email-verification" aria-live="polite">
+          <span id="email-status"></span>
+          <button type="button" class="text-button" id="verify-email" hidden>
+            Verify email
+          </button>
+        </div>
+
         <section
           id="source-panel"
           class="source-panel"
@@ -194,6 +204,10 @@
             </div>
           </div>
           <div id="source-cards"></div>
+          <details class="beta-framework">
+            <summary>Beta development roadmap</summary>
+            <div id="beta-roadmap"></div>
+          </details>
           <div class="coverage-next">
             <h3>Free public property research</h3>
             <p>
@@ -222,6 +236,10 @@
               not establish full market coverage.
             </p>
             <div id="state-coverage" class="table-scroll"></div>
+            <details class="county-coverage">
+              <summary>Inspect observed county coverage</summary>
+              <div id="county-coverage"></div>
+            </details>
           </div>
         </section>
 
@@ -488,6 +506,35 @@
         </section>
       </section>
     </main>
+    <dialog
+      id="account-dialog"
+      class="account-dialog"
+      aria-labelledby="account-action-title"
+    >
+      <button type="button" id="close-account-action" class="button quiet">
+        Close
+      </button>
+      <h2 id="account-action-title">Reset your password</h2>
+      <form id="account-action-form">
+        <label id="account-action-label" for="account-action-input"
+          >Account email address</label
+        >
+        <input
+          id="account-action-input"
+          type="email"
+          autocomplete="email"
+          required
+        />
+        <button id="account-action-submit" type="submit" class="button primary">
+          Request reset email
+        </button>
+        <p id="account-action-message" class="form-message" role="status"></p>
+      </form>
+      <p class="input-note">
+        Links expire after 30 minutes. Password resets sign out all existing
+        sessions.
+      </p>
+    </dialog>
 
     <dialog
       id="property-dialog"

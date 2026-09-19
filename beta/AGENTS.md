@@ -15,7 +15,7 @@ Configure explicit HTTPS origins; never derive trust from client forwarding head
 
 Run commands from `beta/` using Python 3.12+ and Node 24. Install dependencies with
 `uv sync --frozen --dev` and `npm ci`. Browser setup is
-`.venv/bin/playwright install --with-deps chromium`.
+`.venv/bin/playwright install --with-deps chromium webkit`.
 
 Required gates, in order:
 
@@ -27,6 +27,9 @@ Required gates, in order:
    `.venv/bin/pytest -q -m 'not browser'` (isolated API, parser, and invariant tests).
    CI must also run `.venv/bin/python scripts/check_postgres.py` with the disposable
    `landwolf_ci` PostgreSQL service. Never point this check at a production database.
+   Run `scripts/check_restore.py` against that same disposable CI service to rehearse
+   backup and restore. Staging uses `render.staging.yaml`, its own branch and database;
+   never apply staging experiments to the production service or database.
 5. `npm run build`, then `.venv/bin/pytest -q -m browser` for real browser flows.
 6. `.venv/bin/python -m build` and `.venv/bin/python scripts/check_package.py`.
 7. `.venv/bin/bandit -r landwolf`, `.venv/bin/pip-audit --local --skip-editable`,

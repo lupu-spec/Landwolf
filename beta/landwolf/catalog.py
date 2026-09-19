@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -16,6 +16,7 @@ from landwolf.national import PublicReader, retrieve
 from landwolf.provider import REFRESH_SECONDS, GLOProvider, SourceUnavailable
 from landwolf.sources import SOURCES, SourceDefinition, matches, safe_link
 from landwolf.states import STATES
+from landwolf.trust import log_run, publish_snapshot, source_history
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,6 +44,8 @@ class InventoryProvider:
                 "message": state.message if state else "Awaiting first source refresh",
                 "stale": last is None or time.time() - last > REFRESH_SECONDS,
                 "coverage_note": d.coverage_note,
+                "last_attempt": state.last_attempt if state else None,
+                "history": source_history(session, d.id),
             }
 
     async def refresh(self) -> dict[str, Any]:
@@ -74,26 +77,7 @@ class InventoryProvider:
                 if any(r.source != source or not safe_link(r.source_url) for r in records):
                     raise SourceUnavailable("Source provenance failed validation")
                 with self.factory() as session, session.begin():
-                    # Never replace or deactivate another source's snapshot.
-                    session.execute(
-                        update(Listing).where(Listing.source == source).values(active=False)
-                    )
-                    for record in records:
-                        item = session.get(Listing, record.id) or Listing(
-                            id=record.id, source=source
-                        )
-                        if item.source != source:
-                            raise SourceUnavailable("Source identifier namespace collision")
-                        item.payload, item.active = record.model_dump(mode="json"), record.active
-                        session.add(item)
-                    state = session.get(SourceState, source)
-                    if state is None:
-                        raise SourceUnavailable("Source state missing")
-                    state.status, state.message = (
-                        "ready",
-                        "Complete official inventory retrieved; confirm sale terms at source",
-                    )
-                    state.last_success, state.record_count = int(time.time()), len(records)
+                    publish_snapshot(session, source, records)
             except (
                 SourceUnavailable,
                 TimeoutError,
@@ -109,6 +93,7 @@ class InventoryProvider:
                             "Refresh failed. The last complete snapshot is retained; "
                             "confirm availability at source."
                         )
+                        log_run(session, source, "unavailable", state.record_count, state.message)
                 LOGGER.warning("Source %s refresh failed: %s", source, type(exc).__name__)
             return self.status()
 
@@ -136,6 +121,9 @@ class Catalog:
                     categories=list(d.categories),
                     automated=True,
                     coverage_note=d.coverage_note,
+                    reuse_note=d.reuse_note,
+                    refresh_interval_hours=6,
+                    full_county_coverage=False,
                 )
             else:
                 status = {
@@ -177,6 +165,30 @@ class Catalog:
             }
             for code, name in STATES.items()
         ]
+
+    def county_coverage(self) -> list[dict[str, Any]]:
+        """Observed records, never a claim of full county inventory coverage."""
+        today = datetime.now(UTC).date().isoformat()
+        state = Listing.payload["state"].as_string()
+        county = Listing.payload["county"].as_string()
+        with self.factory() as session:
+            rows = session.execute(
+                select(state, county, Listing.source, func.count())
+                .where(Listing.active.is_(True), *current_sale_conditions(today))
+                .group_by(state, county, Listing.source)
+                .order_by(state, county, Listing.source)
+                .limit(5000)
+            )
+            return [
+                {
+                    "state": s,
+                    "county": c or "County not supplied",
+                    "source": src,
+                    "record_count": count,
+                    "coverage": "partial",
+                }
+                for s, c, src, count in rows
+            ]
 
     async def refresh(self) -> list[dict[str, Any]]:
         slots = asyncio.Semaphore(2)

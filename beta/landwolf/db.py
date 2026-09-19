@@ -72,7 +72,58 @@ class SourceState(Base):
     record_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
-SCHEMA_VERSION = 3
+class ParcelIdentity(Base):
+    """A publisher's county-scoped parcel identifier, not a surveyed boundary."""
+
+    __tablename__ = "lw2_parcel_identities"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    state: Mapped[str] = mapped_column(String(2), index=True)
+    county: Mapped[str] = mapped_column(String(100))
+    parcel_number: Mapped[str] = mapped_column(String(100))
+
+
+class SaleEvent(Base):
+    __tablename__ = "lw2_sale_events"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    listing_id: Mapped[str] = mapped_column(String(80), index=True)
+    parcel_id: Mapped[str | None] = mapped_column(ForeignKey("lw2_parcel_identities.id"))
+    source: Mapped[str] = mapped_column(String(40), index=True)
+    first_seen: Mapped[int] = mapped_column(Integer)
+    last_seen: Mapped[int] = mapped_column(Integer)
+    active: Mapped[bool] = mapped_column(Boolean)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class SourceRun(Base):
+    """Bounded operational history. No account or raw publisher contact data."""
+
+    __tablename__ = "lw2_source_runs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source: Mapped[str] = mapped_column(String(40), index=True)
+    finished_at: Mapped[int] = mapped_column(Integer, index=True)
+    status: Mapped[str] = mapped_column(String(32))
+    record_count: Mapped[int] = mapped_column(Integer)
+    removed_count: Mapped[int] = mapped_column(Integer, default=0)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    message: Mapped[str] = mapped_column(String(300))
+    approved: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class AccountEmail(Base):
+    __tablename__ = "lw2_account_email"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    verified_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class AccountAction(Base):
+    __tablename__ = "lw2_account_actions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    purpose: Mapped[str] = mapped_column(String(16))
+    expires_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+SCHEMA_VERSION = 4
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -84,7 +135,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Remove retired Saved storage in v3, as explicitly authorized by the owner."""
+    """Add trust/recovery storage in v4; preserve accounts and never recreate Saved."""
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -96,7 +147,7 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [3], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported beta schema version; migration required")
         Base.metadata.create_all(connection)
         # Intentionally irreversible. Do not archive or copy retired Saved data.

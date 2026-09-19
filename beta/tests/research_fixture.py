@@ -1,5 +1,9 @@
 """Synthetic public API responses; only tests import this module."""
 
+import json
+import os
+from pathlib import Path
+
 import httpx
 from fastapi import FastAPI
 
@@ -103,4 +107,16 @@ def create_fixture_app() -> FastAPI:
 
     app = create_app()
     app.state.research.transport = httpx.MockTransport(public_response)
+    mailbox = os.environ.get("LANDWOLF_TEST_MAILBOX")
+    if mailbox:
+
+        class FixtureMailer:
+            enabled = True
+
+            async def send(self, email: str, purpose: str, token: str) -> None:
+                path = Path(mailbox)
+                path.touch(mode=0o600, exist_ok=True)
+                path.write_text(json.dumps({"purpose": purpose, "token": token}))
+
+        app.state.mailer = FixtureMailer()
     return app

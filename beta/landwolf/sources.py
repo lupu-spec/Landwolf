@@ -15,10 +15,41 @@ class SourceDefinition:
     categories: tuple[str, ...]
     coverage_note: str
     automated: bool = True
+    reuse_note: str = (
+        "Public agency reference facts with source attribution. Open-data licensing is not "
+        "asserted; check the publisher's terms before bulk redistribution, images or AI training."
+    )
 
 
 NATIONWIDE = tuple(STATES)
 SOURCES = (
+    SourceDefinition(
+        "mn_dot",
+        "Minnesota Department of Transportation",
+        "https://www.dot.state.mn.us/row/propsales.html",
+        ("MN",),
+        ("surplus",),
+        "MnDOT sealed-bid and immediate-purchase surplus real estate. Prices in PDF documents "
+        "are not extracted. Structures for removal, leases and other agencies are excluded.",
+    ),
+    SourceDefinition(
+        "mn_dnr",
+        "Minnesota Department of Natural Resources",
+        "https://www.dnr.state.mn.us/lands_minerals/landsale/index.html",
+        ("MN",),
+        ("government_land",),
+        "Official program directory. No structured parcel catalog was available during review.",
+        False,
+    ),
+    SourceDefinition(
+        "az_land",
+        "Arizona State Land Department",
+        "https://land.az.gov/reports-notices",
+        ("AZ",),
+        ("government_land",),
+        "Official auction notices. Access returned HTTP 403; no listings imported.",
+        False,
+    ),
     SourceDefinition(
         "ar_cosl",
         "Arkansas Commissioner of State Lands",
@@ -139,7 +170,10 @@ def safe_link(url: str) -> bool:
     """Allow only reviewed HTTPS source hosts; never use this to authorize HTTP fetching."""
     try:
         parts = urlsplit(url)
-        hosts = {urlsplit(source.url).hostname for source in SOURCES} | {"www.usa.gov"}
+        hosts = {urlsplit(source.url).hostname for source in SOURCES} | {
+            "www.usa.gov",
+            "edocs-public.dot.state.mn.us",
+        }
         return bool(
             parts.scheme == "https"
             and parts.hostname in hosts

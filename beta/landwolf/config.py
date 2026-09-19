@@ -4,7 +4,7 @@ import os
 from typing import Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import EmailStr, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
         env_prefix="LANDWOLF_", env_file=".env", extra="ignore", hide_input_in_errors=True
     )
 
-    environment: Literal["development", "test", "production"] = "development"
+    environment: Literal["development", "test", "staging", "production"] = "development"
     database_url: str = Field(default="sqlite:///./landwolf-beta.db", repr=False)
     public_origin: str = Field(default_factory=default_public_origin)
     additional_origins: tuple[str, ...] = Field(default=(), max_length=4)
@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     session_hours: int = Field(default=8, ge=1, le=24)
     idle_minutes: int = Field(default=30, ge=5, le=120)
     auth_limit: int = Field(default=12, ge=1, le=100)
+    mail_provider: Literal["disabled", "resend"] = "disabled"
+    mail_from: EmailStr | None = None
+    mail_api_key: SecretStr | None = Field(default=None, repr=False)
 
     @field_validator("payments_enabled", mode="before")
     @classmethod
@@ -62,7 +65,11 @@ class Settings(BaseSettings):
             raise ValueError("Configured origins must be unique")
         if len({urlsplit(o).scheme for o in self.trusted_origins}) != 1:
             raise ValueError("Configured origins must use the same scheme")
-        if self.environment == "production" and not self.database_url.startswith(
+        if self.mail_provider == "resend" and (
+            not self.mail_from or not self.mail_api_key or not self.mail_api_key.get_secret_value()
+        ):
+            raise ValueError("Resend requires a verified sender and an API key")
+        if self.environment in {"staging", "production"} and not self.database_url.startswith(
             "postgresql+psycopg://"
         ):
             raise ValueError("Production requires a separate PostgreSQL database")
@@ -82,7 +89,7 @@ class Settings(BaseSettings):
             or "\\" in origin
         ):
             raise ValueError("Configured origins must be plain HTTP(S) origins")
-        if self.environment == "production":
+        if self.environment in {"staging", "production"}:
             if (
                 url.scheme != "https"
                 or url.hostname in {"localhost", "127.0.0.1", "::1", "testserver"}

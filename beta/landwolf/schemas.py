@@ -31,6 +31,7 @@ class PropertyRecord(Contract):
     state: str = "TX"
     county: str | None = Field(default=None, max_length=100)
     acres: float | None = Field(default=None, gt=0, le=10_000_000)
+    acreage_basis: Literal["reported", "calculated"] = "reported"
     asking_price: float | None = Field(default=None, ge=0, le=1_000_000_000)
     reported_taxes: float | None = Field(default=None, ge=0, le=1_000_000_000)
     source_appraised_value: float | None = Field(default=None, ge=0, le=1_000_000_000)
@@ -57,6 +58,8 @@ class PropertyRecord(Contract):
     legal_description: str | None = None
     location_description: str | None = None
     source_account: str | None = None
+    parcel_number: str | None = Field(default=None, min_length=1, max_length=100)
+    source_effective_date: date | None = None
     retrieved_at: str
     detail_retrieved_at: str | None = None
     data_completeness: int = Field(default=60, ge=0, le=100)

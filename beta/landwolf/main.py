@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import urlsplit
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from landwolf import auth
+from landwolf import auth, recovery
 from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
@@ -27,9 +27,11 @@ from landwolf.db import (
     Listing,
     LoginSession,
     SchemaVersion,
+    SourceState,
     database,
     initialize,
 )
+from landwolf.framework import capabilities
 from landwolf.locations import source_location
 from landwolf.research import (
     RESEARCH_SOURCES,
@@ -41,6 +43,7 @@ from landwolf.research import (
 )
 from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, SearchQuery
 from landwolf.sources import SOURCE_BY_ID
+from landwolf.trust import property_evidence
 
 
 class BodyLimit:
@@ -88,10 +91,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     engine, factory = database(settings.database_url)
     provider = Catalog(factory)
     research = ResearchService()
+    mailer = recovery.Mailer(settings)
 
     @contextlib.asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-        if settings.environment != "production":
+        if settings.environment not in {"production", "staging"}:
             initialize(engine)
         with factory() as session:
             if session.scalars(select(SchemaVersion.version)).all() != [SCHEMA_VERSION]:
@@ -116,6 +120,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.factory, app.state.provider, app.state.settings = factory, provider, settings
     app.state.research = research
+    app.state.mailer = mailer
     app.add_middleware(BodyLimit)
     hosts = []
     for origin in settings.trusted_origins:
@@ -151,6 +156,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             response.headers["Cache-Control"] = "no-cache"
         if settings.secure_cookies:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
+        if settings.environment == "staging":
+            response.headers["X-Robots-Tag"] = "noindex, nofollow"
         return response
 
     @app.exception_handler(RequestValidationError)
@@ -185,8 +192,74 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         except HTTPException as exc:
             if exc.status_code != 401:
                 raise
-            return {"authenticated": False}
-        return {"authenticated": True, "email": account.email, "csrf": request.state.login.csrf}
+            return {
+                "authenticated": False,
+                "environment": settings.environment,
+                "email_delivery_enabled": app.state.mailer.enabled,
+            }
+        return {
+            "authenticated": True,
+            "email": account.email,
+            "csrf": request.state.login.csrf,
+            "email_verified": recovery.verified(session, account.id),
+            "email_delivery_enabled": app.state.mailer.enabled,
+            "environment": settings.environment,
+        }
+
+    @app.post("/api/auth/recovery", status_code=202)
+    def request_recovery(
+        body: recovery.EmailRequest,
+        request: Request,
+        session: DB,
+        tasks: BackgroundTasks,
+    ) -> dict[str, str]:
+        return recovery.request_action(
+            str(body.email), "reset", request, session, settings, app.state.mailer, factory, tasks
+        )
+
+    @app.post("/api/auth/verification", status_code=202)
+    def request_verification(
+        request: Request,
+        session: DB,
+        tasks: BackgroundTasks,
+    ) -> dict[str, str]:
+        account = auth.authenticate(request, session, settings, write=True)
+        return recovery.request_action(
+            account.email, "verify", request, session, settings, app.state.mailer, factory, tasks
+        )
+
+    def action_guard(request: Request, session: Session) -> None:
+        auth.origin_guard(request, settings)
+        ip = request.client.host if request.client else "unknown"
+        auth.limit(session, f"token:ip:{ip}", 10, 600)
+
+    @app.post("/api/auth/reset-password")
+    def reset_password(
+        body: recovery.ResetRequest, request: Request, response: Response, session: DB
+    ) -> dict[str, str]:
+        action_guard(request, session)
+        recovery.consume(session, body.token, "reset", body.password)
+        response.delete_cookie(
+            auth.COOKIE, path="/", secure=settings.secure_cookies, httponly=True, samesite="strict"
+        )
+        return {
+            "message": "Password updated. All sessions signed out. Sign in with your new password."
+        }
+
+    @app.post("/api/auth/verify-email")
+    def verify_email(body: recovery.TokenRequest, request: Request, session: DB) -> dict[str, str]:
+        action_guard(request, session)
+        recovery.consume(session, body.token, "verify")
+        return {"message": "Email address verified. You can return to LandWolf."}
+
+    @app.get("/api/capabilities")
+    def beta_capabilities(request: Request, session: DB) -> dict[str, Any]:
+        auth.authenticate(request, session, settings)
+        return {
+            "version": 1,
+            "priorities": capabilities(),
+            "email_delivery_enabled": app.state.mailer.enabled,
+        }
 
     @app.post("/api/auth/register", status_code=201)
     def register(
@@ -218,6 +291,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {
             "sources": provider.statuses(),
             "states": provider.coverage(),
+            "counties": provider.county_coverage(),
             "research_sources": list(RESEARCH_SOURCES),
             "payments_enabled": False,
         }
@@ -257,13 +331,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 headers={"Retry-After": "5"},
             ) from exc
 
-    def record_payload(item: Listing) -> dict[str, Any]:
+    def record_payload(item: Listing, session: Session) -> dict[str, Any]:
         record = PropertyRecord.model_validate(item.payload)
         value = record.model_dump(mode="json")
         location = source_location(record)
         value.update(
             active=item.active,
             research_location=location.model_dump() if location else None,
+            trust=property_evidence(record, session.get(SourceState, record.source)),
         )
         today = datetime.now(UTC).date().isoformat()
         if any(
@@ -319,7 +394,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             .offset((query.page - 1) * query.page_size)
             .limit(query.page_size)
         )
-        rows = [record_payload(item) for item in session.scalars(stmt)]
+        rows = [record_payload(item, session) for item in session.scalars(stmt)]
         return {
             "results": rows,
             "total": total,
@@ -340,7 +415,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         item = session.get(Listing, listing_id)
         if item is None:
             raise HTTPException(404, "Property not found")
-        return record_payload(item)
+        return record_payload(item, session)
 
     @app.post("/api/analysis")
     def analysis(spec: AnalysisInput, request: Request, session: DB) -> dict[str, Any]:

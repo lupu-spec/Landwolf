@@ -18,12 +18,20 @@ publisher's last update. Source records can refer to the same property more than
 | `irs_auctions` | [IRS auctions](https://www.irsauctions.gov/auction/items) | Real-Estate asset type 8 and Seized sale type 1, through all returned pages | Verifies the filters were applied. These are federal tax-seizure auctions, not county tax-deed or tax-lien certificate sales. Excludes canceled/postponed titles. Minimum bids are identified explicitly. |
 | `ak_dnr` | [Alaska DNR available parcels](https://dnr.alaska.gov/mlw/landsales/parcels) and [program dates](https://dnr.alaska.gov/mlw/landsales/) | State DNR parcels with published acreage, price/bid and residency restrictions | Validates auction and bidding-deadline dates against the program page. Bidding closes before the auction event; the earlier deadline governs current search. No subdivision midpoint is substituted for a parcel coordinate. |
 | `mi_dnr` | [Michigan DNR BuyNow](https://www.dnr.state.mi.us/landsale) | General-public search results explicitly marked Available | Uses the site's public read-only search form. Pending bid openings, pending sales, sold and withdrawn parcels are excluded. Government and conservancy offers are not imported. |
+| `mn_dot` | [Minnesota DOT bid sales](https://www.dot.state.mn.us/row/propsales.html) and [over-the-counter sales](https://www.dot.state.mn.us/row/propsales_over_the_counter.html) | Published sale IDs, acreage/area, descriptions, locations, county and bid-opening dates | Exact sections and document-link hosts are validated; layout changes fail closed. No PDF-only prices, APNs or coordinates are invented. Square feet convert to acres with a calculated label. Page update dates are page-level, not parcel update dates. Confirm closing time, availability and terms with DOT. |
 
 The [Michigan DNR program page](https://www.michigan.gov/dnr/managing-resources/real-estate/auctions-sales)
 said summer 2026 auctions had concluded and unsold auction parcels would be relisted
 on October 1. Those auction entries must not be promoted as currently open sales.
 
 ## Directory entries and missing feeds
+
+- [Minnesota DNR land sales](https://www.dnr.state.mn.us/lands_minerals/landsale/index.html)
+  and [Arizona State Land notices](https://land.az.gov/reports-notices) are directory
+  additions. Arizona returned HTTP 403 during review; no access restriction was
+  bypassed and no Arizona inventory is imported. Public availability does not by
+  itself grant image/document redistribution rights. Review each source's terms
+  before broadening reuse; this adapter links to original documents.
 
 - [HUD Home Store](https://www.hudhomestore.gov/) is an official foreclosure/REO
   directory link. Its robots policy disallows crawling; no HUD data is imported.

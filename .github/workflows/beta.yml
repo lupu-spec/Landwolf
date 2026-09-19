@@ -3,7 +3,7 @@ name: LandWolf beta gates
 on:
   pull_request:
   push:
-    branches: [codex/landwolf-beta-rebuild]
+    branches: [codex/landwolf-beta-rebuild, codex/landwolf-premium-staging]
 
 permissions:
   contents: read
@@ -41,7 +41,7 @@ jobs:
           pip install uv==0.12.11
           uv sync --frozen --dev
           npm ci
-          .venv/bin/playwright install --with-deps chromium
+          .venv/bin/playwright install --with-deps chromium webkit
       - name: Format
         run: |
           .venv/bin/ruff format --check landwolf tests scripts
@@ -62,6 +62,11 @@ jobs:
         env:
           LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
         run: .venv/bin/python scripts/check_postgres.py
+      - name: Disposable backup and restore
+        env:
+          LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
+          LANDWOLF_TEST_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: .venv/bin/python scripts/check_restore.py
       - name: Browser journey
         run: |
           npm run build

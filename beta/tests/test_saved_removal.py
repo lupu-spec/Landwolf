@@ -10,6 +10,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
 from landwolf.db import (
+    SCHEMA_VERSION,
     Account,
     Listing,
     LoginSession,
@@ -64,7 +65,7 @@ def test_property_responses_have_no_saved_state(
         assert "lw2_saved_records" not in tables and "lw2_saved_properties" not in tables
 
 
-@pytest.mark.parametrize("version", [1, 2])
+@pytest.mark.parametrize("version", [1, 2, 3])
 def test_migration_permanently_drops_saves_preserves_other_data(
     tmp_path: Path, version: int
 ) -> None:
@@ -75,7 +76,7 @@ def test_migration_permanently_drops_saves_preserves_other_data(
     assert "lw2_saved_records" not in inspect(engine).get_table_names()
     assert "lw2_saved_properties" not in inspect(engine).get_table_names()
     with Session(engine) as session:
-        assert session.scalars(select(SchemaVersion.version)).all() == [3]
+        assert session.scalars(select(SchemaVersion.version)).all() == [SCHEMA_VERSION]
         account = session.get(Account, "migration-fixture")
         assert account.password_hash == "synthetic-hash" and account.created_at == 123
         assert session.get(LoginSession, "synthetic-session").csrf == "synthetic-csrf"

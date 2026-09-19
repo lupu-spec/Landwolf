@@ -10,11 +10,12 @@ from urllib.parse import parse_qs, urljoin, urlsplit
 
 import httpx
 from bs4 import BeautifulSoup
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from landwolf.db import Listing, SourceState
 from landwolf.schemas import PropertyRecord
+from landwolf.trust import log_run, publish_snapshot, source_history
 
 LOGGER = logging.getLogger(__name__)
 SOURCE = "tx_glo_public"
@@ -178,6 +179,8 @@ class GLOProvider:
                 "record_count": state.record_count if state else 0,
                 "message": state.message if state else "Awaiting first source sync",
                 "stale": last is None or time.time() - last > REFRESH_SECONDS,
+                "last_attempt": state.last_attempt if state else None,
+                "history": source_history(session, SOURCE),
                 "coverage_note": (
                     "Texas GLO public-sale tracts only. Not all Texas properties, tax sales, "
                     "or foreclosures. Other states are not connected yet."
@@ -241,26 +244,12 @@ class GLOProvider:
                         ).model_dump()
                         await asyncio.sleep(0.1)
                 with self.factory() as session, session.begin():
-                    # Only a complete inventory can deactivate missing listings.
-                    session.execute(
-                        update(Listing).where(Listing.source == SOURCE).values(active=False)
+                    publish_snapshot(
+                        session,
+                        SOURCE,
+                        [PropertyRecord.model_validate(previous[record.id]) for record in records],
                     )
-                    for record in records:
-                        item = session.get(Listing, record.id) or Listing(
-                            id=record.id, source=SOURCE
-                        )
-                        item.payload, item.active = previous[record.id], True
-                        session.add(item)
-                    state = session.get(SourceState, SOURCE)
-                    if state is None:
-                        raise SourceUnavailable("Source state missing")
-                    state.last_success = int(time.time())
-                    state.record_count = len(records)
-                    state.status, state.message = (
-                        "ready",
-                        "Official inventory refreshed; verify availability with seller",
-                    )
-            except (SourceUnavailable, TimeoutError) as exc:
+            except (SourceUnavailable, TimeoutError, ValueError) as exc:
                 with self.factory() as session, session.begin():
                     state = session.get(SourceState, SOURCE)
                     if state is not None:
@@ -269,6 +258,7 @@ class GLOProvider:
                             "Source temporarily unavailable. Last successful records retained; "
                             "availability must be rechecked."
                         )
+                        log_run(session, SOURCE, "unavailable", state.record_count, state.message)
                 LOGGER.warning("Source refresh failed: %s", type(exc).__name__)
             return self.status()
 
