@@ -77,8 +77,9 @@ No MLS, paid provider account or usage-based API subscription is enabled.
 
 An address result is an interpolated Census point; it may fall on a road or
 neighboring parcel. It never becomes a listing map marker. Reference values do not
-prefill the deal model. A property's **Research this location** button uses its
-published point, or asks for an address/verified point if none is available.
+prefill a valuation. **Research property** uses a published point, or prefills a
+usable IRS/USDA source-address field for review. Otherwise it asks for an address
+or verified point; it never geocodes a tract or county as a parcel.
 Failures are independent and missing flood data stays unknown. Reports are held in
 a bounded memory cache for up to six hours, not saved to accounts or the database.
 See [FREE_DATA.md](docs/FREE_DATA.md) for API contracts, limitations and MLS access.
@@ -92,11 +93,25 @@ Run actual public API checks explicitly (not part of deterministic fixture CI):
 
 ## Deal model
 
-Investors explicitly enter resale and repair ranges, title/closing costs, a lien and
-back-tax reserve, holding costs, buyer premium, selling costs, and financing. A seeded
+Resale starts at 95% / 100% / 120% of the published price or entered bid, labeled
+as a hypothetical scenario, not market value. Percentages and dollar inputs are
+editable; explicit resale overrides are preserved until the user reapplies the range.
+Unestimated repair ranges, title/closing costs, lien reserves, holding costs/period,
+buyer premiums, selling costs and financing default to zero by owner request.
+Zero placeholders require a warning acknowledgment in the UI and trigger warnings
+in API results; they are not verified zero costs or statistical estimates. A seeded
 10,000-scenario triangular model reports net-profit percentiles, median ROI, loss
 probability with a sampling interval, and a scenario score. It does not infer market
-value from the seller's asking price or treat missing costs as zero.
+value from the seller's asking price. The current feeds lack calibrated local or
+broader-area cost estimates; no ChatGPT-generated figures are presented as evidence.
+
+**Save property / Saved ✓** is available on cards and inside details. Saved filters
+are independent from Explore filters. Saving bookmarks the listing, not its scenario.
+Scenario drafts are kept in bounded page-session memory (up to 50 properties), cleared
+on reload/sign-out. **Research property** retains the property context and offers
+**Open deal scenario**. **Find similar properties** prefills state, county, sale
+category and minimum acreage (rounded down to 0.01 acre), clearing old price/source
+filters. It searches equal-or-larger acreage, not a statistically matched cohort.
 
 Maximum bid is the largest cent-rounded bid satisfying the entered sampled loss
 limit, minimum median profit, and median ROI. The search reuses the same draws for

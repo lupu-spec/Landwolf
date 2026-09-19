@@ -138,6 +138,7 @@ class Range(Contract):
 
 
 class AnalysisInput(Contract):
+    resale_basis: Literal["user_estimate", "bid_scenario", "custom_scenario"] = "user_estimate"
     purchase_price: float = Field(ge=0, le=1_000_000_000)
     resale: Range
     repairs: Range

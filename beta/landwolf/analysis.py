@@ -107,7 +107,34 @@ def analyze(spec: AnalysisInput) -> dict[str, Any]:
         "assumptions": spec.model_dump(),
         "limitations": [
             "Scenario estimate, not an appraisal, title opinion, or bid recommendation.",
-            "Resale and repair ranges are user-supplied and sampled independently; "
+            (
+                "Resale uses hypothetical asking-price/bid scenarios, not a market valuation "
+                "or statistically estimated confidence bounds."
+                if spec.resale_basis == "bid_scenario"
+                else "Resale uses user-edited assumptions, not an independently verified valuation."
+            ),
+            *(
+                [
+                    "One or more costs or the holding period are zero. "
+                    "Unestimated zero placeholders "
+                    "exclude costs and can overstate returns and maximum bid; verify every zero."
+                ]
+                if 0
+                in [
+                    spec.repairs.low,
+                    spec.repairs.likely,
+                    spec.repairs.high,
+                    spec.lien_reserve,
+                    spec.closing_costs,
+                    spec.holding_months,
+                    spec.monthly_holding,
+                    spec.buyer_premium_pct,
+                    spec.selling_cost_pct,
+                    spec.annual_financing_pct,
+                ]
+                else []
+            ),
+            "Resale and repair ranges are scenario assumptions sampled independently; "
             "correlated shocks are not modeled.",
             "Lien reserve is a user estimate, not a determination of which liens survive a sale.",
             "Financing is simple interest on 100% of the bid; "

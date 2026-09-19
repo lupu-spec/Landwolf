@@ -9,6 +9,25 @@ from landwolf.analysis import analyze
 from landwolf.schemas import AnalysisInput, Range
 
 
+def test_bid_scenario_provenance_and_zero_cost_warnings(scenario: AnalysisInput) -> None:
+    spec = scenario.model_copy(update={"resale_basis": "bid_scenario", "lien_reserve": 0})
+    result = analyze(spec)
+    assert result["assumptions"]["resale_basis"] == "bid_scenario"
+    assert any("hypothetical asking-price/bid" in note for note in result["limitations"])
+    assert any("zero placeholders" in note for note in result["limitations"])
+    assert (
+        result["profit"]
+        == analyze(spec.model_copy(update={"resale_basis": "custom_scenario"}))["profit"]
+    )
+
+
+def test_analysis_rejects_fabricated_provenance(scenario: AnalysisInput) -> None:
+    with pytest.raises(ValidationError):
+        AnalysisInput.model_validate(
+            {**scenario.model_dump(), "resale_basis": "verified_appraisal"}
+        )
+
+
 def test_fixed_scenario_matches_independent_arithmetic(scenario: AnalysisInput) -> None:
     result = analyze(scenario)
     # 200k less 6% selling costs minus (100k bid + 10% premium + 12% interest + 26k).

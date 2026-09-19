@@ -25,6 +25,114 @@ pytestmark = pytest.mark.browser
 
 
 @pytest.mark.parametrize("browser_server", ["research"], indirect=True)
+def test_save_scenario_defaults_and_property_handoffs(browser_server: tuple[str, int]) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("handoff@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        page.locator(".property-card").first.get_by_role("button", name="View property").click()
+        save = page.locator(".property-save")
+
+        def fail_save(route: Route) -> None:
+            expect(save).to_be_disabled()
+            route.fulfill(status=503, json={"detail": "Synthetic save failure"})
+
+        page.route("**/api/saved/*", fail_save)
+        save.click()
+        expect(page.locator("#detail-save-status")).to_contain_text("failed")
+        expect(save).to_have_attribute("aria-pressed", "false")
+        expect(save).to_be_enabled()
+        page.unroute("**/api/saved/*", fail_save)
+        save.click()
+        expect(save).to_have_attribute("aria-pressed", "true")
+        expect(page.locator("#detail-save-status")).to_contain_text("Saved to your account")
+
+        def field(name: str):
+            return page.locator(f'input[name="{name}"]')
+
+        expect(field("resale_low")).to_have_value("95000")
+        expect(field("resale_likely")).to_have_value("100000")
+        expect(field("resale_high")).to_have_value("120000")
+        for input_ in page.locator("[data-unestimated-cost]").all():
+            expect(input_).to_have_value("0")
+        page.locator("#run-analysis").click()
+        expect(page.locator("#analysis-results")).to_be_hidden()
+        page.locator("#zero-cost-ack").check()
+        page.locator("#run-analysis").click()
+        expect(page.locator("#analysis-results")).to_be_visible()
+        expect(page.locator("#analysis-results")).to_contain_text("zero placeholders")
+        expect(page.locator("#analysis-results")).to_contain_text("hypothetical asking-price/bid")
+        field("resale_high").fill("155000")
+        field("purchase_price").fill("110000")
+        expect(field("resale_low")).to_have_value("104500")
+        expect(field("resale_high")).to_have_value("155000")
+        expect(page.locator("#analysis-results")).to_be_hidden()
+        field("closing_costs").fill("3000")
+        page.locator("#property-dialog").get_by_role(
+            "button", name="Research property", exact=True
+        ).click()
+        expect(page.locator("#research-latitude")).to_have_value("32.48455")
+        expect(page.locator("#research-property-context")).to_contain_text("Test fixture 99001")
+        expect(page.locator(".research-source")).to_have_count(5)
+        page.get_by_role("button", name="Open deal scenario", exact=True).click()
+        expect(field("resale_high")).to_have_value("155000")
+        expect(field("closing_costs")).to_have_value("3000")
+        page.locator("#property-dialog").get_by_role(
+            "button", name="Find similar properties", exact=True
+        ).click()
+        expect(page.locator("#state")).to_have_value("TX")
+        expect(page.locator("#location")).to_have_value("Fixture Eastland")
+        expect(page.locator("#min-acres")).to_have_value("10")
+        expect(page.locator("#category")).to_have_value("government_land")
+        expect(page.locator("#max-price")).to_have_value("")
+        page.locator("#state").select_option("CA")
+        page.locator("#search-submit").click()
+        expect(page.locator("#empty-state")).to_be_visible()
+        page.get_by_role("button", name="Saved properties", exact=True).click()
+        expect(page.locator("#state")).to_have_value("US")
+        expect(page.locator(".property-card")).to_have_count(1)
+        page.locator(".property-card").get_by_role("button", name="View property").click()
+        expect(field("resale_high")).to_have_value("155000")
+        page.locator("#reapply-bid-range").click()
+        expect(field("resale_high")).to_have_value("132000")
+        field("purchase_price").fill("")
+        expect(field("resale_low")).to_have_value("")
+        field("purchase_price").fill("100000")
+        field("upside_pct").fill("30")
+        expect(field("resale_high")).to_have_value("130000")
+        page.set_viewport_size({"width": 390, "height": 844})
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        assert page.locator("#property-dialog").evaluate("el => el.scrollWidth <= el.clientWidth")
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path="test-results/property-save-scenario-mobile.png", full_page=True)
+        save.click()
+        expect(save).to_have_attribute("aria-pressed", "false")
+        expect(page.locator("#detail-save-status")).to_contain_text("Removed")
+        page.locator("#close-detail").click()
+        expect(page.locator("#empty-state")).to_be_visible()
+        page.get_by_role("button", name="Sign out", exact=True).click()
+        page.locator("#login-tab").click()
+        page.get_by_label("Email address", exact=True).fill("handoff@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        page.locator(".property-card").first.get_by_role("button", name="View property").click()
+        expect(field("closing_costs")).to_have_value("0")
+        expect(field("upside_pct")).to_have_value("20")
+        assert errors == []
+        browser.close()
+
+
+@pytest.mark.parametrize("browser_server", ["research"], indirect=True)
 def test_public_research_authentication_sources_mobile_and_stale_results(
     browser_server: tuple[str, int],
 ) -> None:
@@ -300,7 +408,10 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         assert "glo.texas.gov" in page.get_by_role(
             "link", name="View official listing"
         ).get_attribute("href")
-        assert page.locator('input[name="resale_likely"]').input_value() == ""
+        assert (
+            page.locator('input[name="resale_likely"]').input_value()
+            == page.locator('input[name="purchase_price"]').input_value()
+        )
         for name, value in {
             "resale_low": 350000,
             "resale_likely": 400000,
@@ -313,8 +424,11 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
             "monthly_holding": 500,
             "buyer_premium_pct": 0,
             "annual_financing_pct": 8,
+            "holding_months": 6,
+            "selling_cost_pct": 6,
         }.items():
             page.locator(f'input[name="{name}"]').fill(str(value))
+        page.locator("#zero-cost-ack").check()
         page.locator("#run-analysis").click()
         expect(page.locator("#analysis-results")).to_be_visible()
         expect(page.locator(".metric")).to_have_count(4)
@@ -331,6 +445,7 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
             route.fulfill(response=result)
 
         page.route("**/api/analysis", edit_during_response)
+        page.locator("#zero-cost-ack").check()
         page.locator("#run-analysis").click()
         expect(page.locator("#run-analysis")).to_be_enabled()
         expect(page.locator("#analysis-results")).to_be_hidden()

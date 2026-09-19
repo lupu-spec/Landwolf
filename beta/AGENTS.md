@@ -5,7 +5,10 @@ runtime, accounts, database, and dependency environment separate from the legacy
 application. Preserve the supplied LandWolf logo and navy/white visual identity.
 Every property search, source, detail, save, analysis, and research route requires server
 authentication. Payments stay disabled. Never use fabricated runtime listings,
-unverified parcel coordinates, asking prices as valuations, or unknown costs as zero.
+unverified parcel coordinates, or asking prices as valuations. The owner permits
+explicit hypothetical resale defaults of bid × 0.95 / 1.00 / 1.20 and unestimated
+cost placeholders of zero. Label them as assumptions, preserve user overrides,
+warn that zero costs can overstate returns, and never call these statistical estimates.
 Production uses `landwolf.ai` with `www.landwolf.ai` redirected at Render. Preserve
 the existing rebuilt service/database during promotion; do not reset accounts.
 Configure explicit HTTPS origins; never derive trust from client forwarding headers.
@@ -20,7 +23,8 @@ Required gates, in order:
    and `npm run format:check`.
 2. `.venv/bin/ruff check landwolf tests scripts` and `npm run lint`.
 3. `.venv/bin/mypy landwolf` and `npm run typecheck`.
-4. `.venv/bin/pytest -q -m 'not browser'` (isolated API, parser, and invariant tests).
+4. `npm run test:unit` (frontend scenario and prefill invariants), then
+   `.venv/bin/pytest -q -m 'not browser'` (isolated API, parser, and invariant tests).
    CI must also run `.venv/bin/python scripts/check_postgres.py` with the disposable
    `landwolf_ci` PostgreSQL service. Never point this check at a production database.
 5. `npm run build`, then `.venv/bin/pytest -q -m browser` for real browser flows.

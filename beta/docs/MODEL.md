@@ -4,6 +4,30 @@ This is an illustrative planning model, not an appraisal, lien opinion, property
 quality rating, or recommendation to bid. Resale and repair assumptions belong to
 the user. Estimates can be wrong even if every calculation is correct.
 
+## Editable starting assumptions
+
+The owner-selected resale defaults are `low = bid × 0.95`, `likely = bid`, and
+`high = bid × 1.20`, rounded to cents. They are hypothetical bounds, not a market
+valuation or calibrated confidence interval. The current purchase/bid input is
+the anchor, initially the source's published price/bid where available. Missing
+prices require an entered bid or explicit resale assumptions. Percentages are
+editable; user-edited dollar fields stop tracking the anchor until explicitly reset.
+
+Unestimated costs and holding period default to zero by owner request. This excludes
+expenses and may overstate profits and maximum bid. The browser requires an explicit
+acknowledgment whenever a cost or holding period is zero; API output independently
+warns about zero inputs. API clients retain responsibility for reviewing assumptions.
+ROI/profit/loss targets are preferences, not property statistics.
+
+No calibrated comparable-cost dataset is connected. Assessments, taxes owed, and
+asking prices are not substitutes for market value, annual taxes, or surviving liens.
+The fallback is a labeled zero placeholder, not an invented statistical estimate.
+An evidence-based extension would require dated, attributable observations matched
+by property/use and region, with sample counts and a documented county-to-region
+fallback; this patch does not claim that data or an estimator is connected.
+
+## Simulation
+
 For each seeded simulation:
 
 ```text

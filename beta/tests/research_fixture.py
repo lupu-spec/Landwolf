@@ -14,6 +14,14 @@ def public_response(request: httpx.Request) -> httpx.Response:
         "Census Tracts": [{"GEOID": "37999000100"}],
     }
     if endpoint == CENSUS + "coordinates":
+        # The browser handoff fixture is a TX listing; preserve the real state
+        # consistency check instead of returning the unrelated NC address fixture.
+        if request.url.params.get("x") == "-98.5175":
+            geography = {
+                "States": [{"STUSAB": "TX"}],
+                "Counties": [{"NAME": "Fixture Eastland", "GEOID": "48999"}],
+                "Census Tracts": [{"GEOID": "48999000100"}],
+            }
         data = {"result": {"geographies": geography}}
     elif endpoint == CENSUS + "onelineaddress":
         data = {

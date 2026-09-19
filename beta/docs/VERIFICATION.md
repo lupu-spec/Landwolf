@@ -1,5 +1,76 @@
 # LandWolf beta verification
 
+## Current patch — property saving and scenario handoffs (2026-09-19)
+
+Prepared locally against `050ba89a5410c1e6f6d59fa3a2eae845aa3bea2b`.
+**Not pushed or deployed. Browser and PostgreSQL verification remain blocked.**
+The historical deployment observations below are not a verification of this patch.
+
+### Behavior and limits
+
+- Card and detail Save/Saved controls share state, prevent duplicate in-flight
+  writes, retain server-side account ownership, and show failures without falsely
+  confirming a save. Saved and Explore filters are independent.
+- Resale defaults to 95% / 100% / 120% of the published price or entered bid.
+  Editable percentages and explicit dollar overrides are preserved. These are
+  hypothetical bounds, never market valuations or calibrated confidence intervals.
+- Per the owner's follow-up, unestimated cost inputs and holding period default
+  to zero. The UI requires acknowledgment of zero-cost assumptions, and API
+  results independently warn that zero costs can overstate returns and maximum bid.
+  ROI/profit/loss targets remain editable preferences. No regional cost dataset or
+  statistical cost estimator is connected; no invented figures are presented as evidence.
+- Research actions on Search, Saved and property details carry listing context.
+  Published coordinates prefill and run; usable IRS/USDA source addresses prefill
+  for review. Unknown locations remain blank. Edited research locations are flagged
+  as potentially different properties and do not overwrite scenario inputs.
+- Similar-property actions prefill state, county, category and minimum acreage,
+  clearing old source/price filters. This is a filter convenience, not comparable-sale matching.
+- Scenario drafts are bounded to 50 properties in page-session memory, cleared on
+  sign-out/reload. Save persists the property bookmark, not scenario inputs.
+- Added pure frontend arithmetic/location tests, API/model provenance tests and a
+  browser journey. The synthetic research transport now returns TX geography for
+  the synthetic TX listing, preserving the real listing/state consistency check.
+- Updated source packaging and CI to include/run the new frontend tests. No new
+  dependencies, schema migrations, paid APIs, billing, DNS or production changes.
+
+### Commands actually run
+
+Run from `beta/` unless stated. Exit 0 means Passed; unavailable gates are not passes.
+
+| Command | Result | Scope |
+| --- | --- | --- |
+| `.venv/bin/ruff format landwolf tests scripts` | Passed (0) | Formatting applied; final check below. |
+| `npm run format` | Passed (0) | Formatting applied; final check below. |
+| `.venv/bin/ruff format --check landwolf tests scripts` | Passed (0) | 28 files. |
+| `npm run format:check` | Passed (0) | Includes new TypeScript helper and JS tests. |
+| `.venv/bin/ruff check landwolf tests scripts` | Passed (0) | Initial E501 failure corrected; rerun passed. |
+| `npm run lint` | Passed (0) | All frontend TS, JS tests and build script. |
+| `.venv/bin/mypy landwolf` | Passed (0) | 15 source files. |
+| `npm run typecheck` | Passed (0) | TypeScript. |
+| `npm run test:unit` | Passed (0) | 5 tests: defaults, bounds, editable percentages, address validation and filters. |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed (0) | 212 passed; 4 browser tests deselected for the separate browser gate. |
+| `.venv/bin/python scripts/check_postgres.py` | Failed (1), environment | No disposable `landwolf_ci` database configured; no production database used. |
+| `npm run build` | Passed (0) | Current frontend bundle. |
+| `.venv/bin/pytest -q -m browser` | Failed (1), environment | All 4 fail at Chromium launch; UI assertions did not execute. |
+| `.venv/bin/playwright install chromium` | Failed (1), environment | Official download exhausted retries with 30-second timeouts; no bypass attempted. |
+| `.venv/bin/python -m build` | Passed (0) | Source archive and wheel. |
+| `.venv/bin/python scripts/check_package.py` | Passed (0) | Runtime/branding assets plus source helper and frontend tests. |
+| `.venv/bin/bandit -r landwolf` | Passed (0) | No findings. |
+| `.venv/bin/pip-audit --local --skip-editable` | Passed (0) | No known dependency vulnerabilities; editable app intentionally excluded by command. |
+| `npm audit --audit-level=moderate` | Passed (0) | Zero reported vulnerabilities. |
+| `npm run secrets` | Passed (0) | Configured masked scan. |
+| `git diff --check` (repository root) | Passed (0) | Whitespace integrity. |
+| `git status --short` (repository root) | Passed (0) | Reviewed scoped patch files and two new source/test files. |
+| `.venv/bin/pytest -q` (legacy repository root) | Failed to start (127) | Separate legacy environment is absent; not run in the rebuilt app's environment. |
+
+Two Python test-client deprecation warnings remain. npm reports an existing
+`http-proxy` environment-option warning. Dependencies were not changed to suppress
+these warnings. Live upstream checks, live-browser checks, hosted CI and deployment
+were **not run** for this patch. It is not approved for production until browser
+and disposable PostgreSQL gates pass. Review the complete diff before applying.
+
+## Historical verification records
+
 The free beta is live at **https://landwolf-free-beta.onrender.com/** on runtime
 commit `f9b0fcc7711db0b8df0a968575775139b79ad580`. The latest deployed checks
 completed on September 14, 2026, at 16:15:59 UTC; see the final deployment section.

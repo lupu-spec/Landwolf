@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "format:check": "prettier --check web scripts/build.mjs package.json tsconfig.json eslint.config.js",
-    "format": "prettier --write web scripts/build.mjs package.json tsconfig.json eslint.config.js",
-    "lint": "eslint web/app.ts scripts/build.mjs",
+    "format:check": "prettier --check web tests/*.test.mjs scripts/build.mjs package.json tsconfig.json eslint.config.js",
+    "format": "prettier --write web tests/*.test.mjs scripts/build.mjs package.json tsconfig.json eslint.config.js",
+    "lint": "eslint web/*.ts tests/*.test.mjs scripts/build.mjs",
+    "test:unit": "node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
     "build": "node scripts/build.mjs",
     "audit": "npm audit --audit-level=moderate",

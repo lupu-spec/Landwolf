@@ -1,7 +1,9 @@
 import L from "leaflet";
+import { bidRange, similarFilters, sourceAddress } from "./property-context";
 
 type PropertyRecord = {
   id: string;
+  source: string;
   tract: string;
   title: string;
   county: string | null;
@@ -163,6 +165,16 @@ let mapRecords: PropertyRecord[] = [];
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
 let coverageSources: Source[] = [];
 let coverageStates: StateCoverage[] = [];
+const saving = new Set<string>();
+const resaleNames = ["resale_low", "resale_likely", "resale_high"];
+let resaleOverrides = new Set<string>();
+const scenarioDrafts = new Map<
+  string,
+  { values: Record<string, string>; overrides: string[] }
+>();
+let filterView = "explore";
+const filterDrafts = new Map<string, Record<string, string>>();
+let researchProperty: PropertyRecord | null = null;
 const categoryNames: Record<string, string> = {
   government_land: "DNR & government land",
   tax_sale: "Tax sale",
@@ -196,6 +208,13 @@ function notify(message: string): void {
 
 function clearSession(): void {
   csrf = "";
+  saving.clear();
+  scenarioDrafts.clear();
+  resaleOverrides.clear();
+  filterDrafts.clear();
+  filterView = "explore";
+  form.reset();
+  byId<HTMLSelectElement>("state").value = "US";
   requestSequence++;
   detailSequence++;
   navigationSequence++;
@@ -392,7 +411,20 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   page = 1;
   await navigate("explore");
 }
-async function navigate(view: string): Promise<void> {
+async function navigate(
+  view: string,
+  preset?: Record<string, string>,
+): Promise<void> {
+  if (view === "explore" || view === "saved") {
+    if (view !== filterView) {
+      filterDrafts.set(filterView, formValues(form));
+      form.reset();
+      byId<HTMLSelectElement>("state").value = "US";
+      fillForm(form, filterDrafts.get(view) ?? {});
+      filterView = view;
+    }
+    if (preset) fillForm(form, preset);
+  }
   const navigation = ++navigationSequence;
   const sessionToken = csrf;
   requestSequence++;
@@ -420,7 +452,7 @@ async function navigate(view: string): Promise<void> {
     : researching
       ? "Public records, with their source and uncertainty in view."
       : savedOnly
-        ? "Your account's saved properties. Filters still apply."
+        ? "Your saved properties. These filters are separate from Explore."
         : "Real listings. Clear sources. A closer look at what matters.";
   if (sources) {
     try {
@@ -574,6 +606,97 @@ function bookmarkIcon(): SVGSVGElement {
   svg.append(path);
   return svg;
 }
+function saveControl(
+  record: PropertyRecord,
+  compact = false,
+): HTMLButtonElement {
+  const button = element(
+    "button",
+    compact ? "save-button" : "button quiet property-save",
+  );
+  button.type = "button";
+  button.dataset.saveId = record.id;
+  button.dataset.tract = record.tract;
+  button.dataset.compact = String(compact);
+  paintSave(button, record.saved, saving.has(record.id));
+  button.addEventListener("click", () => {
+    void toggleSave(record);
+  });
+  return button;
+}
+function paintSave(
+  button: HTMLButtonElement,
+  saved: boolean,
+  busy: boolean,
+): void {
+  button.disabled = busy;
+  button.setAttribute("aria-pressed", String(saved));
+  button.setAttribute(
+    "aria-label",
+    `${saved ? "Remove saved property" : "Save property"} ${button.dataset.tract ?? ""}`,
+  );
+  button.title = saved
+    ? "Remove from Saved properties"
+    : "Save to your account";
+  button.replaceChildren(
+    bookmarkIcon(),
+    document.createTextNode(
+      busy
+        ? "Updating…"
+        : saved
+          ? "Saved ✓"
+          : button.dataset.compact === "true"
+            ? "Save"
+            : "Save property",
+    ),
+  );
+}
+function syncSaveControls(record: PropertyRecord): void {
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-save-id]")
+    .forEach((button) => {
+      if (button.dataset.saveId === record.id)
+        paintSave(button, record.saved, saving.has(record.id));
+    });
+}
+async function toggleSave(record: PropertyRecord): Promise<void> {
+  if (!csrf || saving.has(record.id)) return;
+  const sessionToken = csrf;
+  saving.add(record.id);
+  syncSaveControls(record);
+  const report = (message: string) => {
+    if (dialog.open && currentProperty?.id === record.id)
+      byId("detail-save-status").textContent = message;
+    else notify(message);
+  };
+  try {
+    const result = await api<{ saved: boolean }>(
+      `/api/saved/${encodeURIComponent(record.id)}`,
+      record.saved ? "DELETE" : "PUT",
+    );
+    if (csrf !== sessionToken) return;
+    record.saved = result.saved;
+    for (const item of lastResult?.results ?? [])
+      if (item.id === record.id) item.saved = result.saved;
+    if (currentProperty?.id === record.id) currentProperty.saved = result.saved;
+    if (researchProperty?.id === record.id)
+      researchProperty.saved = result.saved;
+    report(
+      result.saved
+        ? "Saved to your account. Find it in Saved properties."
+        : "Removed from Saved properties.",
+    );
+    if (savedOnly) void search();
+  } catch (error) {
+    if (csrf === sessionToken)
+      report(`Save change failed: ${errorText(error)} Try again.`);
+  } finally {
+    if (csrf === sessionToken) {
+      saving.delete(record.id);
+      syncSaveControls(record);
+    }
+  }
+}
 function propertyCard(record: PropertyRecord): HTMLElement {
   const card = element("article", "property-card");
   const image = element("div", "property-image");
@@ -587,34 +710,7 @@ function propertyCard(record: PropertyRecord): HTMLElement {
         : "NOT IN CURRENT INVENTORY",
     ),
   );
-  const save = element("button", "save-button");
-  save.setAttribute(
-    "aria-label",
-    `${record.saved ? "Unsave" : "Save"} tract ${record.tract}`,
-  );
-  save.setAttribute("aria-pressed", String(record.saved));
-  save.append(bookmarkIcon());
-  save.addEventListener("click", async () => {
-    save.disabled = true;
-    try {
-      const result = await api<{ saved: boolean }>(
-        `/api/saved/${encodeURIComponent(record.id)}`,
-        record.saved ? "DELETE" : "PUT",
-      );
-      record.saved = result.saved;
-      if (lastResult) renderResults(lastResult);
-      notify(
-        result.saved
-          ? "Property saved to your account."
-          : "Property removed from your saved list.",
-      );
-      if (savedOnly) void search();
-    } catch (error) {
-      notify(errorText(error));
-      save.disabled = false;
-    }
-  });
-  image.append(save);
+  image.append(saveControl(record, true));
   const body = element("div", "card-body");
   body.append(element("p", "card-location", location(record)));
   const heading = element("div", "card-heading");
@@ -645,7 +741,7 @@ function propertyCard(record: PropertyRecord): HTMLElement {
     void openDetail(record.id);
   });
   footer.append(detail);
-  body.append(footer);
+  body.append(footer, propertyActions(record));
   card.append(image, body);
   return card;
 }
@@ -863,8 +959,69 @@ function invalidateResearch(): void {
 }
 function resetResearch(): void {
   invalidateResearch();
+  researchProperty = null;
+  byId("research-property-context").replaceChildren();
   byId<HTMLFormElement>("research-form").reset();
   researchMode();
+}
+function propertyActions(record: PropertyRecord): HTMLElement {
+  const actions = element("div", "property-actions");
+  const research = element("button", "text-button", "Research property");
+  research.type = "button";
+  research.addEventListener("click", () => {
+    void researchPropertyLocation(record);
+  });
+  const similar = element("button", "text-button", "Find similar properties");
+  similar.type = "button";
+  similar.addEventListener("click", () => {
+    rememberScenario();
+    dialog.close();
+    detailSequence++;
+    void navigate("explore", similarFilters(record));
+  });
+  actions.append(research, similar);
+  return actions;
+}
+async function researchPropertyLocation(record: PropertyRecord): Promise<void> {
+  rememberScenario();
+  dialog.close();
+  detailSequence++;
+  resetResearch();
+  researchProperty = record;
+  const hasPoint = record.latitude !== null && record.longitude !== null;
+  const address = sourceAddress(record);
+  if (hasPoint) {
+    byId<HTMLSelectElement>("research-mode").value = "coordinates";
+    byId<HTMLInputElement>("research-latitude").value = String(record.latitude);
+    byId<HTMLInputElement>("research-longitude").value = String(
+      record.longitude,
+    );
+    researchListingId = record.id;
+  } else if (address)
+    byId<HTMLInputElement>("research-address").value = address;
+  researchMode();
+  const context = byId("research-property-context");
+  context.append(
+    element("h3", "", record.title),
+    element("p", "", `${location(record)} · ${area(record.acres)}`),
+    element(
+      "p",
+      "input-note",
+      "Research location is editable. Approximate address results are not verified parcel boundaries. Your scenario edits are retained for this page session.",
+    ),
+  );
+  const analyze = element("button", "button quiet", "Open deal scenario");
+  analyze.addEventListener("click", () => {
+    if (researchProperty) void openDetail(researchProperty.id);
+  });
+  context.append(analyze, propertyActions(record));
+  await navigate("research");
+  if (researchProperty?.id !== record.id || !csrf) return;
+  if (hasPoint) await runResearch();
+  else
+    byId("research-status").textContent = address
+      ? "Source address prefilled. Review it, then select Research location."
+      : "This listing has no usable published address or point. Enter a full street address or independently verified coordinates. County and tract identifiers cannot locate a parcel.";
 }
 function renderResearch(report: ResearchReport): void {
   const container = byId("research-results");
@@ -976,7 +1133,13 @@ async function runResearch(): Promise<void> {
   }
 }
 byId("research-mode").addEventListener("change", researchMode);
-byId("research-form").addEventListener("input", invalidateResearch);
+byId("research-form").addEventListener("input", () => {
+  invalidateResearch();
+  const note = byId("research-property-context").querySelector(".input-note");
+  if (researchProperty && note)
+    note.textContent =
+      "Location edited: research may describe a different property. Open deal scenario still refers to the original listing; research results will not overwrite its scenario inputs.";
+});
 byId("research-form").addEventListener("submit", (event) => {
   event.preventDefault();
   void runResearch();
@@ -991,16 +1154,22 @@ async function openDetail(id: string): Promise<void> {
     if (!csrf || sequence !== detailSequence) return;
     currentProperty = record;
     renderDetail(record);
-    byId<HTMLFormElement>("analysis-form").reset();
-    const input =
-      byId<HTMLFormElement>("analysis-form").elements.namedItem(
-        "purchase_price",
-      );
-    if (input instanceof HTMLInputElement)
-      input.value =
-        record.asking_price === null || record.price_kind === "Government bid"
-          ? ""
-          : String(record.asking_price);
+    const analysisForm = byId<HTMLFormElement>("analysis-form");
+    analysisForm.reset();
+    resaleOverrides = new Set<string>();
+    const draft = scenarioDrafts.get(record.id);
+    if (draft) {
+      fillForm(analysisForm, draft.values);
+      resaleOverrides = new Set(draft.overrides);
+    } else {
+      analysisInput("purchase_price").value =
+        record.asking_price === null ? "" : String(record.asking_price);
+      applyBidRange();
+    }
+    renderScenarioBasis();
+    byId("scenario-property-context").textContent =
+      `${record.title} · ${location(record)} · ${record.price_kind}. The published price/bid is a hypothetical scenario anchor, not estimated market value.`;
+    updateZeroCostWarning();
     byId("analysis-results").hidden = true;
     byId("analysis-results").replaceChildren();
     byId("analysis-error").textContent = "";
@@ -1081,6 +1250,18 @@ function renderDetail(record: PropertyRecord): void {
     facts.append(fact);
   }
   overview.append(facts);
+  const saveStatus = element("p", "input-note");
+  saveStatus.id = "detail-save-status";
+  saveStatus.setAttribute("role", "status");
+  overview.append(
+    saveControl(record),
+    saveStatus,
+    element(
+      "p",
+      "input-note",
+      "Saving bookmarks this property in your account. Scenario edits are kept only during this page session, not saved to your account.",
+    ),
+  );
   hero.append(overview);
   const research = element("div", "detail-research");
   const description = element("div");
@@ -1127,41 +1308,16 @@ function renderDetail(record: PropertyRecord): void {
     ),
   );
   research.append(description, risks);
-  const researchButton = element(
-    "button",
-    "button quiet",
-    "Research this location",
-  );
-  researchButton.addEventListener("click", async () => {
-    dialog.close();
-    detailSequence++;
-    resetResearch();
-    const hasPoint = record.latitude !== null && record.longitude !== null;
-    if (hasPoint) {
-      byId<HTMLSelectElement>("research-mode").value = "coordinates";
-      byId<HTMLInputElement>("research-latitude").value = String(
-        record.latitude,
-      );
-      byId<HTMLInputElement>("research-longitude").value = String(
-        record.longitude,
-      );
-      researchListingId = record.id;
-      researchMode();
-    }
-    await navigate("research");
-    if (hasPoint) await runResearch();
-    else
-      byId("research-status").textContent =
-        "This listing has no published point. Enter a full street address or independently verified coordinates; a tract or parcel ID is not an address.";
-  });
-  description.append(researchButton);
+  description.append(propertyActions(record));
   byId("detail-content").replaceChildren(hero, research);
 }
 byId("close-detail").addEventListener("click", () => {
+  rememberScenario();
   detailSequence++;
   dialog.close();
 });
 dialog.addEventListener("cancel", () => {
+  rememberScenario();
   detailSequence++;
 });
 
@@ -1173,6 +1329,7 @@ byId<HTMLFormElement>("analysis-form").addEventListener(
     const number = (name: string) => Number(data.get(name));
     const payload = {
       purchase_price: number("purchase_price"),
+      resale_basis: resaleOverrides.size ? "custom_scenario" : "bid_scenario",
       resale: {
         low: number("resale_low"),
         likely: number("resale_likely"),
@@ -1248,6 +1405,11 @@ function renderAnalysis(result: AnalysisResult): void {
     ),
   );
   container.append(heading);
+  const costWarning = result.limitations.find((note) =>
+    note.includes("zero placeholders"),
+  );
+  if (costWarning)
+    container.append(element("p", "zero-cost-warning", costWarning));
   const metrics = element("div", "metrics");
   for (const [label, value, note, css] of [
     [
@@ -1366,10 +1528,99 @@ function renderAnalysis(result: AnalysisResult): void {
   });
 }
 
-// Changes to assumptions immediately invalidate the displayed prior analysis.
-byId("analysis-form").addEventListener("input", () => {
+function formValues(target: HTMLFormElement): Record<string, string> {
+  return Object.fromEntries(
+    [...new FormData(target)]
+      .filter(([name]) => name !== "zero_cost_ack")
+      .map(([key, value]) => [key, String(value)]),
+  );
+}
+function fillForm(
+  target: HTMLFormElement,
+  values: Record<string, string>,
+): void {
+  for (const [name, value] of Object.entries(values)) {
+    const input = target.elements.namedItem(name);
+    if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement)
+      input.value = value;
+  }
+}
+function analysisInput(name: string): HTMLInputElement {
+  const input = byId<HTMLFormElement>("analysis-form").elements.namedItem(name);
+  if (!(input instanceof HTMLInputElement))
+    throw new Error(`Missing scenario input: ${name}`);
+  return input;
+}
+function rememberScenario(): void {
+  if (!csrf || !currentProperty) return;
+  scenarioDrafts.delete(currentProperty.id);
+  scenarioDrafts.set(currentProperty.id, {
+    values: formValues(byId<HTMLFormElement>("analysis-form")),
+    overrides: [...resaleOverrides],
+  });
+  // Bounded session memory, cleared on sign-out. Never use shared local storage.
+  if (scenarioDrafts.size > 50) {
+    const oldest = scenarioDrafts.keys().next().value;
+    if (oldest) scenarioDrafts.delete(oldest);
+  }
+}
+function applyBidRange(): void {
+  const range = bidRange(
+    analysisInput("purchase_price").valueAsNumber,
+    analysisInput("downside_pct").valueAsNumber,
+    analysisInput("upside_pct").valueAsNumber,
+  );
+  for (const [name, key] of [
+    ["resale_low", "low"],
+    ["resale_likely", "likely"],
+    ["resale_high", "high"],
+  ] as const) {
+    if (!resaleOverrides.has(name))
+      analysisInput(name).value = range ? String(range[key]) : "";
+  }
+  renderScenarioBasis();
+}
+function renderScenarioBasis(): void {
+  byId("scenario-basis").textContent = resaleOverrides.size
+    ? "Custom resale assumptions. Your edited fields will not change when the bid or percentages change; untouched fields still follow the bid. Reapply the range to replace your resale overrides."
+    : "Hypothetical bid-based resale range: low = bid × (1 − downside %); likely = bid; high = bid × (1 + upside %). These are scenario bounds, not statistical confidence limits or an appraisal. A positive bid and valid percentages are required.";
+}
+function updateZeroCostWarning(): void {
+  const zero = [
+    ...document.querySelectorAll<HTMLInputElement>("[data-unestimated-cost]"),
+  ].some((input) => input.valueAsNumber === 0);
+  byId("zero-cost-warning").hidden = !zero;
+  byId<HTMLInputElement>("zero-cost-ack").required = zero;
+}
+function invalidateScenario(): void {
   analysisSequence++;
   byId("analysis-results").hidden = true;
+  byId("analysis-error").textContent = "";
+  byId<HTMLInputElement>("zero-cost-ack").checked = false;
+}
+byId("reapply-bid-range").addEventListener("click", () => {
+  resaleOverrides.clear();
+  applyBidRange();
+  invalidateScenario();
+  rememberScenario();
+});
+// Edits invalidate any in-flight response and preserve explicit user overrides.
+byId("analysis-form").addEventListener("input", (event) => {
+  if (
+    !(event.target instanceof HTMLInputElement) ||
+    event.target.id === "zero-cost-ack"
+  )
+    return;
+  if (resaleNames.includes(event.target.name))
+    resaleOverrides.add(event.target.name);
+  if (
+    ["purchase_price", "downside_pct", "upside_pct"].includes(event.target.name)
+  )
+    applyBidRange();
+  renderScenarioBasis();
+  invalidateScenario();
+  updateZeroCostWarning();
+  rememberScenario();
 });
 const states =
   "AL:Alabama|AK:Alaska|AZ:Arizona|AR:Arkansas|CA:California|CO:Colorado|CT:Connecticut|DE:Delaware|FL:Florida|GA:Georgia|HI:Hawaii|ID:Idaho|IL:Illinois|IN:Indiana|IA:Iowa|KS:Kansas|KY:Kentucky|LA:Louisiana|ME:Maine|MD:Maryland|MA:Massachusetts|MI:Michigan|MN:Minnesota|MS:Mississippi|MO:Missouri|MT:Montana|NE:Nebraska|NV:Nevada|NH:New Hampshire|NJ:New Jersey|NM:New Mexico|NY:New York|NC:North Carolina|ND:North Dakota|OH:Ohio|OK:Oklahoma|OR:Oregon|PA:Pennsylvania|RI:Rhode Island|SC:South Carolina|SD:South Dakota|TN:Tennessee|TX:Texas|UT:Utah|VT:Vermont|VA:Virginia|WA:Washington|WV:West Virginia|WI:Wisconsin|WY:Wyoming";

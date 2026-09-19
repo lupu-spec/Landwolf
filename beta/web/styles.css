@@ -619,21 +619,50 @@ input::placeholder {
   position: absolute;
   right: 10px;
   top: 10px;
-  width: 32px;
-  height: 32px;
+  min-width: 72px;
+  min-height: 36px;
   border: 0;
   background: #fffffff0;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
   color: var(--navy);
 }
-.save-button svg {
+.save-button svg,
+.property-save svg {
   width: 17px;
   height: 17px;
 }
-.save-button[aria-pressed="true"] svg {
+.save-button[aria-pressed="true"] svg,
+.property-save[aria-pressed="true"] svg {
   fill: var(--navy);
+}
+.property-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+.research-property-context:not(:empty),
+.zero-cost-warning {
+  background: #fff5df;
+  border: 1px solid #b87924;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.zero-cost-warning label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.zero-cost-warning input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
 }
 .image-missing {
   display: grid;

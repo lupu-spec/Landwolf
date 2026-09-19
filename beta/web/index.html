@@ -237,6 +237,10 @@
             available parcel records. Coverage varies by source. This does not
             establish that a property is for sale.
           </p>
+          <div
+            id="research-property-context"
+            class="research-property-context"
+          ></div>
           <form
             id="research-form"
             class="research-form"
@@ -490,13 +494,39 @@
           <p class="eyebrow">THE NUMBERS BEHIND THE OPPORTUNITY</p>
           <h2 id="analysis-title">Build your deal scenario.</h2>
           <p>
-            Enter your estimates. LandWolf will model the range of outcomes and
-            the highest bid that meets your targets.
+            Start with an editable bid-based scenario. Review its assumptions
+            before modeling outcomes and a maximum bid.
           </p>
+          <p id="scenario-property-context" class="input-note"></p>
         </div>
         <form id="analysis-form">
           <fieldset>
             <legend>Acquisition &amp; resale</legend>
+            <div class="analysis-grid">
+              <label
+                >Downside below bid (%)<input
+                  name="downside_pct"
+                  type="number"
+                  min="0"
+                  max="99.9"
+                  step="0.1"
+                  value="5"
+                  required
+              /></label>
+              <label
+                >Upside above bid (%)<input
+                  name="upside_pct"
+                  type="number"
+                  min="0"
+                  max="1000"
+                  step="0.1"
+                  value="20"
+                  required
+              /></label>
+            </div>
+            <button id="reapply-bid-range" type="button" class="text-button">
+              Reapply bid-based resale range (replace resale overrides)
+            </button>
             <div class="analysis-grid">
               <label
                 >Purchase / bid price ($)<input
@@ -504,45 +534,56 @@
                   type="number"
                   min="0"
                   max="1000000000"
-                  step="1"
+                  step="0.01"
                   required /></label
               ><label
                 >Resale — low ($)<input
                   name="resale_low"
+                  step="0.01"
                   type="number"
-                  min="1"
+                  min="0.01"
                   max="1000000000"
                   placeholder="Your conservative estimate"
                   required /></label
               ><label
                 >Resale — likely ($)<input
                   name="resale_likely"
+                  step="0.01"
                   type="number"
-                  min="1"
+                  min="0.01"
                   max="1000000000"
                   placeholder="Your base estimate"
                   required /></label
               ><label
                 >Resale — high ($)<input
                   name="resale_high"
+                  step="0.01"
                   type="number"
-                  min="1"
+                  min="0.01"
                   max="1000000000"
                   placeholder="Your upside estimate"
                   required
               /></label>
             </div>
-            <p class="input-note">
-              Resale values are your assumptions—not the asking price, an
-              automated valuation, or an appraisal.
-            </p>
+            <p id="scenario-basis" class="input-note" role="status"></p>
           </fieldset>
           <fieldset>
             <legend>Costs &amp; reserves</legend>
+            <p class="input-note">
+              Evidence gap: connected records do not supply calibrated
+              property-specific or broader-area estimates for these costs.
+              Unestimated inputs start at 0 by your requested policy; 0 is an
+              assumption, not a verified absence of costs. Source-reported taxes
+              may be arrears and are not used as annual taxes or surviving
+              liens.
+            </p>
             <div class="analysis-grid">
               <label
                 >Repairs — low ($)<input
                   name="repairs_low"
+                  value="0"
+                  data-unestimated-cost
+                  step="0.01"
                   type="number"
                   min="0"
                   max="1000000000"
@@ -551,6 +592,9 @@
               ><label
                 >Repairs — likely ($)<input
                   name="repairs_likely"
+                  value="0"
+                  data-unestimated-cost
+                  step="0.01"
                   type="number"
                   min="0"
                   max="1000000000"
@@ -559,6 +603,9 @@
               ><label
                 >Repairs — high ($)<input
                   name="repairs_high"
+                  value="0"
+                  data-unestimated-cost
+                  step="0.01"
                   type="number"
                   min="0"
                   max="1000000000"
@@ -567,6 +614,9 @@
               ><label
                 >Liens / back-tax reserve ($)<input
                   name="lien_reserve"
+                  value="0"
+                  data-unestimated-cost
+                  step="0.01"
                   type="number"
                   min="0"
                   max="1000000000"
@@ -575,6 +625,9 @@
               ><label
                 >Title &amp; closing costs ($)<input
                   name="closing_costs"
+                  value="0"
+                  data-unestimated-cost
+                  step="0.01"
                   type="number"
                   min="0"
                   max="1000000000"
@@ -583,6 +636,9 @@
               ><label
                 >Monthly holding cost ($)<input
                   name="monthly_holding"
+                  value="0"
+                  data-unestimated-cost
+                  step="0.01"
                   type="number"
                   min="0"
                   max="1000000"
@@ -591,14 +647,17 @@
               ><label
                 >Holding period (months)<input
                   name="holding_months"
+                  data-unestimated-cost
                   type="number"
                   min="0"
                   max="120"
-                  value="6"
+                  value="0"
                   required /></label
               ><label
                 >Buyer premium (%)<input
                   name="buyer_premium_pct"
+                  value="0"
+                  data-unestimated-cost
                   type="number"
                   min="0"
                   max="50"
@@ -608,15 +667,18 @@
               ><label
                 >Selling costs (%)<input
                   name="selling_cost_pct"
+                  data-unestimated-cost
                   type="number"
                   min="0"
                   max="50"
                   step="0.1"
-                  value="6"
+                  value="0"
                   required /></label
               ><label
                 >Financing APR (%)<input
                   name="annual_financing_pct"
+                  value="0"
+                  data-unestimated-cost
                   type="number"
                   min="0"
                   max="100"
@@ -627,11 +689,15 @@
             </div>
             <p class="input-note">
               Financing models simple interest on the full bid. Unknown costs
-              are not automatically treated as zero.
+              use explicit zero placeholders, which can overstate profit and
+              maximum bid.
             </p>
           </fieldset>
           <fieldset>
             <legend>Your investment targets</legend>
+            <p class="input-note">
+              Editable preferences—not statistical property estimates.
+            </p>
             <div class="analysis-grid">
               <label
                 >Target median ROI (%)<input
@@ -670,6 +736,23 @@
               /></label>
             </div>
           </fieldset>
+          <div id="zero-cost-warning" class="zero-cost-warning">
+            <p>
+              Zero-cost assumptions omit expenses and may overstate returns and
+              the maximum bid. A zero holding period also removes modeled
+              holding and financing costs.
+            </p>
+            <label
+              ><input
+                id="zero-cost-ack"
+                name="zero_cost_ack"
+                type="checkbox"
+                required
+              />
+              I understand that zero values exclude costs and may not reflect
+              this property.</label
+            >
+          </div>
           <div class="analysis-actions">
             <button id="run-analysis" class="button primary" type="submit">
               Run 10,000 scenarios <span aria-hidden="true">→</span></button

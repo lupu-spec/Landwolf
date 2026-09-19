@@ -9,5 +9,8 @@ export default tseslint.config(
     languageOptions: { globals: globals.browser },
     rules: { "@typescript-eslint/no-explicit-any": "error" },
   },
-  { files: ["scripts/*.mjs"], languageOptions: { globals: globals.node } },
+  {
+    files: ["scripts/*.mjs", "tests/*.test.mjs"],
+    languageOptions: { globals: globals.node },
+  },
 );
