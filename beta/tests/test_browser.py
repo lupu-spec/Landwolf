@@ -56,7 +56,9 @@ def test_saved_locations_and_manual_properties_survive_reload(
         expect(save).to_be_visible()
         expect(save).to_have_text("Save property")
         save.click()
-        expect(save).to_have_attribute("aria-pressed", "true")
+        expect(
+            card.get_by_role("button", name="Remove saved property 99002", exact=True)
+        ).to_have_attribute("aria-pressed", "true")
         card.get_by_role("button", name="View property 99002", exact=True).click()
         expect(page.locator("#detail-actions .property-save")).to_be_visible()
         page.locator("#close-detail").click()

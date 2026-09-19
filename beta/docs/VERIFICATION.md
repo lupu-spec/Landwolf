@@ -38,6 +38,15 @@ read-only production PostgreSQL query failed with an SSL/TLS connection error;
 no production values or records were read or changed. No database allowlist was
 relaxed. Hosted PostgreSQL/Chromium and production verification are still pending.
 
+First hosted run on `0509feac` ([35469543136](https://github.com/lupu-spec/Landwolf/actions/runs/35469543136))
+passed format, lint, types, 235 Python tests, 4 frontend tests and the PostgreSQL 18
+migration/persistence check. Four existing Chromium journeys passed. The new
+journey stopped at its first save assertion because its locator kept looking for
+the old accessible name after a successful save changed it to “Remove saved
+property”. The assertion now targets the saved-state name and still requires
+`aria-pressed=true`; no test or assertion was removed. A fresh hosted run is required
+to exercise the remainder of the new journey.
+
 ## Production release — property workflows (2026-09-19)
 
 Runtime commit `866ff7dbdb07a219980f5cff3b5f598a73f54ad8` was pushed to
