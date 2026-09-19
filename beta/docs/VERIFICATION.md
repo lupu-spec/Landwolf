@@ -1,6 +1,6 @@
 # LandWolf beta verification
 
-## Saved property persistence revision — 2026-09-19 (awaiting hosted gates)
+## Saved property persistence revision — 2026-09-19 (deployed and live API verified)
 
 Implemented prominent Save actions, manually entered private saved properties,
 account-persistent research addresses/coordinates, cross-feed address handoff,
@@ -8,6 +8,67 @@ revision conflict checks, and an additive v1 → v2 database migration. The old
 frontend address test moved to five server-side source-location cases alongside
 new persistence/security tests; the obsolete frontend helper was removed.
 No source adapters or deal equations were changed.
+
+**Production outcome:** Runtime commit `08066fa3c41a0ba9ab535e0bc023f1549d952058`
+is live on the existing Render service. Deployment `dep-danfms3bc2fs73e8iq7g`
+started at 21:15:28 UTC and became live at **21:16:21 UTC**. The predeploy log at
+21:16:07 UTC records “Beta schema version 2 ready; existing records preserved”.
+No service/database replacement, account reset, billing change or DNS change occurred.
+
+**Hosted gates passed after the test-locator correction:**
+[push run 35469711430](https://github.com/lupu-spec/Landwolf/actions/runs/35469711430),
+job `105968325037`; the corresponding PR run `35469713083` also passed. Exact commands
+are in the local table below and `.github/workflows/beta.yml`. Hosted results:
+
+- `.venv/bin/ruff format --check landwolf tests scripts`, `npm run format:check`,
+  `.venv/bin/ruff check landwolf tests scripts`, `npm run lint`,
+  `.venv/bin/mypy landwolf`, `npm run typecheck`: **Passed**.
+- `npm run test:unit`: **Passed**, 4 tests; `.venv/bin/pytest -q -m 'not browser'`:
+  **Passed**, 235 tests; `.venv/bin/python scripts/check_postgres.py`: **Passed**
+  on disposable PostgreSQL 18, including the v1 migration, repeat migration, old
+  bookmark retention, manual-save retries and location updates.
+- `npm run build` and `.venv/bin/pytest -q -m browser`: **Passed**, all 5 journeys.
+  The new mobile journey checks a visible Save button, source-address prefill,
+  no automatic address research, edited location persistence after reload,
+  manual save failure/retry, manual address/coordinate round trips, and removal.
+- `.venv/bin/python -m build`, `.venv/bin/python scripts/check_package.py`,
+  `.venv/bin/bandit -r landwolf`, `.venv/bin/pip-audit --local --skip-editable`,
+  `npm audit --audit-level=moderate`, `npm run secrets`, `git diff --check`, and
+  `git status --short`: **Passed**. No known vulnerabilities or secret findings.
+
+**244 tests passed**, plus the PostgreSQL integration script. CI artifact
+`10592516871` was downloaded and its SHA-256 verified before inspecting the mobile
+Saved, Research and sticky detail-action screenshots. Logo/theme retained; buttons
+and saved locations visible; browser assertions found no horizontal overflow.
+
+**Live API smoke passed**, command `.venv/bin/python - <<'PY'` with an HTTPX client
+against `https://landwolf-free-beta.onrender.com` (exit 0). It checked health 200,
+payments disabled, new HTML controls, unauthenticated Saved 401, fresh QA registration,
+saving a real source listing, updating its private research coordinates without
+changing the source coordinates, creating/retrying a manual address save, and both
+saved records surviving sign-out/sign-in. Cleanup removed both QA saved records and
+revoked the session; the synthetic QA account remains. No existing account was used.
+Deployed browser assets exactly matched the locally built assets:
+
+- `app.js`: `1d49f8a0653adbf13591664c9fef7b81c56aa7d15fbcb94631e27b779b81ac0a`
+- `styles.css`: `ab4118c01d5ba1adccd43329afc810d969cdf5208acf0f4d0e4e8ddbba9a06e7`
+
+**Remaining limitations:** Live browser inspection confirmed the platform-hosted
+sign-in page, but no authenticated cloud-browser production journey ran; that UI
+flow passed in hosted Chromium with synthetic data. Custom-domain HTTP health
+checks timed out for `landwolf.ai` and `www.landwolf.ai`; the cloud browser showed
+a connection-refused 502 for the apex. This does not establish an outage for users.
+Google DNS-over-HTTPS returned apex A `216.24.57.1`, while `www` still resolves via
+CNAME `landwolf-mw8m.onrender.com` (the old host). The desired `www` CNAME is
+`landwolf-free-beta.onrender.com`; no registrar record was changed in this patch.
+The postdeploy Render warning/error log query failed because Render's Loki log
+service returned 502/503, so an error-free production log scan is **not verified**.
+Direct production SQL inspection was also unavailable as described below.
+
+Separate legacy workflows remain **Failed**, unrelated to the isolated rebuild:
+run `35469713082` / job `105968329735` cannot import `investment_engine`, and
+`35469713084` / job `105968329764` cannot import `numpy`; their actual logs were read.
+Do not describe the entire repository's CI as passing.
 
 Observed local commands after implementation:
 
@@ -36,7 +97,8 @@ Render read-only preflight confirms the existing service uses the rebuild branch
 manual deploys, and `python -m landwolf.cli init-db` before deploy. The connector's
 read-only production PostgreSQL query failed with an SSL/TLS connection error;
 no production values or records were read or changed. No database allowlist was
-relaxed. Hosted PostgreSQL/Chromium and production verification are still pending.
+relaxed. Hosted PostgreSQL/Chromium and production verification were pending at
+this initial checkpoint; final results are recorded above.
 
 First hosted run on `0509feac` ([35469543136](https://github.com/lupu-spec/Landwolf/actions/runs/35469543136))
 passed format, lint, types, 235 Python tests, 4 frontend tests and the PostgreSQL 18
@@ -44,8 +106,8 @@ migration/persistence check. Four existing Chromium journeys passed. The new
 journey stopped at its first save assertion because its locator kept looking for
 the old accessible name after a successful save changed it to “Remove saved
 property”. The assertion now targets the saved-state name and still requires
-`aria-pressed=true`; no test or assertion was removed. A fresh hosted run is required
-to exercise the remainder of the new journey.
+`aria-pressed=true`; no test or assertion was removed. The fresh hosted run above
+then passed the complete new journey.
 
 ## Production release — property workflows (2026-09-19)
 
