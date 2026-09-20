@@ -1,4 +1,4 @@
-# Proposed alternative: requires approval of the added recurring database charge.
+# Approved isolated staging configuration; recurring database charge accepted.
 # Apply this OR render.staging.yaml, never both to the same resources.
 # Database: $6/month compute + $0.30/month for 1 GB storage, before tax/overages.
 services:
@@ -12,7 +12,7 @@ services:
     dockerContext: ./beta
     autoDeployTrigger: "off"
     healthCheckPath: /api/health
-    dockerCommand: sh -c 'python -m landwolf.cli init-db && python -m landwolf.serve'
+    dockerCommand: /bin/sh /app/landwolf/start_staging.sh
     envVars:
       - key: LANDWOLF_ENVIRONMENT
         value: staging

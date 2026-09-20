@@ -13,7 +13,7 @@ services:
     healthCheckPath: /api/health
     # Free services do not have pre-deploy commands. Only this isolated staging
     # container runs the explicit, transaction-locked migration before serving.
-    dockerCommand: sh -c 'python -m landwolf.cli init-db && python -m landwolf.serve'
+    dockerCommand: /bin/sh /app/landwolf/start_staging.sh
     envVars:
       - key: LANDWOLF_ENVIRONMENT
         value: staging
