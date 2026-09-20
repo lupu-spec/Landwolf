@@ -67,29 +67,32 @@ account; sign-in remains the search gate and existing accounts are not locked ou
 
 ## Isolated staging and recovery
 
-Provisioning update, 2026-09-20: the owner approved the free staging proposal, but
-Render reports an existing free `landwolf-db` in this workspace. Render permits
-only one active free PostgreSQL instance per workspace, so the approved proposal
-cannot add another free database. Existing databases must not be deleted or reused.
-`render.staging.paid.yaml` is a reviewable alternative awaiting separate approval
-of the added charge: free web service plus PostgreSQL `0.1c-256mb`, 1 GB storage,
-approximately $6.30/month before tax and usage overages at the observed
-[Render pricing](https://render.com/pricing). Storage autoscaling is disabled.
-Apply only one staging Blueprint. The paid alternative has no free-database
-30-day expiry; its backup and restore still require hosted verification.
-Neither staging Blueprint has been provisioned. Docker Blueprint application also
-requires a fresh authenticated Render Dashboard session in the cloud browser.
+Deployed on 2026-09-20 with the owner's approval of the added $6.30/month database
+charge: [staging beta](https://landwolf-premium-staging.onrender.com/).
+The active Blueprint is `render.staging.paid.yaml` on
+`codex/landwolf-premium-staging`. It uses a free web service and separate PostgreSQL
+18 `0.1c-256mb` instance with 1 GB storage. External database access and storage
+autoscaling are disabled. This paid database has no free-database 30-day expiry.
+The approved estimate is before tax and usage overages. Existing production
+services, databases, domains and accounts were not modified.
 
-Use root `render.staging.yaml` from `codex/landwolf-premium-staging`, after reviewing
-the proposed resources. It creates a separate web service and PostgreSQL database,
-does not attach production domains, disables auto-deploy, and disables email until
-configured. Render supplies the service's HTTPS origin. The staging response is
-marked `noindex, nofollow`; it is not a private-network environment.
+`render.staging.yaml` is an unused free-database alternative. Render allows only
+one active free database per workspace, and `landwolf-db` occupies that slot.
+Never apply both staging Blueprints or repurpose an existing database.
 
-The free web service can sleep; its in-process six-hour refresh does not run while
-asleep. The free PostgreSQL database expires after 30 days and has no managed
-backups. This configuration is temporary review infrastructure, not durable
-production infrastructure. See [Render's free-resource limits](https://render.com/docs/free).
+The service's automatic deploys are off. Blueprint Auto Sync remains enabled:
+editing the linked Blueprint can still apply infrastructure changes. Automatic
+approval review rejected disabling that setting as outside the deployment approval.
+Do not edit infrastructure or pricing without the owner's applicable authorization.
+The staging startup script explicitly checks its environment, runs the migration,
+and starts the server only after migration succeeds. Production startup is unchanged.
+
+Email remains disabled until a verified sender/provider credential is configured.
+Render supplies the service's HTTPS origin. Responses use `noindex, nofollow`;
+the website is public, with authenticated research/search. Staging accounts are
+separate from production. The free web service can sleep, so its in-process
+six-hour source refresh does not run while asleep. See
+[Render's free-resource limits](https://render.com/docs/free).
 
 Schema v4 adds trust/recovery tables while preserving accounts and existing
 listings. It never recreates Saved tables. CI rehearses `pg_dump` and `pg_restore`
@@ -98,6 +101,10 @@ That test does not prove a production backup exists or has been restored.
 Before promotion, configure a backup/retention destination and restore a staging
 snapshot into another isolated database, then verify sign-in and evidence queries.
 
-After provisioning, verify HTTPS health, registration, search/detail/research on
-phone and desktop, source refresh status, and real email verification/reset with
-the intended sender. Evidence and unresolved checks belong in `VERIFICATION.md`.
+`scripts/check_hosted_staging.py` tests only the fixed staging URL and refuses a
+non-staging environment or enabled outbound email. Its dedicated GitHub workflow
+runs when that script/workflow changes on the staging branch. It creates one
+disposable account per run and checks live API and Chromium/WebKit journeys at
+390px/1440px, retaining screenshots for seven days without credentials or traces.
+Real email delivery and an isolated restore of a staging snapshot remain separate
+promotion gates. Evidence and unresolved checks belong in `VERIFICATION.md`.

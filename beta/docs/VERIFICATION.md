@@ -1476,3 +1476,107 @@ Verification actually run after this configuration-only change:
   GitHub beta runs 35476673101 and 35476671217 succeeded on the preceding commit
   `1ce03346c8e457aab24138b97ea82092e4a79338`; these do not validate deployment of
   the new paid alternative. Separate legacy workflows still fail.
+
+### Staging deployed and checked — 2026-09-20
+
+The owner subsequently approved the $6.30/month isolated database. GitHub sign-in
+to Render succeeded; the dashboard accepted `render.staging.paid.yaml` and showed
+the same estimate before deployment. Created:
+
+- Blueprint `exs-dantsjegekts73a5njc0`.
+- Free Oregon web service `srv-dantt23tqb8s73d55dfg`.
+- Separate Oregon PostgreSQL 18 database `dpg-dantsp3tqb8s73d54hgg-a`,
+  `0.1c-256mb`, 1 GB, storage autoscaling off, external IP allow list empty.
+- URL: https://landwolf-premium-staging.onrender.com/ .
+
+Initial deployment `dep-dantt2btqb8s73d55e30` failed with status 127 because Render
+treated the nested quoted shell command as an executable name. No schema migration
+ran in that attempt. Replaced it with `/bin/sh /app/landwolf/start_staging.sh` in
+both staging Blueprints. The script refuses non-staging environments, exits on a
+failed migration, and replaces itself with the normal server after success.
+Production's entry point is unchanged. Regression tests cover all three outcomes.
+
+Startup runtime commit `10aa75971911f2163f918ea313a8e3421ede07c1` passed all beta
+gates in [run 35513575841](https://github.com/lupu-spec/Landwolf/actions/runs/35513575841),
+job `106085613310`: 268 backend tests, 4 frontend tests, 16 browser journeys,
+PostgreSQL integration, exact restore digests for 11 disposable CI tables,
+format/lint/types, package/build and security checks. Final deployed commit
+`3f29a6ad3ae33ad490f55080b08fde5761953707` also passed all beta gates in
+[run 35513784253](https://github.com/lupu-spec/Landwolf/actions/runs/35513784253).
+The commands are the canonical beta commands documented in the earlier successful
+run and `beta/AGENTS.md`; each completed with exit 0 in these hosted jobs.
+
+Render deployment `dep-danu0kjtqb8s73d5i2j0` became **live** at 13:32:51 UTC.
+Observed application logs report schema v4 ready, successful application startup,
+and listening on `0.0.0.0:10000`. The subsequent error-level log query returned no
+entries for the period beginning 13:32:46 UTC. Production remained on its prior
+live deployment `dep-dangjc142hec73eebq10`, commit `5f651785...`, when rechecked.
+
+#### Hosted verification
+
+[Run 35513842562](https://github.com/lupu-spec/Landwolf/actions/runs/35513842562),
+job `106086314948`, ran `.venv/bin/python scripts/check_hosted_staging.py`
+successfully (exit 0) against the actual deployed service. The check source is in
+commit `92f6db0d91028b9ca695c391d945a4053015e10d`; that follow-up adds test tooling,
+not a different deployed app runtime. Passed:
+
+- HTTPS health and schema/database readiness; environment is staging; payments
+  and outbound email disabled; `noindex`; unauthenticated sources/capabilities/
+  search rejected; retired Saved endpoint absent.
+- Four Chromium/WebKit journeys at 390px and 1440px: registration/sign-in,
+  real inventory, property evidence, Research context handoff, county coverage,
+  session persistence across reload and sign-out. Page/dialog overflow assertions
+  and uncaught-browser-error checks passed.
+- An authenticated live reference-research request at 35.7804, -78.6391 returned
+  five sources with overall status `ready`. Missing-CSRF search was rejected.
+- Seven inventory feeds reported ready: Minnesota DOT, Arkansas COSL, Texas GLO,
+  USDA, Treasury, Alaska DNR and Michigan DNR. IRS reported unavailable. This is
+  observed retrieval status, not a guarantee of data correctness or nationwide coverage.
+
+The workflow installed locked dependencies with `uv sync --frozen --dev` and
+`.venv/bin/playwright install --with-deps chromium webkit`, and ran Ruff format/lint
+on the smoke script, all successfully. Artifact `10606540567` contains 16 screenshots
+with seven-day retention. Downloaded archive via `curl` (exit 0) and visually
+inspected mobile WebKit Explore/Coverage and desktop Chromium property evidence.
+Labels, navigation, filters and evidence were readable with no clipped page width.
+The observed Explore screen showed 510 active results. One disposable account with
+a generated password and reserved example.com address remains in staging; no user
+accounts were copied, and credentials/session state were not saved in artifacts.
+
+#### Local command evidence and limitations
+
+- **Passed:** `uv sync --frozen --dev`; repaired a stale local environment whose
+  missing interpreter caused the initial `.venv/bin/pytest` invocation to exit 127.
+- **Passed:** `.venv/bin/ruff format --check landwolf tests scripts`,
+  `.venv/bin/ruff check landwolf tests scripts`,
+  `.venv/bin/pytest -q tests/test_staging_startup.py` (3 passed), and
+  `/bin/sh -n landwolf/start_staging.sh`, exit 0.
+- **Passed:** both revised Blueprints against the cached official Render schema
+  using the same isolated JSON Schema validation command above; Prettier checks
+  for those YAML files and `.github/workflows/staging-smoke.yml`; configured
+  Secretlint scans of all new/changed scripts, tests and configuration; diff checks.
+- **Passed:** Ruff format/lint and Python compilation of `check_hosted_staging.py`.
+  Initial lint caught a callback loop binding and line length; a follow-up format
+  check caught print wrapping. These were corrected before publishing/running it.
+- **Failed preliminary secret scan:** running Secretlint from the repository root
+  could not find the beta config. Re-running from `beta/` succeeded; the original
+  shell's trailing successful diff check did not make that scan a pass.
+- **Passed:** `curl --fail --silent --show-error --max-time 45
+  https://landwolf-premium-staging.onrender.com/api/health`, exit 0, returned
+  `{"status":"ok","version":"0.2.0","payments_enabled":false}`. Earlier 30-second
+  request during the failed startup timed out with curl exit 28.
+- **Unavailable:** direct database inspection through Render's read-only query
+  connector failed with EOF/TLS errors. External database access remains blocked;
+  successful application health and hosted authenticated journeys establish the
+  internal application/database path, not successful connector access.
+- **Not run:** real email delivery, physical-device tests, a full accessibility
+  audit, or restoration of a staging/production snapshot. Disposable CI restore
+  success is not a completed restore of this hosted database. These remain gates
+  before production promotion; the free web service can sleep and pause refreshes.
+- **Blocked optional setting:** automatic approval review rejected changing
+  Blueprint Auto Sync from Yes to No, stating future synchronization changes were
+  outside the deployment approval. The edit was cancelled. Service auto-deploy
+  is off, but linked Blueprint edits can still sync automatically.
+
+No production deployment, domain, payment, account migration or database deletion
+was performed. IRS availability and separate legacy workflow failures remain open.
