@@ -67,6 +67,19 @@ account; sign-in remains the search gate and existing accounts are not locked ou
 
 ## Isolated staging and recovery
 
+Provisioning update, 2026-09-20: the owner approved the free staging proposal, but
+Render reports an existing free `landwolf-db` in this workspace. Render permits
+only one active free PostgreSQL instance per workspace, so the approved proposal
+cannot add another free database. Existing databases must not be deleted or reused.
+`render.staging.paid.yaml` is a reviewable alternative awaiting separate approval
+of the added charge: free web service plus PostgreSQL `0.1c-256mb`, 1 GB storage,
+approximately $6.30/month before tax and usage overages at the observed
+[Render pricing](https://render.com/pricing). Storage autoscaling is disabled.
+Apply only one staging Blueprint. The paid alternative has no free-database
+30-day expiry; its backup and restore still require hosted verification.
+Neither staging Blueprint has been provisioned. Docker Blueprint application also
+requires a fresh authenticated Render Dashboard session in the cloud browser.
+
 Use root `render.staging.yaml` from `codex/landwolf-premium-staging`, after reviewing
 the proposed resources. It creates a separate web service and PostgreSQL database,
 does not attach production domains, disables auto-deploy, and disables email until

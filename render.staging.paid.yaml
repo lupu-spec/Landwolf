@@ -1,0 +1,36 @@
+# Proposed alternative: requires approval of the added recurring database charge.
+# Apply this OR render.staging.yaml, never both to the same resources.
+# Database: $6/month compute + $0.30/month for 1 GB storage, before tax/overages.
+services:
+  - type: web
+    name: landwolf-premium-staging
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: codex/landwolf-premium-staging
+    dockerfilePath: ./beta/Dockerfile
+    dockerContext: ./beta
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/health
+    dockerCommand: sh -c 'python -m landwolf.cli init-db && python -m landwolf.serve'
+    envVars:
+      - key: LANDWOLF_ENVIRONMENT
+        value: staging
+      - key: LANDWOLF_PAYMENTS_ENABLED
+        value: "false"
+      - key: LANDWOLF_MAIL_PROVIDER
+        value: disabled
+      - key: LANDWOLF_DATABASE_URL
+        fromDatabase:
+          name: landwolf-premium-staging-db
+          property: connectionString
+databases:
+  - name: landwolf-premium-staging-db
+    databaseName: landwolf_staging
+    user: landwolf_staging
+    plan: 0.1c-256mb
+    diskSizeGB: 1
+    storageAutoscalingEnabled: false
+    postgresMajorVersion: "18"
+    region: oregon
+    ipAllowList: []

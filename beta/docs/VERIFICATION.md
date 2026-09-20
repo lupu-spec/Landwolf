@@ -1441,3 +1441,38 @@ fits its card. Final doubled-text screenshots from both engines measured exactly
 clipping rule hides overflow. Local final diff checks and a repeated secret scan
 passed. The follow-up commit changes documentation only; the runtime remains the
 one verified by the successful hosted run above.
+
+### Staging provisioning attempt — 2026-09-20
+
+The owner approved the proposed free staging resources. Read-only Render calls
+confirmed no staging service exists and an active free `landwolf-db` already
+occupies this workspace's free PostgreSQL allowance. The official
+[free-resource documentation](https://render.com/docs/free) allows one active free
+database per workspace. No create, delete, upgrade or deploy operation was issued.
+Production remains unchanged. The Render Dashboard showed its sign-in form;
+authenticated connector access does not establish a signed-in browser session.
+
+Prepared `render.staging.paid.yaml` as an alternative requiring approval of an
+additional recurring charge. The observed pricing page lists $6/month for
+`0.1c-256mb` and $0.30/GB for database storage. The proposal fixes storage at 1 GB,
+disables storage autoscaling, blocks external database access, and retains a free
+web service, disabled payments/email and disabled automatic deploys.
+
+Verification actually run after this configuration-only change:
+
+- **Passed:** `uv run --no-project --isolated --with jsonschema --with pyyaml python`
+  with a stdin script loading both staging YAML files and validating each via
+  `jsonschema.Draft202012Validator` against the cached official Render schema at
+  `/workspace/scratch/bae2278276c6/render-schema.json`; exit 0.
+- **Passed:** `./node_modules/.bin/prettier --check ../render.staging.paid.yaml`,
+  `./node_modules/.bin/secretlint ../render.staging.paid.yaml --no-terminalLink`,
+  and `npm run secrets` from `beta/`; each exited 0.
+- **Failed preliminary tooling probe:** `python -c 'import jsonschema, yaml;
+  print("Schema validation libraries available")'`; exit 1 because the default
+  Python lacks jsonschema. The isolated command above supplied the tooling.
+- **Not run:** Render platform Blueprint validation, new Docker build, provisioning,
+  hosted staging health/browser/email checks, or a staging backup restoration.
+  Runtime tests were not rerun for this configuration/documentation-only change.
+  GitHub beta runs 35476673101 and 35476671217 succeeded on the preceding commit
+  `1ce03346c8e457aab24138b97ea82092e4a79338`; these do not validate deployment of
+  the new paid alternative. Separate legacy workflows still fail.
