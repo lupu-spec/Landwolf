@@ -87,6 +87,14 @@ static security scanners. At minimum verify:
 
 Do not expose secret values while checking them. Report names/status only.
 
+## Release versioning
+
+Every deployment must follow `RELEASES.md`: assign a new runtime version, run the
+required gates, and record the observed version, commit, environment, UTC time,
+deployment ID, changes and verification evidence. Keep production and beta status
+separate. Preserve the append-only deployment history; never call a pushed branch
+deployed until the live service is observed. Do not reuse versions for changed code.
+
 ## Completion and evidence
 
 Never claim or imply that code is verified, tests pass, a build succeeds, a bug is

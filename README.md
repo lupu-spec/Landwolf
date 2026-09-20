@@ -1,4 +1,8 @@
+## Current LandWolf application
 
+The active free application lives in [`beta/`](beta/README.md). Payments are disabled.
+See the [production and beta version log](RELEASES.md) for deployed commits, changes,
+verification and limitations. The Stripe material below describes the legacy app.
 
 ## Live Stripe deployment for landwolf.ai
 

@@ -44,6 +44,7 @@ from landwolf.research import (
 from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, SearchQuery
 from landwolf.sources import SOURCE_BY_ID
 from landwolf.trust import property_evidence
+from landwolf.version import VERSION, release
 
 
 class BodyLimit:
@@ -112,7 +113,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="LandWolf",
-        version="0.2.0",
+        version=VERSION,
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -183,7 +184,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise HTTPException(503, "Schema is not ready")
         except SQLAlchemyError as exc:
             raise HTTPException(503, "Database is not ready") from exc
-        return {"status": "ok", "version": "0.2.0", "payments_enabled": False}
+        return {"status": "ok", "version": VERSION, "payments_enabled": False}
+
+    @app.get("/api/version")
+    def deployed_version() -> dict[str, str | None]:
+        return release(settings.environment)
 
     @app.get("/api/session")
     def current(request: Request, session: DB) -> dict[str, Any]:
@@ -194,11 +199,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise
             return {
                 "authenticated": False,
+                "version": VERSION,
                 "environment": settings.environment,
                 "email_delivery_enabled": app.state.mailer.enabled,
             }
         return {
             "authenticated": True,
+            "version": VERSION,
             "email": account.email,
             "csrf": request.state.login.csrf,
             "email_verified": recovery.verified(session, account.id),

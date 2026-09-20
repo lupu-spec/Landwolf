@@ -86,6 +86,7 @@ type SearchResult = {
   coverage_note: string;
 };
 type SessionInfo = {
+  version?: string;
   authenticated?: boolean;
   email: string;
   csrf: string;
@@ -1739,6 +1740,10 @@ const accountLinkOpen = setupAccountActions(api, clearSession);
 void (async () => {
   try {
     const info = await api<SessionInfo>("/api/session");
+    if (info.version) {
+      byId("release-version").textContent =
+        `v${info.version} · ${info.environment === "production" ? "Production" : "Beta"}`;
+    }
     if (info.environment === "staging") {
       const badge = document.querySelector(".beta-tag");
       if (badge) badge.textContent = "STAGING BETA";
