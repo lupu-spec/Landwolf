@@ -7,17 +7,17 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | Legacy unversioned build (reports 0.2.0) | `5f65178540e24f10f49530dbd6ad14d6a9809264` | 2026-09-19 22:16:55 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.0 | `a8157056090bb39138d334da2eeb7ae59555abe9` | 2026-09-20 14:01:02 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.1 | `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | 2026-09-21 15:05:01 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.1 | `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | 2026-09-21 15:00:38 |
 
-## v0.3.1 — pending production promotion
+## v0.3.1 — live in production and beta
 
 - Removes the navy Model Maximum Bid card and related copy from the simulation.
 - Retains Median Net Profit, Probability of Loss and Median ROI as three white cards.
 - Uses three columns on desktop and a single column on small screens.
 - Keeps existing API response compatibility; no database change beyond the v0.3.0 migration.
 
-## v0.3.0 — live in beta; included in the next production promotion
+## v0.3.0 — beta release; included in production v0.3.1
 
 - Property evidence, publisher parcel identities, distinct sale events and source history.
 - Suspicious source refreshes retain the last good inventory with warnings.
@@ -42,8 +42,9 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | --- | --- | --- | --- | --- |
 | 2026-09-19 22:16:55 | Production | Unversioned / `5f65178540e24f10f49530dbd6ad14d6a9809264` | `dep-dangjc142hec73eebq10` | Permanently removed Saved, schema v3. Historical baseline; no retroactive release tag. |
 | 2026-09-20 13:32:51 | Beta | Preview / `3f29a6ad3ae33ad490f55080b08fde5761953707` | `dep-danu0kjtqb8s73d5i2j0` | Isolated premium beta and additive schema v4; hosted Chromium/WebKit checks passed. |
-
 | 2026-09-20 14:01:02 | Beta | v0.3.0 / `a8157056090bb39138d334da2eeb7ae59555abe9` | `dep-danudomk1f9s73a0jvu0` | Version endpoint/footer and ledger; all release gates and four hosted browser journeys passed. |
+| 2026-09-21 15:00:38 | Beta | v0.3.1 / `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | `dep-daokckdg1s2s738nf7c0` | Removes Maximum Bid display; retains three white metrics. Hosted simulation/browser checks passed. |
+| 2026-09-21 15:05:01 | Production | v0.3.1 / `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | `dep-daokek0ae00c73csh0ag` | Promotes premium trust/research features and three-card simulation. Additive schema v4; payments/email remain disabled. |
 
 ## Version and promotion rules
 

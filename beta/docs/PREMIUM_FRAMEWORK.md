@@ -101,10 +101,19 @@ That test does not prove a production backup exists or has been restored.
 Before promotion, configure a backup/retention destination and restore a staging
 snapshot into another isolated database, then verify sign-in and evidence queries.
 
-`scripts/check_hosted_staging.py` tests only the fixed staging URL and refuses a
-non-staging environment or enabled outbound email. Its dedicated GitHub workflow
-runs when that script/workflow changes on the staging branch. It creates one
+`scripts/check_hosted_staging.py --environment staging|production --commit <SHA>`
+accepts only the two fixed LandWolf origins and refuses a mismatched environment,
+commit or enabled outbound email. Its dedicated GitHub workflow runs when that
+script/workflow changes on either deployment branch. It creates one
 disposable account per run and checks live API and Chromium/WebKit journeys at
 390px/1440px, retaining screenshots for seven days without credentials or traces.
 Real email delivery and an isolated restore of a staging snapshot remain separate
 promotion gates. Evidence and unresolved checks belong in `VERIFICATION.md`.
+
+## September 21 release scope
+
+The owner requested production promotion of the existing free, mail-disabled beta.
+Real sender verification and delivery tests remain prerequisites to enabling email;
+this rollout does not activate email recovery. The hosted staging-snapshot restore
+and restored-account/evidence-query rehearsal passed on September 21. See
+[the version log](../../RELEASES.md) for the observed runtime in each environment.

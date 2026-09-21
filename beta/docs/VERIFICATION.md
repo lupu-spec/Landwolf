@@ -1580,3 +1580,136 @@ accounts were copied, and credentials/session state were not saved in artifacts.
 
 No production deployment, domain, payment, account migration or database deletion
 was performed. IRS availability and separate legacy workflow failures remain open.
+
+## Versioned release and maximum-bid display removal — September 21, 2026
+
+Owner requested promotion of the premium beta to `landwolf.ai`, a production/beta
+version ledger, and removal of the navy Model Maximum Bid card while keeping the
+three white simulation metrics. Runtime candidate `f96208d897dc22c48f685237eb9477ba1c0b9aa8`
+is v0.3.1. It retains median net profit, probability of loss and median ROI, with
+three desktop columns and one mobile column. Maximum-bid display/copy is removed;
+the existing API field remains for compatibility. Logo, free access, authentication,
+scenario assumptions and permanent Saved removal are unchanged.
+
+Versioned v0.3.0 introduced `/api/version` (version, environment, validated commit),
+a footer link to `RELEASES.md`, consistent package versions and version regression
+checks. It was deployed only to staging, commit
+`a8157056090bb39138d334da2eeb7ae59555abe9`, deployment
+`dep-danudomk1f9s73a0jvu0`, live September 20 at 14:01:02 UTC.
+All release gates passed in [run 35514939265](https://github.com/lupu-spec/Landwolf/actions/runs/35514939265).
+Hosted checks first failed waiting five seconds for property cards immediately
+after startup. The unchanged warmed service passed all four journeys on retry,
+job `106089989694`, [run 35514939253](https://github.com/lupu-spec/Landwolf/actions/runs/35514939253).
+The v0.3.1 hosted check now allows 45 seconds for assertions on the free staging
+service and additionally verifies the three-card simulation in both browsers.
+
+### Recovery evidence
+
+Render production recovery has a three-day PITR window. Logical exports from
+September 20 13:48 UTC and September 21 13:32 UTC were observed available; Render
+states at least seven days' export retention. This is not an off-provider backup.
+
+On September 21, the actual September 20 13:50 UTC staging export was restored
+into a freshly named logical database on the existing staging PostgreSQL instance.
+No paid instance, network allowlist, production database or customer password was
+changed. PostgreSQL 18 `pg_restore` supplied pre/post schema SQL; Psycopg COPY
+restored the archive table payloads. Every row matched across all 11 tables.
+Snapshot SHA-256: `a71868fd2128b36090c416e12b310ce96994aaad06bff3cc7df48a5cab5357ac`.
+The v0.3.0 app then passed sign-in, inventory search and field-evidence queries
+against that restored database. Only a disposable `@example.com` account in the
+restored copy received a temporary password, after row comparison; no production
+or staging account was changed. The temporary database was dropped afterward.
+Earlier rehearsal attempts caught an archive terminator mismatch, an empty
+credential field and selection of a non-test account; each stopped safely and
+any created temporary database was cleaned up. Final rehearsal passed.
+
+A credential-hash checkpoint was rejected by automatic safety review as unnecessary
+credential access. The safer production checkpoint reads only account IDs/counts
+and schema version: 14 accounts, schema v3, ID-set digest
+`22a39fc295ebee288736414b68fc0e5b0674931e48a3c884e1872205767f4ccf` before migration.
+An old schema-v3 image cannot serve schema v4. Rollback requires coordinated data
+restoration/reconciliation; prefer a tested fix forward. Existing accounts must
+remain intact during the additive migration.
+
+### Local v0.3.1 commands
+
+| Command from `beta/` | Result |
+| --- | --- |
+| `npm run format` | Passed; formatting applied and diff reviewed. |
+| `.venv/bin/ruff format --check landwolf tests scripts` | Passed before hosted-smoke edit; final full check delegated to CI. |
+| `.venv/bin/ruff format landwolf tests scripts` | Passed after final code edits. |
+| `.venv/bin/ruff check landwolf tests scripts` | Passed. |
+| `npm run lint` | Passed. |
+| `.venv/bin/mypy landwolf` | Failed: local internal cache error. |
+| `.venv/bin/mypy --cache-dir=/tmp/landwolf-v031-mypy landwolf` | Passed, 21 source files. |
+| `npm run typecheck` | Passed. |
+| `npm run test:unit` | Passed, four tests. |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed, 275 tests; 16 browser tests belong to their separate gate. |
+| `git diff --check` and `git status --short` (repository root) | Passed; only intended release changes. |
+
+After session resumption, an initial local pytest invocation failed because the
+transient Python interpreter had disappeared. `uv sync --frozen --dev` restored
+the locked environment and `.venv/bin/pytest -q tests/test_version.py` passed all
+seven version tests. A local direct HTTPS check previously timed out; it was not
+counted as a pass. Hosted checks supply actual HTTPS/browser evidence.
+
+Email remains disabled in the owner's requested free release; actual sender setup
+and delivery are not verified and remain prerequisites to enabling that feature.
+No billing, partner delivery or licensed valuation service is activated. IRS
+inventory remains unavailable; public data coverage is partial. Physical devices
+and a complete accessibility audit were not tested. Legacy root workflows still
+fail independently and are not reported as passing release checks.
+
+### v0.3.1 hosted release gates
+
+[Run 35615851635](https://github.com/lupu-spec/Landwolf/actions/runs/35615851635),
+job `106386238990`, passed on the exact runtime commit. Commands actually run:
+`uv sync --frozen --dev`, `npm ci`, Playwright installation;
+`ruff format --check landwolf tests scripts`, `npm run format:check`;
+`ruff check landwolf tests scripts`, `npm run lint`; `mypy landwolf`,
+`npm run typecheck`; `npm run test:unit`; `pytest -q -m 'not browser'`;
+`python scripts/check_postgres.py`; `python scripts/check_restore.py`;
+`npm run build`; `pytest -q -m browser`; `python -m build`;
+`python scripts/check_package.py`; `bandit -r landwolf`;
+`pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`;
+`npm run secrets`; `git diff --check`; `git status --short`.
+Python commands used `.venv/bin/` and succeeded. Result: 275 backend tests,
+four frontend tests, 16 browser journeys, disposable PostgreSQL migration/restore,
+build/package and security checks passed.
+
+Staging deployment `dep-daokckdg1s2s738nf7c0` became live September 21 at
+15:00:38 UTC. [Hosted run 35615851629](https://github.com/lupu-spec/Landwolf/actions/runs/35615851629),
+job `106386238816`, passed the exact version/commit check, authentication/CSRF,
+property evidence, three-card simulation, Research handoff, coverage, session
+persistence/logout and no horizontal overflow in Chromium/WebKit at 390/1440px.
+Live reference research returned ready. IRS remained unavailable; GLO/USDA were
+refreshing at observation. Screenshot artifact `10645968080` was produced, but
+local download returned HTTP 403, so those images were not visually reviewed here.
+
+### Production observation
+
+Render deployed the same v0.3.1 commit as `dep-daokek0ae00c73csh0ag`, live
+September 21 at 15:05:01 UTC. The 14 pre-existing account IDs have the same
+SHA-256 digest after the additive schema v3→v4 migration. The read-only post-check
+excluded later-created accounts using `created_at <= 1790002864`; it read no
+passwords or password hashes. No account reset, database replacement, billing
+activation or DNS change occurred.
+
+The first hosted production smoke attempt, job `106387968931`, observed the exact
+version endpoint but then received HTTP 502 from `/api/health` during startup.
+It failed, and the same job was rerun. Render's warning/error log query separately
+returned a provider-side 503/502, so an error-free log scan is not verified.
+
+
+The production rerun passed at 15:09 UTC: [run 35616356656](https://github.com/lupu-spec/Landwolf/actions/runs/35616356656),
+job `106389452546`, executed `.venv/bin/python scripts/check_hosted_staging.py
+--environment production`. It verified the exact runtime version/commit, HTTPS,
+www redirect, disabled billing/mail, authentication/CSRF, live research, property
+evidence, Research handoff, session persistence/logout, and coverage. All four
+Chromium/WebKit journeys at 390/1440px passed, including the three white simulation
+metrics, absence of Maximum Bid copy and horizontal-overflow checks. One disposable
+test account was retained. Screenshots were generated but not visually reviewed.
+An internal Render-shell HTTP check also returned 200 with version 0.3.1 from
+both localhost and https://landwolf.ai/api/health. The independent production
+release-gate [run 35616356560](https://github.com/lupu-spec/Landwolf/actions/runs/35616356560),
+job `106387968985`, passed the same full command suite listed above.
