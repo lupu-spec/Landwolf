@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "landwolf-beta"
+version = "0.3.1"
+description = "Authenticated, source-backed land discovery and scenario analysis"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.141.1", "uvicorn==0.52.4", "sqlalchemy==2.0.52",
+  "psycopg[binary]==3.3.5", "pydantic-settings==2.15.0",
+  "argon2-cffi==25.1.0", "email-validator==2.3.0", "httpx[socks]==0.28.1",
+  "beautifulsoup4==4.15.0", "numpy==2.5.3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==9.0.3", "hypothesis==6.168.0", "ruff==0.16.7",
+  "mypy==2.3.1", "bandit==1.9.4", "pip-audit==2.10.1",
+  "build==1.6.1", "playwright==1.62.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["landwolf*"]
+
+[tool.setuptools.package-data]
+landwolf = ["static/*", "static/assets/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["live: contacts official upstream data", "browser: real browser tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["bs4.*"]
+ignore_missing_imports = true
