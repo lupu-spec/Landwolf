@@ -24,6 +24,7 @@ ORIGINS = {
 
 
 def main() -> None:
+    expect.set_options(timeout=45000)
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment", choices=tuple(ORIGINS), default="staging")
     parser.add_argument("--commit", default=os.environ.get("GITHUB_SHA", ""))
@@ -150,6 +151,29 @@ def main() -> None:
                     )
                     page.screenshot(
                         path=str(output / f"detail-{engine}-{width}.png"), full_page=True
+                    )
+                    for name, value in {
+                        "purchase_price": "100000",
+                        "resale_low": "95000",
+                        "resale_likely": "100000",
+                        "resale_high": "120000",
+                    }.items():
+                        page.locator(f'input[name="{name}"]').fill(value)
+                    page.locator("#zero-cost-ack").check()
+                    page.locator("#run-analysis").click()
+                    expect(page.locator("#analysis-results")).to_be_visible()
+                    expect(page.locator(".metric .label")).to_have_text(
+                        ["MEDIAN NET PROFIT", "PROBABILITY OF LOSS", "MEDIAN ROI"]
+                    )
+                    expect(page.locator(".primary-metric")).to_have_count(0)
+                    assert (
+                        "maximum bid" not in page.locator("#property-dialog").inner_text().lower()
+                    )
+                    assert page.locator("#property-dialog").evaluate(
+                        "el => el.scrollWidth <= el.clientWidth"
+                    )
+                    page.screenshot(
+                        path=str(output / f"simulation-{engine}-{width}.png"), full_page=True
                     )
                     page.locator("#property-dialog").get_by_role(
                         "button", name="Research property", exact=True

@@ -8,9 +8,16 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | Legacy unversioned build (reports 0.2.0) | `5f65178540e24f10f49530dbd6ad14d6a9809264` | 2026-09-19 22:16:55 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | Premium beta preview (reports 0.2.0) | `3f29a6ad3ae33ad490f55080b08fde5761953707` | 2026-09-20 13:32:51 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.0 | `a8157056090bb39138d334da2eeb7ae59555abe9` | 2026-09-20 14:01:02 |
 
-## v0.3.0 — release candidate, not yet promoted
+## v0.3.1 — pending production promotion
+
+- Removes the navy Model Maximum Bid card and related copy from the simulation.
+- Retains Median Net Profit, Probability of Loss and Median ROI as three white cards.
+- Uses three columns on desktop and a single column on small screens.
+- Keeps existing API response compatibility; no database change beyond the v0.3.0 migration.
+
+## v0.3.0 — live in beta; included in the next production promotion
 
 - Property evidence, publisher parcel identities, distinct sale events and source history.
 - Suspicious source refreshes retain the last good inventory with warnings.
@@ -35,6 +42,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | --- | --- | --- | --- | --- |
 | 2026-09-19 22:16:55 | Production | Unversioned / `5f65178540e24f10f49530dbd6ad14d6a9809264` | `dep-dangjc142hec73eebq10` | Permanently removed Saved, schema v3. Historical baseline; no retroactive release tag. |
 | 2026-09-20 13:32:51 | Beta | Preview / `3f29a6ad3ae33ad490f55080b08fde5761953707` | `dep-danu0kjtqb8s73d5i2j0` | Isolated premium beta and additive schema v4; hosted Chromium/WebKit checks passed. |
+
+| 2026-09-20 14:01:02 | Beta | v0.3.0 / `a8157056090bb39138d334da2eeb7ae59555abe9` | `dep-danudomk1f9s73a0jvu0` | Version endpoint/footer and ledger; all release gates and four hosted browser journeys passed. |
 
 ## Version and promotion rules
 

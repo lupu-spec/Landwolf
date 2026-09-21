@@ -117,7 +117,7 @@ def analyze(spec: AnalysisInput) -> dict[str, Any]:
                 [
                     "One or more costs or the holding period are zero. "
                     "Unestimated zero placeholders "
-                    "exclude costs and can overstate returns and maximum bid; verify every zero."
+                    "exclude costs and can overstate returns; verify every zero."
                 ]
                 if 0
                 in [
@@ -139,8 +139,6 @@ def analyze(spec: AnalysisInput) -> dict[str, Any]:
             "Lien reserve is a user estimate, not a determination of which liens survive a sale.",
             "Financing is simple interest on 100% of the bid; "
             "taxes belong in monthly holding costs.",
-            "Maximum bid satisfies loss probability, median profit and median "
-            "target-return gates for these sampled scenarios only.",
             "Loss-probability interval covers Monte Carlo sampling error only, "
             "not model or market uncertainty.",
         ],

@@ -131,7 +131,6 @@ type AnalysisResult = {
   median_roi_pct: number | null;
   loss_probability_pct: number;
   loss_probability_interval_pct: number[];
-  maximum_bid: number | null;
   feasible: boolean;
   current_bid_meets_targets: boolean;
   scenario_score: number | null;
@@ -1507,14 +1506,6 @@ function renderAnalysis(result: AnalysisResult): void {
   const metrics = element("div", "metrics");
   for (const [label, value, note, css] of [
     [
-      "MODEL MAXIMUM BID",
-      result.maximum_bid === null
-        ? "No feasible bid"
-        : money(result.maximum_bid),
-      "Within your entered risk & return targets",
-      "primary-metric",
-    ],
-    [
       "MEDIAN NET PROFIT",
       money(result.profit.p50),
       "After modeled acquisition & selling costs",
@@ -1544,19 +1535,6 @@ function renderAnalysis(result: AnalysisResult): void {
     metrics.append(metric);
   }
   container.append(metrics);
-  if (
-    currentProperty &&
-    currentProperty.asking_price !== null &&
-    result.maximum_bid !== null &&
-    result.maximum_bid < currentProperty.asking_price
-  )
-    container.append(
-      element(
-        "p",
-        "model-meta",
-        "Your model maximum is below the published price or bid. Confirm the seller's terms before making an offer.",
-      ),
-    );
   const chart = element("div", "histogram-panel");
   chart.append(
     element("h4", "", "Range of modeled net profit"),

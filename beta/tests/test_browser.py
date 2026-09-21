@@ -511,7 +511,12 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         page.locator("#zero-cost-ack").check()
         page.locator("#run-analysis").click()
         expect(page.locator("#analysis-results")).to_be_visible()
-        expect(page.locator(".metric")).to_have_count(4)
+        expect(page.locator(".metric")).to_have_count(3)
+        expect(page.locator(".metric .label")).to_have_text(
+            ["MEDIAN NET PROFIT", "PROBABILITY OF LOSS", "MEDIAN ROI"]
+        )
+        expect(page.locator(".primary-metric")).to_have_count(0)
+        assert "maximum bid" not in page.locator("#property-dialog").inner_text().lower()
         assert "beta-1.0" in page.locator("#analysis-results").inner_text()
         page.screenshot(path=str(screenshots / "analysis.png"), full_page=True)
         page.locator('input[name="lien_reserve"]').fill("3000")

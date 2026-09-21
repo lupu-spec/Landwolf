@@ -1312,7 +1312,7 @@ input::placeholder {
 }
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 13px;
 }
 .metric {
@@ -1321,19 +1321,10 @@ input::placeholder {
   border-radius: 7px;
   padding: 18px 15px;
 }
-.metric.primary-metric {
-  background: var(--navy);
-  color: white;
-  border-color: var(--navy);
-}
 .metric .label {
   display: block;
   font-size: 0.72rem;
   color: var(--muted);
-}
-.metric.primary-metric .label,
-.metric.primary-metric small {
-  color: #bcd1e1;
 }
 .metric strong {
   display: block;
@@ -1674,7 +1665,7 @@ input::placeholder {
     grid-template-columns: 1fr 1fr;
   }
   .metrics {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
   .property-dialog {
     width: 96vw;
