@@ -10,6 +10,13 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.1 | `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | 2026-09-21 15:05:01 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.1 | `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | 2026-09-21 15:00:38 |
 
+## v0.3.2 — release candidate
+
+- Use the owner-provided LandWolf “No Photo Available” artwork for property cards
+  and detail images when a listing has no approved image or its image fails to load.
+- Keep valid official source photos, the existing logo and the free beta unchanged.
+- No database migration or dependency change.
+
 ## v0.3.1 — live in production and beta
 
 - Removes the navy Model Maximum Bid card and related copy from the simulation.

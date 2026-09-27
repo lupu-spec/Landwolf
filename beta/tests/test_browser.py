@@ -24,6 +24,38 @@ from landwolf.db import Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
+@pytest.mark.parametrize("browser_server", ["photos"], indirect=True)
+@pytest.mark.parametrize("width", [390, 1440])
+def test_missing_and_failed_listing_photos_use_branded_image(
+    browser_server: tuple[str, int], width: int
+) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": width, "height": 844})
+        page.route("**/vlb/land/tract-images/**", lambda route: route.abort())
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill(f"photos-{width}@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        for card in page.locator(".property-card").all():
+            card.scroll_into_view_if_needed()
+            image = card.locator(".property-image img.image-missing")
+            expect(image).to_have_attribute("src", "/assets/no-photo-available.png")
+            expect(image).to_have_js_property("naturalWidth", 1536)
+            expect(image).to_have_attribute("alt", "LandWolf — No photo available")
+        page.locator(".property-card").first.get_by_role("button", name="View property").click()
+        detail_image = page.locator(".detail-photo.image-missing")
+        expect(detail_image).to_have_js_property("naturalWidth", 1536)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        browser.close()
+
+
 @pytest.mark.parametrize("width", [390, 1440])
 @pytest.mark.parametrize("browser_server", ["research"], indirect=True)
 def test_saved_feature_absent_and_research_handoff_remains(
@@ -318,6 +350,13 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
         seed_national(factory)
     else:
         seed(factory)
+        if getattr(request, "param", "") == "photos":
+            with factory() as session, session.begin():
+                entry = session.get(Listing, "glo-99001")
+                entry.payload = {
+                    **entry.payload,
+                    "image_url": "https://cdn.glo.texas.gov/vlb/land/tract-images/missing.jpg",
+                }
         if getattr(request, "param", "") == "research":
             with factory() as session, session.begin():
                 entry = session.get(Listing, "glo-99002")

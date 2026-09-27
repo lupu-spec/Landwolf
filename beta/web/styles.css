@@ -767,11 +767,8 @@ input::placeholder {
   flex: 0 0 20px;
 }
 .image-missing {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  color: var(--muted);
-  font-size: 0.8rem;
+  object-fit: contain !important;
+  background: #dce4eb;
 }
 .card-body {
   padding: 16px;

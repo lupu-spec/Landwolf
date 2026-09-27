@@ -373,20 +373,24 @@ function sourceLink(url: string, label: string): HTMLAnchorElement {
 }
 function photo(record: PropertyRecord, css: string): HTMLElement {
   const src = safeImage(record.image_url);
-  if (!src)
-    return element("div", css + " image-missing", "Source image unavailable");
-  const img = element("img", css);
-  img.src = src;
-  img.alt = `Official source image for tract ${record.tract}`;
+  const img = element("img", css) as HTMLImageElement;
+  const fallback = "/assets/no-photo-available.png";
+  img.src = src ?? fallback;
+  img.alt = src
+    ? `Official source image for tract ${record.tract}`
+    : "LandWolf — No photo available";
   img.loading = "lazy";
-  img.addEventListener(
-    "error",
-    () =>
-      img.replaceWith(
-        element("div", css + " image-missing", "Source image unavailable"),
-      ),
-    { once: true },
-  );
+  if (!src) img.classList.add("image-missing");
+  else
+    img.addEventListener(
+      "error",
+      () => {
+        img.src = fallback;
+        img.alt = "LandWolf — No photo available";
+        img.classList.add("image-missing");
+      },
+      { once: true },
+    );
   return img;
 }
 
