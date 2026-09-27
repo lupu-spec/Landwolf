@@ -20,9 +20,11 @@ backup/restore, and security checks on runtime commit
 
 Render reported the exact revision live in beta as `dep-daso5t7pn0mc7399i94g`
 and production as `dep-daso7c0473hc739772b0`. Application startup and schema-v4
-readiness appeared in both logs. Independent requests to staging and production
-URLs could not be completed from this workspace; do not infer external HTTPS or
-public image availability solely from Render's live state.
+readiness appeared in both logs. Independent requests from this workspace were
+blocked by its network/browser policy. A separate
+[hosted HTTPS smoke check](https://github.com/lupu-spec/Landwolf/actions/runs/36350363603)
+passed for production, `www`, and beta version endpoints, confirming v0.3.2 and
+the runtime commit, and matched the downloaded fallback PNG to the supplied file.
 
 ## Permanent Saved feature removal — 2026-09-19 (deployed)
 
