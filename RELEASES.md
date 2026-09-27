@@ -7,15 +7,21 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.1 | `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | 2026-09-21 15:05:01 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.1 | `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | 2026-09-21 15:00:38 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.2 | `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | 2026-09-27 21:00:18 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.2 | `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | 2026-09-27 20:57:20 |
 
-## v0.3.2 — release candidate
+## v0.3.2 — live in production and beta
 
 - Use the owner-provided LandWolf “No Photo Available” artwork for property cards
   and detail images when a listing has no approved image or its image fails to load.
 - Keep valid official source photos, the existing logo and the free beta unchanged.
 - No database migration or dependency change.
+- The beta [hosted gate](https://github.com/lupu-spec/Landwolf/actions/runs/36349823669)
+  passed, including synthetic missing/failed image checks at 390px and 1440px.
+  The wheel contains the image asset. Render reported both services live with
+  application startup complete. Independent HTTPS checks from this workspace
+  were blocked by its network/browser policy, so direct domain and image
+  requests were not verified from outside Render.
 
 ## v0.3.1 — live in production and beta
 
@@ -52,6 +58,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-09-20 14:01:02 | Beta | v0.3.0 / `a8157056090bb39138d334da2eeb7ae59555abe9` | `dep-danudomk1f9s73a0jvu0` | Version endpoint/footer and ledger; all release gates and four hosted browser journeys passed. |
 | 2026-09-21 15:00:38 | Beta | v0.3.1 / `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | `dep-daokckdg1s2s738nf7c0` | Removes Maximum Bid display; retains three white metrics. Hosted simulation/browser checks passed. |
 | 2026-09-21 15:05:01 | Production | v0.3.1 / `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | `dep-daokek0ae00c73csh0ag` | Promotes premium trust/research features and three-card simulation. Additive schema v4; payments/email remain disabled. |
+| 2026-09-27 20:57:20 | Beta | v0.3.2 / `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | `dep-daso5t7pn0mc7399i94g` | LandWolf no-photo artwork fallback; hosted Chromium browser gate passed. |
+| 2026-09-27 21:00:18 | Production | v0.3.2 / `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | `dep-daso7c0473hc739772b0` | Promotes the exact beta-tested photo fallback revision; Render startup complete. External HTTPS check blocked locally. |
 
 ## Version and promotion rules
 

@@ -1,5 +1,29 @@
 # LandWolf beta verification
 
+## v0.3.2 image fallback — 2026-09-27 (deployed)
+
+The owner-provided 1536 × 1024 LandWolf “No Photo Available” artwork is bundled
+at `/assets/no-photo-available.png`. The shared card/detail photo component uses it
+for absent or disallowed image URLs and for allowed URLs whose image request fails.
+Actual official source images remain displayed when available. A Chromium browser
+regression checks both fallback paths and detail view at 390px and 1440px.
+
+Local `uv sync --frozen --dev` and `npm ci` completed. Ruff formatting/lint, mypy,
+Prettier, ESLint, TypeScript, four Node unit tests, 275 non-browser pytest cases,
+bundle build, wheel/source package check, Bandit, pip-audit, npm audit, secretlint,
+and `git diff --check` passed. Local Chromium installation failed because the
+browser archive download was truncated, so the local browser test did not run.
+The [hosted beta gate](https://github.com/lupu-spec/Landwolf/actions/runs/36349823669)
+passed its full matrix, including Chromium browser journeys, PostgreSQL integration,
+backup/restore, and security checks on runtime commit
+`9a738e4965277c0bc83a4dbb72cff0425e57a1d7`.
+
+Render reported the exact revision live in beta as `dep-daso5t7pn0mc7399i94g`
+and production as `dep-daso7c0473hc739772b0`. Application startup and schema-v4
+readiness appeared in both logs. Independent requests to staging and production
+URLs could not be completed from this workspace; do not infer external HTTPS or
+public image availability solely from Render's live state.
+
 ## Permanent Saved feature removal — 2026-09-19 (deployed)
 
 The owner explicitly requested removal and then confirmed: “Delete it permanently
