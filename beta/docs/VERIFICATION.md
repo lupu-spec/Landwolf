@@ -1,6 +1,6 @@
 # LandWolf beta verification
 
-## v0.3.3 source refresh reliability — 2026-09-27 (release candidate)
+## v0.3.3 source refresh reliability — 2026-09-27 (deployed)
 
 Live public-source validation ran against a disposable SQLite catalog, never a
 production database. All eight automated sources completed: MnDOT 4, Arkansas 0
@@ -19,6 +19,11 @@ Bandit, pip-audit, npm audit and secretlint gates passed. The broad Python suite
 was started but did not complete locally after its initial progress, so it is not
 claimed as passed; hosted CI remains required for the full suite, PostgreSQL,
 backup/restore and browser gates.
+
+Render deployed the exact v0.3.3 commit to staging (`dep-daspmbgjo6nc73cro8g0`)
+and production (`dep-daspn8p7lnhs73a8mqk0`), with schema-v4 startup completing in
+both environments. The services' automatic source refresh runs after startup; no
+source-refresh failure was logged during the observed deployment window.
 
 ## v0.3.2 image fallback — 2026-09-27 (deployed)
 

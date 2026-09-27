@@ -7,10 +7,10 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.2 | `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | 2026-09-27 21:00:18 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.2 | `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | 2026-09-27 20:57:20 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:43:03 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:40:42 |
 
-## v0.3.3 — release candidate
+## v0.3.3 — live in production and beta
 
 - Repairs the live Texas GLO, U.S. Treasury, and IRS auction adapters after
   publisher markup changes; retains snapshot and URL/provenance safeguards.
@@ -18,6 +18,9 @@ Check each site's `/api/version` for the running version and immutable commit.
   serializes public-source writes to avoid local SQLite contention, and gives
   bounded source-failure reasons in operations status.
 - No database migration or dependency change.
+- Staging and production both completed schema-v4 startup and Render reported the
+  exact candidate commit live. The source refresh operates in the background;
+  no subsequent source-refresh failure appeared in deployment logs.
 
 ## v0.3.2 — live in production and beta
 
@@ -70,6 +73,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-09-21 15:05:01 | Production | v0.3.1 / `f96208d897dc22c48f685237eb9477ba1c0b9aa8` | `dep-daokek0ae00c73csh0ag` | Promotes premium trust/research features and three-card simulation. Additive schema v4; payments/email remain disabled. |
 | 2026-09-27 20:57:20 | Beta | v0.3.2 / `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | `dep-daso5t7pn0mc7399i94g` | LandWolf no-photo artwork fallback; hosted Chromium browser gate passed. |
 | 2026-09-27 21:00:18 | Production | v0.3.2 / `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | `dep-daso7c0473hc739772b0` | Promotes the exact beta-tested photo fallback revision; hosted HTTPS smoke check passed for production, `www`, beta and asset. |
+| 2026-09-27 22:40:42 | Beta | v0.3.3 / `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | `dep-daspmbgjo6nc73cro8g0` | Repairs live official-source adapters and refresh diagnostics; schema startup complete. |
+| 2026-09-27 22:43:03 | Production | v0.3.3 / `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | `dep-daspn8p7lnhs73a8mqk0` | Promotes the exact staging revision; schema startup complete and no source failure logged after restart. |
 
 ## Version and promotion rules
 
