@@ -26,6 +26,18 @@ def test_inventory_preserves_source_facts_and_unknowns() -> None:
     assert record.source_url.endswith("/tract/14968")
 
 
+def test_inventory_accepts_new_optional_promotion_column() -> None:
+    updated = INVENTORY.replace("<th>Details</th>", "<th>Details</th><th>Promotion</th>").replace(
+        "</tr></tbody>", "<td>0% down</td></tr></tbody>"
+    )
+    assert parse_inventory(updated, "2026-09-14T00:00:00+00:00")[0].tract == "14968"
+
+
+def test_inventory_accepts_unheaded_optional_promotion_cell() -> None:
+    updated = INVENTORY.replace("</tr></tbody>", "<td>0% down</td></tr></tbody>")
+    assert parse_inventory(updated, "2026-09-14T00:00:00+00:00")[0].tract == "14968"
+
+
 @pytest.mark.parametrize(
     "html",
     [

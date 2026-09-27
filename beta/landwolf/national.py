@@ -1,6 +1,7 @@
 """Bounded adapters for public government inventories; no browser or private APIs."""
 
 import asyncio
+import hashlib
 import re
 from datetime import UTC, date, datetime
 from typing import Any
@@ -255,9 +256,12 @@ def parse_treasury(html: str) -> list[PropertyRecord]:
             None,
         )
         if state is None:
-            if ", Puerto Rico " in heading:
-                continue  # This beta's geographic contract is the 50 states.
-            raise SourceUnavailable("Treasury address has an unknown state")
+            abbreviation = re.search(r",\s*([A-Z]{2})\s+\d{5}(?:-\d{4})?\b", heading)
+            state = abbreviation[1] if abbreviation and abbreviation[1] in STATES else None
+        if state is None:
+            # Public pages occasionally include territories. They are outside this beta's
+            # 50-state contract and must not prevent valid US-state listings from refreshing.
+            continue
         day = re.search(r"[A-Z][a-z]+ \d{1,2}, \d{4}", remainder)
         auction_date = datetime.strptime(day[0], "%B %d, %Y").date() if day else None
         if auction_date is None and "COMING SOON" not in remainder:
@@ -400,26 +404,38 @@ def parse_irs(html: str) -> tuple[list[PropertyRecord], bool]:
     soup = BeautifulSoup(html, "html.parser")
     if soup.select_one("#views-exposed-form-auction-items-block-1") is None:
         raise SourceUnavailable("IRS inventory layout changed")
-    for name, expected in (("field_asset_type_target_id", "8"), ("field_sale_type_target_id", "1")):
-        option = soup.select_one(f'select[name="{name}"] option[selected]')
-        if option is None or option.get("value") != expected:
-            raise SourceUnavailable("IRS did not apply the real-estate tax-seizure filters")
+    for name, expected, label in (
+        ("field_asset_type_target_id", "8", "Real-Estate"),
+        ("field_sale_type_target_id", "1", "Seized"),
+    ):
+        option = soup.select_one(f'select[name="{name}"] option[value="{expected}"]')
+        if option is None or text(option) != label:
+            raise SourceUnavailable("IRS filter contract changed")
     result: list[PropertyRecord] = []
     for card in soup.select("article.irs-ad"):
         anchor = card.select_one("h3 a[href]")
         address = text(card.select_one("address"))
         state = required_match(r"\b([A-Z]{2}),?\s+\d{5}(?:-\d{4})?\b", address)[1].upper()
-        identifier = required_match(r"^node-(\d{1,12})$", str(card.get("id", "")))[1]
         if anchor is None:
             raise SourceUnavailable("IRS property link missing")
         url = urljoin(IRS, str(anchor["href"]))
         if not approved_url("irs_auctions", url):
             raise SourceUnavailable("IRS property link is outside the reviewed source")
+        node = str(card.get("id", ""))
+        numeric_identifier = re.fullmatch(r"node-(\d{1,12})", node)
+        identifier = (
+            numeric_identifier[1]
+            if numeric_identifier
+            else hashlib.sha256(url.encode()).hexdigest()[:24]
+        )
         when = card.select_one(".usa-card__body time")
-        day = required_match(r"[A-Za-z]{3} \d{1,2}, \d{4}", text(when))[0]
+        date_match = re.search(r"[A-Za-z]{3} \d{1,2}, \d{4}", text(when))
         price = card.select_one(".field--name-field-minimum-bid .field__item")
         title = text(anchor)
         if re.search(r"cancel[le]*d|postponed", title, re.I):
+            continue
+        if date_match is None:
+            # A notice without a published sale date is not a scheduled auction.
             continue
         result.append(
             record(
@@ -432,7 +448,7 @@ def parse_irs(html: str) -> tuple[list[PropertyRecord], bool]:
                 category="tax_sale",
                 sale_type="Federal tax-seizure auction",
                 sale_status="Auction scheduled",
-                auction_date=datetime.strptime(day, "%b %d, %Y").date(),
+                auction_date=datetime.strptime(date_match[0], "%b %d, %Y").date(),
                 asking_price=number(text(price)) if price else None,
                 price_kind="Minimum bid",
                 location_description=address,

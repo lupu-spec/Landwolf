@@ -21,6 +21,19 @@ from landwolf.trust import log_run, publish_snapshot, source_history
 LOGGER = logging.getLogger(__name__)
 
 
+def failure_message(exc: Exception) -> str:
+    """Give users a bounded operational reason without leaking request internals."""
+    if isinstance(exc, SourceUnavailable):
+        reason = " ".join(str(exc).split())[:160]
+        if reason:
+            return f"Refresh paused: {reason} Last complete snapshot is retained."
+    if isinstance(exc, (TimeoutError, httpx.TimeoutException)):
+        return "Refresh timed out; last complete snapshot is retained."
+    if isinstance(exc, httpx.HTTPError):
+        return "Official source request failed; last complete snapshot is retained."
+    return "Refresh failed; last complete snapshot is retained."
+
+
 class InventoryProvider:
     def __init__(self, factory: sessionmaker[Session], definition: SourceDefinition) -> None:
         self.factory, self.definition = factory, definition
@@ -89,12 +102,11 @@ class InventoryProvider:
                     state = session.get(SourceState, source)
                     if state is not None:
                         state.status = "unavailable"
-                        state.message = (
-                            "Refresh failed. The last complete snapshot is retained; "
-                            "confirm availability at source."
-                        )
+                        state.message = failure_message(exc)
                         log_run(session, source, "unavailable", state.record_count, state.message)
-                LOGGER.warning("Source %s refresh failed: %s", source, type(exc).__name__)
+                LOGGER.warning(
+                    "Source %s refresh failed: %s: %s", source, type(exc).__name__, str(exc)
+                )
             return self.status()
 
 
@@ -191,7 +203,9 @@ class Catalog:
             ]
 
     async def refresh(self) -> list[dict[str, Any]]:
-        slots = asyncio.Semaphore(2)
+        # One writer at a time keeps local SQLite refreshes reliable. PostgreSQL is
+        # also intentionally paced so a full public-source refresh stays respectful.
+        slots = asyncio.Semaphore(1)
 
         async def one(source: str) -> None:
             async with slots:

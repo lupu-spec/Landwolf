@@ -10,6 +10,15 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.2 | `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | 2026-09-27 21:00:18 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.2 | `9a738e4965277c0bc83a4dbb72cff0425e57a1d7` | 2026-09-27 20:57:20 |
 
+## v0.3.3 — release candidate
+
+- Repairs the live Texas GLO, U.S. Treasury, and IRS auction adapters after
+  publisher markup changes; retains snapshot and URL/provenance safeguards.
+- Makes manually initiated catalog refreshes initialize an empty local database,
+  serializes public-source writes to avoid local SQLite contention, and gives
+  bounded source-failure reasons in operations status.
+- No database migration or dependency change.
+
 ## v0.3.2 — live in production and beta
 
 - Use the owner-provided LandWolf “No Photo Available” artwork for property cards

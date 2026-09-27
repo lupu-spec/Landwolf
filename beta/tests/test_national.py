@@ -132,6 +132,26 @@ def test_sale_types_preserve_unknowns_and_source_bid_semantics() -> None:
     ) == ["13"]
 
 
+def test_treasury_skips_territories_and_accepts_state_abbreviations() -> None:
+    territory = TREASURY.replace("Colorado 80000", "Puerto Rico 00983")
+    abbreviated = TREASURY.replace("Colorado 80000", "NC 27957")
+    assert parse_treasury(territory) == []
+    assert parse_treasury(abbreviated)[0].state == "NC"
+
+
+def test_irs_filter_markup_without_selected_attribute_remains_reviewed() -> None:
+    current_markup = IRS.replace(" selected", "")
+    assert parse_irs(current_markup)[0][0].state == "WA"
+
+
+def test_irs_current_slug_ids_and_not_announced_cards_do_not_break_catalog() -> None:
+    slug = IRS.replace('id="node-9900"', 'id="node-fixture-home"')
+    slug = slug.replace("Sep 15, 2099 10:00 AM", "Sale date To Be Announced/Determined")
+    assert parse_irs(slug) == ([], False)
+    dated = slug.replace("Sale date To Be Announced/Determined", "Sep 15, 2099 10:00 AM")
+    assert parse_irs(dated)[0][0].id.startswith("irs-")
+
+
 @pytest.mark.parametrize(
     "parser,html",
     [

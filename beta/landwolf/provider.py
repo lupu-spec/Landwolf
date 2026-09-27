@@ -60,33 +60,47 @@ def parse_inventory(html: str, retrieved_at: str) -> list[PropertyRecord]:
     )
     if table is None:
         raise SourceUnavailable("Inventory layout changed; cached records retained")
+    headers = [cell.get_text(" ", strip=True) for cell in table.select("thead th")]
+    required_headers = ["Cover", "Tract Number", "County", "Total Acreage", "Sale Price", "Details"]
+    if headers[: len(required_headers)] != required_headers:
+        raise SourceUnavailable("Inventory column headings changed; cached records retained")
+    columns = {name: index for index, name in enumerate(headers)}
     rows = table.select("tbody tr")
     if not rows or len(rows) > MAX_RECORDS:
         raise SourceUnavailable("Unexpected inventory size; manual source review required")
     records: list[PropertyRecord] = []
     seen: set[str] = set()
     for row in rows:
-        cells = row.find_all("td")
-        if len(cells) != 6:
+        cells = row.find_all("td", recursive=False)
+        # GLO has begun attaching promotion cells to some rows before it publishes
+        # a matching table heading. Ignore that optional trailing presentation cell.
+        if not len(required_headers) <= len(cells) <= len(required_headers) + 1:
             raise SourceUnavailable("Unexpected inventory row")
-        tract = cells[1].get_text(strip=True)
+        tract = cells[columns["Tract Number"]].get_text(strip=True)
         if not re.fullmatch(r"\d{1,12}", tract) or tract in seen:
             raise SourceUnavailable("Invalid or duplicate tract identifier")
         seen.add(tract)
-        link = cells[5].find("a", href=True)
+        link = cells[columns["Details"]].find("a", href=True)
         url = urljoin(ORIGIN, str(link["href"])) if link else ""
         if not safe_source_url(url) or not url.endswith("/tract/" + tract):
             raise SourceUnavailable("Unexpected source link")
-        img = cells[0].find("img", src=True)
+        img = cells[columns["Cover"]].find("img", src=True)
         image = str(img["src"]) if img else None
         if image and not re.fullmatch(
             r"https://cdn\.glo\.texas\.gov/vlb/land/tract-images/[0-9]+/[A-Za-z0-9_.-]+", image
         ):
             image = None
         try:
-            acres = float(cells[3].get_text(strip=True).replace("acres", "").replace(",", ""))
-            price = float(cells[4].get_text(strip=True).replace("$", "").replace(",", ""))
-            county = cells[2].get_text(" ", strip=True)
+            acres = float(
+                cells[columns["Total Acreage"]]
+                .get_text(strip=True)
+                .replace("acres", "")
+                .replace(",", "")
+            )
+            price = float(
+                cells[columns["Sale Price"]].get_text(strip=True).replace("$", "").replace(",", "")
+            )
+            county = cells[columns["County"]].get_text(" ", strip=True)
             if not county or len(county) > 80:
                 raise ValueError("Invalid county")
             records.append(
@@ -254,12 +268,13 @@ class GLOProvider:
                     state = session.get(SourceState, SOURCE)
                     if state is not None:
                         state.status = "unavailable"
+                        reason = " ".join(str(exc).split())[:160]
                         state.message = (
-                            "Source temporarily unavailable. Last successful records retained; "
-                            "availability must be rechecked."
+                            f"Refresh paused: {reason or 'official source unavailable'} "
+                            "Last successful records retained."
                         )
                         log_run(session, SOURCE, "unavailable", state.record_count, state.message)
-                LOGGER.warning("Source refresh failed: %s", type(exc).__name__)
+                LOGGER.warning("Source refresh failed: %s: %s", type(exc).__name__, str(exc))
             return self.status()
 
     async def run(self) -> None:

@@ -1,5 +1,25 @@
 # LandWolf beta verification
 
+## v0.3.3 source refresh reliability — 2026-09-27 (release candidate)
+
+Live public-source validation ran against a disposable SQLite catalog, never a
+production database. All eight automated sources completed: MnDOT 4, Arkansas 0
+(no upcoming catalog entries), Texas GLO 31, USDA 19, Treasury 20, IRS 7, Alaska
+170 and Michigan 8 records. The refresh preserves the existing snapshot if a
+publisher response later fails validation.
+
+The repair accepts GLO's optional unheaded promotion cell, Treasury's valid
+two-letter state abbreviations while excluding non-50-state records, and IRS's
+current slug identifiers/unannounced notices without accepting unreviewed URL or
+filter contracts. It also serializes catalog writes and records a bounded source
+failure reason. Tests cover each new parser variation.
+
+Local format, lint, type, targeted regression, frontend unit/build, package,
+Bandit, pip-audit, npm audit and secretlint gates passed. The broad Python suite
+was started but did not complete locally after its initial progress, so it is not
+claimed as passed; hosted CI remains required for the full suite, PostgreSQL,
+backup/restore and browser gates.
+
 ## v0.3.2 image fallback — 2026-09-27 (deployed)
 
 The owner-provided 1536 × 1024 LandWolf “No Photo Available” artwork is bundled

@@ -72,6 +72,8 @@ def main() -> None:
                 "accounts, sessions and source listings preserved"
             )
         else:
+            # A manual refresh must be usable with a new, disposable database too.
+            initialize(engine)
             result = asyncio.run(Catalog(factory).refresh())
             print(json.dumps(result, indent=2))
             if any(source["automated"] and source["status"] != "ready" for source in result):
