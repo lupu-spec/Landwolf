@@ -6,12 +6,7 @@ import {
   type PropertyTrust,
 } from "./trust-ui";
 import { setupAccountActions } from "./account-actions";
-import {
-  acreagePresets,
-  acreageRange,
-  huntName,
-  matchLabel,
-} from "./hunt-form";
+import { acreagePresets, acreageRange, huntName } from "./hunt-form";
 
 type ResearchLocation = {
   address: string | null;
@@ -212,6 +207,8 @@ type HuntRow = {
 type HuntEntry = {
   listing_id: string;
   title: string;
+  tract: string;
+  image_url: string | null;
   state: string;
   county: string | null;
   acres: number | null;
@@ -416,7 +413,10 @@ function sourceLink(url: string, label: string): HTMLAnchorElement {
   a.rel = "noopener noreferrer";
   return a;
 }
-function photo(record: PropertyRecord, css: string): HTMLElement {
+function photo(
+  record: Pick<PropertyRecord, "image_url" | "tract">,
+  css: string,
+): HTMLElement {
   const src = safeImage(record.image_url);
   const img = element("img", css) as HTMLImageElement;
   const fallback = "/assets/no-photo-available.png";
@@ -2052,7 +2052,7 @@ async function showHunt(hunt: HuntRow): Promise<void> {
       element(
         "p",
         "muted",
-        `${result.matches.length} confirmed criteria matches · ${result.needs_review.length} need review. ${result.coverage_note}`,
+        `${result.matches.length} matches · ${result.needs_review.length} to review. ${result.coverage_note}`,
       ),
     );
     if (history.events.length)
@@ -2071,16 +2071,20 @@ async function showHunt(hunt: HuntRow): Promise<void> {
           element("p", "muted", "None in the connected inventory."),
         );
       for (const row of rows.slice(0, 50)) {
-        const card = element("article", "source-card");
-        card.append(
-          element("h4", "", `${row.title} · ${matchLabel(row.score)}`),
+        const card = element("article", "source-card hunt-result-card");
+        const image = element("div", "hunt-result-photo");
+        image.append(photo(row, ""));
+        const details = element("div", "hunt-result-details");
+        details.append(
+          element("h4", "", row.title),
           element(
             "p",
             "",
             `${row.acres ?? "Unknown"} acres · ${money(row.amount)} ${row.price_kind} · ${row.county ? `${row.county}, ` : ""}${row.state}`,
           ),
-          element("p", "muted", row.reasons.join("; ")),
         );
+        if (row.score === null && row.reasons.length)
+          details.append(element("p", "muted", row.reasons.join("; ")));
         const link = element(
           "button",
           "button secondary small",
@@ -2098,7 +2102,8 @@ async function showHunt(hunt: HuntRow): Promise<void> {
               }
             })(),
         );
-        card.append(link);
+        details.append(link);
+        card.append(image, details);
         target.append(card);
       }
       if (rows.length > 50)

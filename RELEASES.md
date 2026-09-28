@@ -10,6 +10,14 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:43:03 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.2 | `d53dadee4f1e0b50d8513ea31e254e82479ea440` | 2026-09-28 11:04:10 |
 
+## v0.4.0-beta.3 — Hunt result cards candidate
+
+- Removes per-listing fit badges and repetitive confirmed-criteria text. Cards
+  retain specific missing-fact reasons only when a listing needs review.
+- Adds source-approved thumbnails with the existing LandWolf default artwork for
+  absent, disallowed or failed image links. The internal Hunt ranking and schema
+  stay compatible. Beta deployment evidence follows after hosted checks.
+
 ## v0.4.0-beta.2 — simpler Hunt, live in isolated beta
 
 - Three main choices: state, acreage band, and optional budget. Automatic names,

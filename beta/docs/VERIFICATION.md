@@ -1,5 +1,31 @@
 # LandWolf beta verification
 
+## v0.4.0-beta.3 — Hunt results candidate, 2026-09-28
+
+Individual result cards now display the listing title, acreage, source price
+meaning, location and a thumbnail. The app's existing approved-image policy and
+default image handle absent, disallowed and failed URLs. Confirmed results omit
+fit badges and repeated eligibility prose; records needing review retain their
+specific evidence gaps. The backend continues using the same score for in-app
+change checks. New API and browser regressions cover image provenance, fallback,
+mobile layout and plain titles.
+
+**Passed locally:** `npm run format`; Ruff format/check/lint; Prettier, ESLint,
+mypy and TypeScript; `npm run test:unit` (7 passed);
+`.venv/bin/pytest -q -m 'not browser'` (286 passed); `npm run build`;
+`.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py`;
+`.venv/bin/bandit -r landwolf -q`; `.venv/bin/pip-audit --local --skip-editable`;
+`npm audit --audit-level=moderate`; `npm run secrets`; `uv lock --check`;
+`git diff --check`. The exact Ruff/Prettier/ESLint/mypy/TypeScript invocations
+are the required commands in `beta/AGENTS.md` and GitHub beta CI.
+
+**Failed locally:** `.venv/bin/pytest -q -m browser -k
+test_hunt_result_photos_and_plain_titles` could not launch because Chromium is
+absent. An initial fixture run accidentally used an image URL as the SQLite URL;
+the fixture was corrected and reached the browser-launch gate on rerun.
+**Not run locally:** PostgreSQL integration/restore, full browser suite, legacy
+root environment, and live source sync. Hosted CI is required before deployment.
+
 ## v0.4.0-beta.2 — Hunt simpler form, 2026-09-28
 
 The Hunt form now defaults to state, acreage band and optional budget, with an

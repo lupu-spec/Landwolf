@@ -134,6 +134,63 @@ def test_missing_and_failed_listing_photos_use_branded_image(
         browser.close()
 
 
+@pytest.mark.parametrize("browser_server", ["hunt_photos"], indirect=True)
+@pytest.mark.parametrize("width", [390, 1280])
+def test_hunt_result_photos_and_plain_titles(browser_server: tuple[str, int], width: int) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": width, "height": 844})
+        page.route(
+            "**/vlb/land/tract-images/**",
+            lambda route: (
+                route.fulfill(path=str(Path(__file__).parents[1] / "web/assets/landscape.jpg"))
+                if route.request.url.endswith("/preview.jpg")
+                else route.abort()
+            ),
+        )
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill(f"hunt-photos-{width}@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        page.locator('[data-nav="hunt"]').click()
+        page.locator("#hunt-submit").click()
+        cards = page.locator("#hunt-results article.hunt-result-card")
+        expect(cards).to_have_count(4)
+        expect(page.locator("#hunt-results")).not_to_contain_text("Strong match")
+        expect(page.locator("#hunt-results")).not_to_contain_text("Matches your filters")
+        expect(page.locator("#hunt-results")).not_to_contain_text("Fits confirmed criteria")
+        published = cards.filter(has_text="Test fixture 99001")
+        preview = published.locator(".hunt-result-photo img")
+        expect(preview).to_have_attribute(
+            "src", "https://cdn.glo.texas.gov/vlb/land/tract-images/1/preview.jpg"
+        )
+        expect(preview).to_have_js_property("naturalWidth", 3680)
+        expect(published.locator(".hunt-result-details")).not_to_contain_text(
+            "Recent source confirmation"
+        )
+        broken = cards.filter(has_text="Test fixture 99002").locator(
+            ".hunt-result-photo img.image-missing"
+        )
+        absent = cards.filter(has_text="Test fixture 99004").locator(
+            ".hunt-result-photo img.image-missing"
+        )
+        disallowed = cards.filter(has_text="Test fixture 99005").locator(
+            ".hunt-result-photo img.image-missing"
+        )
+        for image in (broken, absent, disallowed):
+            image.scroll_into_view_if_needed()
+            expect(image).to_have_attribute("src", "/assets/no-photo-available.png")
+            expect(image).to_have_js_property("naturalWidth", 1536)
+        expect(cards.filter(has_text="Test fixture 99004")).to_contain_text("Acreage")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        browser.close()
+
+
 @pytest.mark.parametrize("width", [390, 1440])
 @pytest.mark.parametrize("browser_server", ["research"], indirect=True)
 def test_saved_feature_absent_and_research_handoff_remains(
@@ -435,6 +492,34 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                     **entry.payload,
                     "image_url": "https://cdn.glo.texas.gov/vlb/land/tract-images/missing.jpg",
                 }
+        if getattr(request, "param", "") == "hunt_photos":
+            with factory() as session, session.begin():
+                session.add(SourceState(id="tx_glo_public", last_success=int(time.time())))
+                for tract, image_url in (
+                    ("99001", "https://cdn.glo.texas.gov/vlb/land/tract-images/1/preview.jpg"),
+                    ("99002", "https://cdn.glo.texas.gov/vlb/land/tract-images/1/broken.jpg"),
+                ):
+                    entry = session.get(Listing, f"glo-{tract}")
+                    entry.payload = {**entry.payload, "image_url": image_url}
+                template = session.get(Listing, "glo-99002")
+                for tract, changes in (
+                    ("99004", {"acres": None, "image_url": None}),
+                    ("99005", {"image_url": "https://untrusted.example/preview.jpg"}),
+                ):
+                    session.add(
+                        Listing(
+                            id=f"glo-{tract}",
+                            source=template.source,
+                            active=True,
+                            payload={
+                                **template.payload,
+                                "id": f"glo-{tract}",
+                                "tract": tract,
+                                "title": f"Test fixture {tract}",
+                                **changes,
+                            },
+                        )
+                    )
         if getattr(request, "param", "") == "research":
             with factory() as session, session.begin():
                 entry = session.get(Listing, "glo-99002")

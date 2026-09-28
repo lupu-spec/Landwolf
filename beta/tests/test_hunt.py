@@ -58,6 +58,7 @@ def test_score_and_unknown_vs_failure() -> None:
     result = evaluate(record(), Criteria(**criteria()), source, now=now)
     assert result["eligibility"] == "eligible"
     assert result["score"] == 84
+    assert result["reasons"] == []
     assert (
         evaluate(record(acres=51), Criteria(**criteria()), source, now=now)["eligibility"]
         == "excluded"
@@ -92,7 +93,7 @@ def test_radius_and_invalid_contract() -> None:
 def test_api_lifecycle_and_isolation(client: TestClient, signed_in: dict[str, str]) -> None:
     with client.app.state.factory() as session, session.begin():
         session.add(SourceState(id="tx_glo_public", last_success=int(time.time())))
-        item = record()
+        item = record(image_url="https://cdn.glo.texas.gov/vlb/land/tract-images/1/preview.jpg")
         session.add(
             Listing(
                 id=item.id, source=item.source, active=True, payload=item.model_dump(mode="json")
@@ -103,9 +104,13 @@ def test_api_lifecycle_and_isolation(client: TestClient, signed_in: dict[str, st
     )
     assert created.status_code == 201, created.text
     assert len(created.json()["matches"]) == 1
+    assert created.json()["matches"][0]["image_url"] == item.image_url
+    assert created.json()["matches"][0]["tract"] == item.tract
     hunt_id = created.json()["id"]
     assert client.get(f"/api/hunts/{hunt_id}/events").json()["events"] == []
-    assert len(client.get(f"/api/hunts/{hunt_id}/matches").json()["matches"]) == 1
+    refreshed = client.get(f"/api/hunts/{hunt_id}/matches").json()["matches"]
+    assert len(refreshed) == 1
+    assert refreshed[0]["image_url"] == item.image_url
     other = register(client, "second@example.com")
     assert client.get(f"/api/hunts/{hunt_id}/matches").status_code == 404
     assert (

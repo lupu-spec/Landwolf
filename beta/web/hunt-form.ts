@@ -44,8 +44,3 @@ export function huntName(
     80,
   );
 }
-
-export function matchLabel(score: number | null): string {
-  if (score === null) return "Needs review";
-  return score >= 80 ? "Strong match" : "Matches your filters";
-}
