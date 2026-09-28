@@ -40,6 +40,22 @@ Render deployed merge commit `d53dadee4f1e0b50d8513ea31e254e82479ea440` as
 were empty. Production was not deployed. Public inventory coverage remains partial,
 city/ZIP geocoding is not added, and Hunt notifications remain in-app on demand.
 
+**Passed:** [hosted HTTPS smoke](https://github.com/lupu-spec/Landwolf/actions/runs/36413634232)
+at 11:06:26 UTC confirmed beta version/commit, health `ok`, updated Hunt markup and
+branding asset integrity; it also confirmed production remained on v0.3.3. The
+live-smoke workflow now accepts beta version suffixes and runs for staging ledger
+updates. Its YAML and embedded Python syntax check passed locally. Direct local
+HTTPS reads were intermittent (version succeeded; a health request timed out),
+so the successful hosted checks supply the final health evidence.
+
+**Failed, pre-existing/unrelated:** `.github/workflows/release.yml` reports a
+configuration failure without running jobs (run 36413633091). Its legacy
+`post_deploy_smoke` and `release_healthy` blocks are outside `jobs`; that file was
+last changed in `da59d34` and was not used for this Render beta release. The active
+beta, legacy test, release-preflight and live-smoke gates all passed. Live source
+sync was not repeated for this UI-only release; no new source-availability claim
+is made.
+
 ## v0.4.0-beta.1 Hunt candidate — 2026-09-28
 
 The isolated beta candidate adds revisioned Hunts and schema v5. Six Hunt tests
