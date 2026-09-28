@@ -24,8 +24,21 @@ could not launch because the Playwright Chromium executable is absent. Earlier
 attempts had also hit socket/proxy restrictions; the API, package and audit reruns
 above resolved those earlier gaps. **Not run locally:** PostgreSQL integration,
 restore, full browser suite, legacy tests and live source sync. Hosted CI is the
-remaining release gate. This documentation also restores historical verification
+release gate for those checks. This documentation also restores historical verification
 text accidentally truncated by the previous deployment-ledger commit.
+
+**Passed in hosted CI:** [beta run 112](https://github.com/lupu-spec/Landwolf/actions/runs/36412882516)
+completed the full required sequence, including `.venv/bin/python scripts/check_postgres.py`,
+`.venv/bin/python scripts/check_restore.py`, `.venv/bin/pytest -q -m browser`,
+package validation and all security scanners. The separate root `PYTHONPATH=. pytest -q`
+and release preflight jobs passed. The phone (390px) and desktop (1280px) Hunt
+screenshots were inspected; no horizontal overflow or hidden main controls appeared.
+
+Render deployed merge commit `d53dadee4f1e0b50d8513ea31e254e82479ea440` as
+`dep-dat4ist9fdbs73flugo0`, live at 2026-09-28 11:04:10 UTC. The HTTPS
+`/api/version` reports `0.4.0-beta.2` and that commit; recent Render error logs
+were empty. Production was not deployed. Public inventory coverage remains partial,
+city/ZIP geocoding is not added, and Hunt notifications remain in-app on demand.
 
 ## v0.4.0-beta.1 Hunt candidate — 2026-09-28
 

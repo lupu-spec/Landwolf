@@ -3,7 +3,7 @@ name: LandWolf live smoke
 on:
   workflow_dispatch:
   push:
-    branches: [codex/landwolf-beta-rebuild]
+    branches: [codex/landwolf-beta-rebuild, codex/landwolf-premium-staging]
     paths: [RELEASES.md]
 
 permissions:
@@ -52,11 +52,18 @@ jobs:
                   line for line in ledger.splitlines()
                   if line.startswith(f"| {environment} |")
               )
-              version = re.search(r"v\d+\.\d+\.\d+", line).group()
+              version = re.search(r"v\d+\.\d+\.\d+(?:-beta\.\d+)?", line).group()
               commit = re.search(r"`([0-9a-f]{40})`", line).group(1)
               payload = json.loads(fetch(f"{site}/api/version"))
               assert payload["version"] == version[1:], (site, payload)
               assert payload["commit"] == commit, (site, payload)
+              health = json.loads(fetch(f"{site}/api/health"))
+              assert health["status"] == "ok", (site, health)
+              assert health["version"] == version[1:], (site, health)
+              if environment == "Beta":
+                  html = fetch(site).decode("utf-8")
+                  assert 'id="hunt-budget-label"' in html
+                  assert 'id="hunt-cancel"' in html
               image = fetch(f"{site}/assets/no-photo-available.png")
               assert hashlib.sha256(image).hexdigest() == expected_image, site
               print(f"{environment}: {version} {commit}, fallback image verified")
