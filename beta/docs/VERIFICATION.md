@@ -1,6 +1,6 @@
 # LandWolf beta verification
 
-## v0.4.0-beta.3 — Hunt results candidate, 2026-09-28
+## v0.4.0-beta.3 — Hunt result cards, 2026-09-28
 
 Individual result cards now display the listing title, acreage, source price
 meaning, location and a thumbnail. The app's existing approved-image policy and
@@ -24,7 +24,23 @@ test_hunt_result_photos_and_plain_titles` could not launch because Chromium is
 absent. An initial fixture run accidentally used an image URL as the SQLite URL;
 the fixture was corrected and reached the browser-launch gate on rerun.
 **Not run locally:** PostgreSQL integration/restore, full browser suite, legacy
-root environment, and live source sync. Hosted CI is required before deployment.
+root environment, and live source sync. Hosted CI supplied the release gates.
+
+**Passed in hosted CI:** [beta run 116](https://github.com/lupu-spec/Landwolf/actions/runs/36483381497)
+completed the required browser, PostgreSQL integration, restore, packaging and
+security gates. The separate [root test](https://github.com/lupu-spec/Landwolf/actions/runs/36483381503)
+and [release preflight](https://github.com/lupu-spec/Landwolf/actions/runs/36483381545)
+passed. The 390px and 1280px Hunt screenshots were inspected: titles are plain,
+the review card keeps its missing-fact reason, the default image appears where
+needed, and the card layout has no horizontal overflow. The browser regression
+also asserted an approved image preview, a broken link fallback, an absent link
+fallback and a disallowed link fallback.
+
+Render deployed merge commit `19623b48ffc3ff4c97223feb8109cf7885b00cdc` as
+`dep-datddlfavr4c73d3pvng`, live at 2026-09-28 21:07:29 UTC. Direct HTTPS
+`/api/version` reports `0.4.0-beta.3` and that commit; `/api/health` reports
+`ok`. Production was not deployed. Images remain limited to approved source URLs;
+Hunt inventory coverage is still partial and alerts remain in-app on demand.
 
 ## v0.4.0-beta.2 — Hunt simpler form, 2026-09-28
 
