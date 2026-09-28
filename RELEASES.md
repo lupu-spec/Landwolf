@@ -10,6 +10,15 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:43:03 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.1 | `57663a20bd148525bd5515ce28c027e90751791a` | 2026-09-28 04:41:23 |
 
+## v0.4.0-beta.2 — simpler Hunt candidate
+
+- Three main choices: state, acreage band, and optional budget. Automatic names,
+  quick starters, inline custom acreage, and results immediately after saving.
+- Advanced criteria remain editable; cancel, retry, duplicate-submit protection,
+  auction budget wording, and clear match labels support the full journey.
+- Frontend-only behavior changes; schema v5 and existing Hunt/account data remain
+  compatible. Deployment evidence will be appended after the beta is observed.
+
 ## v0.4.0-beta.1 — live in isolated beta
 
 - Adds authenticated Hunt criteria, deterministic fixed-price/auction fit, review gaps, revisioned edits, in-app change checks, and a schema-v5 additive migration.
