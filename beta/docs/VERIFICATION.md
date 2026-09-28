@@ -1,5 +1,28 @@
 # LandWolf beta verification
 
+## v0.4.0-beta.1 Hunt candidate — 2026-09-28
+
+The isolated beta candidate adds revisioned Hunts and schema v5. Six Hunt tests
+cover score arithmetic, unknown versus failed facts, price semantics, geography
+validation, account isolation, repeat checks, and migration from v4. A hosted
+browser journey is added for create, review, and pause. This is a candidate, not
+an observed deployment.
+
+Local **Passed**: `uv sync --frozen --dev`; `uv lock --check`; `npm ci`;
+Ruff format/lint; mypy; Prettier, ESLint, TypeScript; four Node unit tests;
+`.venv/bin/pytest -q -m 'not browser'` (286 passed; 19 browser tests deselected);
+`npm run build`; Python build and package check; Bandit; pip-audit; npm audit;
+secretlint; `git diff --check`. The final focused Hunt suite passed six tests.
+
+Local **Not run**: PostgreSQL disposable integration and backup/restore (no local
+CI PostgreSQL service), browser tests (Playwright archive download returned a
+truncated file; system dependency installer lacked privileges), live source sync,
+and legacy root tests (separate environment). Hosted CI is required for the
+browser and PostgreSQL gates. No beta deployment is claimed yet.
+
+The implementation limits and deferred email/scheduler/parcel work are recorded
+in [HUNT_BETA.md](HUNT_BETA.md). Production remains on v0.3.3.
+
 ## v0.3.3 source refresh reliability — 2026-09-27 (deployed)
 
 Live public-source validation ran against a disposable SQLite catalog, never a

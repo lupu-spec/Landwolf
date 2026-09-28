@@ -2,6 +2,8 @@
 
 import asyncio
 import contextlib
+import time
+import uuid
 from collections.abc import AsyncIterator, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
@@ -18,12 +20,15 @@ from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from landwolf import auth, recovery
+from landwolf import auth, hunt, recovery
 from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
 from landwolf.db import (
     SCHEMA_VERSION,
+    Account,
+    Hunt,
+    HuntEvent,
     Listing,
     LoginSession,
     SchemaVersion,
@@ -423,6 +428,151 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if item is None:
             raise HTTPException(404, "Property not found")
         return record_payload(item, session)
+
+    def owned_hunt(session: Session, account_id: str, hunt_id: str) -> Hunt:
+        item = session.get(Hunt, hunt_id)
+        if item is None or item.account_id != account_id:
+            raise HTTPException(404, "Hunt not found")
+        return item
+
+    def hunt_payload(item: Hunt) -> dict[str, Any]:
+        return {
+            "id": item.id,
+            "name": item.name,
+            "criteria": item.criteria,
+            "revision": item.revision,
+            "active": item.active,
+            "created_at": item.created_at,
+            "updated_at": item.updated_at,
+        }
+
+    @app.get("/api/hunts")
+    def hunts(request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings)
+        rows = session.scalars(
+            select(Hunt).where(Hunt.account_id == account.id).order_by(Hunt.created_at.desc())
+        ).all()
+        return {
+            "hunts": [hunt_payload(row) for row in rows],
+            "limit": hunt.MAX_HUNTS,
+            "email_alerts_available": False,
+        }
+
+    @app.post("/api/hunts", status_code=201)
+    def create_hunt(body: hunt.HuntInput, request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"hunt-write:{account.id}", 12)
+        if not body.name.strip():
+            raise HTTPException(422, "Give this Hunt a name")
+        # Serialize the per-account limit across concurrent requests on PostgreSQL.
+        session.execute(select(Account.id).where(Account.id == account.id).with_for_update())
+        count = (
+            session.scalar(
+                select(func.count())
+                .select_from(Hunt)
+                .where(Hunt.account_id == account.id, Hunt.active.is_(True))
+            )
+            or 0
+        )
+        if count >= hunt.MAX_HUNTS:
+            raise HTTPException(409, "Pause a Hunt before creating another")
+        now = int(time.time())
+        row = Hunt(
+            id=str(uuid.uuid4()),
+            account_id=account.id,
+            name=body.name.strip(),
+            criteria=body.criteria.model_dump(),
+            revision=1,
+            active=True,
+            created_at=now,
+            updated_at=now,
+        )
+        session.add(row)
+        session.flush()
+        try:
+            results = hunt.refresh(session, row, now=now)
+        except ValueError as exc:
+            session.rollback()
+            raise HTTPException(503, str(exc)) from exc
+        session.commit()
+        return {**hunt_payload(row), **results}
+
+    @app.patch("/api/hunts/{hunt_id}")
+    def update_hunt(
+        hunt_id: str, body: hunt.HuntUpdate, request: Request, session: DB
+    ) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"hunt-write:{account.id}", 12)
+        row = owned_hunt(session, account.id, hunt_id)
+        if body.name is not None and not body.name.strip():
+            raise HTTPException(422, "Give this Hunt a name")
+        if body.active is True and not row.active:
+            session.execute(select(Account.id).where(Account.id == account.id).with_for_update())
+            count = (
+                session.scalar(
+                    select(func.count())
+                    .select_from(Hunt)
+                    .where(Hunt.account_id == account.id, Hunt.active.is_(True))
+                )
+                or 0
+            )
+            if count >= hunt.MAX_HUNTS:
+                raise HTTPException(409, "Three Hunts are already active")
+        if body.name is not None:
+            row.name = body.name.strip()
+        if body.active is not None:
+            row.active = body.active
+        if body.criteria is not None:
+            row.criteria = body.criteria.model_dump()
+            row.revision += 1
+            session.execute(delete(HuntEvent).where(HuntEvent.hunt_id == row.id))
+        row.updated_at = int(time.time())
+        session.commit()
+        return hunt_payload(row)
+
+    @app.delete("/api/hunts/{hunt_id}")
+    def delete_hunt(hunt_id: str, request: Request, session: DB) -> dict[str, bool]:
+        account = auth.authenticate(request, session, settings, write=True)
+        hunt.remove_hunt(session, owned_hunt(session, account.id, hunt_id))
+        session.commit()
+        return {"deleted": True}
+
+    @app.get("/api/hunts/{hunt_id}/matches")
+    def hunt_matches(hunt_id: str, request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings)
+        auth.limit(session, f"hunt-read:{account.id}", 30)
+        row = owned_hunt(session, account.id, hunt_id)
+        if not row.active:
+            return {"paused": True, "matches": [], "needs_review": []}
+        try:
+            result = hunt.refresh(session, row)
+        except ValueError as exc:
+            session.rollback()
+            raise HTTPException(503, str(exc)) from exc
+        session.commit()
+        return {"paused": False, "revision": row.revision, **result}
+
+    @app.get("/api/hunts/{hunt_id}/events")
+    def hunt_events(hunt_id: str, request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings)
+        row = owned_hunt(session, account.id, hunt_id)
+        events = session.scalars(
+            select(HuntEvent)
+            .where(HuntEvent.hunt_id == row.id)
+            .order_by(HuntEvent.created_at.desc())
+            .limit(50)
+        ).all()
+        return {
+            "events": [
+                {
+                    "listing_id": e.listing_id,
+                    "kind": e.kind,
+                    "message": e.message,
+                    "created_at": e.created_at,
+                }
+                for e in events
+            ]
+        }
 
     @app.post("/api/analysis")
     def analysis(spec: AnalysisInput, request: Request, session: DB) -> dict[str, Any]:

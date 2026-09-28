@@ -43,4 +43,5 @@ def test_distribution_versions_match_runtime() -> None:
     assert npm_lock["version"] == npm_lock["packages"][""]["version"] == VERSION
     lock = tomllib.loads((root / "uv.lock").read_text())
     app = next(package for package in lock["package"] if package["name"] == "landwolf-beta")
-    assert app["version"] == VERSION
+    # PEP 440 normalizes the release label in uv.lock (0.4.0-beta.1 -> 0.4.0b1).
+    assert app["version"] == VERSION.replace("-beta.", "b")
