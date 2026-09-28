@@ -1,6 +1,6 @@
 # LandWolf beta verification
 
-## v0.4.0-beta.4 — visible Hunt saving candidate, 2026-09-28
+## v0.4.0-beta.4 — visible Hunt saving, 2026-09-28
 
 The creation form explicitly labels its save action and the persistent Hunt list.
 Successful creation and editing now confirm the saved destination; browser
@@ -14,9 +14,21 @@ Python build/package check, Bandit, pip-audit, npm audit, secretlint,
 `uv lock --check`, and `git diff --check`.
 
 **Failed locally:** `.venv/bin/pytest -q -m browser -k test_hunt_browser_flow`
-could not launch Chromium because the executable is absent. Hosted CI must
-exercise the browser, PostgreSQL, restore, root test and release preflight
-before deploying. Live source sync was not repeated for this wording-only change.
+could not launch Chromium because the executable is absent. Hosted CI exercised
+the browser, PostgreSQL, restore, root test and release preflight before
+deployment. Live source sync was not repeated for this wording-only change.
+
+**Passed hosted:** [beta gates](https://github.com/lupu-spec/Landwolf/actions/runs/36500138618)
+completed all required steps, including browser, PostgreSQL integration, restore,
+package and security. [Root test](https://github.com/lupu-spec/Landwolf/actions/runs/36500138690)
+and [release preflight](https://github.com/lupu-spec/Landwolf/actions/runs/36500138656)
+passed. PR #7 merged as `834f92ea276c29dd5c98fd5cc2de6b77621e3aea`.
+Render deployment `dep-datft6dg1s2s7397ooq0` became live at 23:57:02 UTC.
+Direct HTTPS `/api/version` returned `0.4.0-beta.4` and the exact commit;
+`/api/health` returned `ok`, and the served HTML contained the save CTA and
+saved-list heading. Production was not deployed. A direct production HTTPS
+request from this workspace returned a network intermediary's “Site Unavailable”
+page; hosted smoke supplies the independent production check.
 
 ## v0.4.0-beta.3 — Hunt result cards, 2026-09-28
 

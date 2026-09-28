@@ -8,7 +8,7 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:43:03 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.3 | `19623b48ffc3ff4c97223feb8109cf7885b00cdc` | 2026-09-28 21:07:29 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.4 | `834f92ea276c29dd5c98fd5cc2de6b77621e3aea` | 2026-09-28 23:57:02 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -21,12 +21,15 @@ Check each site's `/api/version` for the running version and immutable commit.
   `dep-datddlfavr4c73d3pvng` became live at 2026-09-28 21:07:29 UTC; HTTPS
   version and health report the exact commit above and `ok`.
 
-## v0.4.0-beta.4 — visible Hunt saving candidate
+## v0.4.0-beta.4 — visible Hunt saving, live in isolated beta
 
 - Labels the creation button “Save Hunt & view matches,” names the saved Hunt
   list, and confirms where a successful save appears. Editing uses “Save changes
   to Hunt.” The existing authenticated save API and criteria behavior are unchanged.
-- Candidate only; deployment evidence follows hosted release gates.
+- [Hosted beta gates](https://github.com/lupu-spec/Landwolf/actions/runs/36500138618),
+  root test and release preflight passed. Render deployment
+  `dep-datft6dg1s2s7397ooq0` became live at 2026-09-28 23:57:02 UTC;
+  HTTPS version/health and rendered save labels were observed.
 
 ## v0.4.0-beta.2 — simpler Hunt, live in isolated beta
 
@@ -114,6 +117,7 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-09-28 04:41:23 | Beta | v0.4.0-beta.1 / `57663a20bd148525bd5515ce28c027e90751791a` | `dep-dasuvf0jo6nc73didk8g` | LandWolf Hunt beta with schema v5, deterministic fit/review results, in-app changes, and validated browser/PostgreSQL/recovery gates. |
 | 2026-09-28 11:04:10 | Beta | v0.4.0-beta.2 / `d53dadee4f1e0b50d8513ea31e254e82479ea440` | `dep-dat4ist9fdbs73flugo0` | Three-choice Hunt setup, automatic names/results, advanced edit controls, mobile/desktop failure-and-retry coverage; all hosted release gates passed and HTTPS runtime version observed. |
 | 2026-09-28 21:07:29 | Beta | v0.4.0-beta.3 / `19623b48ffc3ff4c97223feb8109cf7885b00cdc` | `dep-datddlfavr4c73d3pvng` | Plain Hunt result titles, specific review reasons, approved image previews and default-image fallback; hosted gates and HTTPS version/health passed. |
+| 2026-09-28 23:57:02 | Beta | v0.4.0-beta.4 / `834f92ea276c29dd5c98fd5cc2de6b77621e3aea` | `dep-datft6dg1s2s7397ooq0` | Explicit save action, saved Hunt list and confirmation; hosted browser, PostgreSQL, restore and release gates passed; HTTPS version/health observed. |
 
 ## Version and promotion rules
 
