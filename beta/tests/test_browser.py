@@ -24,6 +24,34 @@ from landwolf.db import Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
+def test_hunt_browser_flow(browser_server: tuple[str, int]) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": 1280, "height": 850})
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("hunt-browser@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        page.locator('[data-nav="hunt"]').click()
+        page.locator('#hunt-form [name="name"]').fill("Texas land")
+        page.locator('#hunt-form [name="state"]').fill("TX")
+        page.locator('#hunt-form [name="min_acres"]').fill("5")
+        page.locator('#hunt-form [name="max_acres"]').fill("50")
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-list article")).to_have_count(1)
+        page.locator("#hunt-list").get_by_role("button", name="View matches").click()
+        expect(page.locator("#hunt-results")).to_contain_text("Needs review")
+        page.locator("#hunt-list").get_by_role("button", name="Pause").click()
+        expect(page.locator("#hunt-list")).to_contain_text("Paused")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        browser.close()
+
+
 @pytest.mark.parametrize("browser_server", ["photos"], indirect=True)
 @pytest.mark.parametrize("width", [390, 1440])
 def test_missing_and_failed_listing_photos_use_branded_image(
@@ -94,7 +122,7 @@ def test_saved_feature_absent_and_research_handoff_remains(
         page.locator("#auth-submit").click()
         expect(page.locator(".property-card")).to_have_count(2)
         expect(page.get_by_role("button", name=re.compile(r"save", re.I))).to_have_count(0)
-        expect(page.locator("#main-nav button")).to_have_count(3)
+        expect(page.locator("#main-nav button")).to_have_count(4)
         card = page.locator(".property-card").filter(has_text="Test fixture 99002")
         card.scroll_into_view_if_needed()
         Path("test-results").mkdir(exist_ok=True)

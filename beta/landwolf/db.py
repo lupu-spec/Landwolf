@@ -123,7 +123,41 @@ class AccountAction(Base):
     expires_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
-SCHEMA_VERSION = 4
+class Hunt(Base):
+    __tablename__ = "lw2_hunts"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    criteria: Mapped[dict[str, Any]] = mapped_column(JSON)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+class HuntMatch(Base):
+    __tablename__ = "lw2_hunt_matches"
+    hunt_id: Mapped[str] = mapped_column(ForeignKey("lw2_hunts.id"), primary_key=True)
+    listing_id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    score: Mapped[int] = mapped_column(Integer)
+    price_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+class HuntEvent(Base):
+    __tablename__ = "lw2_hunt_events"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    hunt_id: Mapped[str] = mapped_column(ForeignKey("lw2_hunts.id"), index=True)
+    listing_id: Mapped[str] = mapped_column(String(80))
+    revision: Mapped[int] = mapped_column(Integer)
+    kind: Mapped[str] = mapped_column(String(24))
+    message: Mapped[str] = mapped_column(String(240))
+    created_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+SCHEMA_VERSION = 5
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -135,7 +169,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add trust/recovery storage in v4; preserve accounts and never recreate Saved."""
+    """Add Hunt storage in v5; preserve accounts and never recreate Saved."""
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -147,7 +181,7 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [3], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [3], [4], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported beta schema version; migration required")
         Base.metadata.create_all(connection)
         # Intentionally irreversible. Do not archive or copy retired Saved data.

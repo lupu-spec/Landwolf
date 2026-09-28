@@ -28,6 +28,9 @@
           Explore properties
         </button>
         <button class="nav-link" data-nav="research">Property research</button>
+        <button class="nav-link" data-nav="hunt">
+          Hunt <span class="beta-tag">BETA</span>
+        </button>
         <button class="nav-link" data-nav="sources">Data coverage</button>
       </nav>
       <div class="account-tools">
@@ -338,6 +341,107 @@
           </p>
           <p id="research-status" role="status" aria-live="polite"></p>
           <div id="research-results"></div>
+        </section>
+
+        <section
+          id="hunt-panel"
+          class="source-panel"
+          hidden
+          aria-labelledby="hunt-title"
+        >
+          <h2 id="hunt-title">LandWolf Hunt</h2>
+          <p class="muted">
+            Save up to three searches across connected inventory in all 50
+            states. Fit measures your criteria, not market value. Coverage is
+            partial; missing facts are flagged for review.
+          </p>
+          <form id="hunt-form" class="hunt-form">
+            <label
+              >Hunt name
+              <input
+                name="name"
+                maxlength="80"
+                required
+                placeholder="My land search"
+            /></label>
+            <label
+              >Sale type
+              <select name="mode">
+                <option value="fixed">Published sale price</option>
+                <option value="auction">Auction opening bid</option>
+              </select></label
+            >
+            <label
+              >State code (blank for nationwide)
+              <input name="state" maxlength="2" placeholder="TX"
+            /></label>
+            <label
+              >County (requires a state) <input name="county" maxlength="100"
+            /></label>
+            <label
+              >Radius center latitude
+              <input
+                name="center_lat"
+                type="number"
+                min="-90"
+                max="90"
+                step="any"
+            /></label>
+            <label
+              >Radius center longitude
+              <input
+                name="center_lon"
+                type="number"
+                min="-180"
+                max="180"
+                step="any"
+            /></label>
+            <label
+              >Radius miles (maximum 500)
+              <input
+                name="radius_miles"
+                type="number"
+                min="0.01"
+                max="500"
+                step="any"
+            /></label>
+            <label
+              >Minimum acres
+              <input
+                name="min_acres"
+                type="number"
+                min="0.0001"
+                step="any"
+                required
+                value="5"
+            /></label>
+            <label
+              >Maximum acres
+              <input
+                name="max_acres"
+                type="number"
+                min="0.0001"
+                step="any"
+                required
+                value="50"
+            /></label>
+            <label
+              >Maximum published price / opening bid ($, optional)
+              <input name="max_price" type="number" min="1" step="any"
+            /></label>
+            <label
+              >Maximum asking price per acre ($, fixed-price only)
+              <input name="max_price_per_acre" type="number" min="1" step="any"
+            /></label>
+            <button class="button primary" type="submit">Create Hunt</button>
+          </form>
+          <p class="input-note">
+            Auction opening bids are not total purchase costs. No email delivery
+            is configured for Hunt beta; check this page for updates.
+          </p>
+          <p id="hunt-status" role="status" aria-live="polite"></p>
+          <div id="hunt-list" class="hunt-list"></div>
+          <div id="hunt-results"></div>
         </section>
 
         <section id="explore-panel">

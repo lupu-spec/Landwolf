@@ -182,6 +182,38 @@ let detailSequence = 0;
 let analysisSequence = 0;
 let researchSequence = 0;
 let navigationSequence = 0;
+type HuntCriteria = {
+  mode: "fixed" | "auction";
+  states: string[];
+  county: string | null;
+  center_lat: number | null;
+  center_lon: number | null;
+  radius_miles: number | null;
+  min_acres: number;
+  max_acres: number;
+  max_price: number | null;
+  max_price_per_acre: number | null;
+};
+type HuntRow = {
+  id: string;
+  name: string;
+  criteria: HuntCriteria;
+  active: boolean;
+  revision: number;
+};
+type HuntEntry = {
+  listing_id: string;
+  title: string;
+  state: string;
+  county: string | null;
+  acres: number | null;
+  amount: number | null;
+  price_kind: string;
+  score: number | null;
+  reasons: string[];
+  components?: Record<string, number>;
+};
+let editingHunt: string | null = null;
 let researchListingId: string | null = null;
 let currentProperty: PropertyRecord | null = null;
 let pendingResearchProperty: PropertyRecord | null = null;
@@ -264,6 +296,9 @@ function clearSession(): void {
   byId("account-email").textContent = "";
   byId("email-status").textContent = "";
   byId("beta-roadmap").replaceChildren();
+  byId("hunt-list").replaceChildren();
+  byId("hunt-results").replaceChildren();
+  editingHunt = null;
   markers?.clearLayers();
   mapRecords = [];
   map?.closePopup();
@@ -476,6 +511,7 @@ async function navigate(
     });
   const sources = view === "sources";
   const researching = view === "research";
+  const hunting = view === "hunt";
   if (view === "explore")
     byId("results-layout").dataset.view =
       document.querySelector<HTMLButtonElement>(
@@ -484,17 +520,22 @@ async function navigate(
   page = 1;
   byId("source-panel").hidden = !sources;
   byId("research-panel").hidden = !researching;
-  byId("explore-panel").hidden = sources || researching;
+  byId("hunt-panel").hidden = !hunting;
+  byId("explore-panel").hidden = sources || researching || hunting;
   byId("workspace-title").textContent = sources
     ? "Know the source. Know the limits."
     : researching
       ? "Understand the location."
-      : "Find your next opportunity.";
+      : hunting
+        ? "Find the land that fits."
+        : "Find your next opportunity.";
   byId("workspace-description").textContent = sources
     ? "A transparent view of connected data and current gaps."
     : researching
       ? "Public records, with their source and uncertainty in view."
-      : "Real listings. Clear sources. A closer look at what matters.";
+      : hunting
+        ? "Set your criteria once. Review source-backed matches and changes."
+        : "Real listings. Clear sources. A closer look at what matters.";
   // A tab switch must expose its destination even from a long Research report.
   byId("workspace-title").focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "instant" });
@@ -550,7 +591,8 @@ async function navigate(
     } catch (error) {
       notify(errorText(error));
     }
-  } else if (!researching) await search();
+  } else if (hunting) await loadHunts();
+  else if (!researching) await search();
 }
 document.querySelectorAll<HTMLButtonElement>("[data-nav]").forEach((button) =>
   button.addEventListener("click", () => {
@@ -1736,3 +1778,235 @@ void (async () => {
       "Unable to reach LandWolf. Check your connection and try again.";
   }
 })();
+
+const huntForm = byId<HTMLFormElement>("hunt-form");
+function huntCriteria(): HuntCriteria {
+  const data = new FormData(huntForm);
+  const value = (key: string) => String(data.get(key) ?? "").trim();
+  const optional = (key: string) => (value(key) ? Number(value(key)) : null);
+  return {
+    mode: value("mode") as "fixed" | "auction",
+    states: value("state") ? [value("state").toUpperCase()] : [],
+    county: value("county") || null,
+    center_lat: optional("center_lat"),
+    center_lon: optional("center_lon"),
+    radius_miles: optional("radius_miles"),
+    min_acres: Number(value("min_acres")),
+    max_acres: Number(value("max_acres")),
+    max_price: optional("max_price"),
+    max_price_per_acre: optional("max_price_per_acre"),
+  };
+}
+async function loadHunts(): Promise<void> {
+  try {
+    const result = await api<{ hunts: HuntRow[] }>("/api/hunts");
+    const list = byId("hunt-list");
+    list.replaceChildren();
+    for (const hunt of result.hunts) {
+      const card = element("article", "source-card");
+      card.append(
+        element("h3", "", hunt.name),
+        element(
+          "p",
+          "",
+          `${hunt.criteria.mode === "auction" ? "Auction" : "Fixed price"} · ${hunt.criteria.states.join(", ") || "Nationwide"}${hunt.criteria.county ? ` · ${hunt.criteria.county} County` : ""} · ${hunt.criteria.min_acres}–${hunt.criteria.max_acres} acres · ${hunt.active ? "Active" : "Paused"}`,
+        ),
+      );
+      const actions = element("div", "hunt-actions");
+      const button = (label: string, action: () => void) => {
+        const control = element("button", "button secondary small", label);
+        control.type = "button";
+        control.addEventListener("click", action);
+        actions.append(control);
+      };
+      button("View matches", () => void showHunt(hunt));
+      button("Edit", () => {
+        editingHunt = hunt.id;
+        const fields: Record<string, string> = {
+          name: hunt.name,
+          mode: hunt.criteria.mode,
+          state: hunt.criteria.states[0] || "",
+          county: hunt.criteria.county || "",
+          center_lat: String(hunt.criteria.center_lat ?? ""),
+          center_lon: String(hunt.criteria.center_lon ?? ""),
+          radius_miles: String(hunt.criteria.radius_miles ?? ""),
+          min_acres: String(hunt.criteria.min_acres),
+          max_acres: String(hunt.criteria.max_acres),
+          max_price: String(hunt.criteria.max_price ?? ""),
+          max_price_per_acre: String(hunt.criteria.max_price_per_acre ?? ""),
+        };
+        for (const [key, value] of Object.entries(fields)) {
+          const field = huntForm.elements.namedItem(key);
+          if (
+            field instanceof HTMLInputElement ||
+            field instanceof HTMLSelectElement
+          )
+            field.value = value;
+        }
+        byId("hunt-status").textContent =
+          `Editing ${hunt.name}. Submit the form to save a new criteria revision.`;
+        huntForm.scrollIntoView({ behavior: "smooth" });
+      });
+      button(
+        hunt.active ? "Pause" : "Resume",
+        () =>
+          void (async () => {
+            try {
+              await api(`/api/hunts/${hunt.id}`, "PATCH", {
+                active: !hunt.active,
+              });
+              await loadHunts();
+            } catch (error) {
+              notify(errorText(error));
+            }
+          })(),
+      );
+      button(
+        "Delete",
+        () =>
+          void (async () => {
+            if (!window.confirm(`Delete Hunt “${hunt.name}”?`)) return;
+            try {
+              await api(`/api/hunts/${hunt.id}`, "DELETE");
+              byId("hunt-results").replaceChildren();
+              await loadHunts();
+            } catch (error) {
+              notify(errorText(error));
+            }
+          })(),
+      );
+      card.append(actions);
+      list.append(card);
+    }
+    if (!result.hunts.length)
+      list.append(
+        element(
+          "p",
+          "muted",
+          "No Hunts yet. Create one above to see matches from connected inventory.",
+        ),
+      );
+  } catch (error) {
+    byId("hunt-status").textContent = errorText(error);
+  }
+}
+async function showHunt(hunt: HuntRow): Promise<void> {
+  const target = byId("hunt-results");
+  target.replaceChildren(
+    element("p", "muted", "Checking connected inventory…"),
+  );
+  try {
+    const result = await api<{
+      paused: boolean;
+      matches: HuntEntry[];
+      needs_review: HuntEntry[];
+      coverage_note: string;
+      evaluated_at: number;
+    }>(`/api/hunts/${hunt.id}/matches`);
+    const history = await api<{
+      events: { listing_id: string; kind: string; message: string }[];
+    }>(`/api/hunts/${hunt.id}/events`);
+    target.replaceChildren(element("h2", "", hunt.name));
+    if (result.paused) {
+      target.append(element("p", "muted", "Hunt is paused."));
+      return;
+    }
+    target.append(
+      element(
+        "p",
+        "muted",
+        `${result.matches.length} confirmed criteria matches · ${result.needs_review.length} need review. ${result.coverage_note}`,
+      ),
+    );
+    if (history.events.length)
+      target.append(
+        element("h3", "", "Recent changes"),
+        ...history.events
+          .slice(0, 10)
+          .map((event) =>
+            element("p", "", `${event.message} · ${event.listing_id}`),
+          ),
+      );
+    const group = (title: string, rows: HuntEntry[]) => {
+      target.append(element("h3", "", title));
+      if (!rows.length)
+        target.append(
+          element("p", "muted", "None in the connected inventory."),
+        );
+      for (const row of rows.slice(0, 50)) {
+        const card = element("article", "source-card");
+        card.append(
+          element(
+            "h4",
+            "",
+            `${row.title} · ${row.score === null ? "Needs review" : `Hunt Fit ${row.score}/100`}`,
+          ),
+          element(
+            "p",
+            "",
+            `${row.acres ?? "Unknown"} acres · ${money(row.amount)} ${row.price_kind} · ${row.county ? `${row.county}, ` : ""}${row.state}`,
+          ),
+          element("p", "muted", row.reasons.join("; ")),
+        );
+        const link = element(
+          "button",
+          "button secondary small",
+          "View property",
+        );
+        link.type = "button";
+        link.addEventListener(
+          "click",
+          () =>
+            void (async () => {
+              try {
+                await openDetail(row.listing_id);
+              } catch (error) {
+                notify(errorText(error));
+              }
+            })(),
+        );
+        card.append(link);
+        target.append(card);
+      }
+      if (rows.length > 50)
+        target.append(
+          element(
+            "p",
+            "muted",
+            "Showing first 50 results. Narrow the Hunt to review more.",
+          ),
+        );
+    };
+    group("Matches", result.matches);
+    group("Needs review", result.needs_review);
+    target.scrollIntoView({ behavior: "smooth" });
+  } catch (error) {
+    target.replaceChildren(element("p", "form-message", errorText(error)));
+  }
+}
+huntForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  void (async () => {
+    try {
+      const data = new FormData(huntForm);
+      const payload = {
+        name: String(data.get("name") ?? "").trim(),
+        criteria: huntCriteria(),
+      };
+      const id = editingHunt;
+      await api(
+        id ? `/api/hunts/${id}` : "/api/hunts",
+        id ? "PATCH" : "POST",
+        payload,
+      );
+      editingHunt = null;
+      huntForm.reset();
+      byId("hunt-status").textContent = id
+        ? "Hunt updated. Changes establish a new baseline."
+        : "Hunt created. Current listings establish the baseline.";
+      await loadHunts();
+    } catch (error) {
+      byId("hunt-status").textContent = errorText(error);
+    }
+  })();
+});

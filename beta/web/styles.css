@@ -1863,3 +1863,38 @@ select {
   outline: 3px solid var(--blue);
   outline-offset: 4px;
 }
+
+.hunt-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.hunt-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+.hunt-form input,
+.hunt-form select {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid #b5c4d4;
+  border-radius: 0.45rem;
+  background: white;
+  color: #142d4a;
+}
+.hunt-form button {
+  align-self: end;
+}
+.hunt-list,
+#hunt-results {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.hunt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

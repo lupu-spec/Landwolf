@@ -10,6 +10,13 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:43:03 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:40:42 |
 
+## v0.4.0-beta.1 — candidate for isolated beta only
+
+- Adds authenticated Hunt criteria, deterministic fixed-price/auction fit, review gaps, revisioned edits, in-app change checks, and a schema-v5 additive migration.
+- Nationwide state selection is supported against the existing partial connected catalog; no complete inventory or parcel-boundary claim. Opening a Hunt checks changes. Email and scheduled Hunt alerts are not enabled.
+- Production stays on v0.3.3/schema v4. Deployment and observed verification are recorded only after the isolated beta becomes live.
+- See [Hunt beta scope](beta/docs/HUNT_BETA.md) and [verification](beta/docs/VERIFICATION.md).
+
 ## v0.3.3 — live in production and beta
 
 - Repairs the live Texas GLO, U.S. Treasury, and IRS auction adapters after
