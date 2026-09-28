@@ -351,90 +351,171 @@
         >
           <h2 id="hunt-title">LandWolf Hunt</h2>
           <p class="muted">
-            Save up to three searches across connected inventory in all 50
-            states. Fit measures your criteria, not market value. Coverage is
-            partial; missing facts are flagged for review.
+            Tell us where, how much land, and your budget. Save up to three
+            Hunts and return to check for matches.
           </p>
+          <div class="hunt-actions" aria-label="Quick starters">
+            <button
+              type="button"
+              class="button secondary small"
+              data-hunt-preset="acreage"
+            >
+              5–50 acres
+            </button>
+            <button
+              type="button"
+              class="button secondary small"
+              data-hunt-preset="large"
+            >
+              Larger tracts
+            </button>
+            <button
+              type="button"
+              class="button secondary small"
+              data-hunt-preset="auction"
+            >
+              Auction hunt
+            </button>
+          </div>
           <form id="hunt-form" class="hunt-form">
             <label
-              >Hunt name
+              >Where
+              <select name="state" aria-describedby="hunt-coverage-note">
+                <option value="">Anywhere in connected inventory</option>
+              </select>
+            </label>
+            <label
+              >How much land?
+              <select name="size">
+                <option value="5-50">5–50 acres</option>
+                <option value="0.01-5">0.01–5 acres</option>
+                <option value="50-500">50–500 acres</option>
+                <option value="500-10000000">500+ acres</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </label>
+            <label
+              ><span id="hunt-budget-label">Budget ($, optional)</span>
               <input
-                name="name"
-                maxlength="80"
-                required
-                placeholder="My land search"
-            /></label>
-            <label
-              >Sale type
-              <select name="mode">
-                <option value="fixed">Published sale price</option>
-                <option value="auction">Auction opening bid</option>
-              </select></label
-            >
-            <label
-              >State code (blank for nationwide)
-              <input name="state" maxlength="2" placeholder="TX"
-            /></label>
-            <label
-              >County (requires a state) <input name="county" maxlength="100"
-            /></label>
-            <label
-              >Radius center latitude
-              <input
-                name="center_lat"
+                name="max_price"
                 type="number"
-                min="-90"
-                max="90"
+                min="1"
+                max="1000000000"
                 step="any"
-            /></label>
-            <label
-              >Radius center longitude
-              <input
-                name="center_lon"
-                type="number"
-                min="-180"
-                max="180"
-                step="any"
-            /></label>
-            <label
-              >Radius miles (maximum 500)
-              <input
-                name="radius_miles"
-                type="number"
-                min="0.01"
-                max="500"
-                step="any"
-            /></label>
-            <label
-              >Minimum acres
-              <input
-                name="min_acres"
-                type="number"
-                min="0.0001"
-                step="any"
-                required
-                value="5"
-            /></label>
-            <label
-              >Maximum acres
-              <input
-                name="max_acres"
-                type="number"
-                min="0.0001"
-                step="any"
-                required
-                value="50"
-            /></label>
-            <label
-              >Maximum published price / opening bid ($, optional)
-              <input name="max_price" type="number" min="1" step="any"
-            /></label>
-            <label
-              >Maximum asking price per acre ($, fixed-price only)
-              <input name="max_price_per_acre" type="number" min="1" step="any"
-            /></label>
-            <button class="button primary" type="submit">Create Hunt</button>
+                placeholder="Maximum dollars"
+                aria-describedby="hunt-budget-note"
+              />
+            </label>
+            <p id="hunt-budget-note" class="input-note hunt-wide"></p>
+            <details id="hunt-advanced" class="hunt-advanced">
+              <summary>More options</summary>
+              <div class="hunt-advanced-fields">
+                <label
+                  >Hunt name (optional)
+                  <input
+                    name="name"
+                    maxlength="80"
+                    placeholder="We'll name it for you"
+                  />
+                </label>
+                <label
+                  >Sale type
+                  <select name="mode">
+                    <option value="fixed">Published sale price</option>
+                    <option value="auction">Auction opening bid</option>
+                  </select>
+                </label>
+                <label
+                  >County (choose a state first)
+                  <input name="county" maxlength="100" />
+                </label>
+                <div id="hunt-custom-size" class="hunt-size-fields" hidden>
+                  <label
+                    >Minimum acres
+                    <input
+                      name="min_acres"
+                      type="number"
+                      min="0.0001"
+                      max="10000000"
+                      step="any"
+                      value="5"
+                  /></label>
+                  <label
+                    >Maximum acres
+                    <input
+                      name="max_acres"
+                      type="number"
+                      min="0.0001"
+                      max="10000000"
+                      step="any"
+                      value="50"
+                  /></label>
+                </div>
+                <label
+                  >Radius center latitude
+                  <input
+                    name="center_lat"
+                    type="number"
+                    min="-90"
+                    max="90"
+                    step="any"
+                  />
+                </label>
+                <label
+                  >Radius center longitude
+                  <input
+                    name="center_lon"
+                    type="number"
+                    min="-180"
+                    max="180"
+                    step="any"
+                  />
+                </label>
+                <label
+                  >Radius miles (maximum 500)
+                  <input
+                    name="radius_miles"
+                    type="number"
+                    min="0.01"
+                    max="500"
+                    step="any"
+                  />
+                </label>
+                <label
+                  >Maximum asking price per acre ($, fixed-price only)
+                  <input
+                    name="max_price_per_acre"
+                    type="number"
+                    min="1"
+                    max="1000000000"
+                    step="any"
+                  />
+                </label>
+              </div>
+              <p class="input-note">
+                For a radius search, choose Anywhere, leave county blank, and
+                enter all three radius fields. The center is a search location,
+                not a parcel boundary.
+              </p>
+            </details>
+            <div class="hunt-actions hunt-wide">
+              <button id="hunt-submit" class="button primary" type="submit">
+                Find my land
+              </button>
+              <button
+                id="hunt-cancel"
+                class="button secondary"
+                type="button"
+                hidden
+              >
+                Cancel edit
+              </button>
+            </div>
           </form>
+          <p id="hunt-coverage-note" class="input-note">
+            Searches only the connected public inventory; coverage varies by
+            state. Match labels describe your filters, not market value.
+          </p>
           <p class="input-note">
             Auction opening bids are not total purchase costs. No email delivery
             is configured for Hunt beta; check this page for updates.

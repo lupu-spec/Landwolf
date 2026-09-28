@@ -24,31 +24,81 @@ from landwolf.db import Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
-def test_hunt_browser_flow(browser_server: tuple[str, int]) -> None:
+@pytest.mark.parametrize("width", [390, 1280])
+def test_hunt_browser_flow(browser_server: tuple[str, int], width: int) -> None:
     origin, _ = browser_server
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(
             executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
             args=["--no-sandbox", "--disable-gpu"],
         )
-        page = browser.new_page(viewport={"width": 1280, "height": 850})
+        page = browser.new_page(viewport={"width": width, "height": 850})
         page.goto(origin)
         page.get_by_role("button", name="Create account", exact=True).click()
         page.get_by_label("Email address", exact=True).fill("hunt-browser@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
         page.locator('[data-nav="hunt"]').click()
-        page.locator('#hunt-form [name="name"]').fill("Texas land")
-        page.locator('#hunt-form [name="state"]').fill("TX")
-        page.locator('#hunt-form [name="min_acres"]').fill("5")
-        page.locator('#hunt-form [name="max_acres"]').fill("50")
+        expect(page.locator('#hunt-form [name="name"]')).not_to_be_visible()
+        page.locator('#hunt-form [name="size"]').select_option("custom")
+        expect(page.locator('#hunt-form [name="min_acres"]')).to_be_visible()
+        page.locator('#hunt-form [name="size"]').select_option("5-50")
+        page.locator("#hunt-advanced summary").click()
+        page.locator('#hunt-form [name="state"]').select_option("TX")
+        page.locator('#hunt-form [name="max_price"]').fill("250000")
         page.locator("#hunt-form button[type=submit]").click()
         expect(page.locator("#hunt-list article")).to_have_count(1)
+        expect(page.locator("#hunt-list")).to_contain_text("TX · 5–50 acres")
+        expect(page.locator("#hunt-results")).to_contain_text("Needs review")
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        page.locator("#hunt-list").get_by_role("button", name="Edit").click()
+        expect(page.locator('#hunt-form [name="max_price"]')).to_have_value("250000")
+        page.locator('#hunt-form [name="size"]').select_option("custom")
+        page.locator('#hunt-form [name="min_acres"]').fill("12")
+        page.locator('#hunt-form [name="max_acres"]').fill("8")
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-status")).to_contain_text("valid acreage range")
+        page.locator('#hunt-form [name="max_acres"]').fill("80")
+        page.locator('#hunt-form [name="radius_miles"]').fill("25")
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-status")).to_contain_text("not both")
+        page.locator('#hunt-form [name="radius_miles"]').fill("")
+        page.route(
+            "**/api/hunts/*",
+            lambda route: (
+                route.fulfill(
+                    status=503,
+                    content_type="application/json",
+                    body='{"detail":"Temporary fixture failure. Try again."}',
+                )
+                if route.request.method == "PATCH"
+                else route.continue_()
+            ),
+        )
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-status")).to_contain_text("Temporary fixture failure")
+        expect(page.locator('#hunt-form [name="max_acres"]')).to_have_value("80")
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        page.unroute("**/api/hunts/*")
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-list")).to_contain_text("12–80 acres")
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        page.locator("#hunt-list").get_by_role("button", name="Edit").click()
+        page.locator('#hunt-form [name="max_acres"]').fill("100")
+        page.get_by_role("button", name="Cancel edit").click()
+        expect(page.locator("#hunt-list")).to_contain_text("12–80 acres")
+        page.get_by_role("button", name="Auction hunt", exact=True).click()
+        expect(page.locator("#hunt-budget-label")).to_contain_text("opening bid")
+        page.get_by_role("button", name="5–50 acres", exact=True).click()
+        expect(page.locator("#hunt-budget-label")).to_contain_text("Budget")
         page.locator("#hunt-list").get_by_role("button", name="View matches").click()
         expect(page.locator("#hunt-results")).to_contain_text("Needs review")
         page.locator("#hunt-list").get_by_role("button", name="Pause").click()
         expect(page.locator("#hunt-list")).to_contain_text("Paused")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.locator("#hunt-title").scroll_into_view_if_needed()
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path=f"test-results/hunt-{width}.png", full_page=True)
         browser.close()
 
 

@@ -4,9 +4,11 @@ Hunt is a deterministic filter and ranking tool for the app's connected public l
 
 ## Customer flow
 
-Open Hunt, name a search, choose fixed-price or auction opening-bid mode, and set acreage, geography and optional price limits. The form supports nationwide, one state/county, or a radius from a supplied center coordinate. Save up to three active Hunts. View matches and records needing review; open the original property detail, edit criteria, pause/resume, or delete. Editing criteria increments a revision and establishes a new baseline.
+Open Hunt, choose a state (or anywhere in connected inventory), an acreage band and optionally a budget. The app supplies a name automatically. More options exposes a custom acreage range, name, auction opening-bid mode, county, price per acre and coordinate radius for precise searches and editing existing Hunts. A radius cannot be combined with a state or county. The budget applies to the published asking price in fixed mode or opening bid in auction mode; neither is a total purchase cost. Save up to three active Hunts. View matches and records needing review; open the original property detail, edit criteria, pause/resume, or delete. Editing criteria increments a revision and establishes a new baseline. The location picker uses states rather than city geocoding; it does not infer parcel locations.
 
-The API also supports multiple states and an optional preferred acreage band, though the first beta form exposes a single state and uses the full allowed acreage range as its preference. All 50 state codes are accepted; connected inventory varies by state.
+Quick starters offer 5–50 acres, larger tracts or auctions without adding required inputs. Selecting Custom range reveals its inputs automatically. Saving opens results; failed saves keep the inputs for retry, and Cancel edit leaves the stored Hunt unchanged. Auction mode labels the budget as an opening-bid ceiling and disables asking-price-per-acre filtering.
+
+The API also supports multiple states and an optional preferred acreage band. The form preserves existing multiple-state criteria until the user selects a different state, and preserves a preferred band while the allowed acreage range is unchanged. New simple searches use the full allowed acreage range as their preference. All 50 state codes are accepted; connected inventory varies by state. Results label scores of 80+ as Strong match, lower confirmed scores as Matches your filters, and missing required facts as Needs review; these labels measure criteria fit only.
 
 ## Ranking and evidence
 
