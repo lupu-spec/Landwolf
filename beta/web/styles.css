@@ -1927,3 +1927,29 @@ select {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+.hunt-result-card {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.hunt-result-photo img {
+  display: block;
+  width: 140px;
+  height: 105px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #edf2f6;
+}
+.hunt-result-details {
+  min-width: 0;
+}
+@media (max-width: 480px) {
+  .hunt-result-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+  .hunt-result-photo img {
+    width: 96px;
+    height: 78px;
+  }
+}
