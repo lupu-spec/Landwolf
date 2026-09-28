@@ -21,6 +21,13 @@ Check each site's `/api/version` for the running version and immutable commit.
   `dep-datddlfavr4c73d3pvng` became live at 2026-09-28 21:07:29 UTC; HTTPS
   version and health report the exact commit above and `ok`.
 
+## v0.4.0-beta.4 — visible Hunt saving candidate
+
+- Labels the creation button “Save Hunt & view matches,” names the saved Hunt
+  list, and confirms where a successful save appears. Editing uses “Save changes
+  to Hunt.” The existing authenticated save API and criteria behavior are unchanged.
+- Candidate only; deployment evidence follows hosted release gates.
+
 ## v0.4.0-beta.2 — simpler Hunt, live in isolated beta
 
 - Three main choices: state, acreage band, and optional budget. Automatic names,

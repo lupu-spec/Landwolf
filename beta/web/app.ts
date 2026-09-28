@@ -1829,7 +1829,7 @@ function resetHuntForm(): void {
   updateHuntSize();
   updateHuntMode();
   byId<HTMLDetailsElement>("hunt-advanced").open = false;
-  byId("hunt-submit").textContent = "Find my land";
+  byId("hunt-submit").textContent = "Save Hunt & view matches";
   byId("hunt-cancel").hidden = true;
 }
 byId("hunt-cancel").addEventListener("click", () => {
@@ -1977,7 +1977,7 @@ async function loadHunts(): Promise<void> {
         updateHuntSize();
         updateHuntMode();
         byId<HTMLDetailsElement>("hunt-advanced").open = true;
-        byId("hunt-submit").textContent = "Save Hunt";
+        byId("hunt-submit").textContent = "Save changes to Hunt";
         byId("hunt-cancel").hidden = false;
         byId("hunt-status").textContent =
           `Editing ${hunt.name}. Submit the form to save a new criteria revision.`;
@@ -2020,7 +2020,7 @@ async function loadHunts(): Promise<void> {
         element(
           "p",
           "muted",
-          "No Hunts yet. Create one above to see matches from connected inventory.",
+          "No saved Hunts yet. Choose your land preferences above, then select Save Hunt & view matches.",
         ),
       );
   } catch (error) {
@@ -2155,8 +2155,8 @@ huntForm.addEventListener("submit", (event) => {
       );
       resetHuntForm();
       byId("hunt-status").textContent = id
-        ? "Hunt updated. Changes establish a new baseline."
-        : "Hunt created. Current listings establish the baseline.";
+        ? "Hunt saved. Your updated preferences are in Your saved Hunts below."
+        : "Hunt saved. It's in Your saved Hunts below; current matches are shown after the list.";
       await loadHunts();
       await showHunt(saved);
     } catch (error) {

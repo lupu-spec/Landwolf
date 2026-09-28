@@ -1,5 +1,23 @@
 # LandWolf beta verification
 
+## v0.4.0-beta.4 — visible Hunt saving candidate, 2026-09-28
+
+The creation form explicitly labels its save action and the persistent Hunt list.
+Successful creation and editing now confirm the saved destination; browser
+regression assertions check the creation, saved, and edit labels at 390px and
+1280px, along with the existing API save and retry journey.
+
+**Passed locally:** `npm run format`, Ruff format check, `npm run format:check`,
+Ruff lint, `npm run lint`, mypy, `npm run typecheck`, `npm run test:unit`
+(7 passed), `.venv/bin/pytest -q -m 'not browser'` (286 passed), `npm run build`,
+Python build/package check, Bandit, pip-audit, npm audit, secretlint,
+`uv lock --check`, and `git diff --check`.
+
+**Failed locally:** `.venv/bin/pytest -q -m browser -k test_hunt_browser_flow`
+could not launch Chromium because the executable is absent. Hosted CI must
+exercise the browser, PostgreSQL, restore, root test and release preflight
+before deploying. Live source sync was not repeated for this wording-only change.
+
 ## v0.4.0-beta.3 — Hunt result cards, 2026-09-28
 
 Individual result cards now display the listing title, acreage, source price
