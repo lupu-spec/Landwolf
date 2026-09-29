@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from landwolf import auth, hunt, recovery
+from landwolf import admin, auth, hunt, recovery
 from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
@@ -217,6 +217,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "email_verified": recovery.verified(session, account.id),
             "email_delivery_enabled": app.state.mailer.enabled,
             "environment": settings.environment,
+            "is_owner": settings.owner_account_id == account.id,
+            "access_override": admin.entitlement(session, account, settings),
         }
 
     @app.post("/api/auth/recovery", status_code=202)
@@ -285,6 +287,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         credentials: Credentials, request: Request, response: Response, session: DB
     ) -> dict[str, str]:
         return auth.sign_in(credentials, request, response, session, settings, register=False)
+
+    @app.get("/api/admin/accounts")
+    def admin_accounts(request: Request, session: DB) -> dict[str, Any]:
+        return admin.accounts(request, session, settings)
+
+    @app.post("/api/admin/accounts/{account_id}/complimentary-access", status_code=201)
+    def grant_complimentary_access(
+        account_id: str, body: admin.ExemptionGrant, request: Request, session: DB
+    ) -> dict[str, Any]:
+        return admin.grant(request, session, settings, account_id, body)
+
+    @app.delete("/api/admin/accounts/{account_id}/complimentary-access")
+    def revoke_complimentary_access(
+        account_id: str, body: admin.ExemptionRevoke, request: Request, session: DB
+    ) -> dict[str, Any]:
+        return admin.revoke(request, session, settings, account_id, body)
+
+    @app.get("/api/admin/audit")
+    def admin_audit(request: Request, session: DB) -> dict[str, Any]:
+        return admin.audit(request, session, settings)
 
     @app.post("/api/auth/logout")
     def logout(request: Request, response: Response, session: DB) -> dict[str, bool]:
