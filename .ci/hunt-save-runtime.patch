@@ -1,0 +1,313 @@
+diff --git a/beta/landwolf/main.py b/beta/landwolf/main.py
+index 92e46bd..492d94a 100644
+--- a/beta/landwolf/main.py
++++ b/beta/landwolf/main.py
+@@ -2,6 +2,7 @@
+ 
+ import asyncio
+ import contextlib
++import logging
+ import time
+ import uuid
+ from collections.abc import AsyncIterator, Iterator
+@@ -488,14 +489,37 @@ def create_app(settings: Settings | None = None) -> FastAPI:
+             updated_at=now,
+         )
+         session.add(row)
+-        session.flush()
++        # Preferences are durable before optional matching touches source records.
++        # A malformed listing or a match-table failure must not discard this Hunt.
++        try:
++            session.commit()
++        except SQLAlchemyError as exc:
++            session.rollback()
++            logging.getLogger(__name__).warning("Hunt save failed (%s)", type(exc).__name__)
++            raise HTTPException(503, "Your Hunt could not be saved. Please try again.") from exc
++        saved = hunt_payload(row)
+         try:
+             results = hunt.refresh(session, row, now=now)
+-        except ValueError as exc:
++            session.commit()
++        except (ValueError, SQLAlchemyError) as exc:
+             session.rollback()
+-            raise HTTPException(503, str(exc)) from exc
+-        session.commit()
+-        return {**hunt_payload(row), **results}
++            logging.getLogger(__name__).warning(
++                "Hunt matching unavailable after save (%s)", type(exc).__name__
++            )
++            return {
++                **saved,
++                "matching_status": "unavailable",
++                "matching_message": (
++                    "Hunt saved. Matching is temporarily unavailable. Try View matches again."
++                ),
++                "matches": [],
++                "needs_review": [],
++                "evaluated_at": None,
++                "coverage_note": (
++                    "Current matches could not be checked; this is not a zero-match result."
++                ),
++            }
++        return {**saved, **results, "matching_status": "ready"}
+ 
+     @app.patch("/api/hunts/{hunt_id}")
+     def update_hunt(
+@@ -546,10 +570,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
+             return {"paused": True, "matches": [], "needs_review": []}
+         try:
+             result = hunt.refresh(session, row)
+-        except ValueError as exc:
++            session.commit()
++        except (ValueError, SQLAlchemyError) as exc:
+             session.rollback()
+-            raise HTTPException(503, str(exc)) from exc
+-        session.commit()
++            logging.getLogger(__name__).warning("Hunt matching failed (%s)", type(exc).__name__)
++            raise HTTPException(
++                503, "Your Hunt is saved, but matching is temporarily unavailable. Please try again."
++            ) from exc
+         return {"paused": False, "revision": row.revision, **result}
+ 
+     @app.get("/api/hunts/{hunt_id}/events")
+diff --git a/beta/landwolf/version.py b/beta/landwolf/version.py
+index 2b959c5..f0c1654 100644
+--- a/beta/landwolf/version.py
++++ b/beta/landwolf/version.py
+@@ -3,7 +3,7 @@
+ import os
+ import re
+ 
+-VERSION = "0.4.0-beta.4"
++VERSION = "0.4.0-beta.5"
+ 
+ 
+ def release(environment: str) -> dict[str, str | None]:
+diff --git a/beta/package-lock.json b/beta/package-lock.json
+index c48aac3..ad68dbe 100644
+--- a/beta/package-lock.json
++++ b/beta/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "landwolf-beta-ui",
+-  "version": "0.4.0-beta.4",
++  "version": "0.4.0-beta.5",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "landwolf-beta-ui",
+-      "version": "0.4.0-beta.4",
++      "version": "0.4.0-beta.5",
+       "dependencies": {
+         "leaflet": "1.9.4"
+       },
+diff --git a/beta/package.json b/beta/package.json
+index 512d3b0..5e6a24c 100644
+--- a/beta/package.json
++++ b/beta/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "landwolf-beta-ui",
+-  "version": "0.4.0-beta.4",
++  "version": "0.4.0-beta.5",
+   "private": true,
+   "type": "module",
+   "scripts": {
+diff --git a/beta/pyproject.toml b/beta/pyproject.toml
+index 85d330a..3cc549b 100644
+--- a/beta/pyproject.toml
++++ b/beta/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "landwolf-beta"
+-version = "0.4.0-beta.4"
++version = "0.4.0-beta.5"
+ description = "Authenticated, source-backed land discovery and scenario analysis"
+ requires-python = ">=3.12"
+ dependencies = [
+diff --git a/beta/uv.lock b/beta/uv.lock
+index 271bc94..b50b051 100644
+--- a/beta/uv.lock
++++ b/beta/uv.lock
+@@ -742,7 +742,7 @@ wheels = [
+ 
+ [[package]]
+ name = "landwolf-beta"
+-version = "0.4.0b4"
++version = "0.4.0b5"
+ source = { editable = "." }
+ dependencies = [
+     { name = "argon2-cffi" },
+diff --git a/beta/web/app.ts b/beta/web/app.ts
+index 8b9abca..2f9361c 100644
+--- a/beta/web/app.ts
++++ b/beta/web/app.ts
+@@ -221,6 +221,8 @@ type HuntEntry = {
+ let editingHunt: string | null = null;
+ let editingHuntCriteria: HuntCriteria | null = null;
+ let huntSaving = false;
++let huntListSequence = 0;
++let huntResultSequence = 0;
+ let researchListingId: string | null = null;
+ let currentProperty: PropertyRecord | null = null;
+ let pendingResearchProperty: PropertyRecord | null = null;
+@@ -303,8 +305,11 @@ function clearSession(): void {
+   byId("account-email").textContent = "";
+   byId("email-status").textContent = "";
+   byId("beta-roadmap").replaceChildren();
++  huntListSequence++;
++  huntResultSequence++;
+   byId("hunt-list").replaceChildren();
+   byId("hunt-results").replaceChildren();
++  byId("hunt-status").textContent = "";
+   resetHuntForm();
+   markers?.clearLayers();
+   mapRecords = [];
+@@ -1842,8 +1847,10 @@ byId("hunt-cancel").addEventListener("click", () => {
+ );
+ huntForm.addEventListener(
+   "invalid",
+-  () => {
++  (event) => {
+     byId<HTMLDetailsElement>("hunt-advanced").open = true;
++    if (event.target instanceof HTMLInputElement)
++      byId("hunt-status").textContent = event.target.validationMessage;
+   },
+   true,
+ );
+@@ -1913,9 +1920,12 @@ function huntCriteria(): HuntCriteria {
+       : {}),
+   };
+ }
+-async function loadHunts(): Promise<void> {
++async function loadHunts(): Promise<HuntRow[] | null> {
++  const token = csrf;
++  const sequence = ++huntListSequence;
+   try {
+     const result = await api<{ hunts: HuntRow[] }>("/api/hunts");
++    if (!csrf || csrf !== token || sequence !== huntListSequence) return null;
+     const list = byId("hunt-list");
+     list.replaceChildren();
+     for (const hunt of result.hunts) {
+@@ -2005,6 +2015,7 @@ async function loadHunts(): Promise<void> {
+             try {
+               await api(`/api/hunts/${hunt.id}`, "DELETE");
+               if (editingHunt === hunt.id) resetHuntForm();
++              huntResultSequence++;
+               byId("hunt-results").replaceChildren();
+               await loadHunts();
+             } catch (error) {
+@@ -2023,11 +2034,17 @@ async function loadHunts(): Promise<void> {
+           "No saved Hunts yet. Choose your land preferences above, then select Save Hunt & view matches.",
+         ),
+       );
++    return result.hunts;
+   } catch (error) {
+-    byId("hunt-status").textContent = errorText(error);
++    if (csrf && csrf === token && sequence === huntListSequence)
++      byId("hunt-status").textContent = errorText(error);
++    return null;
+   }
+ }
+-async function showHunt(hunt: HuntRow): Promise<void> {
++async function showHunt(hunt: HuntRow, scroll = true): Promise<void> {
++  const token = csrf;
++  const sequence = ++huntResultSequence;
++  const current = () => Boolean(csrf && csrf === token && sequence === huntResultSequence);
+   const target = byId("hunt-results");
+   target.replaceChildren(
+     element("p", "muted", "Checking connected inventory…"),
+@@ -2040,9 +2057,11 @@ async function showHunt(hunt: HuntRow): Promise<void> {
+       coverage_note: string;
+       evaluated_at: number;
+     }>(`/api/hunts/${hunt.id}/matches`);
++    if (!current()) return;
+     const history = await api<{
+       events: { listing_id: string; kind: string; message: string }[];
+     }>(`/api/hunts/${hunt.id}/events`);
++    if (!current()) return;
+     target.replaceChildren(element("h2", "", hunt.name));
+     if (result.paused) {
+       target.append(element("p", "muted", "Hunt is paused."));
+@@ -2117,14 +2136,22 @@ async function showHunt(hunt: HuntRow): Promise<void> {
+     };
+     group("Matches", result.matches);
+     group("Needs review", result.needs_review);
+-    target.scrollIntoView({ behavior: "smooth" });
++    if (scroll) target.scrollIntoView({ behavior: "smooth" });
+   } catch (error) {
+-    target.replaceChildren(element("p", "form-message", errorText(error)));
++    if (!current()) return;
++    const retry = element("button", "button secondary small", "Retry matches");
++    retry.type = "button";
++    retry.addEventListener("click", () => void showHunt(hunt));
++    target.replaceChildren(
++      element("p", "form-message", `Your Hunt is saved. ${errorText(error)}`),
++      retry,
++    );
+   }
+ }
+ huntForm.addEventListener("submit", (event) => {
+   event.preventDefault();
+   if (huntSaving) return;
++  const token = csrf;
+   void (async () => {
+     try {
+       const data = new FormData(huntForm);
+@@ -2145,26 +2172,48 @@ huntForm.addEventListener("submit", (event) => {
+       };
+       const id = editingHunt;
+       huntSaving = true;
++      huntForm.setAttribute("aria-busy", "true");
+       byId<HTMLButtonElement>("hunt-submit").disabled = true;
+       byId<HTMLButtonElement>("hunt-cancel").disabled = true;
++      byId("hunt-submit").textContent = "Saving Hunt…";
+       byId("hunt-status").textContent = "Saving your Hunt…";
+       const saved = await api<HuntRow>(
+         id ? `/api/hunts/${id}` : "/api/hunts",
+         id ? "PATCH" : "POST",
+         payload,
+       );
++      if (!csrf || csrf !== token) return;
+       resetHuntForm();
+-      byId("hunt-status").textContent = id
+-        ? "Hunt saved. Your updated preferences are in Your saved Hunts below."
+-        : "Hunt saved. It's in Your saved Hunts below; current matches are shown after the list.";
+-      await loadHunts();
+-      await showHunt(saved);
++      const rows = await loadHunts();
++      if (!csrf || csrf !== token) return;
++      if (!rows?.some((row) => row.id === saved.id)) {
++        const message =
++          "The server accepted your Hunt, but the saved list could not be verified. Reload the page before saving another copy.";
++        byId("hunt-status").textContent = message;
++        notify(message);
++        return;
++      }
++      const message = id
++        ? "Hunt saved. Your updated preferences are stored in your account."
++        : "Hunt saved to your account. Find it in Your saved Hunts below.";
++      byId("hunt-status").textContent = message;
++      notify(message);
++      byId("hunt-status").scrollIntoView({ behavior: "smooth", block: "center" });
++      // A failed or slow match request is not a failed save. Keep its retry separate.
++      await showHunt(saved, false);
+     } catch (error) {
+-      byId("hunt-status").textContent = errorText(error);
++      if (!csrf || csrf !== token) return;
++      const message = errorText(error);
++      byId("hunt-status").textContent = message;
++      notify(message);
+     } finally {
+       huntSaving = false;
++      huntForm.setAttribute("aria-busy", "false");
+       byId<HTMLButtonElement>("hunt-submit").disabled = false;
+       byId<HTMLButtonElement>("hunt-cancel").disabled = false;
++      byId("hunt-submit").textContent = editingHunt
++        ? "Save changes to Hunt"
++        : "Save Hunt & view matches";
+     }
+   })();
+ });
