@@ -1913,3 +1913,25 @@ An internal Render-shell HTTP check also returned 200 with version 0.3.1 from
 both localhost and https://landwolf.ai/api/health. The independent production
 release-gate [run 35616356560](https://github.com/lupu-spec/Landwolf/actions/runs/35616356560),
 job `106387968985`, passed the same full command suite listed above.
+
+
+## Hunt save durability repair — candidate v0.4.0-beta.5
+
+Scope: isolated staging only; production and schema v5 remain unchanged.
+The direct staging API probe on v0.4.0-beta.4 passed all five acreage bands,
+POST 201, GET read-back, edit, fresh-login persistence, matching and cleanup.
+Evidence: GitHub Actions run 36506203222. The earlier visual agent report lacked
+network evidence and is not accepted as proof of failed persistence.
+
+Local fault injection reproduced the defect before modification: malformed listing
+validation and matching exceptions aborted the save (three failing regressions).
+Preferences now commit before the independent matching transaction. Match errors
+return a saved ID with an explicit unavailable status, not a false zero-match claim.
+Database insert errors still return failure. UI confirmation requires the saved ID
+in the refreshed account list; matching retry and visible save feedback are separate.
+
+Local `PYTHONPATH=. pytest -q tests/test_hunt.py tests/test_hunt_save.py --tb=short`
+passed 11 tests using the available Python environment, not the pinned CI environment.
+Added PostgreSQL durability coverage and Chromium/WebKit failure/retry/reload cases.
+Pinned format, lint, type, complete tests, build, security and deployment checks are
+pending hosted execution; this entry does not claim a deployed fix.

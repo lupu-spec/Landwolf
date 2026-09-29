@@ -22,7 +22,7 @@ def main() -> None:
             page.set_default_timeout(30000)
             created_ids = set()
             errors = []
-            page.on("pageerror", lambda error: errors.append(type(error).__name__))
+            page.on("pageerror", lambda error, target=errors: target.append(type(error).__name__))
             try:
                 version = context.request.get(f"{ORIGIN}/api/version").json()
                 report["version"] = version
@@ -37,8 +37,9 @@ def main() -> None:
                 page.locator('[data-nav="hunt"]').click()
                 expect(page.locator("#hunt-submit")).to_be_visible()
                 with page.expect_response(
-                    lambda response: response.url == f"{ORIGIN}/api/hunts"
-                    and response.request.method == "POST"
+                    lambda response: (
+                        response.url == f"{ORIGIN}/api/hunts" and response.request.method == "POST"
+                    )
                 ) as pending:
                     page.locator("#hunt-submit").click()
                 response = pending.value
@@ -62,11 +63,15 @@ def main() -> None:
                 listed = context.request.get(f"{ORIGIN}/api/hunts").json()
                 report["same_id_after_reload"] = listed["hunts"][0]["id"] == saved["id"]
                 assert report["same_id_after_reload"]
+                report["stage"] = "edit-click"
                 page.locator("#hunt-list").get_by_role("button", name="Edit").click()
+                report["stage"] = "edit-name"
                 page.locator('#hunt-form [name="name"]').fill("QA edited Hunt")
                 with page.expect_response(
-                    lambda response: response.url == f"{ORIGIN}/api/hunts/{saved['id']}"
-                    and response.request.method == "PATCH"
+                    lambda response, hunt_id=saved["id"]: (
+                        response.url == f"{ORIGIN}/api/hunts/{hunt_id}"
+                        and response.request.method == "PATCH"
+                    )
                 ) as pending:
                     page.locator("#hunt-submit").click()
                 report["patch_status"] = pending.value.status
@@ -83,6 +88,12 @@ def main() -> None:
                 report["passed"] = True
             except Exception as exc:
                 report["error_type"] = type(exc).__name__
+                if report.get("stage"):
+                    report["safe_error"] = (
+                        str(exc)
+                        .replace(email, "[test-account]")
+                        .replace(password, "[redacted]")[:1000]
+                    )
                 report["passed"] = False
             finally:
                 # Read the session token only in memory; never print auth JSON or headers.

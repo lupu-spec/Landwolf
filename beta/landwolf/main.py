@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import logging
 import time
 import uuid
 from collections.abc import AsyncIterator, Iterator
@@ -488,14 +489,37 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             updated_at=now,
         )
         session.add(row)
-        session.flush()
+        # Preferences are durable before optional matching touches source records.
+        # A malformed listing or a match-table failure must not discard this Hunt.
+        try:
+            session.commit()
+        except SQLAlchemyError as exc:
+            session.rollback()
+            logging.getLogger(__name__).warning("Hunt save failed (%s)", type(exc).__name__)
+            raise HTTPException(503, "Your Hunt could not be saved. Please try again.") from exc
+        saved = hunt_payload(row)
         try:
             results = hunt.refresh(session, row, now=now)
-        except ValueError as exc:
+            session.commit()
+        except (ValueError, SQLAlchemyError) as exc:
             session.rollback()
-            raise HTTPException(503, str(exc)) from exc
-        session.commit()
-        return {**hunt_payload(row), **results}
+            logging.getLogger(__name__).warning(
+                "Hunt matching unavailable after save (%s)", type(exc).__name__
+            )
+            return {
+                **saved,
+                "matching_status": "unavailable",
+                "matching_message": (
+                    "Hunt saved. Matching is temporarily unavailable. Try View matches again."
+                ),
+                "matches": [],
+                "needs_review": [],
+                "evaluated_at": None,
+                "coverage_note": (
+                    "Current matches could not be checked; this is not a zero-match result."
+                ),
+            }
+        return {**saved, **results, "matching_status": "ready"}
 
     @app.patch("/api/hunts/{hunt_id}")
     def update_hunt(
@@ -546,10 +570,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return {"paused": True, "matches": [], "needs_review": []}
         try:
             result = hunt.refresh(session, row)
-        except ValueError as exc:
+            session.commit()
+        except (ValueError, SQLAlchemyError) as exc:
             session.rollback()
-            raise HTTPException(503, str(exc)) from exc
-        session.commit()
+            logging.getLogger(__name__).warning("Hunt matching failed (%s)", type(exc).__name__)
+            raise HTTPException(
+                503,
+                "Your Hunt is saved, but matching is temporarily unavailable. Please try again.",
+            ) from exc
         return {"paused": False, "revision": row.revision, **result}
 
     @app.get("/api/hunts/{hunt_id}/events")

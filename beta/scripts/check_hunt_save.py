@@ -138,7 +138,7 @@ def main() -> int:
                 if status == 200:
                     created_ids.remove(hunt_id)
             except Exception:
-                pass
+                report["cleanup_error"] = True
         report["checks"] = checks
         report["remaining_test_hunts"] = len(created_ids)
         print(json.dumps(report, indent=2))

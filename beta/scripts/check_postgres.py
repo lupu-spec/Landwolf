@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from fastapi.testclient import TestClient
-from sqlalchemy import inspect, select
+from sqlalchemy import delete, inspect, select
 
 from landwolf import auth
 from landwolf.config import Settings
@@ -17,6 +17,7 @@ from landwolf.db import (
     SCHEMA_VERSION,
     Account,
     AccountAction,
+    Hunt,
     Listing,
     LoginSession,
     SchemaVersion,
@@ -146,6 +147,45 @@ def main() -> None:
         require(
             len(client.get("/api/sources").json()["states"]) == 50, "Coverage aggregation failed"
         )
+        # A failed matching transaction must not roll back the account's saved preferences.
+        broken_id = f"hunt-invalid-{suffix}"
+        with app.state.factory() as session, session.begin():
+            session.add(
+                Listing(id=broken_id, source="us_treasury", active=True, payload={"id": broken_id})
+            )
+        saved = client.post(
+            "/api/hunts",
+            headers=headers,
+            json={
+                "name": "PostgreSQL save durability",
+                "criteria": {
+                    "mode": "fixed",
+                    "states": [],
+                    "min_acres": 5,
+                    "max_acres": 50,
+                },
+            },
+        )
+        require(saved.status_code == 201, "Matching failure discarded the Hunt")
+        require(saved.json()["matching_status"] == "unavailable", "Match failure was hidden")
+        hunt_id = saved.json()["id"]
+        with app.state.factory() as session:
+            require(session.get(Hunt, hunt_id) is not None, "Hunt was not committed to PostgreSQL")
+        require(
+            any(row["id"] == hunt_id for row in client.get("/api/hunts").json()["hunts"]),
+            "Saved Hunt cannot be read back",
+        )
+        with app.state.factory() as session, session.begin():
+            session.execute(delete(Listing).where(Listing.id == broken_id))
+        require(
+            client.get(f"/api/hunts/{hunt_id}/matches").status_code == 200,
+            "Matching cannot retry after source repair",
+        )
+        require(
+            client.request("DELETE", f"/api/hunts/{hunt_id}", headers=headers, json={}).status_code
+            == 200,
+            "Disposable Hunt cleanup failed",
+        )
         # Exercise the PostgreSQL identity/event upsert and snapshot quarantine.
         with app.state.factory() as session, session.begin():
             records = [
@@ -207,7 +247,8 @@ def main() -> None:
     print(
         "Passed: PostgreSQL authentication, nationwide JSON filters, "
         "nulls, dates, pagination, permanent Saved deletion, retained accounts/sessions, "
-        "trust snapshots, quarantine, parcel evidence and one-use password recovery"
+        "trust snapshots, quarantine, parcel evidence, durable Hunt saves "
+        "and one-use password recovery"
     )
 
 
