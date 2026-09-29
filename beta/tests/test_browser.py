@@ -823,3 +823,85 @@ def test_nationwide_categories_unknown_prices_and_coverage(browser_server: tuple
         expect(page.locator("#state-coverage")).to_be_empty()
         assert errors == []
         browser.close()
+
+
+@pytest.mark.parametrize("browser_kind", ["chromium", "webkit"])
+@pytest.mark.parametrize("width", [390, 1280])
+def test_hunt_save_survives_match_failure_and_reload(
+    browser_server: tuple[str, int], browser_kind: str, width: int
+) -> None:
+    """The save request and read-back are real; only matching is fault-injected."""
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        engine = getattr(playwright, browser_kind)
+        browser = engine.launch()
+        page = browser.new_page(viewport={"width": width, "height": 844})
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("save-boundary@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        page.locator('[data-nav="hunt"]').click()
+        page.route(
+            "**/api/hunts/*/matches",
+            lambda route: route.fulfill(
+                status=503,
+                content_type="application/json",
+                body='{"detail":"Synthetic matching failure"}',
+            ),
+        )
+        with page.expect_response(
+            lambda response: (
+                response.url == f"{origin}/api/hunts" and response.request.method == "POST"
+            )
+        ) as pending:
+            page.locator("#hunt-submit").click()
+        assert pending.value.status == 201
+        hunt_id = pending.value.json()["id"]
+        expect(page.locator("#hunt-status")).to_contain_text("Hunt saved to your account")
+        expect(page.locator("#hunt-list article")).to_have_count(1)
+        expect(page.get_by_role("button", name="Retry matches")).to_be_visible()
+        expect(page.locator("#hunt-results")).to_contain_text("Your Hunt is saved")
+        assert page.request.get(f"{origin}/api/hunts").json()["hunts"][0]["id"] == hunt_id
+        page.reload()
+        page.locator('[data-nav="hunt"]').click()
+        expect(page.locator("#hunt-list article")).to_have_count(1)
+        assert page.request.get(f"{origin}/api/hunts").json()["hunts"][0]["id"] == hunt_id
+        page.unroute("**/api/hunts/*/matches")
+        page.locator("#hunt-list").get_by_role("button", name="View matches").click()
+        expect(page.locator("#hunt-results")).to_contain_text("Needs review")
+        expect(page.get_by_role("button", name="Retry matches")).to_have_count(0)
+        page.locator('#hunt-form [name="max_price"]').fill("123456")
+        page.route(
+            "**/api/hunts",
+            lambda route: (
+                route.fulfill(
+                    status=503,
+                    content_type="application/json",
+                    body='{"detail":"Synthetic save failure"}',
+                )
+                if route.request.method == "POST"
+                else route.continue_()
+            ),
+        )
+        page.locator("#hunt-submit").click()
+        expect(page.locator("#hunt-status")).to_contain_text("Synthetic save failure")
+        expect(page.locator('#hunt-form [name="max_price"]')).to_have_value("123456")
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        expect(page.locator("#hunt-list article")).to_have_count(1)
+        page.unroute("**/api/hunts")
+        with page.expect_response(
+            lambda response: (
+                response.url == f"{origin}/api/hunts" and response.request.method == "POST"
+            )
+        ) as retry:
+            # Two synchronous submits must still perform a single save.
+            page.locator("#hunt-form").evaluate(
+                "form => { form.requestSubmit(); form.requestSubmit(); }"
+            )
+        assert retry.value.status == 201
+        expect(page.locator("#hunt-list article")).to_have_count(2)
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        assert len(page.request.get(f"{origin}/api/hunts").json()["hunts"]) == 2
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        browser.close()

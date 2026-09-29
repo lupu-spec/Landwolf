@@ -221,6 +221,8 @@ type HuntEntry = {
 let editingHunt: string | null = null;
 let editingHuntCriteria: HuntCriteria | null = null;
 let huntSaving = false;
+let huntListSequence = 0;
+let huntResultSequence = 0;
 let researchListingId: string | null = null;
 let currentProperty: PropertyRecord | null = null;
 let pendingResearchProperty: PropertyRecord | null = null;
@@ -303,8 +305,11 @@ function clearSession(): void {
   byId("account-email").textContent = "";
   byId("email-status").textContent = "";
   byId("beta-roadmap").replaceChildren();
+  huntListSequence++;
+  huntResultSequence++;
   byId("hunt-list").replaceChildren();
   byId("hunt-results").replaceChildren();
+  byId("hunt-status").textContent = "";
   resetHuntForm();
   markers?.clearLayers();
   mapRecords = [];
@@ -1842,8 +1847,10 @@ byId("hunt-cancel").addEventListener("click", () => {
 );
 huntForm.addEventListener(
   "invalid",
-  () => {
+  (event) => {
     byId<HTMLDetailsElement>("hunt-advanced").open = true;
+    if (event.target instanceof HTMLInputElement)
+      byId("hunt-status").textContent = event.target.validationMessage;
   },
   true,
 );
@@ -1913,9 +1920,12 @@ function huntCriteria(): HuntCriteria {
       : {}),
   };
 }
-async function loadHunts(): Promise<void> {
+async function loadHunts(): Promise<HuntRow[] | null> {
+  const token = csrf;
+  const sequence = ++huntListSequence;
   try {
     const result = await api<{ hunts: HuntRow[] }>("/api/hunts");
+    if (!csrf || csrf !== token || sequence !== huntListSequence) return null;
     const list = byId("hunt-list");
     list.replaceChildren();
     for (const hunt of result.hunts) {
@@ -2005,6 +2015,7 @@ async function loadHunts(): Promise<void> {
             try {
               await api(`/api/hunts/${hunt.id}`, "DELETE");
               if (editingHunt === hunt.id) resetHuntForm();
+              huntResultSequence++;
               byId("hunt-results").replaceChildren();
               await loadHunts();
             } catch (error) {
@@ -2023,11 +2034,18 @@ async function loadHunts(): Promise<void> {
           "No saved Hunts yet. Choose your land preferences above, then select Save Hunt & view matches.",
         ),
       );
+    return result.hunts;
   } catch (error) {
-    byId("hunt-status").textContent = errorText(error);
+    if (csrf && csrf === token && sequence === huntListSequence)
+      byId("hunt-status").textContent = errorText(error);
+    return null;
   }
 }
-async function showHunt(hunt: HuntRow): Promise<void> {
+async function showHunt(hunt: HuntRow, scroll = true): Promise<void> {
+  const token = csrf;
+  const sequence = ++huntResultSequence;
+  const current = () =>
+    Boolean(csrf && csrf === token && sequence === huntResultSequence);
   const target = byId("hunt-results");
   target.replaceChildren(
     element("p", "muted", "Checking connected inventory…"),
@@ -2040,9 +2058,11 @@ async function showHunt(hunt: HuntRow): Promise<void> {
       coverage_note: string;
       evaluated_at: number;
     }>(`/api/hunts/${hunt.id}/matches`);
+    if (!current()) return;
     const history = await api<{
       events: { listing_id: string; kind: string; message: string }[];
     }>(`/api/hunts/${hunt.id}/events`);
+    if (!current()) return;
     target.replaceChildren(element("h2", "", hunt.name));
     if (result.paused) {
       target.append(element("p", "muted", "Hunt is paused."));
@@ -2117,14 +2137,22 @@ async function showHunt(hunt: HuntRow): Promise<void> {
     };
     group("Matches", result.matches);
     group("Needs review", result.needs_review);
-    target.scrollIntoView({ behavior: "smooth" });
+    if (scroll) target.scrollIntoView({ behavior: "smooth" });
   } catch (error) {
-    target.replaceChildren(element("p", "form-message", errorText(error)));
+    if (!current()) return;
+    const retry = element("button", "button secondary small", "Retry matches");
+    retry.type = "button";
+    retry.addEventListener("click", () => void showHunt(hunt));
+    target.replaceChildren(
+      element("p", "form-message", `Your Hunt is saved. ${errorText(error)}`),
+      retry,
+    );
   }
 }
 huntForm.addEventListener("submit", (event) => {
   event.preventDefault();
   if (huntSaving) return;
+  const token = csrf;
   void (async () => {
     try {
       const data = new FormData(huntForm);
@@ -2145,26 +2173,51 @@ huntForm.addEventListener("submit", (event) => {
       };
       const id = editingHunt;
       huntSaving = true;
+      huntForm.setAttribute("aria-busy", "true");
       byId<HTMLButtonElement>("hunt-submit").disabled = true;
       byId<HTMLButtonElement>("hunt-cancel").disabled = true;
+      byId("hunt-submit").textContent = "Saving Hunt…";
       byId("hunt-status").textContent = "Saving your Hunt…";
       const saved = await api<HuntRow>(
         id ? `/api/hunts/${id}` : "/api/hunts",
         id ? "PATCH" : "POST",
         payload,
       );
+      if (!csrf || csrf !== token) return;
       resetHuntForm();
-      byId("hunt-status").textContent = id
-        ? "Hunt saved. Your updated preferences are in Your saved Hunts below."
-        : "Hunt saved. It's in Your saved Hunts below; current matches are shown after the list.";
-      await loadHunts();
-      await showHunt(saved);
+      const rows = await loadHunts();
+      if (!csrf || csrf !== token) return;
+      if (!rows?.some((row) => row.id === saved.id)) {
+        const message =
+          "The server accepted your Hunt, but the saved list could not be verified. Reload the page before saving another copy.";
+        byId("hunt-status").textContent = message;
+        notify(message);
+        return;
+      }
+      const message = id
+        ? "Hunt saved. Your updated preferences are stored in your account."
+        : "Hunt saved to your account. Find it in Your saved Hunts below.";
+      byId("hunt-status").textContent = message;
+      notify(message);
+      byId("hunt-status").scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      // A failed or slow match request is not a failed save. Keep its retry separate.
+      await showHunt(saved, false);
     } catch (error) {
-      byId("hunt-status").textContent = errorText(error);
+      if (!csrf || csrf !== token) return;
+      const message = errorText(error);
+      byId("hunt-status").textContent = message;
+      notify(message);
     } finally {
       huntSaving = false;
+      huntForm.setAttribute("aria-busy", "false");
       byId<HTMLButtonElement>("hunt-submit").disabled = false;
       byId<HTMLButtonElement>("hunt-cancel").disabled = false;
+      byId("hunt-submit").textContent = editingHunt
+        ? "Save changes to Hunt"
+        : "Save Hunt & view matches";
     }
   })();
 });

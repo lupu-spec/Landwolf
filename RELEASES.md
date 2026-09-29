@@ -137,3 +137,13 @@ Append deployments below only after Render reports them live and HTTPS checks su
   restore and reconciliation of writes since the backup; prefer a tested fix forward.
 - Keep this canonical ledger on `codex/landwolf-premium-staging` and synchronize it
   with `codex/landwolf-beta-rebuild` at promotion. Do not infer deployment from Git.
+
+
+## v0.4.0-beta.5 — Hunt save durability candidate, not yet deployed
+
+- Save preferences before optional matching, preserving the saved Hunt if source
+  validation or match storage fails. Storage errors are still reported as failures.
+- Verify saved IDs through the account list, keep confirmation visible, and retry
+  matching separately. Add database, failure-injection and mobile/desktop regressions.
+- Existing schema v5 and production remain unchanged. Hosted gates and live
+  deployment verification must complete before changing the environment ledger.
