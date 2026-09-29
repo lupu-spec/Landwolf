@@ -1,0 +1,36 @@
+name: Hunt save staging diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/landwolf-hunt-save-fix]
+    paths:
+      - .github/workflows/hunt-save-diagnostic.yml
+      - beta/scripts/check_hunt_save.py
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test isolated staging persistence
+        run: |
+          set -o pipefail
+          mkdir -p diagnostics
+          python beta/scripts/check_hunt_save.py | tee diagnostics/hunt-save-api.json
+      - name: Collect exact test source
+        if: always()
+        run: git archive --format=zip --output=diagnostics/source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hunt-save-diagnostic
+          path: diagnostics/
+          retention-days: 3
