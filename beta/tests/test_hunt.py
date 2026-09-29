@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from landwolf.db import (
+    SCHEMA_VERSION,
     Account,
     HuntEvent,
     Listing,
@@ -148,11 +149,14 @@ def test_schema_v4_upgrade_preserves_accounts(tmp_path) -> None:
     initialize(engine)
     with factory() as session, session.begin():
         session.add(Account(id="fixture", email="fixture@example.com", password_hash="fixture"))
-        session.get(SchemaVersion, 5).version = 4
+        version = session.scalar(select(SchemaVersion))
+        assert version is not None
+        version.version = 4
     initialize(engine)
     with factory() as session:
         assert session.get(Account, "fixture") is not None
-        assert session.get(SchemaVersion, 5) is not None
+        version = session.scalar(select(SchemaVersion))
+        assert version is not None and version.version == SCHEMA_VERSION
     engine.dispose()
 
 
