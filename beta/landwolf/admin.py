@@ -25,14 +25,18 @@ class ExemptionRevoke(Contract):
     reason: str | None = Field(default=None, max_length=500)
 
 
-def require_owner(request: Request, session: Session, settings: Settings, *, write: bool) -> Account:
+def require_owner(
+    request: Request, session: Session, settings: Settings, *, write: bool
+) -> Account:
     account = auth.authenticate(request, session, settings, write=write)
     if settings.owner_account_id is None or account.id != settings.owner_account_id:
         raise HTTPException(403, "Owner authorization required")
     return account
 
 
-def active_exemption(session: Session, account_id: str, *, now: int | None = None) -> BillingExemption | None:
+def active_exemption(
+    session: Session, account_id: str, *, now: int | None = None
+) -> BillingExemption | None:
     current = int(time.time()) if now is None else now
     return session.scalar(
         select(BillingExemption).where(
@@ -107,7 +111,12 @@ def grant(
     except IntegrityError as exc:
         session.rollback()
         raise HTTPException(409, "Complimentary access changed concurrently; reload") from exc
-    return {"account_id": target.id, "email": target.email, "billing_exempt": True, "expires_at": body.expires_at}
+    return {
+        "account_id": target.id,
+        "email": target.email,
+        "billing_exempt": True,
+        "expires_at": body.expires_at,
+    }
 
 
 def revoke(
