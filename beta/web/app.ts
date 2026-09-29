@@ -6,6 +6,7 @@ import {
   type PropertyTrust,
 } from "./trust-ui";
 import { setupAccountActions } from "./account-actions";
+import { acreagePresets, acreageRange, huntName } from "./hunt-form";
 
 type ResearchLocation = {
   address: string | null;
@@ -193,6 +194,8 @@ type HuntCriteria = {
   max_acres: number;
   max_price: number | null;
   max_price_per_acre: number | null;
+  preferred_min?: number | null;
+  preferred_max?: number | null;
 };
 type HuntRow = {
   id: string;
@@ -204,6 +207,8 @@ type HuntRow = {
 type HuntEntry = {
   listing_id: string;
   title: string;
+  tract: string;
+  image_url: string | null;
   state: string;
   county: string | null;
   acres: number | null;
@@ -214,6 +219,10 @@ type HuntEntry = {
   components?: Record<string, number>;
 };
 let editingHunt: string | null = null;
+let editingHuntCriteria: HuntCriteria | null = null;
+let huntSaving = false;
+let huntListSequence = 0;
+let huntResultSequence = 0;
 let researchListingId: string | null = null;
 let currentProperty: PropertyRecord | null = null;
 let pendingResearchProperty: PropertyRecord | null = null;
@@ -296,9 +305,12 @@ function clearSession(): void {
   byId("account-email").textContent = "";
   byId("email-status").textContent = "";
   byId("beta-roadmap").replaceChildren();
+  huntListSequence++;
+  huntResultSequence++;
   byId("hunt-list").replaceChildren();
   byId("hunt-results").replaceChildren();
-  editingHunt = null;
+  byId("hunt-status").textContent = "";
+  resetHuntForm();
   markers?.clearLayers();
   mapRecords = [];
   map?.closePopup();
@@ -406,7 +418,10 @@ function sourceLink(url: string, label: string): HTMLAnchorElement {
   a.rel = "noopener noreferrer";
   return a;
 }
-function photo(record: PropertyRecord, css: string): HTMLElement {
+function photo(
+  record: Pick<PropertyRecord, "image_url" | "tract">,
+  css: string,
+): HTMLElement {
   const src = safeImage(record.image_url);
   const img = element("img", css) as HTMLImageElement;
   const fallback = "/assets/no-photo-available.png";
@@ -1748,6 +1763,9 @@ for (const state of states.split("|")) {
   option.value = code ?? "";
   byId<HTMLSelectElement>("state").append(option);
   byId<HTMLSelectElement>("coverage-state").append(option.cloneNode(true));
+  byId<HTMLFormElement>("hunt-form")
+    .querySelector<HTMLSelectElement>('[name="state"]')
+    ?.append(option.cloneNode(true));
 }
 byId("year").textContent = String(new Date().getFullYear());
 if (window.matchMedia("(max-width: 800px)").matches) {
@@ -1780,26 +1798,134 @@ void (async () => {
 })();
 
 const huntForm = byId<HTMLFormElement>("hunt-form");
+const huntSize = huntForm.elements.namedItem("size") as HTMLSelectElement;
+function updateHuntSize(): void {
+  byId("hunt-custom-size").hidden = huntSize.value !== "custom";
+  for (const name of ["min_acres", "max_acres"]) {
+    const field = huntForm.elements.namedItem(name) as HTMLInputElement;
+    field.disabled = huntSize.value !== "custom";
+    field.required = huntSize.value === "custom";
+  }
+  if (huntSize.value === "custom")
+    byId<HTMLDetailsElement>("hunt-advanced").open = true;
+}
+huntSize.addEventListener("change", updateHuntSize);
+function updateHuntMode(): void {
+  const auction =
+    (huntForm.elements.namedItem("mode") as HTMLSelectElement).value ===
+    "auction";
+  byId("hunt-budget-label").textContent = auction
+    ? "Maximum opening bid ($, optional)"
+    : "Budget ($, optional)";
+  byId("hunt-budget-note").textContent = auction
+    ? "Auction opening bids can rise. Fees and total purchase costs are not included."
+    : "Filters published sale prices. Taxes, fees and other costs are not included.";
+  const perAcre = huntForm.elements.namedItem(
+    "max_price_per_acre",
+  ) as HTMLInputElement;
+  perAcre.disabled = auction;
+}
+function resetHuntForm(): void {
+  editingHunt = null;
+  editingHuntCriteria = null;
+  huntForm.reset();
+  const retainedStates = huntForm.querySelector('option[value="retained"]');
+  retainedStates?.remove();
+  updateHuntSize();
+  updateHuntMode();
+  byId<HTMLDetailsElement>("hunt-advanced").open = false;
+  byId("hunt-submit").textContent = "Save Hunt & view matches";
+  byId("hunt-cancel").hidden = true;
+}
+byId("hunt-cancel").addEventListener("click", () => {
+  resetHuntForm();
+  byId("hunt-status").textContent = "Edit canceled. Your Hunt is unchanged.";
+});
+(huntForm.elements.namedItem("mode") as HTMLSelectElement).addEventListener(
+  "change",
+  updateHuntMode,
+);
+huntForm.addEventListener(
+  "invalid",
+  (event) => {
+    byId<HTMLDetailsElement>("hunt-advanced").open = true;
+    if (event.target instanceof HTMLInputElement)
+      byId("hunt-status").textContent = event.target.validationMessage;
+  },
+  true,
+);
+for (const button of document.querySelectorAll<HTMLButtonElement>(
+  "[data-hunt-preset]",
+)) {
+  button.addEventListener("click", () => {
+    if (huntSaving) return;
+    huntSize.value = button.dataset.huntPreset === "large" ? "50-500" : "5-50";
+    (huntForm.elements.namedItem("mode") as HTMLSelectElement).value =
+      button.dataset.huntPreset === "auction" ? "auction" : "fixed";
+    updateHuntSize();
+    updateHuntMode();
+    byId("hunt-status").textContent =
+      "Starter applied. Choose a state and optional budget, then find your land.";
+  });
+}
+updateHuntSize();
+updateHuntMode();
 function huntCriteria(): HuntCriteria {
   const data = new FormData(huntForm);
   const value = (key: string) => String(data.get(key) ?? "").trim();
   const optional = (key: string) => (value(key) ? Number(value(key)) : null);
+  const [minAcres, maxAcres] = acreageRange(
+    value("size"),
+    value("min_acres"),
+    value("max_acres"),
+  );
+  const selectedStates =
+    value("state") === "retained"
+      ? editingHuntCriteria?.states || []
+      : value("state")
+        ? [value("state")]
+        : [];
+  const radius = optional("radius_miles");
+  const hasRadius = ["center_lat", "center_lon", "radius_miles"].some((key) =>
+    value(key),
+  );
+  if (hasRadius && (selectedStates.length || value("county")))
+    throw new Error("Choose a state/county or a radius, not both.");
+  if (
+    hasRadius &&
+    ["center_lat", "center_lon", "radius_miles"].some((key) => !value(key))
+  )
+    throw new Error(
+      "For a radius search, enter latitude, longitude and miles.",
+    );
+  if (value("county") && selectedStates.length !== 1)
+    throw new Error("Choose a state before entering a county.");
   return {
     mode: value("mode") as "fixed" | "auction",
-    states: value("state") ? [value("state").toUpperCase()] : [],
+    states: selectedStates,
     county: value("county") || null,
     center_lat: optional("center_lat"),
     center_lon: optional("center_lon"),
-    radius_miles: optional("radius_miles"),
-    min_acres: Number(value("min_acres")),
-    max_acres: Number(value("max_acres")),
+    radius_miles: radius,
+    min_acres: minAcres,
+    max_acres: maxAcres,
     max_price: optional("max_price"),
     max_price_per_acre: optional("max_price_per_acre"),
+    ...(editingHuntCriteria?.min_acres === minAcres &&
+    editingHuntCriteria.max_acres === maxAcres
+      ? {
+          preferred_min: editingHuntCriteria.preferred_min,
+          preferred_max: editingHuntCriteria.preferred_max,
+        }
+      : {}),
   };
 }
-async function loadHunts(): Promise<void> {
+async function loadHunts(): Promise<HuntRow[] | null> {
+  const token = csrf;
+  const sequence = ++huntListSequence;
   try {
     const result = await api<{ hunts: HuntRow[] }>("/api/hunts");
+    if (!csrf || csrf !== token || sequence !== huntListSequence) return null;
     const list = byId("hunt-list");
     list.replaceChildren();
     for (const hunt of result.hunts) {
@@ -1821,11 +1947,24 @@ async function loadHunts(): Promise<void> {
       };
       button("View matches", () => void showHunt(hunt));
       button("Edit", () => {
+        if (huntSaving) return;
+        resetHuntForm();
         editingHunt = hunt.id;
+        editingHuntCriteria = hunt.criteria;
+        if (hunt.criteria.states.length > 1) {
+          const option = element("option", "", hunt.criteria.states.join(", "));
+          option.value = "retained";
+          (huntForm.elements.namedItem("state") as HTMLSelectElement).append(
+            option,
+          );
+        }
         const fields: Record<string, string> = {
           name: hunt.name,
           mode: hunt.criteria.mode,
-          state: hunt.criteria.states[0] || "",
+          state:
+            hunt.criteria.states.length > 1
+              ? "retained"
+              : hunt.criteria.states[0] || "",
           county: hunt.criteria.county || "",
           center_lat: String(hunt.criteria.center_lat ?? ""),
           center_lon: String(hunt.criteria.center_lon ?? ""),
@@ -1835,6 +1974,8 @@ async function loadHunts(): Promise<void> {
           max_price: String(hunt.criteria.max_price ?? ""),
           max_price_per_acre: String(hunt.criteria.max_price_per_acre ?? ""),
         };
+        const range = `${hunt.criteria.min_acres}-${hunt.criteria.max_acres}`;
+        fields.size = Object.hasOwn(acreagePresets, range) ? range : "custom";
         for (const [key, value] of Object.entries(fields)) {
           const field = huntForm.elements.namedItem(key);
           if (
@@ -1843,6 +1984,11 @@ async function loadHunts(): Promise<void> {
           )
             field.value = value;
         }
+        updateHuntSize();
+        updateHuntMode();
+        byId<HTMLDetailsElement>("hunt-advanced").open = true;
+        byId("hunt-submit").textContent = "Save changes to Hunt";
+        byId("hunt-cancel").hidden = false;
         byId("hunt-status").textContent =
           `Editing ${hunt.name}. Submit the form to save a new criteria revision.`;
         huntForm.scrollIntoView({ behavior: "smooth" });
@@ -1868,6 +2014,8 @@ async function loadHunts(): Promise<void> {
             if (!window.confirm(`Delete Hunt “${hunt.name}”?`)) return;
             try {
               await api(`/api/hunts/${hunt.id}`, "DELETE");
+              if (editingHunt === hunt.id) resetHuntForm();
+              huntResultSequence++;
               byId("hunt-results").replaceChildren();
               await loadHunts();
             } catch (error) {
@@ -1883,14 +2031,21 @@ async function loadHunts(): Promise<void> {
         element(
           "p",
           "muted",
-          "No Hunts yet. Create one above to see matches from connected inventory.",
+          "No saved Hunts yet. Choose your land preferences above, then select Save Hunt & view matches.",
         ),
       );
+    return result.hunts;
   } catch (error) {
-    byId("hunt-status").textContent = errorText(error);
+    if (csrf && csrf === token && sequence === huntListSequence)
+      byId("hunt-status").textContent = errorText(error);
+    return null;
   }
 }
-async function showHunt(hunt: HuntRow): Promise<void> {
+async function showHunt(hunt: HuntRow, scroll = true): Promise<void> {
+  const token = csrf;
+  const sequence = ++huntResultSequence;
+  const current = () =>
+    Boolean(csrf && csrf === token && sequence === huntResultSequence);
   const target = byId("hunt-results");
   target.replaceChildren(
     element("p", "muted", "Checking connected inventory…"),
@@ -1903,9 +2058,11 @@ async function showHunt(hunt: HuntRow): Promise<void> {
       coverage_note: string;
       evaluated_at: number;
     }>(`/api/hunts/${hunt.id}/matches`);
+    if (!current()) return;
     const history = await api<{
       events: { listing_id: string; kind: string; message: string }[];
     }>(`/api/hunts/${hunt.id}/events`);
+    if (!current()) return;
     target.replaceChildren(element("h2", "", hunt.name));
     if (result.paused) {
       target.append(element("p", "muted", "Hunt is paused."));
@@ -1915,7 +2072,7 @@ async function showHunt(hunt: HuntRow): Promise<void> {
       element(
         "p",
         "muted",
-        `${result.matches.length} confirmed criteria matches · ${result.needs_review.length} need review. ${result.coverage_note}`,
+        `${result.matches.length} matches · ${result.needs_review.length} to review. ${result.coverage_note}`,
       ),
     );
     if (history.events.length)
@@ -1934,20 +2091,20 @@ async function showHunt(hunt: HuntRow): Promise<void> {
           element("p", "muted", "None in the connected inventory."),
         );
       for (const row of rows.slice(0, 50)) {
-        const card = element("article", "source-card");
-        card.append(
-          element(
-            "h4",
-            "",
-            `${row.title} · ${row.score === null ? "Needs review" : `Hunt Fit ${row.score}/100`}`,
-          ),
+        const card = element("article", "source-card hunt-result-card");
+        const image = element("div", "hunt-result-photo");
+        image.append(photo(row, ""));
+        const details = element("div", "hunt-result-details");
+        details.append(
+          element("h4", "", row.title),
           element(
             "p",
             "",
             `${row.acres ?? "Unknown"} acres · ${money(row.amount)} ${row.price_kind} · ${row.county ? `${row.county}, ` : ""}${row.state}`,
           ),
-          element("p", "muted", row.reasons.join("; ")),
         );
+        if (row.score === null && row.reasons.length)
+          details.append(element("p", "muted", row.reasons.join("; ")));
         const link = element(
           "button",
           "button secondary small",
@@ -1965,7 +2122,8 @@ async function showHunt(hunt: HuntRow): Promise<void> {
               }
             })(),
         );
-        card.append(link);
+        details.append(link);
+        card.append(image, details);
         target.append(card);
       }
       if (rows.length > 50)
@@ -1979,34 +2137,87 @@ async function showHunt(hunt: HuntRow): Promise<void> {
     };
     group("Matches", result.matches);
     group("Needs review", result.needs_review);
-    target.scrollIntoView({ behavior: "smooth" });
+    if (scroll) target.scrollIntoView({ behavior: "smooth" });
   } catch (error) {
-    target.replaceChildren(element("p", "form-message", errorText(error)));
+    if (!current()) return;
+    const retry = element("button", "button secondary small", "Retry matches");
+    retry.type = "button";
+    retry.addEventListener("click", () => void showHunt(hunt));
+    target.replaceChildren(
+      element("p", "form-message", `Your Hunt is saved. ${errorText(error)}`),
+      retry,
+    );
   }
 }
 huntForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  if (huntSaving) return;
+  const token = csrf;
   void (async () => {
     try {
       const data = new FormData(huntForm);
+      const criteria = huntCriteria();
       const payload = {
-        name: String(data.get("name") ?? "").trim(),
-        criteria: huntCriteria(),
+        name:
+          String(data.get("name") ?? "").trim() ||
+          huntName(
+            criteria.states.join(", ") ||
+              (criteria.radius_miles
+                ? `${criteria.radius_miles}-mile radius`
+                : "Anywhere"),
+            criteria.min_acres,
+            criteria.max_acres,
+            criteria.mode === "auction",
+          ),
+        criteria,
       };
       const id = editingHunt;
-      await api(
+      huntSaving = true;
+      huntForm.setAttribute("aria-busy", "true");
+      byId<HTMLButtonElement>("hunt-submit").disabled = true;
+      byId<HTMLButtonElement>("hunt-cancel").disabled = true;
+      byId("hunt-submit").textContent = "Saving Hunt…";
+      byId("hunt-status").textContent = "Saving your Hunt…";
+      const saved = await api<HuntRow>(
         id ? `/api/hunts/${id}` : "/api/hunts",
         id ? "PATCH" : "POST",
         payload,
       );
-      editingHunt = null;
-      huntForm.reset();
-      byId("hunt-status").textContent = id
-        ? "Hunt updated. Changes establish a new baseline."
-        : "Hunt created. Current listings establish the baseline.";
-      await loadHunts();
+      if (!csrf || csrf !== token) return;
+      resetHuntForm();
+      const rows = await loadHunts();
+      if (!csrf || csrf !== token) return;
+      if (!rows?.some((row) => row.id === saved.id)) {
+        const message =
+          "The server accepted your Hunt, but the saved list could not be verified. Reload the page before saving another copy.";
+        byId("hunt-status").textContent = message;
+        notify(message);
+        return;
+      }
+      const message = id
+        ? "Hunt saved. Your updated preferences are stored in your account."
+        : "Hunt saved to your account. Find it in Your saved Hunts below.";
+      byId("hunt-status").textContent = message;
+      notify(message);
+      byId("hunt-status").scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      // A failed or slow match request is not a failed save. Keep its retry separate.
+      await showHunt(saved, false);
     } catch (error) {
-      byId("hunt-status").textContent = errorText(error);
+      if (!csrf || csrf !== token) return;
+      const message = errorText(error);
+      byId("hunt-status").textContent = message;
+      notify(message);
+    } finally {
+      huntSaving = false;
+      huntForm.setAttribute("aria-busy", "false");
+      byId<HTMLButtonElement>("hunt-submit").disabled = false;
+      byId<HTMLButtonElement>("hunt-cancel").disabled = false;
+      byId("hunt-submit").textContent = editingHunt
+        ? "Save changes to Hunt"
+        : "Save Hunt & view matches";
     }
   })();
 });

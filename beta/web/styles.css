@@ -1887,6 +1887,35 @@ select {
 .hunt-form button {
   align-self: end;
 }
+.hunt-advanced {
+  grid-column: 1 / -1;
+  border: 1px solid #b5c4d4;
+  border-radius: 0.45rem;
+  padding: 0.8rem 1rem;
+}
+.hunt-wide {
+  grid-column: 1 / -1;
+}
+.hunt-form > .input-note {
+  margin: 0;
+}
+.hunt-form label {
+  min-width: 0;
+}
+.hunt-advanced summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.hunt-advanced-fields,
+.hunt-size-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.hunt-size-fields[hidden] {
+  display: none;
+}
 .hunt-list,
 #hunt-results {
   display: grid;
@@ -1897,4 +1926,30 @@ select {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+.hunt-result-card {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.hunt-result-photo img {
+  display: block;
+  width: 140px;
+  height: 105px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #edf2f6;
+}
+.hunt-result-details {
+  min-width: 0;
+}
+@media (max-width: 480px) {
+  .hunt-result-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+  .hunt-result-photo img {
+    width: 96px;
+    height: 78px;
+  }
 }

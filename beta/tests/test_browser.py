@@ -24,31 +24,87 @@ from landwolf.db import Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
-def test_hunt_browser_flow(browser_server: tuple[str, int]) -> None:
+@pytest.mark.parametrize("width", [390, 1280])
+def test_hunt_browser_flow(browser_server: tuple[str, int], width: int) -> None:
     origin, _ = browser_server
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(
             executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
             args=["--no-sandbox", "--disable-gpu"],
         )
-        page = browser.new_page(viewport={"width": 1280, "height": 850})
+        page = browser.new_page(viewport={"width": width, "height": 850})
         page.goto(origin)
         page.get_by_role("button", name="Create account", exact=True).click()
         page.get_by_label("Email address", exact=True).fill("hunt-browser@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
         page.locator('[data-nav="hunt"]').click()
-        page.locator('#hunt-form [name="name"]').fill("Texas land")
-        page.locator('#hunt-form [name="state"]').fill("TX")
-        page.locator('#hunt-form [name="min_acres"]').fill("5")
-        page.locator('#hunt-form [name="max_acres"]').fill("50")
+        expect(page.get_by_role("heading", name="Create a saved Hunt")).to_be_visible()
+        expect(page.locator("#hunt-submit")).to_have_text("Save Hunt & view matches")
+        expect(page.get_by_role("heading", name="Your saved Hunts")).to_be_visible()
+        expect(page.locator('#hunt-form [name="name"]')).not_to_be_visible()
+        page.locator('#hunt-form [name="size"]').select_option("custom")
+        expect(page.locator('#hunt-form [name="min_acres"]')).to_be_visible()
+        page.locator('#hunt-form [name="size"]').select_option("5-50")
+        page.locator("#hunt-advanced summary").click()
+        page.locator('#hunt-form [name="state"]').select_option("TX")
+        page.locator('#hunt-form [name="max_price"]').fill("250000")
         page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-status")).to_contain_text("Hunt saved")
         expect(page.locator("#hunt-list article")).to_have_count(1)
+        expect(page.locator("#hunt-submit")).to_have_text("Save Hunt & view matches")
+        expect(page.locator("#hunt-list")).to_contain_text("TX · 5–50 acres")
+        expect(page.locator("#hunt-results")).to_contain_text("Needs review")
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        page.locator("#hunt-list").get_by_role("button", name="Edit").click()
+        expect(page.locator("#hunt-submit")).to_have_text("Save changes to Hunt")
+        expect(page.locator('#hunt-form [name="max_price"]')).to_have_value("250000")
+        page.locator('#hunt-form [name="size"]').select_option("custom")
+        page.locator('#hunt-form [name="min_acres"]').fill("12")
+        page.locator('#hunt-form [name="max_acres"]').fill("8")
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-status")).to_contain_text("valid acreage range")
+        page.locator('#hunt-form [name="max_acres"]').fill("80")
+        page.locator('#hunt-form [name="radius_miles"]').fill("25")
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-status")).to_contain_text("not both")
+        page.locator('#hunt-form [name="radius_miles"]').fill("")
+        page.route(
+            "**/api/hunts/*",
+            lambda route: (
+                route.fulfill(
+                    status=503,
+                    content_type="application/json",
+                    body='{"detail":"Temporary fixture failure. Try again."}',
+                )
+                if route.request.method == "PATCH"
+                else route.continue_()
+            ),
+        )
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-status")).to_contain_text("Temporary fixture failure")
+        expect(page.locator('#hunt-form [name="max_acres"]')).to_have_value("80")
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        page.unroute("**/api/hunts/*")
+        page.locator("#hunt-form button[type=submit]").click()
+        expect(page.locator("#hunt-list")).to_contain_text("12–80 acres")
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        page.locator("#hunt-list").get_by_role("button", name="Edit").click()
+        page.locator('#hunt-form [name="max_acres"]').fill("100")
+        page.get_by_role("button", name="Cancel edit").click()
+        expect(page.locator("#hunt-list")).to_contain_text("12–80 acres")
+        page.get_by_role("button", name="Auction hunt", exact=True).click()
+        expect(page.locator("#hunt-budget-label")).to_contain_text("opening bid")
+        page.get_by_role("button", name="5–50 acres", exact=True).click()
+        expect(page.locator("#hunt-budget-label")).to_contain_text("Budget")
         page.locator("#hunt-list").get_by_role("button", name="View matches").click()
         expect(page.locator("#hunt-results")).to_contain_text("Needs review")
         page.locator("#hunt-list").get_by_role("button", name="Pause").click()
         expect(page.locator("#hunt-list")).to_contain_text("Paused")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.locator("#hunt-title").scroll_into_view_if_needed()
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path=f"test-results/hunt-{width}.png", full_page=True)
         browser.close()
 
 
@@ -80,6 +136,63 @@ def test_missing_and_failed_listing_photos_use_branded_image(
         page.locator(".property-card").first.get_by_role("button", name="View property").click()
         detail_image = page.locator(".detail-photo.image-missing")
         expect(detail_image).to_have_js_property("naturalWidth", 1536)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        browser.close()
+
+
+@pytest.mark.parametrize("browser_server", ["hunt_photos"], indirect=True)
+@pytest.mark.parametrize("width", [390, 1280])
+def test_hunt_result_photos_and_plain_titles(browser_server: tuple[str, int], width: int) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": width, "height": 844})
+        page.route(
+            "**/vlb/land/tract-images/**",
+            lambda route: (
+                route.fulfill(path=str(Path(__file__).parents[1] / "web/assets/landscape.jpg"))
+                if route.request.url.endswith("/preview.jpg")
+                else route.abort()
+            ),
+        )
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill(f"hunt-photos-{width}@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        page.locator('[data-nav="hunt"]').click()
+        page.locator("#hunt-submit").click()
+        cards = page.locator("#hunt-results article.hunt-result-card")
+        expect(cards).to_have_count(4)
+        expect(page.locator("#hunt-results")).not_to_contain_text("Strong match")
+        expect(page.locator("#hunt-results")).not_to_contain_text("Matches your filters")
+        expect(page.locator("#hunt-results")).not_to_contain_text("Fits confirmed criteria")
+        published = cards.filter(has_text="Test fixture 99001")
+        preview = published.locator(".hunt-result-photo img")
+        expect(preview).to_have_attribute(
+            "src", "https://cdn.glo.texas.gov/vlb/land/tract-images/1/preview.jpg"
+        )
+        expect(preview).to_have_js_property("naturalWidth", 3680)
+        expect(published.locator(".hunt-result-details")).not_to_contain_text(
+            "Recent source confirmation"
+        )
+        broken = cards.filter(has_text="Test fixture 99002").locator(
+            ".hunt-result-photo img.image-missing"
+        )
+        absent = cards.filter(has_text="Test fixture 99004").locator(
+            ".hunt-result-photo img.image-missing"
+        )
+        disallowed = cards.filter(has_text="Test fixture 99005").locator(
+            ".hunt-result-photo img.image-missing"
+        )
+        for image in (broken, absent, disallowed):
+            image.scroll_into_view_if_needed()
+            expect(image).to_have_attribute("src", "/assets/no-photo-available.png")
+            expect(image).to_have_js_property("naturalWidth", 1536)
+        expect(cards.filter(has_text="Test fixture 99004")).to_contain_text("Acreage")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         browser.close()
 
@@ -385,6 +498,34 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                     **entry.payload,
                     "image_url": "https://cdn.glo.texas.gov/vlb/land/tract-images/missing.jpg",
                 }
+        if getattr(request, "param", "") == "hunt_photos":
+            with factory() as session, session.begin():
+                session.add(SourceState(id="tx_glo_public", last_success=int(time.time())))
+                for tract, image_url in (
+                    ("99001", "https://cdn.glo.texas.gov/vlb/land/tract-images/1/preview.jpg"),
+                    ("99002", "https://cdn.glo.texas.gov/vlb/land/tract-images/1/broken.jpg"),
+                ):
+                    entry = session.get(Listing, f"glo-{tract}")
+                    entry.payload = {**entry.payload, "image_url": image_url}
+                template = session.get(Listing, "glo-99002")
+                for tract, changes in (
+                    ("99004", {"acres": None, "image_url": None}),
+                    ("99005", {"image_url": "https://untrusted.example/preview.jpg"}),
+                ):
+                    session.add(
+                        Listing(
+                            id=f"glo-{tract}",
+                            source=template.source,
+                            active=True,
+                            payload={
+                                **template.payload,
+                                "id": f"glo-{tract}",
+                                "tract": tract,
+                                "title": f"Test fixture {tract}",
+                                **changes,
+                            },
+                        )
+                    )
         if getattr(request, "param", "") == "research":
             with factory() as session, session.begin():
                 entry = session.get(Listing, "glo-99002")
@@ -681,4 +822,86 @@ def test_nationwide_categories_unknown_prices_and_coverage(browser_server: tuple
         page.get_by_role("button", name="Sign out", exact=True).click()
         expect(page.locator("#state-coverage")).to_be_empty()
         assert errors == []
+        browser.close()
+
+
+@pytest.mark.parametrize("browser_kind", ["chromium", "webkit"])
+@pytest.mark.parametrize("width", [390, 1280])
+def test_hunt_save_survives_match_failure_and_reload(
+    browser_server: tuple[str, int], browser_kind: str, width: int
+) -> None:
+    """The save request and read-back are real; only matching is fault-injected."""
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        engine = getattr(playwright, browser_kind)
+        browser = engine.launch()
+        page = browser.new_page(viewport={"width": width, "height": 844})
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("save-boundary@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        page.locator('[data-nav="hunt"]').click()
+        page.route(
+            "**/api/hunts/*/matches",
+            lambda route: route.fulfill(
+                status=503,
+                content_type="application/json",
+                body='{"detail":"Synthetic matching failure"}',
+            ),
+        )
+        with page.expect_response(
+            lambda response: (
+                response.url == f"{origin}/api/hunts" and response.request.method == "POST"
+            )
+        ) as pending:
+            page.locator("#hunt-submit").click()
+        assert pending.value.status == 201
+        hunt_id = pending.value.json()["id"]
+        expect(page.locator("#hunt-status")).to_contain_text("Hunt saved to your account")
+        expect(page.locator("#hunt-list article")).to_have_count(1)
+        expect(page.get_by_role("button", name="Retry matches")).to_be_visible()
+        expect(page.locator("#hunt-results")).to_contain_text("Your Hunt is saved")
+        assert page.request.get(f"{origin}/api/hunts").json()["hunts"][0]["id"] == hunt_id
+        page.reload()
+        page.locator('[data-nav="hunt"]').click()
+        expect(page.locator("#hunt-list article")).to_have_count(1)
+        assert page.request.get(f"{origin}/api/hunts").json()["hunts"][0]["id"] == hunt_id
+        page.unroute("**/api/hunts/*/matches")
+        page.locator("#hunt-list").get_by_role("button", name="View matches").click()
+        expect(page.locator("#hunt-results")).to_contain_text("Needs review")
+        expect(page.get_by_role("button", name="Retry matches")).to_have_count(0)
+        page.locator('#hunt-form [name="max_price"]').fill("123456")
+        page.route(
+            "**/api/hunts",
+            lambda route: (
+                route.fulfill(
+                    status=503,
+                    content_type="application/json",
+                    body='{"detail":"Synthetic save failure"}',
+                )
+                if route.request.method == "POST"
+                else route.continue_()
+            ),
+        )
+        page.locator("#hunt-submit").click()
+        expect(page.locator("#hunt-status")).to_contain_text("Synthetic save failure")
+        expect(page.locator('#hunt-form [name="max_price"]')).to_have_value("123456")
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        expect(page.locator("#hunt-list article")).to_have_count(1)
+        page.unroute("**/api/hunts")
+        with page.expect_response(
+            lambda response: (
+                response.url == f"{origin}/api/hunts" and response.request.method == "POST"
+            )
+        ) as retry:
+            # Two synchronous submits must still perform a single save.
+            page.locator("#hunt-form").evaluate(
+                "form => { form.requestSubmit(); form.requestSubmit(); }"
+            )
+        assert retry.value.status == 201
+        expect(page.locator("#hunt-list article")).to_have_count(2)
+        expect(page.locator("#hunt-submit")).to_be_enabled()
+        assert len(page.request.get(f"{origin}/api/hunts").json()["hunts"]) == 2
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         browser.close()

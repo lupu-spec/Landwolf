@@ -180,7 +180,7 @@ def evaluate(
         "eligibility": "eligible",
         "score": score,
         "components": {key: round(value, 2) for key, (_, value) in parts.items()},
-        "reasons": ["Fits confirmed criteria"],
+        "reasons": [],
         "distance_miles": distance,
     }
 
@@ -212,6 +212,8 @@ def refresh(session: Session, hunt: Hunt, *, now: int | None = None) -> dict[str
         entry = {
             "listing_id": item.id,
             "title": record.title,
+            "tract": record.tract,
+            "image_url": record.image_url,
             "state": record.state,
             "county": record.county,
             "acres": record.acres,

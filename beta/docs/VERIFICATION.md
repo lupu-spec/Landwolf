@@ -1,7 +1,132 @@
-Warning: truncated output (original token count: 31212)
-Total output lines: 1787
-
 # LandWolf beta verification
+
+## v0.4.0-beta.4 — visible Hunt saving, 2026-09-28
+
+The creation form explicitly labels its save action and the persistent Hunt list.
+Successful creation and editing now confirm the saved destination; browser
+regression assertions check the creation, saved, and edit labels at 390px and
+1280px, along with the existing API save and retry journey.
+
+**Passed locally:** `npm run format`, Ruff format check, `npm run format:check`,
+Ruff lint, `npm run lint`, mypy, `npm run typecheck`, `npm run test:unit`
+(7 passed), `.venv/bin/pytest -q -m 'not browser'` (286 passed), `npm run build`,
+Python build/package check, Bandit, pip-audit, npm audit, secretlint,
+`uv lock --check`, and `git diff --check`.
+
+**Failed locally:** `.venv/bin/pytest -q -m browser -k test_hunt_browser_flow`
+could not launch Chromium because the executable is absent. Hosted CI exercised
+the browser, PostgreSQL, restore, root test and release preflight before
+deployment. Live source sync was not repeated for this wording-only change.
+
+**Passed hosted:** [beta gates](https://github.com/lupu-spec/Landwolf/actions/runs/36500138618)
+completed all required steps, including browser, PostgreSQL integration, restore,
+package and security. [Root test](https://github.com/lupu-spec/Landwolf/actions/runs/36500138690)
+and [release preflight](https://github.com/lupu-spec/Landwolf/actions/runs/36500138656)
+passed. PR #7 merged as `834f92ea276c29dd5c98fd5cc2de6b77621e3aea`.
+Render deployment `dep-datft6dg1s2s7397ooq0` became live at 23:57:02 UTC.
+Direct HTTPS `/api/version` returned `0.4.0-beta.4` and the exact commit;
+`/api/health` returned `ok`, and the served HTML contained the save CTA and
+saved-list heading. Production was not deployed. A direct production HTTPS
+request from this workspace returned a network intermediary's “Site Unavailable”
+page; hosted smoke supplies the independent production check.
+
+## v0.4.0-beta.3 — Hunt result cards, 2026-09-28
+
+Individual result cards now display the listing title, acreage, source price
+meaning, location and a thumbnail. The app's existing approved-image policy and
+default image handle absent, disallowed and failed URLs. Confirmed results omit
+fit badges and repeated eligibility prose; records needing review retain their
+specific evidence gaps. The backend continues using the same score for in-app
+change checks. New API and browser regressions cover image provenance, fallback,
+mobile layout and plain titles.
+
+**Passed locally:** `npm run format`; Ruff format/check/lint; Prettier, ESLint,
+mypy and TypeScript; `npm run test:unit` (7 passed);
+`.venv/bin/pytest -q -m 'not browser'` (286 passed); `npm run build`;
+`.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py`;
+`.venv/bin/bandit -r landwolf -q`; `.venv/bin/pip-audit --local --skip-editable`;
+`npm audit --audit-level=moderate`; `npm run secrets`; `uv lock --check`;
+`git diff --check`. The exact Ruff/Prettier/ESLint/mypy/TypeScript invocations
+are the required commands in `beta/AGENTS.md` and GitHub beta CI.
+
+**Failed locally:** `.venv/bin/pytest -q -m browser -k
+test_hunt_result_photos_and_plain_titles` could not launch because Chromium is
+absent. An initial fixture run accidentally used an image URL as the SQLite URL;
+the fixture was corrected and reached the browser-launch gate on rerun.
+**Not run locally:** PostgreSQL integration/restore, full browser suite, legacy
+root environment, and live source sync. Hosted CI supplied the release gates.
+
+**Passed in hosted CI:** [beta run 116](https://github.com/lupu-spec/Landwolf/actions/runs/36483381497)
+completed the required browser, PostgreSQL integration, restore, packaging and
+security gates. The separate [root test](https://github.com/lupu-spec/Landwolf/actions/runs/36483381503)
+and [release preflight](https://github.com/lupu-spec/Landwolf/actions/runs/36483381545)
+passed. The 390px and 1280px Hunt screenshots were inspected: titles are plain,
+the review card keeps its missing-fact reason, the default image appears where
+needed, and the card layout has no horizontal overflow. The browser regression
+also asserted an approved image preview, a broken link fallback, an absent link
+fallback and a disallowed link fallback.
+
+Render deployed merge commit `19623b48ffc3ff4c97223feb8109cf7885b00cdc` as
+`dep-datddlfavr4c73d3pvng`, live at 2026-09-28 21:07:29 UTC. Direct HTTPS
+`/api/version` reports `0.4.0-beta.3` and that commit; `/api/health` reports
+`ok`. Production was not deployed. Images remain limited to approved source URLs;
+Hunt inventory coverage is still partial and alerts remain in-app on demand.
+
+## v0.4.0-beta.2 — Hunt simpler form, 2026-09-28
+
+The Hunt form now defaults to state, acreage band and optional budget, with an
+automatic name. Advanced fields preserve county, coordinate radius, custom range,
+sale mode and price-per-acre editing. Quick starters, automatic results, cancel
+editing and failure retry support the journey. Existing multi-state and preferred
+acreage settings survive edits when the corresponding simple criteria are unchanged.
+Browser coverage includes mobile/desktop, invalid acreage, conflicting geography,
+server failure with retained input, retry, cancel and auction budget wording.
+
+**Passed:** `npm run format`, `.venv/bin/ruff format --check landwolf tests scripts`,
+`npm run format:check`, `.venv/bin/ruff check landwolf tests scripts`,
+`npm run lint`, `.venv/bin/mypy landwolf`, `npm run typecheck`,
+`npm run test:unit` (7 passed), `.venv/bin/pytest -q -m 'not browser'`
+(286 passed), `npm run build`, `.venv/bin/python -m build`,
+`.venv/bin/python scripts/check_package.py`, `.venv/bin/bandit -r landwolf -q`,
+`.venv/bin/pip-audit --local --skip-editable`, `npm audit --audit-level=moderate`,
+`npm run secrets`, `uv lock --check`, `git diff --check`.
+
+**Failed locally:** `.venv/bin/pytest -q -m browser -k test_hunt_browser_flow`
+could not launch because the Playwright Chromium executable is absent. Earlier
+attempts had also hit socket/proxy restrictions; the API, package and audit reruns
+above resolved those earlier gaps. **Not run locally:** PostgreSQL integration,
+restore, full browser suite, legacy tests and live source sync. Hosted CI is the
+release gate for those checks. This documentation also restores historical verification
+text accidentally truncated by the previous deployment-ledger commit.
+
+**Passed in hosted CI:** [beta run 112](https://github.com/lupu-spec/Landwolf/actions/runs/36412882516)
+completed the full required sequence, including `.venv/bin/python scripts/check_postgres.py`,
+`.venv/bin/python scripts/check_restore.py`, `.venv/bin/pytest -q -m browser`,
+package validation and all security scanners. The separate root `PYTHONPATH=. pytest -q`
+and release preflight jobs passed. The phone (390px) and desktop (1280px) Hunt
+screenshots were inspected; no horizontal overflow or hidden main controls appeared.
+
+Render deployed merge commit `d53dadee4f1e0b50d8513ea31e254e82479ea440` as
+`dep-dat4ist9fdbs73flugo0`, live at 2026-09-28 11:04:10 UTC. The HTTPS
+`/api/version` reports `0.4.0-beta.2` and that commit; recent Render error logs
+were empty. Production was not deployed. Public inventory coverage remains partial,
+city/ZIP geocoding is not added, and Hunt notifications remain in-app on demand.
+
+**Passed:** [hosted HTTPS smoke](https://github.com/lupu-spec/Landwolf/actions/runs/36413634232)
+at 11:06:26 UTC confirmed beta version/commit, health `ok`, updated Hunt markup and
+branding asset integrity; it also confirmed production remained on v0.3.3. The
+live-smoke workflow now accepts beta version suffixes and runs for staging ledger
+updates. Its YAML and embedded Python syntax check passed locally. Direct local
+HTTPS reads were intermittent (version succeeded; a health request timed out),
+so the successful hosted checks supply the final health evidence.
+
+**Failed, pre-existing/unrelated:** `.github/workflows/release.yml` reports a
+configuration failure without running jobs (run 36413633091). Its legacy
+`post_deploy_smoke` and `release_healthy` blocks are outside `jobs`; that file was
+last changed in `da59d34` and was not used for this Render beta release. The active
+beta, legacy test, release-preflight and live-smoke gates all passed. Live source
+sync was not repeated for this UI-only release; no new source-availability claim
+is made.
 
 ## v0.4.0-beta.1 Hunt candidate — 2026-09-28
 
@@ -831,7 +956,68 @@ Live coverage is Texas GLO public-sale inventory only. Other states, county tax
 sales, foreclosure feeds, municipal surplus, ownership, liens, flood overlays,
 comparables, and independent valuations are not connected. The UI reports these
 gaps and source freshness. Published location points are not surveyed boundaries.
-Scenario outputs depend on user assumptions and omi…1212 tokens truncated… a literal fake Basic Auth URL in an SSRF
+Scenario outputs depend on user assumptions and omit correlated market shocks;
+see [MODEL.md](MODEL.md). Asking prices never establish resale value.
+
+Email ownership verification and automatic password recovery remain to be added
+before broad public enrollment. The deployed beta uses its new PostgreSQL database,
+validated Render-assigned HTTPS origin, and one worker/instance. Review longer-term
+backup retention and test restoration before broader operation. Hosting charges
+apply to the two new beta resources; the existing production service/database and
+the main branch were not modified or merged.
+
+Review screenshots: [login](preview-login.png), [property search](preview-explore.png),
+[scenario analysis](preview-analysis.png), [mobile](preview-mobile.png).
+
+## Nationwide expansion — September 14, 2026
+
+The expansion adds a source registry, six additional official-source adapters,
+independent atomic snapshots, SQL filtering/counting/pagination, all 50 state
+selectors and coverage counts, and sale/deadline/eligibility fields. Unknown prices
+and acreage remain unknown. Tax balances, government bids, source appraisals,
+asking prices and user-supplied resale assumptions remain distinct. Only published
+parcel coordinates appear on the map. See [SOURCES.md](SOURCES.md) for source
+contracts and the remaining county and pre-foreclosure gaps.
+
+The original logo/theme, authentication boundary, existing beta accounts, model,
+payments-disabled policy, Render resources and legacy application are preserved.
+No dependency, paid provider, database migration or infrastructure change is needed.
+The CI workflow adds a disposable PostgreSQL 18 integration gate to validate the
+new JSON filtering and persistence against the deployed database engine.
+
+### Commands after the final expansion changes
+
+All commands ran from `beta/` unless stated otherwise. **Passed** means exit 0.
+The local commands below completed after the final security-fixture correction.
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | **Passed** | 24 Python files and configured frontend files formatted. |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | **Passed** | No findings. |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | **Passed** | 14 Python modules and TypeScript checked. |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** | 115 passed, 2 browser tests deselected, 2 retained dependency deprecation warnings. |
+| `.venv/bin/python scripts/check_postgres.py` | **Passed in hosted CI** | PostgreSQL 18 authentication, JSON filters, nulls, dates, pagination and saves passed at 17:17:27 UTC. Not run locally; PostgreSQL/Docker unavailable. |
+| `npm run build` | **Passed** | Updated browser assets built. |
+| `.venv/bin/pytest -q -m browser` | **Passed in hosted CI** | Both Chromium journeys passed at 17:17:38 UTC: existing discovery/model flow and nationwide category/source/unknown-price/deadline/coverage/mobile flow. Not rerun with the locally crashing browser. |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | **Passed** | Source archive/wheel built; app, new modules and original branding assets packaged. |
+| `.venv/bin/bandit -r landwolf` | **Passed** | No findings; 2,157 lines scanned, zero security suppressions. |
+| `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | **Passed** | No known dependency vulnerabilities or secret-scan findings. |
+| `PYTHONPATH=. /workspace/scratch/bae2278276c6/legacy-venv/bin/pytest -q` (root) | **Failed** | 48 passed; the same 5 missing legacy environment-fixture failures. No legacy source or billing tests changed. |
+| `.venv/bin/python -m landwolf.cli sync` | **Passed** | Final source refresh exited 0; all seven automated sources ready by 17:13:52 UTC. 2,539 raw records, 2,528 current after date/status filtering, in 19 states. |
+| `git diff --check`; `git status --short` (root) | **Passed** | Reviewed only beta code/tests/docs and its CI workflow; no source snapshots, database files, credentials or unrelated changes. |
+
+### Resolved development findings
+
+- Parser tests caught whitespace-sensitive Alaska auction dates and a Michigan
+  acreage pattern that accepted a substring of a negative size. Both were fixed
+  and their regression cases pass.
+- Initial Alaska/Michigan HTTP reads timed out. New adapters now use 30-second
+  request timeouts, one bounded transient retry, a 300-second source deadline,
+  an 8 MB response bound and at most 240 requests per source refresh.
+- USDA's unfiltered search returned an error page. Retrieval now uses each
+  advertised state and property type, verifies advertised counts, parses published
+  date formats, withholds ambiguous dates, and distinguishes FSA appraisals.
+- The secret scanner initially rejected a literal fake Basic Auth URL in an SSRF
   rejection test. The fixture now constructs that invalid URL; the same security
   assertion remains and the scanner has no added exceptions. The complete local
   gate sequence subsequently passed.
@@ -1727,3 +1913,25 @@ An internal Render-shell HTTP check also returned 200 with version 0.3.1 from
 both localhost and https://landwolf.ai/api/health. The independent production
 release-gate [run 35616356560](https://github.com/lupu-spec/Landwolf/actions/runs/35616356560),
 job `106387968985`, passed the same full command suite listed above.
+
+
+## Hunt save durability repair — candidate v0.4.0-beta.5
+
+Scope: isolated staging only; production and schema v5 remain unchanged.
+The direct staging API probe on v0.4.0-beta.4 passed all five acreage bands,
+POST 201, GET read-back, edit, fresh-login persistence, matching and cleanup.
+Evidence: GitHub Actions run 36506203222. The earlier visual agent report lacked
+network evidence and is not accepted as proof of failed persistence.
+
+Local fault injection reproduced the defect before modification: malformed listing
+validation and matching exceptions aborted the save (three failing regressions).
+Preferences now commit before the independent matching transaction. Match errors
+return a saved ID with an explicit unavailable status, not a false zero-match claim.
+Database insert errors still return failure. UI confirmation requires the saved ID
+in the refreshed account list; matching retry and visible save feedback are separate.
+
+Local `PYTHONPATH=. pytest -q tests/test_hunt.py tests/test_hunt_save.py --tb=short`
+passed 11 tests using the available Python environment, not the pinned CI environment.
+Added PostgreSQL durability coverage and Chromium/WebKit failure/retry/reload cases.
+Pinned format, lint, type, complete tests, build, security and deployment checks are
+pending hosted execution; this entry does not claim a deployed fix.

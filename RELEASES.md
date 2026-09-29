@@ -8,7 +8,39 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:43:03 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.1 | `57663a20bd148525bd5515ce28c027e90751791a` | 2026-09-28 04:41:23 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.5 | `af6fbcd8beec4e56e75c527ca27a7d3cf61fb82e` | 2026-09-29 01:35:10 |
+
+## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
+
+- Removes per-listing fit badges and repetitive confirmed-criteria text. Cards
+  retain specific missing-fact reasons only when a listing needs review.
+- Adds source-approved thumbnails with the existing LandWolf default artwork for
+  absent, disallowed or failed image links. The internal Hunt ranking and schema
+  stay compatible. [Hosted beta run 116](https://github.com/lupu-spec/Landwolf/actions/runs/36483381497)
+  passed browser, PostgreSQL, restore, package and security gates. Render deployment
+  `dep-datddlfavr4c73d3pvng` became live at 2026-09-28 21:07:29 UTC; HTTPS
+  version and health report the exact commit above and `ok`.
+
+## v0.4.0-beta.4 — visible Hunt saving, live in isolated beta
+
+- Labels the creation button “Save Hunt & view matches,” names the saved Hunt
+  list, and confirms where a successful save appears. Editing uses “Save changes
+  to Hunt.” The existing authenticated save API and criteria behavior are unchanged.
+- [Hosted beta gates](https://github.com/lupu-spec/Landwolf/actions/runs/36500138618),
+  root test and release preflight passed. Render deployment
+  `dep-datft6dg1s2s7397ooq0` became live at 2026-09-28 23:57:02 UTC;
+  HTTPS version/health and rendered save labels were observed.
+
+## v0.4.0-beta.2 — simpler Hunt, live in isolated beta
+
+- Three main choices: state, acreage band, and optional budget. Automatic names,
+  quick starters, inline custom acreage, and results immediately after saving.
+- Advanced criteria remain editable; cancel, retry, duplicate-submit protection,
+  auction budget wording, and clear match labels support the full journey.
+- Frontend-only behavior changes; schema v5 and existing Hunt/account data remain
+  compatible. Hosted release run 112 passed browser, PostgreSQL, restore, package
+  and security gates. Render deployment `dep-dat4ist9fdbs73flugo0` became live at
+  2026-09-28 11:04:10 UTC; HTTPS version reports the exact runtime commit above.
 
 ## v0.4.0-beta.1 — live in isolated beta
 
@@ -83,6 +115,10 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-09-27 22:40:42 | Beta | v0.3.3 / `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | `dep-daspmbgjo6nc73cro8g0` | Repairs live official-source adapters and refresh diagnostics; schema startup complete. |
 | 2026-09-27 22:43:03 | Production | v0.3.3 / `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | `dep-daspn8p7lnhs73a8mqk0` | Promotes the exact staging revision; schema startup complete and no source failure logged after restart. |
 | 2026-09-28 04:41:23 | Beta | v0.4.0-beta.1 / `57663a20bd148525bd5515ce28c027e90751791a` | `dep-dasuvf0jo6nc73didk8g` | LandWolf Hunt beta with schema v5, deterministic fit/review results, in-app changes, and validated browser/PostgreSQL/recovery gates. |
+| 2026-09-28 11:04:10 | Beta | v0.4.0-beta.2 / `d53dadee4f1e0b50d8513ea31e254e82479ea440` | `dep-dat4ist9fdbs73flugo0` | Three-choice Hunt setup, automatic names/results, advanced edit controls, mobile/desktop failure-and-retry coverage; all hosted release gates passed and HTTPS runtime version observed. |
+| 2026-09-28 21:07:29 | Beta | v0.4.0-beta.3 / `19623b48ffc3ff4c97223feb8109cf7885b00cdc` | `dep-datddlfavr4c73d3pvng` | Plain Hunt result titles, specific review reasons, approved image previews and default-image fallback; hosted gates and HTTPS version/health passed. |
+| 2026-09-28 23:57:02 | Beta | v0.4.0-beta.4 / `834f92ea276c29dd5c98fd5cc2de6b77621e3aea` | `dep-datft6dg1s2s7397ooq0` | Explicit save action, saved Hunt list and confirmation; hosted browser, PostgreSQL, restore and release gates passed; HTTPS version/health observed. |
+| 2026-09-29 01:35:10 | Beta | v0.4.0-beta.5 / `af6fbcd8beec4e56e75c527ca27a7d3cf61fb82e` | `dep-dathb62d0e5s73c3uq90` | Durable Hunt saves independent of matching, verified saved-ID feedback and separate match retries. Full beta gates passed; deployed API and Chromium/WebKit create/edit/reload tests passed with exact IDs retained. |
 
 ## Version and promotion rules
 
@@ -102,3 +138,18 @@ Append deployments below only after Render reports them live and HTTPS checks su
   restore and reconciliation of writes since the backup; prefer a tested fix forward.
 - Keep this canonical ledger on `codex/landwolf-premium-staging` and synchronize it
   with `codex/landwolf-beta-rebuild` at promotion. Do not infer deployment from Git.
+
+
+## v0.4.0-beta.5 — Hunt save durability, live in isolated beta
+
+- Save preferences before optional matching, preserving the saved Hunt if source
+  validation or match storage fails. Storage errors are still reported as failures.
+- Verify saved IDs through the account list, keep confirmation visible, and retry
+  matching separately. Add database, failure-injection and mobile/desktop regressions.
+- Existing schema v5 and production remain unchanged. [Beta gate run 36507987782](https://github.com/lupu-spec/Landwolf/actions/runs/36507987782), root tests and static preflight passed.
+- Render marked `dep-dathb62d0e5s73c3uq90` live at 2026-09-29 01:35:10 UTC.
+  [Live diagnostic 36508680217](https://github.com/lupu-spec/Landwolf/actions/runs/36508680217)
+  verified HTTPS version/health, all five acreage bands, fresh-login persistence,
+  and Chromium/WebKit create, edit and reload persistence against the exact runtime commit.
+- See the [complete command results, retained failures and limits](beta/docs/HUNT_SAVE_VERIFICATION.md).
+  Browser probes wait for session initialization; early-navigation races and physical-device testing are not covered.
