@@ -29,6 +29,25 @@ jobs:
         run: |
           git apply --check --recount .ci/hunt-save-runtime.patch .ci/hunt-save-tests.patch .ci/hunt-probe-lint.patch
           git apply --recount .ci/hunt-save-runtime.patch .ci/hunt-save-tests.patch .ci/hunt-probe-lint.patch
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('beta/scripts/check_postgres.py')
+          old = '"trust snapshots, quarantine, parcel evidence, durable Hunt saves and one-use password recovery"'
+          new = '"trust snapshots, quarantine, parcel evidence, durable Hunt saves "\n        "and one-use password recovery"'
+          text = path.read_text()
+          assert text.count(old) == 1
+          path.write_text(text.replace(old, new))
+          path = Path('beta/scripts/check_hunt_save_browser.py')
+          text = path.read_text()
+          old = '                page.locator("#hunt-list").get_by_role("button", name="Edit").click()'
+          assert text.count(old) == 1
+          text = text.replace(old, '                report["stage"] = "edit-click"\n' + old + '\n                report["stage"] = "edit-name"')
+          old = '                report["error_type"] = type(exc).__name__'
+          assert text.count(old) == 1
+          new = old + '\n                if report.get("stage"):\n                    report["safe_error"] = str(exc).replace(email, "[test-account]").replace(password, "[redacted]")[:1000]'
+          text = text.replace(old, new)
+          path.write_text(text)
+          PY
       - name: Install locked tooling and format changed code
         working-directory: beta
         run: |
