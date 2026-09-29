@@ -27,7 +27,12 @@ def main() -> int:
     created_ids: set[str] = set()
 
     def request(path: str, method: str = "GET", payload=None):
-        headers = {"Origin": ORIGIN, "Accept": "application/json"}
+        headers = {
+            "Origin": ORIGIN,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "X-LandWolf-Client": "web",
+        }
         if csrf:
             headers["X-CSRF-Token"] = csrf
         body = None
