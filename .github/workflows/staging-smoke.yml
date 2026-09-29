@@ -1,0 +1,44 @@
+name: LandWolf hosted release checks
+
+on:
+  push:
+    branches: [codex/landwolf-premium-staging, codex/landwolf-beta-rebuild]
+    paths:
+      - beta/scripts/check_hosted_staging.py
+      - .github/workflows/staging-smoke.yml
+
+permissions:
+  contents: read
+
+jobs:
+  hosted:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: beta
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked test tools
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          .venv/bin/playwright install --with-deps chromium webkit
+      - name: Validate staging smoke script
+        run: |
+          .venv/bin/ruff format --check scripts/check_hosted_staging.py
+          .venv/bin/ruff check scripts/check_hosted_staging.py
+      - name: Check the exact deployed release
+        env:
+          TARGET_ENVIRONMENT: ${{ github.ref_name == 'codex/landwolf-beta-rebuild' && 'production' || 'staging' }}
+        run: .venv/bin/python scripts/check_hosted_staging.py --environment "$TARGET_ENVIRONMENT"
+      - name: Hosted browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hosted-staging-evidence
+          path: beta/test-results/hosted-staging/
+          retention-days: 7

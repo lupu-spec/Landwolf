@@ -1,0 +1,38 @@
+# The rebuilt free production service. Existing resource names preserve accounts/data.
+# Deploy manually after gates pass; keep legacy render.yaml as a rollback reference.
+services:
+  - type: web
+    name: landwolf-free-beta
+    runtime: docker
+    plan: starter
+    region: oregon
+    branch: codex/landwolf-beta-rebuild
+    dockerfilePath: ./beta/Dockerfile
+    dockerContext: ./beta
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/health
+    preDeployCommand: python -m landwolf.cli init-db
+    maxShutdownDelaySeconds: 30
+    domains:
+      - landwolf.ai
+      - www.landwolf.ai
+    envVars:
+      - key: LANDWOLF_ENVIRONMENT
+        value: production
+      - key: LANDWOLF_PAYMENTS_ENABLED
+        value: "false"
+      - key: LANDWOLF_PUBLIC_ORIGIN
+        value: https://landwolf.ai
+      - key: LANDWOLF_ADDITIONAL_ORIGINS
+        value: '["https://www.landwolf.ai","https://landwolf-free-beta.onrender.com"]'
+      - key: LANDWOLF_DATABASE_URL
+        fromDatabase:
+          name: landwolf-beta-db
+          property: connectionString
+databases:
+  - name: landwolf-beta-db
+    databaseName: landwolf_beta
+    user: landwolf_beta
+    plan: basic-256mb
+    region: oregon
+    ipAllowList: []

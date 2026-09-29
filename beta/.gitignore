@@ -1,0 +1,16 @@
+.venv/
+node_modules/
+dist/
+landwolf/static/
+*.db
+*.db-*
+.env
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+*.egg-info/
+build/
+test-results/
+.agent-browser/

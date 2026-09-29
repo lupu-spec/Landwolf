@@ -1,0 +1,94 @@
+name: LandWolf beta gates
+
+on:
+  pull_request:
+  push:
+    branches: [codex/landwolf-beta-rebuild, codex/landwolf-premium-staging]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: landwolf_ci
+          POSTGRES_USER: landwolf_ci
+          POSTGRES_PASSWORD: landwolf_ci_disposable
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U landwolf_ci -d landwolf_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: beta
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: beta/package-lock.json
+      - name: Install locked environments
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          npm ci
+          .venv/bin/playwright install --with-deps chromium webkit
+      - name: Format
+        run: |
+          .venv/bin/ruff format --check landwolf tests scripts
+          npm run format:check
+      - name: Lint
+        run: |
+          .venv/bin/ruff check landwolf tests scripts
+          npm run lint
+      - name: Types
+        run: |
+          .venv/bin/mypy landwolf
+          npm run typecheck
+      - name: Unit and API integration
+        run: |
+          npm run test:unit
+          .venv/bin/pytest -q -m 'not browser'
+      - name: PostgreSQL integration
+        env:
+          LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
+        run: .venv/bin/python scripts/check_postgres.py
+      - name: Disposable backup and restore
+        env:
+          LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
+          LANDWOLF_TEST_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: .venv/bin/python scripts/check_restore.py
+      - name: Browser journey
+        run: |
+          npm run build
+          .venv/bin/pytest -q -m browser
+      - name: Production package
+        run: |
+          .venv/bin/python -m build
+          .venv/bin/python scripts/check_package.py
+      - name: Security
+        run: |
+          .venv/bin/bandit -r landwolf
+          .venv/bin/pip-audit --local --skip-editable
+          npm audit --audit-level=moderate
+          npm run secrets
+      - name: Diff integrity
+        run: |
+          git diff --check
+          git status --short
+      - name: Browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-browser-evidence
+          path: beta/test-results/
+          retention-days: 7
