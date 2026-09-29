@@ -1,0 +1,52 @@
+name: Apply reviewed Hunt repair
+
+on:
+  push:
+    branches: [codex/landwolf-hunt-save-fix]
+    paths: [.github/workflows/apply-hunt-repair.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.repository == 'lupu-spec/Landwolf' && github.ref == 'refs/heads/codex/landwolf-hunt-save-fix'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/landwolf-hunt-save-fix
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: beta/package-lock.json
+      - name: Apply exact reviewed source and regression patches
+        run: |
+          git apply --check --recount .ci/hunt-save-runtime.patch .ci/hunt-save-tests.patch .ci/hunt-probe-lint.patch
+          git apply --recount .ci/hunt-save-runtime.patch .ci/hunt-save-tests.patch .ci/hunt-probe-lint.patch
+      - name: Install locked tooling and format changed code
+        working-directory: beta
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          npm ci
+          .venv/bin/ruff format landwolf/main.py tests/test_browser.py tests/test_hunt_save.py scripts/check_postgres.py scripts/check_hunt_save.py scripts/check_hunt_save_browser.py
+          .venv/bin/ruff check --fix landwolf/main.py tests/test_browser.py tests/test_hunt_save.py scripts/check_postgres.py scripts/check_hunt_save.py scripts/check_hunt_save_browser.py
+          npm run format
+          .venv/bin/mypy landwolf
+          npm run typecheck
+          .venv/bin/pytest -q tests/test_hunt.py tests/test_hunt_save.py
+      - name: Publish source repair and remove one-time transport files
+        run: |
+          git diff --check
+          git rm .ci/hunt-save-runtime.patch .ci/hunt-save-tests.patch .ci/hunt-probe-lint.patch .github/workflows/apply-hunt-repair.yml
+          git add RELEASES.md beta/docs/VERIFICATION.md beta/landwolf/main.py beta/landwolf/version.py beta/package.json beta/package-lock.json beta/pyproject.toml beta/uv.lock beta/web/app.ts beta/scripts/check_postgres.py beta/scripts/check_hunt_save.py beta/scripts/check_hunt_save_browser.py beta/tests/test_browser.py beta/tests/test_hunt_save.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: preserve Hunt saves across matching failures and verify persisted UI state'
+          git push origin HEAD:refs/heads/codex/landwolf-hunt-save-fix
