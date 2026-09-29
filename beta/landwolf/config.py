@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     public_origin: str = Field(default_factory=default_public_origin)
     additional_origins: tuple[str, ...] = Field(default=(), max_length=4)
     auto_sync: bool = True
+    owner_account_id: str | None = Field(default=None, pattern=r"^[0-9a-fA-F-]{36}$")
     payments_enabled: Literal[False] = False
     session_hours: int = Field(default=8, ge=1, le=24)
     idle_minutes: int = Field(default=30, ge=5, le=120)

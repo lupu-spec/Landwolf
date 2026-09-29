@@ -7,7 +7,9 @@ from typing import Any
 from sqlalchemy import (
     JSON,
     Boolean,
+    CheckConstraint,
     ForeignKey,
+    Index,
     Integer,
     String,
     create_engine,
@@ -123,6 +125,65 @@ class AccountAction(Base):
     expires_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
+class BillingExemption(Base):
+    __tablename__ = "lw2_billing_exemptions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="active")
+    reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    granted_by_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    granted_at: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    revoked_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    revoked_by_account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("lw2_accounts.id"), nullable=True
+    )
+    revocation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (
+        CheckConstraint("status IN ('active','revoked','expired')", name="ck_lw2_exemption_status"),
+        CheckConstraint(
+            "expires_at IS NULL OR expires_at > granted_at", name="ck_lw2_exemption_expiration"
+        ),
+        Index(
+            "ux_lw2_exemption_active_account",
+            "account_id",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+            sqlite_where=text("status = 'active'"),
+        ),
+        Index("ix_lw2_exemption_expiry", "expires_at"),
+    )
+
+
+class AdminAuditLog(Base):
+    __tablename__ = "lw2_admin_audit_log"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    actor_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    target_account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("lw2_accounts.id"), nullable=True, index=True
+    )
+    action: Mapped[str] = mapped_column(String(80), index=True)
+    resource_type: Mapped[str] = mapped_column(String(50))
+    resource_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    previous_state: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    new_state: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    request_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer, index=True)
+    __table_args__ = (
+        CheckConstraint(
+            "action IN ('billing_exemption_granted','billing_exemption_revoked',"
+            "'billing_exemption_expired')",
+            name="ck_lw2_admin_audit_action",
+        ),
+        Index("ix_lw2_admin_audit_actor_created", "actor_account_id", "created_at"),
+        Index("ix_lw2_admin_audit_target_created", "target_account_id", "created_at"),
+        Index("ix_lw2_admin_audit_action_created", "action", "created_at"),
+    )
+
+
 class Hunt(Base):
     __tablename__ = "lw2_hunts"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -157,7 +218,7 @@ class HuntEvent(Base):
     created_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -169,7 +230,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add Hunt storage in v5; preserve accounts and never recreate Saved."""
+    """Add billing exemption/audit storage in v6; preserve existing user data."""
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -181,7 +242,7 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [3], [4], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [3], [4], [5], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported beta schema version; migration required")
         Base.metadata.create_all(connection)
         # Intentionally irreversible. Do not archive or copy retired Saved data.
