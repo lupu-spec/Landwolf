@@ -32,7 +32,7 @@ jobs:
           pip install uv==0.12.11
           uv sync --frozen --dev
           .venv/bin/playwright install --with-deps chromium webkit
-      - name: Observe browser save and edit persistence
+      - name: Observe instrumented browser save, edit and reload boundaries
         run: |
           set -o pipefail
           beta/.venv/bin/python beta/scripts/check_hunt_save_browser.py | tee diagnostics/hunt-save-browser.json
