@@ -8,7 +8,7 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:43:03 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.4 | `834f92ea276c29dd5c98fd5cc2de6b77621e3aea` | 2026-09-28 23:57:02 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.5 | `af6fbcd8beec4e56e75c527ca27a7d3cf61fb82e` | 2026-09-29 01:35:10 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -118,6 +118,7 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-09-28 11:04:10 | Beta | v0.4.0-beta.2 / `d53dadee4f1e0b50d8513ea31e254e82479ea440` | `dep-dat4ist9fdbs73flugo0` | Three-choice Hunt setup, automatic names/results, advanced edit controls, mobile/desktop failure-and-retry coverage; all hosted release gates passed and HTTPS runtime version observed. |
 | 2026-09-28 21:07:29 | Beta | v0.4.0-beta.3 / `19623b48ffc3ff4c97223feb8109cf7885b00cdc` | `dep-datddlfavr4c73d3pvng` | Plain Hunt result titles, specific review reasons, approved image previews and default-image fallback; hosted gates and HTTPS version/health passed. |
 | 2026-09-28 23:57:02 | Beta | v0.4.0-beta.4 / `834f92ea276c29dd5c98fd5cc2de6b77621e3aea` | `dep-datft6dg1s2s7397ooq0` | Explicit save action, saved Hunt list and confirmation; hosted browser, PostgreSQL, restore and release gates passed; HTTPS version/health observed. |
+| 2026-09-29 01:35:10 | Beta | v0.4.0-beta.5 / `af6fbcd8beec4e56e75c527ca27a7d3cf61fb82e` | `dep-dathb62d0e5s73c3uq90` | Durable Hunt saves independent of matching, verified saved-ID feedback and separate match retries. Full beta gates passed; deployed API and Chromium/WebKit create/edit/reload tests passed with exact IDs retained. |
 
 ## Version and promotion rules
 
@@ -139,11 +140,16 @@ Append deployments below only after Render reports them live and HTTPS checks su
   with `codex/landwolf-beta-rebuild` at promotion. Do not infer deployment from Git.
 
 
-## v0.4.0-beta.5 — Hunt save durability candidate, not yet deployed
+## v0.4.0-beta.5 — Hunt save durability, live in isolated beta
 
 - Save preferences before optional matching, preserving the saved Hunt if source
   validation or match storage fails. Storage errors are still reported as failures.
 - Verify saved IDs through the account list, keep confirmation visible, and retry
   matching separately. Add database, failure-injection and mobile/desktop regressions.
-- Existing schema v5 and production remain unchanged. Hosted gates and live
-  deployment verification must complete before changing the environment ledger.
+- Existing schema v5 and production remain unchanged. [Beta gate run 36507987782](https://github.com/lupu-spec/Landwolf/actions/runs/36507987782), root tests and static preflight passed.
+- Render marked `dep-dathb62d0e5s73c3uq90` live at 2026-09-29 01:35:10 UTC.
+  [Live diagnostic 36508680217](https://github.com/lupu-spec/Landwolf/actions/runs/36508680217)
+  verified HTTPS version/health, all five acreage bands, fresh-login persistence,
+  and Chromium/WebKit create, edit and reload persistence against the exact runtime commit.
+- See the [complete command results, retained failures and limits](beta/docs/HUNT_SAVE_VERIFICATION.md).
+  Browser probes wait for session initialization; early-navigation races and physical-device testing are not covered.
