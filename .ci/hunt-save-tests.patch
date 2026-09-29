@@ -1,0 +1,285 @@
+diff --git a/RELEASES.md b/RELEASES.md
+index c5f1c01..32721cf 100644
+--- a/RELEASES.md
++++ b/RELEASES.md
+@@ -137,3 +137,13 @@ Append deployments below only after Render reports them live and HTTPS checks su
+   restore and reconciliation of writes since the backup; prefer a tested fix forward.
+ - Keep this canonical ledger on `codex/landwolf-premium-staging` and synchronize it
+   with `codex/landwolf-beta-rebuild` at promotion. Do not infer deployment from Git.
++
++
++## v0.4.0-beta.5 — Hunt save durability candidate, not yet deployed
++
++- Save preferences before optional matching, preserving the saved Hunt if source
++  validation or match storage fails. Storage errors are still reported as failures.
++- Verify saved IDs through the account list, keep confirmation visible, and retry
++  matching separately. Add database, failure-injection and mobile/desktop regressions.
++- Existing schema v5 and production remain unchanged. Hosted gates and live
++  deployment verification must complete before changing the environment ledger.
+diff --git a/beta/docs/VERIFICATION.md b/beta/docs/VERIFICATION.md
+index 769dbeb..d638c54 100644
+--- a/beta/docs/VERIFICATION.md
++++ b/beta/docs/VERIFICATION.md
+@@ -1913,3 +1913,25 @@ An internal Render-shell HTTP check also returned 200 with version 0.3.1 from
+ both localhost and https://landwolf.ai/api/health. The independent production
+ release-gate [run 35616356560](https://github.com/lupu-spec/Landwolf/actions/runs/35616356560),
+ job `106387968985`, passed the same full command suite listed above.
++
++
++## Hunt save durability repair — candidate v0.4.0-beta.5
++
++Scope: isolated staging only; production and schema v5 remain unchanged.
++The direct staging API probe on v0.4.0-beta.4 passed all five acreage bands,
++POST 201, GET read-back, edit, fresh-login persistence, matching and cleanup.
++Evidence: GitHub Actions run 36506203222. The earlier visual agent report lacked
++network evidence and is not accepted as proof of failed persistence.
++
++Local fault injection reproduced the defect before modification: malformed listing
++validation and matching exceptions aborted the save (three failing regressions).
++Preferences now commit before the independent matching transaction. Match errors
++return a saved ID with an explicit unavailable status, not a false zero-match claim.
++Database insert errors still return failure. UI confirmation requires the saved ID
++in the refreshed account list; matching retry and visible save feedback are separate.
++
++Local `PYTHONPATH=. pytest -q tests/test_hunt.py tests/test_hunt_save.py --tb=short`
++passed 11 tests using the available Python environment, not the pinned CI environment.
++Added PostgreSQL durability coverage and Chromium/WebKit failure/retry/reload cases.
++Pinned format, lint, type, complete tests, build, security and deployment checks are
++pending hosted execution; this entry does not claim a deployed fix.
+diff --git a/beta/scripts/check_postgres.py b/beta/scripts/check_postgres.py
+index 0bf21c4..1eb6bbe 100644
+--- a/beta/scripts/check_postgres.py
++++ b/beta/scripts/check_postgres.py
+@@ -9,7 +9,7 @@ from pathlib import Path
+ from urllib.parse import urlsplit
+ 
+ from fastapi.testclient import TestClient
+-from sqlalchemy import inspect, select
++from sqlalchemy import delete, inspect, select
+ 
+ from landwolf import auth
+ from landwolf.config import Settings
+@@ -17,6 +17,7 @@ from landwolf.db import (
+     SCHEMA_VERSION,
+     Account,
+     AccountAction,
++    Hunt,
+     Listing,
+     LoginSession,
+     SchemaVersion,
+@@ -146,6 +147,29 @@ def main() -> None:
+         require(
+             len(client.get("/api/sources").json()["states"]) == 50, "Coverage aggregation failed"
+         )
++        # A failed matching transaction must not roll back the account's saved preferences.
++        broken_id = f"hunt-invalid-{suffix}"
++        with app.state.factory() as session, session.begin():
++            session.add(Listing(id=broken_id, source="us_treasury", active=True,
++                                payload={"id": broken_id}))
++        saved = client.post("/api/hunts", headers=headers, json={
++            "name": "PostgreSQL save durability", "criteria": {
++                "mode": "fixed", "states": [], "min_acres": 5, "max_acres": 50,
++            },
++        })
++        require(saved.status_code == 201, "Matching failure discarded the Hunt")
++        require(saved.json()["matching_status"] == "unavailable", "Match failure was hidden")
++        hunt_id = saved.json()["id"]
++        with app.state.factory() as session:
++            require(session.get(Hunt, hunt_id) is not None, "Hunt was not committed to PostgreSQL")
++        require(any(row["id"] == hunt_id for row in client.get("/api/hunts").json()["hunts"]),
++                "Saved Hunt cannot be read back")
++        with app.state.factory() as session, session.begin():
++            session.execute(delete(Listing).where(Listing.id == broken_id))
++        require(client.get(f"/api/hunts/{hunt_id}/matches").status_code == 200,
++                "Matching cannot retry after source repair")
++        require(client.request("DELETE", f"/api/hunts/{hunt_id}", headers=headers, json={}).status_code == 200,
++                "Disposable Hunt cleanup failed")
+         # Exercise the PostgreSQL identity/event upsert and snapshot quarantine.
+         with app.state.factory() as session, session.begin():
+             records = [
+@@ -207,7 +231,7 @@ def main() -> None:
+     print(
+         "Passed: PostgreSQL authentication, nationwide JSON filters, "
+         "nulls, dates, pagination, permanent Saved deletion, retained accounts/sessions, "
+-        "trust snapshots, quarantine, parcel evidence and one-use password recovery"
++        "trust snapshots, quarantine, parcel evidence, durable Hunt saves and one-use password recovery"
+     )
+ 
+ 
+diff --git a/beta/tests/test_browser.py b/beta/tests/test_browser.py
+index 93e89a3..903a4b6 100644
+--- a/beta/tests/test_browser.py
++++ b/beta/tests/test_browser.py
+@@ -823,3 +823,66 @@ def test_nationwide_categories_unknown_prices_and_coverage(browser_server: tuple
+         expect(page.locator("#state-coverage")).to_be_empty()
+         assert errors == []
+         browser.close()
++
++
++@pytest.mark.parametrize("browser_kind", ["chromium", "webkit"])
++@pytest.mark.parametrize("width", [390, 1280])
++def test_hunt_save_survives_match_failure_and_reload(
++    browser_server: tuple[str, int], browser_kind: str, width: int
++) -> None:
++    """The save request and read-back are real; only matching is fault-injected."""
++    origin, _ = browser_server
++    with sync_playwright() as playwright:
++        engine = getattr(playwright, browser_kind)
++        browser = engine.launch()
++        page = browser.new_page(viewport={"width": width, "height": 844})
++        page.goto(origin)
++        page.get_by_role("button", name="Create account", exact=True).click()
++        page.get_by_label("Email address", exact=True).fill("save-boundary@example.com")
++        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
++        page.locator("#auth-submit").click()
++        page.locator('[data-nav="hunt"]').click()
++        page.route("**/api/hunts/*/matches", lambda route: route.fulfill(
++            status=503, content_type="application/json",
++            body='{"detail":"Synthetic matching failure"}',
++        ))
++        with page.expect_response(lambda response: response.url == f"{origin}/api/hunts"
++                                  and response.request.method == "POST") as pending:
++            page.locator("#hunt-submit").click()
++        assert pending.value.status == 201
++        hunt_id = pending.value.json()["id"]
++        expect(page.locator("#hunt-status")).to_contain_text("Hunt saved to your account")
++        expect(page.locator("#hunt-list article")).to_have_count(1)
++        expect(page.get_by_role("button", name="Retry matches")).to_be_visible()
++        expect(page.locator("#hunt-results")).to_contain_text("Your Hunt is saved")
++        assert page.request.get(f"{origin}/api/hunts").json()["hunts"][0]["id"] == hunt_id
++        page.reload()
++        page.locator('[data-nav="hunt"]').click()
++        expect(page.locator("#hunt-list article")).to_have_count(1)
++        assert page.request.get(f"{origin}/api/hunts").json()["hunts"][0]["id"] == hunt_id
++        page.unroute("**/api/hunts/*/matches")
++        page.locator("#hunt-list").get_by_role("button", name="View matches").click()
++        expect(page.locator("#hunt-results")).to_contain_text("Needs review")
++        expect(page.get_by_role("button", name="Retry matches")).to_have_count(0)
++        page.locator('#hunt-form [name="max_price"]').fill("123456")
++        page.route("**/api/hunts", lambda route: (
++            route.fulfill(status=503, content_type="application/json",
++                          body='{"detail":"Synthetic save failure"}')
++            if route.request.method == "POST" else route.continue_()
++        ))
++        page.locator("#hunt-submit").click()
++        expect(page.locator("#hunt-status")).to_contain_text("Synthetic save failure")
++        expect(page.locator('#hunt-form [name="max_price"]')).to_have_value("123456")
++        expect(page.locator("#hunt-submit")).to_be_enabled()
++        expect(page.locator("#hunt-list article")).to_have_count(1)
++        page.unroute("**/api/hunts")
++        with page.expect_response(lambda response: response.url == f"{origin}/api/hunts"
++                                  and response.request.method == "POST") as retry:
++            # Two synchronous submits must still perform a single save.
++            page.locator("#hunt-form").evaluate("form => { form.requestSubmit(); form.requestSubmit(); }")
++        assert retry.value.status == 201
++        expect(page.locator("#hunt-list article")).to_have_count(2)
++        expect(page.locator("#hunt-submit")).to_be_enabled()
++        assert len(page.request.get(f"{origin}/api/hunts").json()["hunts"]) == 2
++        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
++        browser.close()
+diff --git a/beta/tests/test_hunt_save.py b/beta/tests/test_hunt_save.py
+new file mode 100644
+index 0000000..96b4fd7
+--- /dev/null
++++ b/beta/tests/test_hunt_save.py
+@@ -0,0 +1,100 @@
++"""Hunt persistence must not depend on the listing-matching transaction."""
++
++import pytest
++from fastapi.testclient import TestClient
++from sqlalchemy import delete, event, select
++from sqlalchemy.exc import SQLAlchemyError
++
++from landwolf import hunt
++from landwolf.db import Hunt, HuntMatch, Listing
++
++
++def test_bad_catalog_record_cannot_discard_hunt(client: TestClient, signed_in: dict[str, str]):
++    with client.app.state.factory() as session, session.begin():
++        session.add(Listing(id="invalid-fixture", source="tx_glo_public", active=True,
++                            payload={"id": "invalid-fixture"}))
++    response = client.post("/api/hunts", headers=signed_in, json={
++        "name": "Keep my preferences", "criteria": {
++            "mode": "fixed", "states": [], "min_acres": 5, "max_acres": 50,
++        },
++    })
++    assert response.status_code == 201, response.text
++    saved = response.json()
++    assert saved["matching_status"] == "unavailable"
++    assert "saved" in saved["matching_message"].lower()
++    with client.app.state.factory() as session:
++        stored = session.get(Hunt, saved["id"])
++        assert stored is not None
++        assert stored.name == "Keep my preferences"
++    assert client.get("/api/hunts").json()["hunts"][0]["id"] == saved["id"]
++    failed = client.get(f"/api/hunts/{saved['id']}/matches")
++    assert failed.status_code == 503
++    assert "Your Hunt is saved" in failed.json()["detail"]
++    assert "validation errors" not in failed.text
++    with client.app.state.factory() as session, session.begin():
++        session.execute(delete(Listing).where(Listing.id == "invalid-fixture"))
++    assert client.get(f"/api/hunts/{saved['id']}/matches").status_code == 200
++
++
++@pytest.mark.parametrize("failure", [ValueError("Private source detail"), SQLAlchemyError("Private SQL")])
++def test_matching_failure_preserves_save_and_redacts_error(
++    client: TestClient, signed_in: dict[str, str], monkeypatch, failure,
++):
++    def unavailable(session, row, **kwargs):
++        session.add(HuntMatch(hunt_id=row.id, listing_id="rollback-fixture", revision=1,
++                             score=80, fingerprint="fixture", updated_at=1))
++        session.flush()
++        raise failure
++
++    monkeypatch.setattr(hunt, "refresh", unavailable)
++    response = client.post("/api/hunts", headers=signed_in, json={
++        "name": "Keep this Hunt", "criteria": {
++            "mode": "fixed", "states": [], "min_acres": 5, "max_acres": 50,
++        },
++    })
++    assert response.status_code == 201, response.text
++    assert "Private" not in response.text
++    with client.app.state.factory() as session:
++        assert session.scalar(select(Hunt).where(Hunt.id == response.json()["id"])) is not None
++        assert session.scalars(select(HuntMatch)).all() == []
++
++
++def test_failed_database_insert_is_not_reported_as_saved(
++    client: TestClient, signed_in: dict[str, str],
++):
++    engine = client.app.state.factory.kw["bind"]
++
++    def reject_insert(connection, cursor, statement, parameters, context, executemany):
++        if statement.startswith("INSERT INTO lw2_hunts"):
++            raise SQLAlchemyError("Synthetic insert failure")
++
++    event.listen(engine, "before_cursor_execute", reject_insert)
++    try:
++        response = client.post("/api/hunts", headers=signed_in, json={
++            "name": "Do not claim saved", "criteria": {
++                "mode": "fixed", "states": [], "min_acres": 5, "max_acres": 50,
++            },
++        })
++    finally:
++        event.remove(engine, "before_cursor_execute", reject_insert)
++    assert response.status_code == 503
++    assert "could not be saved" in response.json()["detail"]
++    assert client.get("/api/hunts").json()["hunts"] == []
++
++
++def test_save_limit_and_pause_remain_enforced(client: TestClient, signed_in: dict[str, str]):
++    payload = {"name": "Limit fixture", "criteria": {
++        "mode": "fixed", "states": [], "min_acres": 5, "max_acres": 50,
++    }}
++    ids = []
++    for _ in range(3):
++        response = client.post("/api/hunts", headers=signed_in, json=payload)
++        assert response.status_code == 201
++        assert response.json()["matching_status"] == "ready"
++        ids.append(response.json()["id"])
++    rejected = client.post("/api/hunts", headers=signed_in, json=payload)
++    assert rejected.status_code == 409
++    assert len(client.get("/api/hunts").json()["hunts"]) == 3
++    assert client.patch(f"/api/hunts/{ids[0]}", headers=signed_in,
++                        json={"active": False}).status_code == 200
++    assert client.post("/api/hunts", headers=signed_in, json=payload).status_code == 201
