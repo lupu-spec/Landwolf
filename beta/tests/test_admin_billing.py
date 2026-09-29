@@ -2,11 +2,11 @@
 
 import time
 
+from conftest import register
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from landwolf.db import Account, AdminAuditLog, BillingExemption
-from conftest import register
 
 
 def owner_and_user(client: TestClient):
