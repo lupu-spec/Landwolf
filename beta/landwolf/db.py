@@ -174,7 +174,8 @@ class AdminAuditLog(Base):
     created_at: Mapped[int] = mapped_column(Integer, index=True)
     __table_args__ = (
         CheckConstraint(
-            "action IN ('billing_exemption_granted','billing_exemption_revoked','billing_exemption_expired')",
+            "action IN ('billing_exemption_granted','billing_exemption_revoked',"
+            "'billing_exemption_expired')",
             name="ck_lw2_admin_audit_action",
         ),
         Index("ix_lw2_admin_audit_actor_created", "actor_account_id", "created_at"),
