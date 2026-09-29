@@ -34,6 +34,9 @@ def main() -> None:
                 page.get_by_label("Email address", exact=True).fill(email)
                 page.get_by_label("Password", exact=True).fill(password)
                 page.locator("#auth-submit").click()
+                # Account UI appears before session hydration finishes. Exercise the
+                # save boundary after readiness; early-navigation races are separate.
+                expect(page.locator("#email-status")).not_to_have_text("")
                 page.locator('[data-nav="hunt"]').click()
                 expect(page.locator("#hunt-submit")).to_be_visible()
                 with page.expect_response(
@@ -57,6 +60,7 @@ def main() -> None:
                 )
                 assert report["persisted"]
                 page.reload(wait_until="domcontentloaded")
+                expect(page.locator("#email-status")).not_to_have_text("")
                 page.locator('[data-nav="hunt"]').click()
                 expect(page.locator("#hunt-list article")).to_have_count(1)
                 report["visible_after_reload"] = True
@@ -78,6 +82,7 @@ def main() -> None:
                 assert report["patch_status"] == 200
                 expect(page.locator("#hunt-list")).to_contain_text("QA edited Hunt")
                 page.reload(wait_until="domcontentloaded")
+                expect(page.locator("#email-status")).not_to_have_text("")
                 page.locator('[data-nav="hunt"]').click()
                 expect(page.locator("#hunt-list")).to_contain_text("QA edited Hunt")
                 report["edit_persisted_after_reload"] = True
