@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/hunt-save-diagnostic.yml
       - beta/scripts/check_hunt_save.py
+      - beta/scripts/check_hunt_save_browser.py
 
 permissions:
   contents: read
@@ -25,6 +26,16 @@ jobs:
           set -o pipefail
           mkdir -p diagnostics
           python beta/scripts/check_hunt_save.py | tee diagnostics/hunt-save-api.json
+      - name: Install pinned browser tooling
+        working-directory: beta
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          .venv/bin/playwright install --with-deps chromium webkit
+      - name: Observe browser save and edit persistence
+        run: |
+          set -o pipefail
+          beta/.venv/bin/python beta/scripts/check_hunt_save_browser.py | tee diagnostics/hunt-save-browser.json
       - name: Collect exact test source
         if: always()
         run: git archive --format=zip --output=diagnostics/source.zip HEAD
