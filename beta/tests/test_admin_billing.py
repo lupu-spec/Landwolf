@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from landwolf.db import Account, AdminAuditLog, BillingExemption
-from tests.conftest import register
+from conftest import register
 
 
 def owner_and_user(client: TestClient):
