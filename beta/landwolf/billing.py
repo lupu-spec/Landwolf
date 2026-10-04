@@ -277,12 +277,13 @@ def store_subscriptions(
         if state not in {"active", "past_due", "unpaid", "incomplete", "trialing", "paused"}:
             continue
         period_end = item.get("current_period_end")
+        if not isinstance(period_end, int) or isinstance(period_end, bool):
+            period_end = 0
         # API version is pinned: the billing period belongs to the subscription item.
         paid = (
             state == "active"
             and row.get("collection_method") == "charge_automatically"
             and not row.get("pause_collection")
-            and type(period_end) is int
             and period_end > now()
         )
         if not customer.subscription_id or (paid and period_end > customer.paid_until):
