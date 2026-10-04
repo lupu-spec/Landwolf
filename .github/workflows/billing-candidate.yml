@@ -1,0 +1,160 @@
+name: Live billing candidate gates
+on:
+  push:
+    branches: [codex/landwolf-live-billing]
+    paths: [.github/workflows/billing-candidate.yml, .github/billing-candidate/READY]
+permissions:
+  contents: write
+concurrency:
+  group: landwolf-live-billing-candidate
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: landwolf_ci
+          POSTGRES_USER: landwolf_ci
+          POSTGRES_PASSWORD: landwolf_ci_disposable
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U landwolf_ci -d landwolf_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: beta/package-lock.json
+      - name: Install locked environments
+        working-directory: beta
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          npm ci
+      - name: Validate and apply exact reviewed patch
+        env:
+          CANDIDATE_BRANCH: ${{ github.ref_name }}
+        run: |
+          test "$CANDIDATE_BRANCH" = codex/landwolf-live-billing
+          mkdir -p quality-output
+          python - <<'PY'
+          import base64, gzip, hashlib
+          from pathlib import Path
+          parts = sorted(Path('.github/billing-candidate').glob('part*.b64'))
+          if not parts:
+              assert Path('beta/landwolf/billing.py').exists(), 'Candidate source missing'
+          else:
+              assert len(parts) == 5, 'Incomplete transport'
+              encoded = ''.join(p.read_text().strip() for p in parts)
+              Path('quality-output/patch-input.b64').write_text(encoded)
+              # Repair two identified transport transcription errors only. The
+              # immutable decoded-source checksum is mandatory after correction.
+              encoded = encoded.replace('Rys5wOh', 'RysOh').replace('Knb1MYha6', 'Knb1PQha6')
+              decoded = gzip.decompress(base64.b64decode(encoded, validate=True))
+              assert hashlib.sha256(decoded).hexdigest() == 'c46c859c46c73d965d09c6e8a7b1bd6a225c4bd7b7fa328307873d26ae26bfa8', 'Source checksum mismatch'
+              Path('quality-output/reviewed.patch').write_bytes(decoded)
+          PY
+          if test -f quality-output/reviewed.patch; then
+            git apply --check quality-output/reviewed.patch
+            git apply quality-output/reviewed.patch
+          fi
+      - name: Install candidate locked environments and browsers
+        working-directory: beta
+        run: |
+          uv sync --frozen --dev
+          npm ci
+          .venv/bin/playwright install --with-deps chromium webkit
+      - name: Apply repository formatters and safe lint fixes
+        working-directory: beta
+        run: |
+          .venv/bin/ruff check --fix landwolf tests scripts
+          .venv/bin/ruff format landwolf tests scripts
+          npm run format
+      - name: Checkpoint candidate on engineering branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add beta RELEASES.md render.beta.yaml
+          if test -d .github/billing-candidate; then git rm -r .github/billing-candidate; fi
+          if ! git diff --cached --quiet; then
+            git commit -m 'Restore live Stripe memberships with consent-based pilot exceptions'
+            git push origin HEAD:codex/landwolf-live-billing
+          fi
+          git rev-parse HEAD | tee quality-output/candidate-commit.txt
+      - name: Format
+        working-directory: beta
+        run: |
+          .venv/bin/ruff format --check landwolf tests scripts
+          npm run format:check
+      - name: Lint
+        working-directory: beta
+        run: |
+          .venv/bin/ruff check landwolf tests scripts
+          npm run lint
+      - name: Types
+        working-directory: beta
+        run: |
+          .venv/bin/mypy landwolf
+          npm run typecheck
+      - name: Unit and API integration
+        working-directory: beta
+        run: |
+          npm run test:unit
+          .venv/bin/pytest -q -m 'not browser'
+      - name: PostgreSQL integration
+        working-directory: beta
+        env:
+          LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
+        run: .venv/bin/python scripts/check_postgres.py
+      - name: Disposable backup and restore
+        working-directory: beta
+        env:
+          LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
+          LANDWOLF_TEST_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: .venv/bin/python scripts/check_restore.py
+      - name: Browser journey
+        working-directory: beta
+        run: |
+          npm run build
+          .venv/bin/pytest -q -m browser
+      - name: Production package
+        working-directory: beta
+        run: |
+          .venv/bin/python -m build
+          .venv/bin/python scripts/check_package.py
+      - name: Security
+        working-directory: beta
+        run: |
+          .venv/bin/bandit -r landwolf
+          .venv/bin/pip-audit --local --skip-editable
+          npm audit --audit-level=moderate
+          npm run secrets
+      - name: Diff integrity
+        run: |
+          git diff --check
+          git status --short
+      - name: Collect source and verification tools
+        if: always()
+        run: |
+          mkdir -p quality-output
+          tar --exclude=.git --exclude=node_modules --exclude=.venv --exclude=quality-output --exclude=__pycache__ --exclude=.pytest_cache --exclude=.mypy_cache --exclude=.ruff_cache --exclude=test-results -czf "$RUNNER_TEMP/candidate-source.tar.gz" .
+          cp "$RUNNER_TEMP/candidate-source.tar.gz" quality-output/
+          if test -f beta/.venv/bin/ruff; then cp beta/.venv/bin/ruff quality-output/ruff; fi
+          if test -d beta/node_modules; then tar -czf quality-output/node-tools.tar.gz -C beta node_modules; fi
+      - name: Verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-billing-verification-${{ github.run_attempt }}
+          path: |
+            quality-output/
+            beta/test-results/
+          retention-days: 3
