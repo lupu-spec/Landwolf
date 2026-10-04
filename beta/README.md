@@ -1,9 +1,12 @@
-# LandWolf free application
+# LandWolf application
 
 A separate rebuild of LandWolf with the original wordmark, wolf logo, white/navy
 palette, and rural photography. Fresh email/password accounts unlock source-backed
 property search, map/list browsing, public-record research, and reproducible deal analysis.
-All features are free. This application contains no checkout or Stripe gate.
+Paid production access uses live Stripe subscriptions at $29/month or $299/year.
+The owner, explicit complimentary grants, and accepted eligible investor pilots
+bypass payment. Pilots never auto-convert to a subscription. Live activation is
+separate from deploying the code: follow [LIVE_BILLING.md](docs/LIVE_BILLING.md).
 
 The premium staging branch implements trust/usability and scaffolds decision
 quality, partner consent and source expansion. See
@@ -141,7 +144,7 @@ seed are displayed. See [MODEL.md](docs/MODEL.md) for equations and limitations.
   same-origin APIs, body limits, shared database rate limits, and restrictive CSP.
 - Secrets and personal records never belong in Git or log messages. Source HTML is
   parsed into validated fields; the browser uses text nodes and allowlisted URLs.
-- Accounts have no roles or billing privileges. One-use email verification and
+- Billing privileges are checked on the server; the owner is pinned by immutable account ID. One-use email verification and
   password recovery are implemented, but delivery is disabled until a verified
   sender and provider credential are configured. See the framework setup guide.
 - Use one application instance/worker for the initial source scheduler. A future
@@ -188,7 +191,7 @@ address remains available. Set the three explicit origins as shown in the Bluepr
 before moving domain bindings. Apex DNS uses Render's `216.24.57.1` A record;
 `www` uses a CNAME to `landwolf-free-beta.onrender.com`. Preserve mail and unrelated
 DNS records. Verify authoritative/public DNS, HTTPS redirects, health, sign-in,
-account continuity, removal of Saved routes/storage and disabled payments after cutover. The Blueprint describes the
+account continuity, removal of Saved routes/storage and the configured live billing entitlements after cutover. The Blueprint describes the
 desired configuration; observed deployment/DNS results are recorded below.
 
 The commands and no-false-verification rule are in [AGENTS.md](AGENTS.md).

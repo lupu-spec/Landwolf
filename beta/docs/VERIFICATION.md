@@ -2006,3 +2006,19 @@ See [the complete release record](INVESTOR_PILOT_RELEASE.md) for commands, exact
 evidence, resolved failures, backup scope, partial source coverage, and unexercised
 live owner/investor operations. Earlier candidate limitations above are historical;
 they were not counted as passing checks.
+
+## Live billing candidate — 2026-10-04
+
+- Passed: `python -m compileall -q beta/landwolf`.
+- Passed before subsequent browser/docs/hardening additions: targeted local pytest
+  run of live billing, feedback, admin, config and security: 93 passed. The local
+  interpreter is Python 3.13.5 with preinstalled dependencies, not the locked CI
+  environment. Re-run final candidate gates before release.
+- Live Stripe account: charges and payouts enabled, no current requirements.
+  Existing live recurring prices verified: $29/month and $299/year. No live
+  subscriptions existed at inspection. Customer portal configured for cancellation
+  at period end, invoices and payment-method updates; no charge was made.
+- Production deployment, secure runtime keys, live Checkout and genuine webhook
+  delivery: NOT VERIFIED. Render browser authentication expired. The read-only
+  database connector cannot connect because the production database correctly
+  blocks external connections; its network policy was not weakened.

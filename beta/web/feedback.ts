@@ -264,7 +264,9 @@ export function setupFeedback(
       content.append(
         node(
           "p",
-          "This invitation-only program helps us learn what property investors need. Contact support if you would like to participate.",
+          current.pilot_reserved
+            ? "Your marketing pilot is reserved for this email. Verify your email through the account controls or reply to your invitation so support can enroll your account. No payment is required."
+            : "This invitation-only program helps us learn what property investors need. Contact support if you would like to participate.",
         ),
       );
     if (current.state === "invited") content.append(survey(current, true));

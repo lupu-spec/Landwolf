@@ -101,11 +101,11 @@ def test_render_environment_accepts_disabled_payments(
 
 
 @pytest.mark.parametrize("value", ["true", "True", "1", "0", "off", ""])
-def test_environment_cannot_enable_or_ambiguously_configure_payments(
+def test_environment_requires_complete_live_or_unambiguous_payment_configuration(
     render_environment: None, monkeypatch: pytest.MonkeyPatch, value: str
 ) -> None:
     monkeypatch.setenv("LANDWOLF_PAYMENTS_ENABLED", value)
-    with pytest.raises(ValueError, match="Payments must remain disabled"):
+    with pytest.raises(ValueError, match="Payments require a live Stripe|Payments flag must"):
         Settings(_env_file=None)
 
 

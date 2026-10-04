@@ -1,10 +1,12 @@
 # LandWolf rebuilt application instructions
 
-The root engineering policy applies. This is the rebuilt free application. Keep its
+The root engineering policy applies. This is the rebuilt application. Keep its
 runtime, accounts, database, and dependency environment separate from the legacy
 application. Preserve the supplied LandWolf logo and navy/white visual identity.
 Every property search, source, detail, analysis, and research route requires server
-authentication. Payments stay disabled. Never use fabricated runtime listings,
+authentication and the configured billing entitlement. Production payments must use live
+Stripe only; never enable the gate before its live account, prices, owner and webhook
+configuration are verified. Preserve accepted, non-charging feedback pilots. Never use fabricated runtime listings,
 unverified parcel coordinates, or asking prices as valuations. The owner permits
 explicit hypothetical resale defaults of bid × 0.95 / 1.00 / 1.20 and unestimated
 cost placeholders of zero. Label them as assumptions, preserve user overrides,

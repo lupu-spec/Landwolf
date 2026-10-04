@@ -243,6 +243,40 @@ class FeedbackAudit(Base):
     )
 
 
+class BillingCustomer(Base):
+    """Only live Stripe IDs; serialized checkout attempts prevent duplicate purchases."""
+
+    __tablename__ = "lw2_billing_customers"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    customer_id: Mapped[str] = mapped_column(String(100), unique=True)
+    paid_until: Mapped[int] = mapped_column(Integer, default=0)
+    synced_at: Mapped[int] = mapped_column(Integer, default=0)
+    subscription_status: Mapped[str] = mapped_column(String(32), default="none")
+    subscription_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False)
+    checkout_attempt: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    checkout_plan: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    checkout_started_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    checkout_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    __table_args__ = (
+        CheckConstraint("paid_until >= 0 AND synced_at >= 0", name="ck_lw2_billing_dates"),
+        CheckConstraint(
+            "checkout_plan IS NULL OR checkout_plan IN ('monthly','annual')",
+            name="ck_lw2_billing_plan",
+        ),
+    )
+
+
+class BillingEvent(Base):
+    """Idempotency receipt only. Never retain webhook payloads or payment details."""
+
+    __tablename__ = "lw2_billing_events"
+    event_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    event_type: Mapped[str] = mapped_column(String(100))
+    processed_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
 class Hunt(Base):
     __tablename__ = "lw2_hunts"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -277,7 +311,7 @@ class HuntEvent(Base):
     created_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -289,7 +323,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add feedback pilot storage in v7; preserve existing user data."""
+    """Add live billing storage in v8; preserve existing user data."""
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -301,7 +335,7 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [3], [4], [5], [6], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported beta schema version; migration required")
         Base.metadata.create_all(connection)
         # Intentionally irreversible. Do not archive or copy retired Saved data.

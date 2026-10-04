@@ -996,3 +996,77 @@ def test_feedback_consent_due_survey_and_restore(
         assert errors == []
         browser.close()
     engine.dispose()
+
+
+@pytest.mark.parametrize("width", [390, 1280])
+def test_membership_browser_terms_and_pending_payment(
+    browser_server: tuple[str, int], width: int
+) -> None:
+    """UI fixture only; test_live_billing verifies the real server entitlement paths."""
+    origin, _ = browser_server
+    membership = {
+        "enabled": True,
+        "livemode": True,
+        "allowed": False,
+        "reason": "subscription_required",
+        "paid_until": None,
+        "subscription_status": "none",
+        "cancel_at_period_end": False,
+        "has_customer": False,
+        "pilot_reserved": False,
+        "pilot_state": "none",
+        "plans": [
+            {"id": "monthly", "label": "$29 / month", "amount": 2900, "currency": "usd"},
+            {"id": "annual", "label": "$299 / year", "amount": 29900, "currency": "usd"},
+        ],
+    }
+    requests = []
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": width, "height": 900})
+
+        def session_route(route: Route) -> None:
+            response = route.fetch()
+            value = response.json()
+            if value.get("authenticated"):
+                value["billing"] = membership
+            route.fulfill(response=response, json=value)
+
+        def feedback_route(route: Route) -> None:
+            response = route.fetch()
+            value = response.json()
+            value["access_allowed"] = membership["allowed"]
+            route.fulfill(response=response, json=value)
+
+        def checkout_route(route: Route) -> None:
+            requests.append(route.request.post_data_json)
+            route.fulfill(status=503, json={"detail": "Synthetic billing outage. Please retry."})
+
+        page.route("**/api/session", session_route)
+        page.route("**/api/feedback", feedback_route)
+        page.route("**/api/billing/status", lambda route: route.fulfill(json=membership))
+        page.route("**/api/billing/refresh", lambda route: route.fulfill(json=membership))
+        page.route("**/api/billing/checkout", checkout_route)
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill(f"membership{width}@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        expect(page.get_by_role("heading", name="Choose your LandWolf plan")).to_be_visible()
+        expect(page.locator("#explore-panel")).to_be_hidden()
+        page.get_by_role("button", name="Subscribe — $29 / month", exact=True).click()
+        expect(page.locator("#billing-message")).to_contain_text(
+            "accept the recurring payment terms"
+        )
+        assert requests == []
+        page.locator("#billing-consent").check()
+        page.get_by_role("button", name="Subscribe — $299 / year", exact=True).click()
+        expect(page.locator("#billing-message")).to_contain_text("Synthetic billing outage")
+        assert requests == [{"plan": "annual", "accepted_recurring_terms": True}]
+        page.get_by_role("button", name="Check payment status", exact=True).click()
+        expect(page.locator("#billing-message")).to_contain_text("No active paid access yet")
+        expect(page.locator("#explore-panel")).to_be_hidden()
+        browser.close()

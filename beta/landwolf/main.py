@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from landwolf import admin, auth, feedback, hunt, recovery
+from landwolf import admin, auth, billing, feedback, hunt, recovery
 from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
@@ -71,7 +71,8 @@ class BodyLimit:
                     if message["type"] == "http.disconnect":
                         return
                     body.extend(message.get("body", b""))
-                    if len(body) > 16384:
+                    limit = 262144 if scope.get("path") == "/api/billing/webhook" else 16384
+                    if len(body) > limit:
                         await JSONResponse({"detail": "Request is too large"}, 413)(
                             scope, receive, send
                         )
@@ -107,6 +108,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         with factory() as session:
             if session.scalars(select(SchemaVersion.version)).all() != [SCHEMA_VERSION]:
                 raise RuntimeError("Run the explicit beta schema initialization before serving")
+            billing.validate_live_setup(settings, session)
         task = asyncio.create_task(provider.run()) if settings.auto_sync else None
         try:
             yield
@@ -190,7 +192,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise HTTPException(503, "Schema is not ready")
         except SQLAlchemyError as exc:
             raise HTTPException(503, "Database is not ready") from exc
-        return {"status": "ok", "version": VERSION, "payments_enabled": False}
+        return {"status": "ok", "version": VERSION, "payments_enabled": settings.payments_enabled}
 
     @app.get("/api/version")
     def deployed_version() -> dict[str, str | None]:
@@ -205,6 +207,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise
             return {
                 "authenticated": False,
+                "payments_enabled": settings.payments_enabled,
                 "version": VERSION,
                 "environment": settings.environment,
                 "email_delivery_enabled": app.state.mailer.enabled,
@@ -219,6 +222,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "environment": settings.environment,
             "is_owner": settings.owner_account_id == account.id,
             "access_override": admin.entitlement(session, account, settings),
+            "billing": billing.access(session, account, settings),
         }
 
     @app.post("/api/auth/recovery", status_code=202)
@@ -288,11 +292,55 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) -> dict[str, str]:
         return auth.sign_in(credentials, request, response, session, settings, register=False)
 
+    @app.get("/api/billing/status")
+    def billing_status(request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, touch=False)
+        billing.claim_invitation(session, account, settings)
+        return billing.access(session, account, settings)
+
+    @app.post("/api/billing/refresh")
+    def refresh_billing(request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"billing-refresh:{account.id}", 6, 60)
+        if settings.payments_enabled:
+            billing.refresh_customer(session, account, settings, force=True)
+        return billing.access(session, account, settings)
+
+    @app.post("/api/billing/checkout")
+    def create_checkout(
+        body: billing.CheckoutInput, request: Request, session: DB
+    ) -> dict[str, str]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"billing-checkout:{account.id}", 6, 60)
+        return billing.checkout(session, account, settings, body)
+
+    @app.post("/api/billing/portal")
+    def create_portal(request: Request, session: DB) -> dict[str, str]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"billing-portal:{account.id}", 6, 60)
+        return billing.portal(session, account, settings)
+
+    @app.post("/api/billing/webhook")
+    async def stripe_webhook(request: Request, session: DB) -> dict[str, bool]:
+        event = billing.verified_event(
+            await request.body(), request.headers.get("Stripe-Signature", ""), settings
+        )
+        # The body is verified before any entitlement work. Bounded synchronous
+        # Stripe/SQL work runs off the async event loop, just like sync routes.
+        from starlette.concurrency import run_in_threadpool
+
+        return await run_in_threadpool(billing.webhook, session, event, settings)
+
     @app.get("/api/feedback")
     def feedback_status(request: Request, session: DB) -> dict[str, Any]:
         # Reminder polling must not keep an idle login alive indefinitely.
         account = auth.authenticate(request, session, settings, touch=False)
-        return feedback.status(session, account, settings=settings)
+        billing.claim_invitation(session, account, settings)
+        result = feedback.status(session, account, settings=settings)
+        if settings.payments_enabled:
+            result["access_allowed"] = billing.access(session, account, settings)["allowed"]
+        result["pilot_reserved"] = account.email.casefold() in settings.pilot_invite_emails
+        return result
 
     @app.post("/api/feedback/accept")
     def accept_feedback_pilot(
@@ -365,13 +413,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/sources")
     def sources(request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings)
-        feedback.require_access(session, account, settings)
+        billing.require_access(session, account, settings)
         return {
             "sources": provider.statuses(),
             "states": provider.coverage(),
             "counties": provider.county_coverage(),
             "research_sources": list(RESEARCH_SOURCES),
-            "payments_enabled": False,
+            "payments_enabled": settings.payments_enabled,
         }
 
     @app.post("/api/research")
@@ -379,7 +427,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         query: ResearchQuery, request: Request, session: DB
     ) -> ResearchReport:
         account = auth.authenticate(request, session, settings, write=True)
-        feedback.require_access(session, account, settings)
+        billing.require_access(session, account, settings)
         auth.limit(session, f"research:{account.id}", 12)
         auth.limit(session, "research:shared", 40)
         point = None
@@ -429,7 +477,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/search")
     def search(query: SearchQuery, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings, write=True)
-        feedback.require_access(session, account, settings)
+        billing.require_access(session, account, settings)
         auth.limit(session, f"search:{account.id}", 60)
         if query.source is not None and query.source not in SOURCE_BY_ID:
             raise HTTPException(422, "Select a known source")
@@ -492,7 +540,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/properties/{listing_id}")
     def detail(listing_id: str, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings)
-        feedback.require_access(session, account, settings)
+        billing.require_access(session, account, settings)
         item = session.get(Listing, listing_id)
         if item is None:
             raise HTTPException(404, "Property not found")
@@ -530,7 +578,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/hunts", status_code=201)
     def create_hunt(body: hunt.HuntInput, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings, write=True)
-        feedback.require_access(session, account, settings)
+        billing.require_access(session, account, settings)
         auth.limit(session, f"hunt-write:{account.id}", 12)
         if not body.name.strip():
             raise HTTPException(422, "Give this Hunt a name")
@@ -633,7 +681,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/hunts/{hunt_id}/matches")
     def hunt_matches(hunt_id: str, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings)
-        feedback.require_access(session, account, settings)
+        billing.require_access(session, account, settings)
         auth.limit(session, f"hunt-read:{account.id}", 30)
         row = owned_hunt(session, account.id, hunt_id)
         if not row.active:
@@ -653,7 +701,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/hunts/{hunt_id}/events")
     def hunt_events(hunt_id: str, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings)
-        feedback.require_access(session, account, settings)
+        billing.require_access(session, account, settings)
         row = owned_hunt(session, account.id, hunt_id)
         events = session.scalars(
             select(HuntEvent)
@@ -676,7 +724,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/analysis")
     def analysis(spec: AnalysisInput, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings, write=True)
-        feedback.require_access(session, account, settings)
+        billing.require_access(session, account, settings)
         auth.limit(session, f"analysis:{account.id}", 10)
         return analyze(spec)
 
