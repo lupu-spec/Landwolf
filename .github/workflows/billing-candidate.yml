@@ -2,7 +2,7 @@ name: Live billing candidate gates
 on:
   push:
     branches: [codex/landwolf-live-billing]
-    paths: [.github/workflows/billing-candidate.yml, .github/billing-candidate/READY]
+    paths: [.github/workflows/billing-candidate.yml]
 permissions:
   contents: write
 concurrency:
@@ -39,75 +39,36 @@ jobs:
           pip install uv==0.12.11
           uv sync --frozen --dev
           npm ci
-      - name: Validate and apply exact reviewed patch
-        env:
-          CANDIDATE_BRANCH: ${{ github.ref_name }}
-        run: |
-          test "$CANDIDATE_BRANCH" = codex/landwolf-live-billing
-          mkdir -p quality-output
-          python - <<'PY'
-          import base64, gzip, hashlib
-          from pathlib import Path
-          parts = sorted(Path('.github/billing-candidate').glob('part*.b64'))
-          if not parts:
-              assert Path('beta/landwolf/billing.py').exists(), 'Candidate source missing'
-          else:
-              assert len(parts) == 5, 'Incomplete transport'
-              encoded = ''.join(p.read_text().strip() for p in parts)
-              encoded = encoded.replace('Rys5wOh', 'RysOh').replace('Knb1MYha6', 'Knb1PQha6')
-              decoded = gzip.decompress(base64.b64decode(encoded, validate=True))
-              assert hashlib.sha256(decoded).hexdigest() == 'c46c859c46c73d965d09c6e8a7b1bd6a225c4bd7b7fa328307873d26ae26bfa8', 'Source checksum mismatch'
-              Path('quality-output/reviewed.patch').write_bytes(decoded)
-          PY
-          if test -f quality-output/reviewed.patch; then
-            git apply --check quality-output/reviewed.patch
-            git apply quality-output/reviewed.patch
-          fi
-      - name: Install candidate locked environments and browsers
-        working-directory: beta
-        run: |
-          uv sync --frozen --dev
-          npm ci
-          .venv/bin/playwright install --with-deps chromium webkit
-      - name: Normalize HTTP resource contexts and account copy
+      - name: Explicitly normalize missing or invalid subscription expiry
         run: |
           python - <<'PY'
           from pathlib import Path
           p = Path('beta/landwolf/billing.py')
           s = p.read_text()
-          marker = '            with httpx.Client'
-          if marker in s:
-              start = s.index(marker)
-              end = s.index('            data: Any', start)
-              old = s[start:end].splitlines()
-              assert old[1].lstrip().startswith('with client.stream(')
-              new = ['            with (', old[0].replace('            with ', '                ', 1).removesuffix(':') + ',']
-              new.append(old[1].replace('                with ', '                ', 1))
-              context_end = next(i for i, line in enumerate(old) if line.strip() == ') as response:')
-              new.extend(old[2:context_end])
-              new.extend(['                ) as response,', '            ):'])
-              new.extend(line[4:] for line in old[context_end + 1:])
-              p.write_text(s[:start] + '\n'.join(new) + '\n' + s[end:])
-          p = Path('beta/web/app.ts')
-          p.write_text(p.read_text().replace('Create your free account →', 'Create your account →'))
+          old = '        period_end = item.get("current_period_end")\n'
+          new = old + '        if not isinstance(period_end, int) or isinstance(period_end, bool):\n            period_end = 0\n'
+          assert s.count(old) == 1, 'Unexpected expiry reader'
+          if new not in s:
+              assert '            and type(period_end) is int\n' in s
+              s = s.replace(old, new).replace('            and type(period_end) is int\n', '')
+              p.write_text(s)
           PY
-      - name: Apply repository formatters and safe lint fixes
-        working-directory: beta
+      - name: Format and checkpoint engineering branch only
         run: |
+          test '${{ github.ref_name }}' = codex/landwolf-live-billing
+          cd beta
           .venv/bin/ruff format landwolf tests scripts
-          .venv/bin/ruff check --fix landwolf tests scripts
-          .venv/bin/ruff format landwolf tests scripts
+          .venv/bin/ruff check landwolf tests scripts
           npm run format
-      - name: Checkpoint candidate on engineering branch only
-        run: |
+          cd ..
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add beta RELEASES.md render.beta.yaml
-          if test -d .github/billing-candidate; then git rm -r .github/billing-candidate; fi
+          git add beta
           if ! git diff --cached --quiet; then
-            git commit -m 'Restore live Stripe memberships with consent-based pilot exceptions'
+            git commit -m 'Normalize missing Stripe item expiry before entitlement comparison'
             git push origin HEAD:codex/landwolf-live-billing
           fi
+          mkdir -p quality-output
           git rev-parse HEAD | tee quality-output/candidate-commit.txt
       - name: Format
         working-directory: beta
@@ -143,6 +104,7 @@ jobs:
       - name: Browser journey
         working-directory: beta
         run: |
+          .venv/bin/playwright install --with-deps chromium webkit > ../quality-output/browser-install.log 2>&1
           npm run build
           .venv/bin/pytest -q -m browser
       - name: Production package
@@ -161,7 +123,7 @@ jobs:
         run: |
           git diff --check
           git status --short
-      - name: Collect source and verification tools
+      - name: Collect verification source
         if: always()
         run: |
           mkdir -p quality-output
