@@ -1,4 +1,5 @@
 import L from "leaflet";
+import { setupFeedback } from "./feedback";
 import { bidRange, similarFilters } from "./property-context";
 import {
   propertyTrustCard,
@@ -87,6 +88,7 @@ type SearchResult = {
   coverage_note: string;
 };
 type SessionInfo = {
+  is_owner?: boolean;
   version?: string;
   authenticated?: boolean;
   email: string;
@@ -176,6 +178,17 @@ const errorText = (error: unknown) =>
 const form = byId<HTMLFormElement>("search-form");
 const dialog = byId<HTMLDialogElement>("property-dialog");
 let csrf = "";
+let currentView = "explore";
+const feedback = setupFeedback(api, (status) => {
+  if (
+    !status.access_allowed &&
+    currentView !== "feedback" &&
+    currentView !== "hunt"
+  ) {
+    dialog.close();
+    void navigate("feedback");
+  }
+});
 let registerMode = false;
 let page = 1;
 let requestSequence = 0;
@@ -279,6 +292,8 @@ function notify(message: string): void {
 
 function clearSession(): void {
   csrf = "";
+  feedback.clear();
+  currentView = "explore";
   scenarioDrafts.clear();
   resaleOverrides.clear();
   form.reset();
@@ -345,9 +360,19 @@ async function api<T>(
       if (response.status === 401 && csrf) clearSession();
       const detail =
         result && typeof result === "object" && "detail" in result
-          ? String(result.detail)
+          ? result.detail
           : "Request failed";
-      throw new Error(detail);
+      if (
+        response.status === 403 &&
+        !path.startsWith("/api/feedback") &&
+        !path.startsWith("/api/admin")
+      )
+        void feedback.refresh();
+      const description =
+        detail && typeof detail === "object" && "message" in detail
+          ? String(detail.message)
+          : String(detail);
+      throw new Error(description);
     }
     // The same-origin API enforces response records through its Pydantic contract.
     return result as T;
@@ -506,12 +531,19 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   byId("verify-email").hidden =
     Boolean(current.email_verified) || !current.email_delivery_enabled;
   page = 1;
-  await navigate("explore");
+  await feedback.start(Boolean(current.is_owner));
+  await navigate(
+    feedback.state?.state === "invited" || !feedback.allowed("explore")
+      ? "feedback"
+      : "explore",
+  );
 }
 async function navigate(
   view: string,
   preset?: Record<string, string>,
 ): Promise<void> {
+  if (!feedback.allowed(view)) view = "feedback";
+  currentView = view;
   if (view === "explore" && preset) fillForm(form, preset);
   const navigation = ++navigationSequence;
   const sessionToken = csrf;
@@ -527,6 +559,8 @@ async function navigate(
   const sources = view === "sources";
   const researching = view === "research";
   const hunting = view === "hunt";
+  const givingFeedback = view === "feedback";
+  byId("feedback-panel").hidden = !givingFeedback;
   if (view === "explore")
     byId("results-layout").dataset.view =
       document.querySelector<HTMLButtonElement>(
@@ -536,25 +570,32 @@ async function navigate(
   byId("source-panel").hidden = !sources;
   byId("research-panel").hidden = !researching;
   byId("hunt-panel").hidden = !hunting;
-  byId("explore-panel").hidden = sources || researching || hunting;
-  byId("workspace-title").textContent = sources
-    ? "Know the source. Know the limits."
-    : researching
-      ? "Understand the location."
-      : hunting
-        ? "Find the land that fits."
-        : "Find your next opportunity.";
-  byId("workspace-description").textContent = sources
-    ? "A transparent view of connected data and current gaps."
-    : researching
-      ? "Public records, with their source and uncertainty in view."
-      : hunting
-        ? "Set your criteria once. Review source-backed matches and changes."
-        : "Real listings. Clear sources. A closer look at what matters.";
+  byId("explore-panel").hidden =
+    sources || researching || hunting || givingFeedback;
+  byId("workspace-title").textContent = givingFeedback
+    ? "Help shape LandWolf."
+    : sources
+      ? "Know the source. Know the limits."
+      : researching
+        ? "Understand the location."
+        : hunting
+          ? "Find the land that fits."
+          : "Find your next opportunity.";
+  byId("workspace-description").textContent = givingFeedback
+    ? "Your experience, your priorities, and your feedback pilot status."
+    : sources
+      ? "A transparent view of connected data and current gaps."
+      : researching
+        ? "Public records, with their source and uncertainty in view."
+        : hunting
+          ? "Set your criteria once. Review source-backed matches and changes."
+          : "Real listings. Clear sources. A closer look at what matters.";
   // A tab switch must expose its destination even from a long Research report.
   byId("workspace-title").focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "instant" });
-  if (sources) {
+  if (givingFeedback) {
+    await feedback.open();
+  } else if (sources) {
     try {
       const result = await api<{
         sources: Source[];

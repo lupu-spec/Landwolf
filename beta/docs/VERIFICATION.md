@@ -1935,3 +1935,62 @@ passed 11 tests using the available Python environment, not the pinned CI enviro
 Added PostgreSQL durability coverage and Chromium/WebKit failure/retry/reload cases.
 Pinned format, lint, type, complete tests, build, security and deployment checks are
 pending hosted execution; this entry does not claim a deployed fix.
+
+## Investor feedback pilot — candidate v0.4.0-beta.7 (2026-10-04)
+
+Built on `codex/billing-exemptions-admin` at `db65198`. No deployment was performed.
+Adds schema-v7 investor invitations, explicit consent, fixed three-calendar-month
+terms, scheduled required feedback, owner reporting and server-side cohort gates.
+Existing non-cohort access and disabled payments remain unchanged. Reminder polls
+do not extend idle login sessions. See `INVESTOR_PILOT.md` for the contract.
+
+Commands below run from `beta/` unless identified otherwise. Final local results:
+
+| Command | Result |
+| --- | --- |
+| `uv sync --frozen --dev` | Passed, exit 0 |
+| `uv lock --check` | Passed, exit 0 |
+| `npm ci` | Passed, exit 0 |
+| `.venv/bin/ruff format --check landwolf tests scripts` | Passed, exit 0 |
+| `npm run format:check` | Passed, exit 0 |
+| `.venv/bin/ruff check landwolf tests scripts` | Passed, exit 0 |
+| `npm run lint` | Passed, exit 0 |
+| `.venv/bin/mypy landwolf` | Passed, exit 0; 24 modules |
+| `npm run typecheck` | Passed, exit 0 |
+| `npm run test:unit` | Passed, exit 0; 9 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed, exit 0; 315 tests, 28 browser cases deliberately excluded from this command |
+| `PYTHONPATH=. .venv-legacy/bin/pytest -q` (repository root; separately installed root requirements) | Passed, exit 0; 53 legacy tests |
+| `npm run build` | Passed, exit 0 |
+| `.venv/bin/playwright install chromium webkit` | Failed, exit 1; downloaded browser archive was invalid/unavailable |
+| `.venv/bin/pytest -q -m browser --maxfail=1` | Failed, exit 1 before first browser launch; Chromium executable unavailable. Browser behavior is NOT verified. |
+| `.venv/bin/python scripts/check_postgres.py` | Not run: no disposable `landwolf_ci` PostgreSQL service in this workspace |
+| `.venv/bin/python scripts/check_restore.py` | Not run: no disposable PostgreSQL service/container |
+| `.venv/bin/python -m build` | Passed, exit 0; candidate source archive and wheel built |
+| `.venv/bin/python scripts/check_package.py` | Passed, exit 0 |
+| `.venv/bin/bandit -q -r landwolf` | Passed, exit 0 |
+| `.venv/bin/pip-audit --local --skip-editable` | Passed, exit 0; no known vulnerabilities, editable project excluded as specified |
+| `npm audit --audit-level=moderate` | Passed, exit 0; zero vulnerabilities |
+| `npm run secrets` | Passed, exit 0 |
+| `git diff --check` (root) | Passed, exit 0 |
+| `git status --short` (root) | Passed, exit 0; intended candidate modifications reviewed |
+
+Earlier failures resolved: two new test assertions expected 404 for unauthorized
+unenrolled acceptance; the explicit invitation authorization contract returns 403,
+and the assertions were corrected to match that contract. Ruff import ordering
+was corrected. Existing dependency findings were repaired with compatible locked
+transitive updates only: brace-expansion 5.0.9→5.0.12, fast-uri 3.1.7→3.1.8,
+urllib3 2.7.0→2.8.0. No audit rules or test gates were weakened.
+
+Security review: response ownership comes from the authenticated session; no body
+can select another account. Owner APIs require the immutable configured owner ID.
+Writes retain origin/CSRF checks, strict bounded payloads, transaction rollback,
+and replay constraints. Submitted feedback uses text nodes in the browser. No
+secrets, production records, external messages, account grants or payments were
+created. Two feedback browser journeys are committed for CI, but not claimed passed.
+
+Release blockers: complete hosted browser and disposable PostgreSQL/restore gates;
+confirm the intended Render workspace and current deployed source branch; inspect
+existing owner-account configuration; then migrate and verify the exact live version,
+commit, HTTPS, consent/survey flow and account continuity. Public endpoint attempts
+from this environment returned an intermediary 'Site Unavailable' HTML response,
+not application health JSON; this does not establish a production outage.

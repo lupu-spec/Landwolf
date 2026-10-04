@@ -153,3 +153,14 @@ Append deployments below only after Render reports them live and HTTPS checks su
   and Chromium/WebKit create, edit and reload persistence against the exact runtime commit.
 - See the [complete command results, retained failures and limits](beta/docs/HUNT_SAVE_VERIFICATION.md).
   Browser probes wait for session initialization; early-navigation races and physical-device testing are not covered.
+
+## v0.4.0-beta.7 — investor feedback pilot candidate, NOT deployed
+
+- Invitation-only three-calendar-month investor access, explicit consent, required
+  in-app surveys, owner reporting and additive schema v7.
+- Calendar expiry, seven-day capped survey grace, server-side access rules and
+  session-idle preservation covered by local API/unit tests.
+- Local non-browser, package and security gates passed; browser and disposable
+  PostgreSQL/restore gates remain outstanding. No live deployment ID exists for
+  this candidate. Existing observed environment rows above remain historical.
+- See `beta/docs/INVESTOR_PILOT.md` and the dated verification entry.

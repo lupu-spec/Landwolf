@@ -184,6 +184,65 @@ class AdminAuditLog(Base):
     )
 
 
+class FeedbackEnrollment(Base):
+    """One lifetime invitation per account; accepting fixes the pilot end date."""
+
+    __tablename__ = "lw2_feedback_enrollments"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    invited_by_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    invited_at: Mapped[int] = mapped_column(Integer)
+    state: Mapped[str] = mapped_column(String(16), default="invited")
+    terms_version: Mapped[str] = mapped_column(String(40))
+    accepted_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    expires_at: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    revoked_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    __table_args__ = (
+        CheckConstraint("state IN ('invited','active','revoked')", name="ck_lw2_feedback_state"),
+        CheckConstraint(
+            "(accepted_at IS NULL AND expires_at IS NULL) OR "
+            "(accepted_at IS NOT NULL AND expires_at > accepted_at)",
+            name="ck_lw2_feedback_dates",
+        ),
+    )
+
+
+class FeedbackResponse(Base):
+    __tablename__ = "lw2_feedback_responses"
+    account_id: Mapped[str] = mapped_column(
+        ForeignKey("lw2_feedback_enrollments.account_id"), primary_key=True
+    )
+    survey_key: Mapped[str] = mapped_column(String(16), primary_key=True)
+    survey_version: Mapped[int] = mapped_column(Integer)
+    answers: Mapped[dict[str, Any]] = mapped_column(JSON)
+    submitted_at: Mapped[int] = mapped_column(Integer, index=True)
+    __table_args__ = (
+        CheckConstraint(
+            "survey_key IN ('baseline','day14','day30','day60','day85')",
+            name="ck_lw2_feedback_survey_key",
+        ),
+        CheckConstraint("survey_version = 1", name="ck_lw2_feedback_survey_version"),
+    )
+
+
+class FeedbackAudit(Base):
+    """Append-only pilot events, separate from the billing audit action contract."""
+
+    __tablename__ = "lw2_feedback_audit"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    actor_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    target_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    action: Mapped[str] = mapped_column(String(16))
+    survey_key: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer, index=True)
+    __table_args__ = (
+        CheckConstraint(
+            "action IN ('invite','accept','submit','revoke')", name="ck_lw2_feedback_audit"
+        ),
+    )
+
+
 class Hunt(Base):
     __tablename__ = "lw2_hunts"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -218,7 +277,7 @@ class HuntEvent(Base):
     created_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -230,7 +289,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add billing exemption/audit storage in v6; preserve existing user data."""
+    """Add feedback pilot storage in v7; preserve existing user data."""
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -242,7 +301,7 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [3], [4], [5], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [3], [4], [5], [6], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported beta schema version; migration required")
         Base.metadata.create_all(connection)
         # Intentionally irreversible. Do not archive or copy retired Saved data.

@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from landwolf import admin, auth, hunt, recovery
+from landwolf import admin, auth, feedback, hunt, recovery
 from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
@@ -288,6 +288,48 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) -> dict[str, str]:
         return auth.sign_in(credentials, request, response, session, settings, register=False)
 
+    @app.get("/api/feedback")
+    def feedback_status(request: Request, session: DB) -> dict[str, Any]:
+        # Reminder polling must not keep an idle login alive indefinitely.
+        account = auth.authenticate(request, session, settings, touch=False)
+        return feedback.status(session, account, settings=settings)
+
+    @app.post("/api/feedback/accept")
+    def accept_feedback_pilot(
+        body: feedback.AcceptInput, request: Request, session: DB
+    ) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"feedback:{account.id}", 10)
+        return feedback.accept(session, account, body)
+
+    @app.post("/api/feedback/responses")
+    def submit_feedback(
+        body: feedback.SurveyInput, request: Request, session: DB
+    ) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"feedback:{account.id}", 10)
+        return feedback.submit(session, account, body)
+
+    @app.get("/api/admin/feedback")
+    def feedback_cohort(request: Request, session: DB) -> dict[str, Any]:
+        return feedback.cohort(request, session, settings)
+
+    @app.get("/api/admin/feedback/responses")
+    def feedback_responses(request: Request, session: DB) -> dict[str, Any]:
+        return feedback.report(request, session, settings)
+
+    @app.post("/api/admin/accounts/{account_id}/feedback-pilot", status_code=201)
+    def invite_feedback_pilot(
+        account_id: str, body: feedback.InviteInput, request: Request, session: DB
+    ) -> dict[str, Any]:
+        return feedback.invite(request, session, settings, account_id, body)
+
+    @app.delete("/api/admin/accounts/{account_id}/feedback-pilot")
+    def revoke_feedback_pilot(
+        account_id: str, body: feedback.RevokeInput, request: Request, session: DB
+    ) -> dict[str, Any]:
+        return feedback.revoke(request, session, settings, account_id, body)
+
     @app.get("/api/admin/accounts")
     def admin_accounts(request: Request, session: DB) -> dict[str, Any]:
         return admin.accounts(request, session, settings)
@@ -322,7 +364,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/sources")
     def sources(request: Request, session: DB) -> dict[str, Any]:
-        auth.authenticate(request, session, settings)
+        account = auth.authenticate(request, session, settings)
+        feedback.require_access(session, account, settings)
         return {
             "sources": provider.statuses(),
             "states": provider.coverage(),
@@ -336,6 +379,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         query: ResearchQuery, request: Request, session: DB
     ) -> ResearchReport:
         account = auth.authenticate(request, session, settings, write=True)
+        feedback.require_access(session, account, settings)
         auth.limit(session, f"research:{account.id}", 12)
         auth.limit(session, "research:shared", 40)
         point = None
@@ -385,6 +429,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/search")
     def search(query: SearchQuery, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings, write=True)
+        feedback.require_access(session, account, settings)
         auth.limit(session, f"search:{account.id}", 60)
         if query.source is not None and query.source not in SOURCE_BY_ID:
             raise HTTPException(422, "Select a known source")
@@ -446,7 +491,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/properties/{listing_id}")
     def detail(listing_id: str, request: Request, session: DB) -> dict[str, Any]:
-        auth.authenticate(request, session, settings)
+        account = auth.authenticate(request, session, settings)
+        feedback.require_access(session, account, settings)
         item = session.get(Listing, listing_id)
         if item is None:
             raise HTTPException(404, "Property not found")
@@ -484,6 +530,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/hunts", status_code=201)
     def create_hunt(body: hunt.HuntInput, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings, write=True)
+        feedback.require_access(session, account, settings)
         auth.limit(session, f"hunt-write:{account.id}", 12)
         if not body.name.strip():
             raise HTTPException(422, "Give this Hunt a name")
@@ -586,6 +633,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/hunts/{hunt_id}/matches")
     def hunt_matches(hunt_id: str, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings)
+        feedback.require_access(session, account, settings)
         auth.limit(session, f"hunt-read:{account.id}", 30)
         row = owned_hunt(session, account.id, hunt_id)
         if not row.active:
@@ -605,6 +653,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/hunts/{hunt_id}/events")
     def hunt_events(hunt_id: str, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings)
+        feedback.require_access(session, account, settings)
         row = owned_hunt(session, account.id, hunt_id)
         events = session.scalars(
             select(HuntEvent)
@@ -627,6 +676,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/analysis")
     def analysis(spec: AnalysisInput, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings, write=True)
+        feedback.require_access(session, account, settings)
         auth.limit(session, f"analysis:{account.id}", 10)
         return analyze(spec)
 

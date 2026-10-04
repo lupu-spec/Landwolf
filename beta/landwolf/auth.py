@@ -83,7 +83,12 @@ def origin_guard(request: Request, settings: Settings) -> None:
 
 
 def authenticate(
-    request: Request, session: Session, settings: Settings, *, write: bool = False
+    request: Request,
+    session: Session,
+    settings: Settings,
+    *,
+    write: bool = False,
+    touch: bool = True,
 ) -> Account:
     token = request.cookies.get(COOKIE, "")
     if len(token) != 43:
@@ -111,8 +116,9 @@ def authenticate(
             or not secrets.compare_digest(supplied_csrf, login.csrf)
         ):
             raise HTTPException(403, "Invalid security token; reload the page")
-    login.last_seen = now
-    session.commit()
+    if touch:
+        login.last_seen = now
+        session.commit()
     request.state.login = login
     return account
 

@@ -905,3 +905,79 @@ def test_hunt_save_survives_match_failure_and_reload(
         assert len(page.request.get(f"{origin}/api/hunts").json()["hunts"]) == 2
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         browser.close()
+
+
+@pytest.mark.parametrize("width", [390, 1280])
+def test_feedback_consent_due_survey_and_restore(
+    browser_server: tuple[str, int], tmp_path: Path, width: int
+) -> None:
+    from landwolf.db import Account, FeedbackEnrollment
+    from landwolf.feedback import TERMS_VERSION, three_months_after
+
+    origin, _ = browser_server
+    engine, factory = database(f"sqlite:///{tmp_path / 'browser.db'}")
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": width, "height": 850})
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("feedback-browser@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        expect(page.locator("#workspace")).to_be_visible()
+        # Fixture invitation only: all consent/survey writes use the real browser/API.
+        with factory() as session, session.begin():
+            account = session.scalar(
+                select(Account).where(Account.email == "feedback-browser@example.com")
+            )
+            session.add(
+                FeedbackEnrollment(
+                    account_id=account.id,
+                    invited_by_account_id=account.id,
+                    invited_at=int(time.time()),
+                    state="invited",
+                    terms_version=TERMS_VERSION,
+                )
+            )
+        page.reload()
+        expect(page.get_by_text("A short starting-point survey", exact=True)).to_be_visible()
+        page.get_by_label("What do you want to accomplish with LandWolf?").fill(
+            "Find rural property"
+        )
+        page.get_by_label("What got in the way? If nothing, say so.").fill("I haven't tried yet")
+        page.get_by_label("I have no change to suggest right now", exact=True).check()
+        page.locator('input[name="accepted_terms"]').check()
+        page.get_by_role("button", name="Accept pilot & submit starting survey", exact=True).click()
+        expect(page.locator("#feedback-save-status")).to_contain_text("saved")
+        with factory() as session, session.begin():
+            row = session.get(FeedbackEnrollment, account.id)
+            row.accepted_at = int(time.time()) - 21 * 86400 - 1
+            row.expires_at = three_months_after(row.accepted_at)
+        page.get_by_role("button", name="Refresh status", exact=True).click()
+        expect(
+            page.get_by_role("heading", name="Your feedback is overdue", exact=True)
+        ).to_be_visible()
+        page.get_by_label("What did you last try to do, or hope to do?").fill("Compare parcels")
+        page.get_by_label("What got in the way? If nothing, say so.").fill(
+            "Needed clearer source dates"
+        )
+        page.get_by_label("What one feature or improvement would help most?").fill(
+            "Source date filters"
+        )
+        page.get_by_label("Why would that improvement matter to you?").fill(
+            "Find current opportunities"
+        )
+        page.get_by_role("button", name="Submit feedback", exact=True).click()
+        expect(page.locator("#feedback-save-status")).to_contain_text("saved")
+        expect(
+            page.get_by_role("heading", name="Thank you for helping improve LandWolf", exact=True)
+        ).to_be_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        assert errors == []
+        browser.close()
+    engine.dispose()

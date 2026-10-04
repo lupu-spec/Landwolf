@@ -30,6 +30,7 @@
         <button class="nav-link" data-nav="research">Property research</button>
         <button class="nav-link" data-nav="hunt">Hunt</button>
         <button class="nav-link" data-nav="sources">Data coverage</button>
+        <button class="nav-link" data-nav="feedback">Feedback</button>
       </nav>
       <div class="account-tools">
         <button id="signout" class="button quiet small" hidden>Sign out</button>
@@ -166,6 +167,34 @@
           </button>
         </div>
 
+        <aside
+          id="feedback-notice"
+          class="feedback-notice"
+          role="status"
+          hidden
+        >
+          <span id="feedback-notice-text"></span>
+          <button
+            type="button"
+            class="button secondary small"
+            data-nav="feedback"
+          >
+            Review feedback pilot
+          </button>
+        </aside>
+        <section
+          id="feedback-panel"
+          class="source-panel"
+          hidden
+          aria-label="Investor feedback"
+        >
+          <div id="feedback-content"></div>
+          <section
+            id="feedback-admin"
+            hidden
+            aria-label="Owner feedback administration"
+          ></section>
+        </section>
         <section
           id="source-panel"
           class="source-panel"
