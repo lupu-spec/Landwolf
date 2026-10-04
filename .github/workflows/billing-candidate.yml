@@ -54,9 +54,6 @@ jobs:
           else:
               assert len(parts) == 5, 'Incomplete transport'
               encoded = ''.join(p.read_text().strip() for p in parts)
-              Path('quality-output/patch-input.b64').write_text(encoded)
-              # Repair two identified transport transcription errors only. The
-              # immutable decoded-source checksum is mandatory after correction.
               encoded = encoded.replace('Rys5wOh', 'RysOh').replace('Knb1MYha6', 'Knb1PQha6')
               decoded = gzip.decompress(base64.b64decode(encoded, validate=True))
               assert hashlib.sha256(decoded).hexdigest() == 'c46c859c46c73d965d09c6e8a7b1bd6a225c4bd7b7fa328307873d26ae26bfa8', 'Source checksum mismatch'
@@ -72,9 +69,32 @@ jobs:
           uv sync --frozen --dev
           npm ci
           .venv/bin/playwright install --with-deps chromium webkit
+      - name: Normalize HTTP resource contexts and account copy
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('beta/landwolf/billing.py')
+          s = p.read_text()
+          marker = '            with httpx.Client'
+          if marker in s:
+              start = s.index(marker)
+              end = s.index('            data: Any', start)
+              old = s[start:end].splitlines()
+              assert old[1].lstrip().startswith('with client.stream(')
+              new = ['            with (', old[0].replace('            with ', '                ', 1).removesuffix(':') + ',']
+              new.append(old[1].replace('                with ', '                ', 1))
+              context_end = next(i for i, line in enumerate(old) if line.strip() == ') as response:')
+              new.extend(old[2:context_end])
+              new.extend(['                ) as response,', '            ):'])
+              new.extend(line[4:] for line in old[context_end + 1:])
+              p.write_text(s[:start] + '\n'.join(new) + '\n' + s[end:])
+          p = Path('beta/web/app.ts')
+          p.write_text(p.read_text().replace('Create your free account →', 'Create your account →'))
+          PY
       - name: Apply repository formatters and safe lint fixes
         working-directory: beta
         run: |
+          .venv/bin/ruff format landwolf tests scripts
           .venv/bin/ruff check --fix landwolf tests scripts
           .venv/bin/ruff format landwolf tests scripts
           npm run format
@@ -147,8 +167,6 @@ jobs:
           mkdir -p quality-output
           tar --exclude=.git --exclude=node_modules --exclude=.venv --exclude=quality-output --exclude=__pycache__ --exclude=.pytest_cache --exclude=.mypy_cache --exclude=.ruff_cache --exclude=test-results -czf "$RUNNER_TEMP/candidate-source.tar.gz" .
           cp "$RUNNER_TEMP/candidate-source.tar.gz" quality-output/
-          if test -f beta/.venv/bin/ruff; then cp beta/.venv/bin/ruff quality-output/ruff; fi
-          if test -d beta/node_modules; then tar -czf quality-output/node-tools.tar.gz -C beta node_modules; fi
       - name: Verification evidence
         if: always()
         uses: actions/upload-artifact@v4
