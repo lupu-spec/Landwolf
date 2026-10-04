@@ -517,12 +517,10 @@ byId("signout").addEventListener("click", async () => {
 
 async function enterWorkspace(info: SessionInfo): Promise<void> {
   csrf = info.csrf;
+  const sessionToken = csrf;
   byId("account-email").textContent = info.email;
-  byId("auth-view").hidden = true;
-  byId("workspace").hidden = false;
-  byId("main-nav").hidden = false;
-  byId("signout").hidden = false;
   const current = await api<SessionInfo>("/api/session");
+  if (!csrf || csrf !== sessionToken) return;
   byId("email-status").textContent = current.email_verified
     ? "Email verified"
     : current.email_delivery_enabled
@@ -532,6 +530,13 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
     Boolean(current.email_verified) || !current.email_delivery_enabled;
   page = 1;
   await feedback.start(Boolean(current.is_owner));
+  if (!csrf || csrf !== sessionToken) return;
+  // Expose navigation only after startup has selected the permitted initial view.
+  // Otherwise its delayed response can overwrite a user's first tab selection.
+  byId("auth-view").hidden = true;
+  byId("workspace").hidden = false;
+  byId("main-nav").hidden = false;
+  byId("signout").hidden = false;
   await navigate(
     feedback.state?.state === "invited" || !feedback.allowed("explore")
       ? "feedback"
