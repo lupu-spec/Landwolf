@@ -70,7 +70,7 @@ def main() -> None:
                 redirect = www.get("https://www.landwolf.ai/")
                 assert redirect.status_code in {301, 302, 307, 308}
                 assert redirect.headers["location"] == "https://landwolf.ai/"
-        for path in ("/api/sources", "/api/capabilities"):
+        for path in ("/api/sources", "/api/capabilities", "/api/feedback"):
             assert client.get(path).status_code == 401
         assert client.post("/api/search", json={}).status_code == 401
         assert client.get("/api/saved").status_code == 404
@@ -135,10 +135,28 @@ def main() -> None:
                             + research["status"]
                         )
                     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-                    expect(page.locator("#main-nav button")).to_have_count(3)
+                    expect(page.locator("#main-nav button")).to_have_count(5)
                     page.screenshot(
                         path=str(output / f"explore-{engine}-{width}.png"), full_page=True
                     )
+
+                    # The public signup must never silently enroll an investor or grant admin.
+                    pilot = context.request.get(f"{origin}/api/feedback")
+                    assert pilot.status == 200
+                    assert pilot.json()["state"] == "none"
+                    assert pilot.json()["access_allowed"] is True
+                    for path in ("/api/admin/feedback", "/api/admin/feedback/responses"):
+                        assert context.request.get(f"{origin}{path}").status == 403
+                    page.locator('#main-nav [data-nav="feedback"]').click()
+                    expect(page.locator("#feedback-content")).to_contain_text(
+                        "Investor feedback program"
+                    )
+                    expect(page.locator("#feedback-admin")).to_be_hidden()
+                    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                    page.screenshot(
+                        path=str(output / f"feedback-{engine}-{width}.png"), full_page=True
+                    )
+                    page.locator('#main-nav [data-nav="explore"]').click()
 
                     page.locator(".property-card").first.get_by_role(
                         "button", name="View property"
@@ -199,7 +217,11 @@ def main() -> None:
                 finally:
                     context.close()
                     browser.close()
-    print("Passed: four hosted browser journeys; one disposable test account retained")
+    print(
+        "Passed: four hosted browser journeys, feedback UI and owner authorization; "
+        "one disposable non-cohort test account retained. "
+        "Invitation, consent and due-date transitions are covered in isolated CI, not here."
+    )
 
 
 if __name__ == "__main__":

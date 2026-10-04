@@ -5,6 +5,7 @@ on:
     branches: [codex/landwolf-premium-staging, codex/landwolf-beta-rebuild]
     paths:
       - beta/scripts/check_hosted_staging.py
+      - beta/landwolf/version.py
       - .github/workflows/staging-smoke.yml
 
 permissions:

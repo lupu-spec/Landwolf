@@ -6,12 +6,13 @@ import sys
 import time
 import uuid
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, inspect, select
 
-from landwolf import auth
+from landwolf import auth, feedback
 from landwolf.config import Settings
 from landwolf.db import (
     SCHEMA_VERSION,
@@ -244,11 +245,77 @@ def main() -> None:
         require(
             client.get("/api/sources").status_code == 401, "Source endpoint leaked after logout"
         )
+        # Keep populated cohort tables for the following exact-content restore rehearsal.
+        owner_credentials = {
+            "email": f"feedback-owner-{suffix}@example.com",
+            "password": secrets.token_urlsafe(32),
+        }
+        owner_login = client.post("/api/auth/register", json=owner_credentials, headers=headers)
+        require(owner_login.status_code == 201, "Feedback test owner registration failed")
+        owner_headers = {**headers, "X-CSRF-Token": owner_login.json()["csrf"]}
+        with app.state.factory() as session:
+            owner = session.scalar(
+                select(Account).where(Account.email == owner_credentials["email"])
+            )
+            participant = session.scalar(
+                select(Account).where(Account.email == credentials["email"])
+            )
+            settings.owner_account_id = owner.id
+            participant_id = participant.id
+        invited = client.post(
+            f"/api/admin/accounts/{participant_id}/feedback-pilot",
+            headers=owner_headers,
+            json={},
+        )
+        require(invited.status_code == 201, "PostgreSQL cohort invitation failed")
+        require(
+            client.post("/api/auth/logout", headers=owner_headers, json={}).status_code == 200,
+            "Feedback owner logout failed",
+        )
+        participant_login = client.post("/api/auth/login", json=credentials, headers=headers)
+        require(participant_login.status_code == 200, "Feedback participant login failed")
+        headers["X-CSRF-Token"] = participant_login.json()["csrf"]
+        answers = {
+            "usage": "not_used",
+            "last_attempted_task": "Synthetic PostgreSQL verification",
+            "blocker": "No product use yet",
+            "feature_request": "",
+            "feature_reason": "",
+            "no_changes": True,
+        }
+        consent = {
+            "terms_version": feedback.TERMS_VERSION,
+            "accepted_terms": True,
+            "baseline": answers,
+        }
+        accepted = client.post("/api/feedback/accept", headers=headers, json=consent)
+        require(accepted.status_code == 200, "PostgreSQL consent transaction failed")
+        original = accepted.json()
+        replay = client.post("/api/feedback/accept", headers=headers, json=consent)
+        require(replay.status_code == 200, "PostgreSQL consent replay failed")
+        require(replay.json() == original, "Replay changed cohort state or term")
+        with patch("landwolf.feedback._now", return_value=original["accepted_at"] + 21 * 86400):
+            require(
+                client.get("/api/sources").status_code == 403,
+                "PostgreSQL overdue cohort was not gated",
+            )
+            submitted = client.post(
+                "/api/feedback/responses",
+                headers=headers,
+                json={"survey_key": "day14", "survey_version": 1, "answers": answers},
+            )
+            require(submitted.status_code == 200, "PostgreSQL survey transaction failed")
+            require(submitted.json()["access_allowed"], "Survey did not restore access")
+            require(
+                submitted.json()["expires_at"] == original["expires_at"],
+                "Survey extended fixed pilot expiry",
+            )
+        require(client.get("/api/admin/feedback").status_code == 403, "Owner report leaked")
     print(
         "Passed: PostgreSQL authentication, nationwide JSON filters, "
         "nulls, dates, pagination, permanent Saved deletion, retained accounts/sessions, "
         "trust snapshots, quarantine, parcel evidence, durable Hunt saves "
-        "and one-use password recovery"
+        "one-use password recovery, cohort consent/replay, overdue gating and survey restoration"
     )
 
 
