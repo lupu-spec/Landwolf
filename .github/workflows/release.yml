@@ -46,33 +46,34 @@ jobs:
       - name: Deploy application
         run: |
           echo "Replace with your platform-specific deployment command."
-          echo "This step must exit non-zero if deployment fails."
+          echo "No legacy deployment command is configured; refusing to report success." >&2
+          exit 1
 
-post_deploy_smoke:
-  needs: deploy
-  runs-on: ubuntu-latest
-  environment: ${{ inputs.environment }}
-  env:
-    SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
-    SMOKE_ALLOWED_ORIGIN: ${{ vars.CORS_PRIMARY_ORIGIN }}
-    SMOKE_BLOCKED_ORIGIN: https://blocked-smoke-origin.example
-    SMOKE_TIMEOUT_SECONDS: "15"
-    SMOKE_TEST_EMAIL_DOMAIN: ${{ vars.SMOKE_TEST_EMAIL_DOMAIN }}
-    STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-    STRIPE_PRICE_ID: ${{ vars.STRIPE_PRICE_ID }}
-  steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - run: pip install "httpx==0.28.1"
-    - name: Verify core live deployment
-      run: python scripts/post_deploy_smoke.py
-    - name: Verify Stripe subscription lifecycle
-      run: python scripts/post_deploy_subscription_smoke.py
+  post_deploy_smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
+      SMOKE_ALLOWED_ORIGIN: ${{ vars.CORS_PRIMARY_ORIGIN }}
+      SMOKE_BLOCKED_ORIGIN: https://blocked-smoke-origin.example
+      SMOKE_TIMEOUT_SECONDS: "15"
+      SMOKE_TEST_EMAIL_DOMAIN: ${{ vars.SMOKE_TEST_EMAIL_DOMAIN }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      STRIPE_PRICE_ID: ${{ vars.STRIPE_PRICE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "httpx==0.28.1"
+      - name: Verify core live deployment
+        run: python scripts/post_deploy_smoke.py
+      - name: Verify Stripe subscription lifecycle
+        run: python scripts/post_deploy_subscription_smoke.py
 
-release_healthy:
-  needs: post_deploy_smoke
-  runs-on: ubuntu-latest
-  steps:
-    - run: echo "Release is healthy only after preflight, deploy, core smoke, and subscription smoke tests pass."
+  release_healthy:
+    needs: post_deploy_smoke
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Release is healthy only after preflight, deploy, core smoke, and subscription smoke tests pass."

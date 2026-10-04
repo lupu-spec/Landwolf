@@ -7,8 +7,8 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.3.3 | `c5a5c6d6350441fadafc2c4625c3c7d279d0c6a4` | 2026-09-27 22:43:03 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.5 | `af6fbcd8beec4e56e75c527ca27a7d3cf61fb82e` | 2026-09-29 01:35:10 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.0-beta.7 | `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | 2026-10-04 19:40:41 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.7 | `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | 2026-10-04 19:37:40 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -119,6 +119,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-09-28 21:07:29 | Beta | v0.4.0-beta.3 / `19623b48ffc3ff4c97223feb8109cf7885b00cdc` | `dep-datddlfavr4c73d3pvng` | Plain Hunt result titles, specific review reasons, approved image previews and default-image fallback; hosted gates and HTTPS version/health passed. |
 | 2026-09-28 23:57:02 | Beta | v0.4.0-beta.4 / `834f92ea276c29dd5c98fd5cc2de6b77621e3aea` | `dep-datft6dg1s2s7397ooq0` | Explicit save action, saved Hunt list and confirmation; hosted browser, PostgreSQL, restore and release gates passed; HTTPS version/health observed. |
 | 2026-09-29 01:35:10 | Beta | v0.4.0-beta.5 / `af6fbcd8beec4e56e75c527ca27a7d3cf61fb82e` | `dep-dathb62d0e5s73c3uq90` | Durable Hunt saves independent of matching, verified saved-ID feedback and separate match retries. Full beta gates passed; deployed API and Chromium/WebKit create/edit/reload tests passed with exact IDs retained. |
+| 2026-10-04 19:37:40 | Beta | v0.4.0-beta.7 / `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | `dep-db1alfh42hec73epuo7g` | Investor feedback pilot, additive schema v7, required gates and four live HTTPS/browser journeys passed. |
+| 2026-10-04 19:40:41 | Production | v0.4.0-beta.7 / `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | `dep-db1amtou01pc73djnmm0` | Exact staging-tested commit promoted; schema v7, identity/health, www redirect and four live HTTPS/browser journeys passed. |
 
 ## Version and promotion rules
 
@@ -154,7 +156,7 @@ Append deployments below only after Render reports them live and HTTPS checks su
 - See the [complete command results, retained failures and limits](beta/docs/HUNT_SAVE_VERIFICATION.md).
   Browser probes wait for session initialization; early-navigation races and physical-device testing are not covered.
 
-## v0.4.0-beta.7 — investor feedback pilot candidate, NOT deployed
+## v0.4.0-beta.7 — historical candidate status before the rollout below
 
 - Invitation-only three-calendar-month investor access, explicit consent, required
   in-app surveys, owner reporting and additive schema v7.
@@ -164,3 +166,11 @@ Append deployments below only after Render reports them live and HTTPS checks su
   PostgreSQL/restore gates remain outstanding. No live deployment ID exists for
   this candidate. Existing observed environment rows above remain historical.
 - See `beta/docs/INVESTOR_PILOT.md` and the dated verification entry.
+
+## v0.4.0-beta.7 — live in staging and production
+
+- Published and merged [PR #11](https://github.com/lupu-spec/Landwolf/pull/11).
+- [Candidate gates](https://github.com/lupu-spec/Landwolf/actions/runs/37228598183) passed: 315 API, 28 browser and 9 frontend tests; PostgreSQL cohort transactions and 19-table restore; package and security checks.
+- The exact commit above passed four live browser journeys in [staging](https://github.com/lupu-spec/Landwolf/actions/runs/37228923125) before production deployment, then four in [production](https://github.com/lupu-spec/Landwolf/actions/runs/37229118822).
+- Invitation-only access lasts three calendar months, with required in-app surveys. Payments and email delivery remain disabled; no real investor was enrolled.
+- [Command results, retained failures and operational limits](beta/docs/INVESTOR_PILOT_RELEASE.md).

@@ -1,6 +1,6 @@
-# Investor feedback pilot — candidate v0.4.0-beta.7
+# Investor feedback pilot — v0.4.0-beta.7
 
-This release candidate adds an invitation-only LandWolf feedback cohort. It is not a deployed release, a Stripe trial, a mailing campaign, or evidence of customer demand.
+This release adds an invitation-only LandWolf feedback cohort. It was deployed to staging and production on 2026-10-04 after hosted gates and live HTTPS/browser checks passed. See [the release evidence and limits](INVESTOR_PILOT_RELEASE.md). It is not a Stripe trial, mailing campaign, or evidence of customer demand.
 
 ## Owner workflow
 
@@ -35,6 +35,6 @@ Run the existing `python -m landwolf.cli init-db` predeploy migration under the 
 
 Market research establishes 14 publicly identifiable prospects across three segments, not confirmed pain or willingness to pay. Free access and mandatory surveys test product needs; they do not establish paid implementation demand. Track voluntary repeat usage separately from required submissions.
 
-The attached tests cover authorization, explicit consent, fixed calendar expiry, grace boundaries, due-order enforcement, idempotency, malformed input, cross-account isolation, transaction rollback, migration preservation, reminder idle behavior, and UI policy. Two mobile/desktop browser journeys were added; local browser execution is blocked by unavailable browser binaries. Do not call this release production-ready until browser and disposable PostgreSQL/restore gates pass and live version/health is observed.
+The attached tests cover authorization, explicit consent, fixed calendar expiry, grace boundaries, due-order enforcement, idempotency, malformed input, cross-account isolation, transaction rollback, migration preservation, reminder idle behavior, and UI policy. Mobile/desktop participant journeys and a delayed-startup regression passed in the 28-test hosted browser suite. Disposable PostgreSQL cohort transactions and 19-table backup/restore passed. Live version/health and four browser journeys per deployed environment were observed. Local browser installation remained unavailable and was not counted as a pass.
 
-No accounts were enrolled, invitations sent, live settings changed, or production database migrated during this build. Hosting workspace confirmation and live branch inspection remain necessary before deployment.
+No real investors were enrolled and no outreach or invitations were sent. The authorized rollout retained existing services/accounts and applied additive schema v7. One synthetic non-cohort smoke-test account remains in each environment. Owner account binding was not changed; live owner login and real participant enrollment were not exercised.

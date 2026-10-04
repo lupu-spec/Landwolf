@@ -1994,3 +1994,15 @@ existing owner-account configuration; then migrate and verify the exact live ver
 commit, HTTPS, consent/survey flow and account continuity. Public endpoint attempts
 from this environment returned an intermediary 'Site Unavailable' HTML response,
 not application health JSON; this does not establish a production outage.
+
+
+## 2026-10-04 — investor pilot released to staging and production
+
+Version `0.4.0-beta.7`, runtime `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe`.
+All required hosted gates and eight deployed browser journeys passed. Render
+reported staging `dep-db1alfh42hec73epuo7g` live at 19:37:40 UTC and production
+`dep-db1amtou01pc73djnmm0` live at 19:40:41 UTC. Both reported schema v7 ready.
+See [the complete release record](INVESTOR_PILOT_RELEASE.md) for commands, exact
+evidence, resolved failures, backup scope, partial source coverage, and unexercised
+live owner/investor operations. Earlier candidate limitations above are historical;
+they were not counted as passing checks.
