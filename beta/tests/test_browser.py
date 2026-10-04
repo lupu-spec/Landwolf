@@ -37,10 +37,10 @@ def test_hunt_browser_flow(browser_server: tuple[str, int], width: int) -> None:
           const original = window.fetch.bind(window);
           window.fetch = async (...args) => {
             if (String(args[0]) === '/api/feedback') {
-              window.feedbackStartupPending = true;
+              document.documentElement.dataset.feedbackStartup = 'pending';
               await new Promise(resolve => setTimeout(resolve, 1000));
               const response = await original(...args);
-              window.feedbackStartupPending = false;
+              document.documentElement.dataset.feedbackStartup = 'ready';
               return response;
             }
             return original(...args);
@@ -51,7 +51,7 @@ def test_hunt_browser_flow(browser_server: tuple[str, int], width: int) -> None:
         page.get_by_label("Email address", exact=True).fill("hunt-browser@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
-        page.wait_for_function("window.feedbackStartupPending === true")
+        expect(page.locator("html")).to_have_attribute("data-feedback-startup", "pending")
         expect(page.locator("#main-nav")).to_be_hidden()
         page.locator('[data-nav="hunt"]').click()
         expect(page.get_by_role("heading", name="Create a saved Hunt")).to_be_visible()
