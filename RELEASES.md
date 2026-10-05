@@ -7,7 +7,7 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.0-beta.7 | `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | 2026-10-04 19:40:41 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.2 | `3f395b4a546c806d7eacd04229f3ac6a1f510659` | 2026-10-05 04:55:21 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.7 | `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | 2026-10-04 19:37:40 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
@@ -185,3 +185,24 @@ Append deployments below only after Render reports them live and HTTPS checks su
 - Deployment and live checkout/webhook verification remain pending. The observed
   environments and append-only deployment history above have not been changed.
 - See `beta/docs/LIVE_BILLING.md` for configuration, rollback and verification gates.
+
+
+## v0.4.2 — source recovery and production wording
+
+- Production runtime `3f395b4a546c806d7eacd04229f3ac6a1f510659`,
+  Render deployment `dep-db1ir2lg1s2s73ad5tig`, live 2026-10-05 04:55:21 UTC.
+- Repairs MnDOT empty-sale sections, Treasury undated teasers and invalid sale
+  markers, and IRS external promotions; preserves source validation/quarantine.
+- Removes obsolete customer-facing product labels. Completed staging features
+  already existed in the production baseline; unfinished integrations stay inactive.
+- Payment logic/configuration, accounts and schema are preserved. Startup and
+  pre-deploy checks passed; no data migration, reset or infrastructure change.
+- [Final CI](https://github.com/lupu-spec/Landwolf/actions/runs/37265161046) passed
+  all gates: 364 backend, 9 frontend and 30 browser tests, disposable PostgreSQL
+  and restore, package/build and security. Legacy tests and preflight also passed.
+- Eight implemented listing adapters passed a separate live-source sync; FEMA
+  still returns HTTP 502. Production source-state rows are not independently
+  inspected; startup schedules the existing automatic source refresh.
+- Daily source maintenance is enabled for around 08:00 America/Chicago.
+- Live HTTPS checks run independently on this ledger update. See
+  `beta/docs/VERIFICATION.md` for exact commands, retained failures and limitations.

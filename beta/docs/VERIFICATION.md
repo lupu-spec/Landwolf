@@ -2120,3 +2120,26 @@ also passed. Subsequent edits restore this audit document and clarify framework
 wording only; runtime source and test code are identical to this passing commit.
 Hosted CI supplies the browser/PostgreSQL verification unavailable locally.
 Production deployment and its live verification remain blocked by Render sign-in.
+
+
+### v0.4.2 final patch and production deployment — 2026-10-05
+
+The Treasury guard now rejects invalid sale markers regardless of case; its
+regression failed before the fix and passed afterward. Final runtime candidate
+`5cd17ee8d02b4351e0e2adb53bcb90f2a0154694` passed every repository gate in
+[CI run 37265161046](https://github.com/lupu-spec/Landwolf/actions/runs/37265161046).
+Separate legacy tests and release preflight passed in 37265161045 and 37265161110.
+All local format/lint/type, 364 backend and 9 frontend tests, build/package and
+security commands listed above were repeated successfully after the final fix.
+A fresh live-source sync again passed all eight implemented listing adapters.
+Local browser-download and FEMA limitations above remain; hosted browsers passed.
+
+PR #16 merged as `3f395b4a546c806d7eacd04229f3ac6a1f510659`.
+Render deployment `dep-db1ir2lg1s2s73ad5tig` became live on the existing
+production service at 2026-10-05 04:55:21 UTC. Its pre-deploy and startup checks
+passed with existing schema 8; logs confirm accounts, sessions and listings were
+preserved. The Render connector now supports deployment directly, so browser
+sign-in was unnecessary. Payment configuration and infrastructure were unchanged.
+Independent HTTPS checks are triggered by the ledger update. Source-state rows
+in production have not been independently inspected; successful startup alone
+does not prove every feed is ready. The normal automatic refresh starts at startup.
