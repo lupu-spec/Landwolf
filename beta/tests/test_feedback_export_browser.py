@@ -22,7 +22,7 @@ def test_feedback_users_and_csv_are_private(browser_server, engine_name, width):
         errors = []
         downloads = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.on("download", downloads.append)
+        page.on("download", lambda download: downloads.append(download))
         page.goto(origin)
 
         def login(email):

@@ -49,10 +49,17 @@ updated after the complete candidate gates and live checks finish.
 | `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | Passed, exit 0 |
 | `npm audit --audit-level=moderate`; `npm run secrets` | Passed, exit 0 |
 | `PYTHONPATH=. .venv-legacy/bin/pytest -q` (root) | Passed, 53 legacy tests, exit 0 |
-| `LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-feedback-release-sources.db .venv/bin/python -m landwolf.cli sync` | Pending; isolated local source snapshot |
+| `LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-feedback-release-sources.db .venv/bin/python -m landwolf.cli sync` | Passed, exit 0; all eight implemented feeds ready in isolated local snapshot |
 | `git diff --check`; `git status --short` (root) | Passed, intended files only, exit 0 |
 
 Resolved initial lint failure: Ruff requested splitting the Hypothesis imports;
 fixed before the final gates. Initial interpreter version probe used a nonexistent
 root `.venv`; all verification uses the application's `beta/.venv` and isolated
 legacy environment. Existing FastAPI/httpx deprecation warnings are unrelated.
+
+The first hosted run, [37282035075](https://github.com/lupu-spec/Landwolf/actions/runs/37282035075),
+passed backend, PostgreSQL and 23-table restore checks plus all 36 existing browser
+cases. Four new browser cases failed before navigating: Playwright cannot attach
+its wrapper metadata to Python's built-in `list.append` callback. A normal lambda
+callback fixes the test harness; no assertions or runtime code were changed.
+A complete hosted rerun is required before deployment.
