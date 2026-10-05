@@ -7,7 +7,7 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.2 | `3f395b4a546c806d7eacd04229f3ac6a1f510659` | 2026-10-05 04:55:21 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.3 | `b299190d271b4530a696871e10d96b4380323448` | 2026-10-05 05:24:17 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.1 | `cf34432724b9aae2afa32987362a4df67f57eb86` | 2026-10-05 01:45:45 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
@@ -121,6 +121,7 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-09-29 01:35:10 | Beta | v0.4.0-beta.5 / `af6fbcd8beec4e56e75c527ca27a7d3cf61fb82e` | `dep-dathb62d0e5s73c3uq90` | Durable Hunt saves independent of matching, verified saved-ID feedback and separate match retries. Full beta gates passed; deployed API and Chromium/WebKit create/edit/reload tests passed with exact IDs retained. |
 | 2026-10-04 19:37:40 | Beta | v0.4.0-beta.7 / `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | `dep-db1alfh42hec73epuo7g` | Investor feedback pilot, additive schema v7, required gates and four live HTTPS/browser journeys passed. |
 | 2026-10-04 19:40:41 | Production | v0.4.0-beta.7 / `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | `dep-db1amtou01pc73djnmm0` | Exact staging-tested commit promoted; schema v7, identity/health, www redirect and four live HTTPS/browser journeys passed. |
+| 2026-10-05 05:24:17 | Production | v0.4.3 / `b299190d271b4530a696871e10d96b4380323448` | `dep-db1j8i5g1s2s73af02s0` | Owner-only Data coverage UI/API; identical eligible-customer search and Hunt results. Required gates and four live HTTPS/browser customer journeys passed; existing billing and schema 8 preserved. |
 
 ## Version and promotion rules
 
@@ -209,3 +210,22 @@ Append deployments below only after Render reports them live and HTTPS checks su
 
 The staging environment row was reconciled with its existing Render deployment
 `dep-db1g20ou01pc73e9dbi0`; staging was not redeployed for this production patch.
+
+## v0.4.3 — owner-only Data coverage
+
+- Production runtime `b299190d271b4530a696871e10d96b4380323448`,
+  Render deployment `dep-db1j8i5g1s2s73af02s0`, live 2026-10-05 05:24:17 UTC.
+- Data coverage navigation and detailed feed diagnostics use the existing
+  server-authorized owner boundary, including direct API requests. Sign-out clears
+  cached diagnostics. Paid and complimentary access alone do not grant admin rights.
+- Search listings, filters, totals, attribution, evidence and Hunt matching remain
+  available under the existing entitlement rules. Generic freshness warnings remain.
+- [Final CI](https://github.com/lupu-spec/Landwolf/actions/runs/37267053716) passed
+  368 backend, 9 frontend and 30 browser tests; PostgreSQL/21-table restore,
+  packaging and security. Legacy tests and static release preflight passed.
+- [Live release checks](https://github.com/lupu-spec/Landwolf/actions/runs/37267554161)
+  passed exact identity, HTTPS/database health, billing mode and four Chromium/WebKit
+  customer journeys. No real subscriber/owner account or payment was used.
+- Existing production infrastructure, schema 8 and payment architecture were
+  preserved. Staging remains on its previously observed runtime and is not redeployed.
+- [Exact command results, evidence and limits](beta/docs/OWNER_COVERAGE_RELEASE.md).

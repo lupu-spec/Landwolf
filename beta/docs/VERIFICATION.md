@@ -2157,3 +2157,17 @@ the full smoke rerun passed. Staging was not redeployed. No warning/error logs
 were returned for production from startup through 2026-10-05 04:57:47 UTC.
 This does not establish complete upstream source coverage or independently inspect
 production source-state rows. FEMA remains unavailable; daily maintenance is enabled.
+
+### v0.4.3 — owner-only coverage, production — 2026-10-05
+
+Data coverage diagnostics now require the existing server-authorized owner account;
+eligible customers keep identical search results and Hunt matching. The full final
+candidate passed 368 backend, 9 frontend and 30 browser tests, disposable PostgreSQL
+and 21-table restore, builds/packages and security scans, plus 53 legacy tests.
+PR #18 merged as `b299190d271b4530a696871e10d96b4380323448`; deployment
+`dep-db1j8i5g1s2s73af02s0` became live at 2026-10-05 05:24:17 UTC.
+Hosted run 37267554161 passed exact runtime identity, HTTPS/database health, existing
+production billing mode and all four customer browser journeys. Schema 8 and the
+payment architecture were preserved; no real subscriber or owner was impersonated.
+The [release verification report](OWNER_COVERAGE_RELEASE.md) records every command,
+resolved failures, live evidence and remaining local/provider verification limits.
