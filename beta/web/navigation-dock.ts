@@ -8,7 +8,7 @@ export function setupNavigationDock(): void {
   const shell = foundShell;
   const track = foundTrack;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-  const fine = matchMedia("(hover: hover) and (pointer: fine)");
+  const fine = matchMedia("(any-hover: hover) and (any-pointer: fine)");
   const items = [...track.querySelectorAll<HTMLButtonElement>("[data-dock]")];
   const arrows = [
     ...shell.querySelectorAll<HTMLButtonElement>("[data-dock-shift]"),
