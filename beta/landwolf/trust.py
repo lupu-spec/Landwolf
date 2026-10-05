@@ -254,7 +254,8 @@ def property_evidence(record: PropertyRecord, state: SourceState | None) -> dict
         state
         and state.status == "ready"
         and state.last_success
-        and time.time() - state.last_success <= FRESHNESS_SECONDS
+        and time.time() - state.last_success
+        <= (12 * 3600 if record.category == "private_seller" else FRESHNESS_SECONDS)
     )
     return {
         "identity": {

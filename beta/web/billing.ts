@@ -163,7 +163,8 @@ export function setupBilling(
 
       const plans = document.createElement("div");
       plans.className = "billing-plan-grid";
-      let selectedPlan = status.plans.find((plan) => plan.id === "monthly") ?? status.plans[0];
+      let selectedPlan =
+        status.plans.find((plan) => plan.id === "monthly") ?? status.plans[0];
 
       const planInputs: HTMLInputElement[] = [];
       for (const plan of status.plans) {
@@ -178,10 +179,9 @@ export function setupBilling(
         input.addEventListener("change", () => {
           selectedPlan = plan;
           for (const item of planInputs)
-            item.closest(".billing-plan-card")?.classList.toggle(
-              "selected",
-              item.checked,
-            );
+            item
+              .closest(".billing-plan-card")
+              ?.classList.toggle("selected", item.checked);
           checkout.textContent = `Continue to secure checkout — ${plan.label}`;
         });
         planInputs.push(input);
@@ -193,7 +193,10 @@ export function setupBilling(
           text("span", plan.label),
         );
         if (plan.id === "annual") {
-          const savings = text("span", "Save $49 vs. paying monthly for a year");
+          const savings = text(
+            "span",
+            "Save $49 vs. paying monthly for a year",
+          );
           savings.className = "billing-plan-note";
           copy.append(savings);
         }

@@ -41,6 +41,11 @@ type PropertyRecord = {
   eligibility: string | null;
   source_url: string;
   source_name: string;
+  seller_type: "owner" | "agent" | "broker" | "unknown";
+  listing_agent: string | null;
+  listing_brokerage: string | null;
+  seller_phone: string | null;
+  attribution: string | null;
   image_url: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -75,6 +80,7 @@ type Source = {
   states: string[];
   categories: string[];
   automated: boolean;
+  refresh_interval_hours?: number;
 };
 type StateCoverage = {
   state: string;
@@ -285,6 +291,7 @@ const categoryNames: Record<string, string> = {
   pre_foreclosure: "Pre-foreclosure notice",
   surplus: "Public surplus",
   public_auction: "Public auction",
+  private_seller: "Private Seller Listings",
 };
 const area = (value: number | null) =>
   value === null
@@ -430,7 +437,11 @@ function safeImage(url: string | null): string | null {
     return null;
   }
 }
-function sourceLink(url: string, label: string): HTMLAnchorElement {
+function sourceLink(
+  url: string,
+  label: string,
+  seller = false,
+): HTMLAnchorElement {
   const a = element("a", "", label);
   try {
     const parsed = new URL(url);
@@ -439,28 +450,29 @@ function sourceLink(url: string, label: string): HTMLAnchorElement {
       !parsed.username &&
       !parsed.password &&
       !parsed.port &&
-      [
-        "www.glo.texas.gov",
-        "www.resales.usda.gov",
-        "www.irsauctions.gov",
-        "www.treasury.gov",
-        "dnr.alaska.gov",
-        "www.dnr.state.mi.us",
-        "www.michigan.gov",
-        "www.hudhomestore.gov",
-        "disposal.gsa.gov",
-        "www.usa.gov",
-        "cosl.org",
-        "geocoding.geo.census.gov",
-        "www.fema.gov",
-        "epqs.nationalmap.gov",
-        "sdmdataaccess.nrcs.usda.gov",
-        "www.nconemap.gov",
-        "www.dot.state.mn.us",
-        "edocs-public.dot.state.mn.us",
-        "www.dnr.state.mn.us",
-        "land.az.gov",
-      ].includes(parsed.hostname)
+      (seller ||
+        [
+          "www.glo.texas.gov",
+          "www.resales.usda.gov",
+          "www.irsauctions.gov",
+          "www.treasury.gov",
+          "dnr.alaska.gov",
+          "www.dnr.state.mi.us",
+          "www.michigan.gov",
+          "www.hudhomestore.gov",
+          "disposal.gsa.gov",
+          "www.usa.gov",
+          "cosl.org",
+          "geocoding.geo.census.gov",
+          "www.fema.gov",
+          "epqs.nationalmap.gov",
+          "sdmdataaccess.nrcs.usda.gov",
+          "www.nconemap.gov",
+          "www.dot.state.mn.us",
+          "edocs-public.dot.state.mn.us",
+          "www.dnr.state.mn.us",
+          "land.az.gov",
+        ].includes(parsed.hostname))
     )
       a.href = url;
   } catch {
@@ -1058,14 +1070,16 @@ function renderSources(sources: Source[]): void {
             : "Directory entry; excluded from property counts",
         ),
         element("p", "", source.message),
-        sourceLink(source.url, "Inspect the original inventory ↗"),
+        ...(source.url
+          ? [sourceLink(source.url, "Inspect the original inventory ↗")]
+          : []),
       );
       if (source.automated) {
         card.append(
           element(
             "p",
             "input-note",
-            `Last attempted: ${date(source.last_attempt ?? null)} · Scheduled every 6 hours. Retrieval does not establish publisher freshness.`,
+            `Last attempted: ${date(source.last_attempt ?? null)} · Scheduled every ${source.refresh_interval_hours ?? 6} hours. Retrieval does not establish publisher freshness.`,
           ),
         );
         const history = element("details", "source-history");
@@ -1507,7 +1521,13 @@ function renderDetail(record: PropertyRecord): void {
       ),
     );
   overview.append(
-    sourceLink(record.source_url, "View official listing & sale terms ↗"),
+    sourceLink(
+      record.source_url,
+      record.category === "private_seller"
+        ? "View seller or agent listing ↗"
+        : "View official listing & sale terms ↗",
+      record.category === "private_seller",
+    ),
   );
   const facts = element("div", "detail-facts");
   for (const [label, value] of [
@@ -1545,6 +1565,30 @@ function renderDetail(record: PropertyRecord): void {
         "Not provided. This property is not shown as a precise map point.",
     ),
   );
+  if (record.category === "private_seller") {
+    const representative = [record.listing_agent, record.listing_brokerage]
+      .filter(Boolean)
+      .join(" · ");
+    byId("detail-content").append(
+      element(
+        "p",
+        "detail-source",
+        `Listed by: ${representative || "Representative not supplied"} · Seller type: ${record.seller_type}`,
+      ),
+    );
+    if (record.seller_phone)
+      byId("detail-content").append(
+        element(
+          "p",
+          "detail-source",
+          `Listing contact: ${record.seller_phone}`,
+        ),
+      );
+    if (record.attribution)
+      byId("detail-content").append(
+        element("p", "detail-source", record.attribution),
+      );
+  }
   if (record.source_account)
     description.append(
       element(
@@ -1575,7 +1619,11 @@ function renderDetail(record: PropertyRecord): void {
   research.append(description, risks);
   byId("detail-content").replaceChildren(hero, research);
   if (record.trust)
-    byId("detail-content").append(propertyTrustCard(record.trust, sourceLink));
+    byId("detail-content").append(
+      propertyTrustCard(record.trust, (url, label) =>
+        sourceLink(url, label, record.category === "private_seller"),
+      ),
+    );
 }
 byId("close-detail").addEventListener("click", () => {
   rememberScenario();

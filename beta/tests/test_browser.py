@@ -511,6 +511,22 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 )
             )
         source_engine.dispose()
+    elif getattr(request, "param", "") == "private_seller":
+        from test_private_listings import config, listing
+
+        from landwolf.private_listings import SellerListing, finish_status
+
+        record = SellerListing(**listing()).record(config(), "2099-01-01T00:00:00Z")
+        with factory() as session, session.begin():
+            session.add(
+                Listing(
+                    id=record.id,
+                    source=record.source,
+                    active=True,
+                    payload=record.model_dump(mode="json"),
+                )
+            )
+        finish_status(factory, int(time.time()), True)
     elif getattr(request, "param", "") == "nationwide":
         seed_national(factory)
     else:
@@ -1066,16 +1082,53 @@ def test_membership_browser_terms_and_pending_payment(
         page.locator("#auth-submit").click()
         expect(page.get_by_role("heading", name="Choose your LandWolf plan")).to_be_visible()
         expect(page.locator("#explore-panel")).to_be_hidden()
-        page.get_by_role("button", name="Continue to secure checkout — $29 / month", exact=True).click()
-        expect(page.locator("#billing-message")).to_contain_text(
-            "Check the recurring billing box"
-        )
+        page.get_by_role(
+            "button", name="Continue to secure checkout — $29 / month", exact=True
+        ).click()
+        expect(page.locator("#billing-message")).to_contain_text("Check the recurring billing box")
         assert requests == []
         page.locator("#billing-consent").check()
-        page.get_by_label("Annual", exact=False).check()\n        expect(page.get_by_role("button", name="Continue to secure checkout — $299 / year", exact=True)).to_be_visible()\n        page.get_by_role("button", name="Continue to secure checkout — $299 / year", exact=True).click()
+        page.get_by_label("Annual", exact=False).check()
+        expect(
+            page.get_by_role("button", name="Continue to secure checkout — $299 / year", exact=True)
+        ).to_be_visible()
+        page.get_by_role(
+            "button", name="Continue to secure checkout — $299 / year", exact=True
+        ).click()
         expect(page.locator("#billing-message")).to_contain_text("Synthetic billing outage")
         assert requests == [{"plan": "annual", "accepted_recurring_terms": True}]
         page.get_by_role("button", name="Check payment status", exact=True).click()
         expect(page.locator("#billing-message")).to_contain_text("No active paid access yet")
         expect(page.locator("#explore-panel")).to_be_hidden()
+        browser.close()
+
+
+@pytest.mark.parametrize("browser_server", ["private_seller"], indirect=True)
+def test_private_seller_details_keep_agent_and_generic_category(
+    browser_server: tuple[str, int],
+) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"),
+            args=["--no-sandbox", "--disable-gpu"],
+        )
+        page = browser.new_page(viewport={"width": 390, "height": 844})
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("private-fixture@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        page.locator('#search-form [name="category"]').select_option("private_seller")
+        page.locator("#search-submit").click()
+        expect(page.locator(".property-card")).to_have_count(1)
+        expect(page.locator(".property-card")).to_contain_text("Private Seller Listings")
+        page.locator(".property-card").get_by_role("button", name="View property").click()
+        expect(page.locator("#detail-content")).to_contain_text("Synthetic Agent")
+        expect(page.locator("#detail-content")).to_contain_text("Synthetic Brokerage")
+        expect(page.locator("#detail-content")).to_contain_text("Seller type: broker")
+        expect(page.get_by_role("link", name="View seller or agent listing")).to_have_attribute(
+            "href", "https://agent.example.test/listing/1"
+        )
+        assert "inventory.example.test" not in page.content()
         browser.close()

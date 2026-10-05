@@ -8,7 +8,13 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, mo
 from landwolf.states import state_code
 
 Category = Literal[
-    "government_land", "tax_sale", "foreclosure", "pre_foreclosure", "surplus", "public_auction"
+    "government_land",
+    "tax_sale",
+    "foreclosure",
+    "pre_foreclosure",
+    "surplus",
+    "public_auction",
+    "private_seller",
 ]
 
 
@@ -58,6 +64,11 @@ class PropertyRecord(Contract):
     legal_description: str | None = None
     location_description: str | None = None
     source_account: str | None = None
+    seller_type: Literal["owner", "agent", "broker", "unknown"] = "unknown"
+    listing_agent: str | None = Field(default=None, max_length=160)
+    listing_brokerage: str | None = Field(default=None, max_length=160)
+    seller_phone: str | None = Field(default=None, max_length=40)
+    attribution: str | None = Field(default=None, max_length=500)
     parcel_number: str | None = Field(default=None, min_length=1, max_length=100)
     source_effective_date: date | None = None
     retrieved_at: str

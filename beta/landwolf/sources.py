@@ -24,6 +24,15 @@ class SourceDefinition:
 NATIONWIDE = tuple(STATES)
 SOURCES = (
     SourceDefinition(
+        "private_seller_listings",
+        "Private Seller Listings",
+        "",
+        NATIONWIDE,
+        ("private_seller",),
+        "Owner, agent and broker listings from connected private market feeds.",
+        False,
+    ),
+    SourceDefinition(
         "mn_dot",
         "Minnesota Department of Transportation",
         "https://www.dot.state.mn.us/row/propsales.html",

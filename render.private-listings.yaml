@@ -1,0 +1,23 @@
+# Proposed job. Not provisioned; configure and validate a source before applying.
+# Deploy compatible schema-v9 web code first; then initialize the shared database.
+services:
+  - type: cron
+    name: landwolf-private-listings
+    runtime: docker
+    plan: starter
+    region: oregon
+    branch: codex/landwolf-beta-rebuild
+    dockerfilePath: ./beta/Dockerfile
+    dockerContext: ./beta
+    dockerCommand: python -m landwolf.cli sync-private
+    schedule: "0 0,12 * * *"
+    autoDeployTrigger: "off"
+    envVars:
+      - key: LANDWOLF_ENVIRONMENT
+        value: production
+      - key: LANDWOLF_PUBLIC_ORIGIN
+        value: https://landwolf.ai
+      - key: LANDWOLF_DATABASE_URL
+        sync: false
+      - key: LANDWOLF_PRIVATE_FEEDS
+        sync: false
