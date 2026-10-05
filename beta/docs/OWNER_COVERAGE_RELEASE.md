@@ -93,4 +93,14 @@ non-cohort account was retained. No payment was made and no mail was sent.
 
 Customer/owner result parity and owner dashboard access passed isolated API and
 browser tests, rather than production impersonation. Existing staging runtime
-v0.4.1 is unchanged. The ledger-triggered independent HTTPS/image check follows.
+v0.4.1 is unchanged.
+
+**Passed:** the inline Python HTTPS/version/health/image command in
+`.github/workflows/live-smoke.yml`,
+[run 37267834638](https://github.com/lupu-spec/Landwolf/actions/runs/37267834638).
+It independently confirmed production v0.4.3 at the exact runtime commit above,
+staging v0.4.1 at its existing commit, database/schema health, the expected fallback
+image bytes for both sites, and the www HTTPS version endpoint. The release ledger
+was synchronized to the staging branch as documentation only. Final local
+`git diff --check` and `git status --short` passed with a clean tracked worktree
+after synchronization; the deployment remains on the immutable runtime merge.
