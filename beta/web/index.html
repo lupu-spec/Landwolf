@@ -152,32 +152,33 @@
               <span class="dock-label" aria-hidden="true">Membership</span
               ><span class="sr-only">Membership</span>
             </button>
+            <button
+              id="crm-nav"
+              type="button"
+              class="nav-link dock-item"
+              data-nav="crm"
+              data-dock="crm"
+              hidden
+              aria-label="L91 LLC CRM"
+              title="L91 LLC CRM"
+            >
+              <span class="dock-tile"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="4" />
+                  <circle cx="9" cy="9" r="2" />
+                  <path
+                    d="M5 17c0-4 8-4 8 0M15 8h3M15 12h3M16 16h2"
+                  /></svg></span
+              ><span class="dock-label">L91 CRM</span>
+            </button>
           </nav>
-          <button
-            id="crm-nav"
-            type="button"
-            class="dock-item"
-            data-nav="crm"
-            data-dock="crm"
-            hidden
-            aria-label="L91 LLC CRM"
-            title="L91 LLC CRM"
-          >
-            <span class="dock-tile"
-              ><svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                aria-hidden="true"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="4" />
-                <circle cx="9" cy="9" r="2" />
-                <path
-                  d="M5 17c0-4 8-4 8 0M15 8h3M15 12h3M16 16h2"
-                /></svg></span
-            ><span class="dock-label">L91 CRM</span>
-          </button>
+
           <button
             type="button"
             class="wolf-chat-trigger dock-item"
@@ -342,8 +343,9 @@
                       maxlength="32"
                       placeholder="+1 555 010 1234"
                   /></label>
-                  <label
-                    >Industry (optional)<select id="signup-industry">
+                  <div>
+                    <label for="signup-industry">Industry (optional)</label
+                    ><select id="signup-industry">
                       <option value="">Choose industry</option>
                       <option value="real_estate">Real estate</option>
                       <option value="construction">
@@ -359,11 +361,13 @@
                       </option>
                       <option value="personal">Personal use</option>
                       <option value="other">Other</option>
-                    </select></label
-                  >
+                    </select>
+                  </div>
                 </div>
-                <label
-                  >Which best describes you? (optional)<select id="signup-type">
+                <div>
+                  <label for="signup-type"
+                    >Which best describes you? (optional)</label
+                  ><select id="signup-type">
                     <option value="">Choose role</option>
                     <option value="investor">Investor</option>
                     <option value="agent">Agent / broker</option>
@@ -372,8 +376,8 @@
                     <option value="business_owner">Business owner</option>
                     <option value="individual">Individual</option>
                     <option value="other">Other</option>
-                  </select></label
-                >
+                  </select>
+                </div>
                 <label
                   >Anything else about your goals? (optional)<textarea
                     id="signup-details"

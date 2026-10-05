@@ -40,15 +40,19 @@ function selectField(
   choices: Record<string, string>,
   value = "",
 ) {
-  const wrap = node("label", label);
+  const wrap = node("div");
+  wrap.className = "crm-field";
+  const caption = node("label", label);
   const select = node("select");
+  select.id = `crm-${crypto.randomUUID()}`;
+  caption.htmlFor = select.id;
   for (const [key, text] of Object.entries(choices)) {
     const option = node("option", text);
     option.value = key;
     select.append(option);
   }
   select.value = value;
-  wrap.append(select);
+  wrap.append(caption, select);
   return { wrap, input: select };
 }
 function inputField(label: string, value = "", type = "text") {
@@ -180,7 +184,9 @@ export function setupCRM(api: Api) {
             .filter(Boolean),
           follow_up_on: due.input.value,
         });
-        if (active && sequence === stamp) {
+        if (active && sequence === stamp && selected === c.id) {
+          await load();
+          if (!active) return;
           await showContact(c.id);
           status.textContent = "Contact saved.";
         }
