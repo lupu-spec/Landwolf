@@ -13,7 +13,7 @@ the retired standalone Saved properties feature remains removed.
 | 4. Expansion | `SourceReadiness`; parser, live-check, reuse-review and monitoring gates | Review and connect each adapter explicitly; report partial coverage; establish freshness targets and incident ownership |
 
 The authenticated `/api/capabilities` endpoint and Data coverage page distinguish
-beta functionality from framework-only work. Priorities two through four do not
+available functionality from framework-only work. Priorities two through four do not
 provide working valuation services, partner advertising, lead sharing or automated
 source onboarding. These are extension interfaces, not additional active APIs.
 
@@ -69,7 +69,7 @@ account; sign-in remains the search gate and existing accounts are not locked ou
 ## Isolated staging and recovery
 
 Deployed on 2026-09-20 with the owner's approval of the added $6.30/month database
-charge: [staging beta](https://landwolf-premium-staging.onrender.com/).
+charge: [staging](https://landwolf-premium-staging.onrender.com/).
 The active Blueprint is `render.staging.paid.yaml` on
 `codex/landwolf-premium-staging`. It uses a free web service and separate PostgreSQL
 18 `0.1c-256mb` instance with 1 GB storage. External database access and storage
