@@ -315,7 +315,7 @@ def test_real_v8_migration_is_additive_and_idempotent(tmp_path):
     initialize(engine)
     with factory() as session:
         assert session.get(Account, "retained").password_hash == "fixture"
-        assert session.scalars(select(SchemaVersion.version)).all() == [9]
+        assert session.scalars(select(SchemaVersion.version)).all() == [10]
     assert inspect(engine).has_table("lw2_research_cases")
     assert inspect(engine).has_table("lw2_research_goals")
     engine.dispose()

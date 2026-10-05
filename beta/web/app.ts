@@ -1,3 +1,4 @@
+import { setupCRM } from "./crm";
 import { setupNavigationDock } from "./navigation-dock";
 import {
   setupBilling,
@@ -214,6 +215,7 @@ const feedback = setupFeedback(api, (status) => {
     );
   }
 });
+const crm = setupCRM(api);
 let registerMode = false;
 let page = 1;
 let requestSequence = 0;
@@ -352,6 +354,9 @@ function clearSession(): void {
   assistant.clear();
   decisions.clear();
   feedback.clear();
+  crm.clear();
+  byId("crm-nav").hidden = true;
+  byId<HTMLFormElement>("auth-form").reset();
   billing.clear();
   currentView = "explore";
   scenarioDrafts.clear();
@@ -422,6 +427,10 @@ async function api<T>(
     const result: unknown = await response.json();
     if (!response.ok) {
       if (response.status === 401 && csrf) clearSession();
+      if (response.status === 403 && path.startsWith("/api/admin/crm")) {
+        crm.clear();
+        byId("crm-nav").hidden = true;
+      }
       const detail =
         result && typeof result === "object" && "detail" in result
           ? result.detail
@@ -542,6 +551,8 @@ function photo(
 
 function setAuthMode(register: boolean): void {
   registerMode = register;
+  byId<HTMLFieldSetElement>("registration-profile").hidden = !register;
+  byId<HTMLFieldSetElement>("registration-profile").disabled = !register;
   byId("login-tab").setAttribute("aria-pressed", String(!register));
   byId("register-tab").setAttribute("aria-pressed", String(register));
   byId("auth-submit").textContent = register
@@ -566,9 +577,26 @@ byId<HTMLFormElement>("auth-form").addEventListener("submit", async (event) => {
       {
         email: byId<HTMLInputElement>("email").value,
         password: byId<HTMLInputElement>("password").value,
+        ...(registerMode
+          ? {
+              profile: {
+                full_name: byId<HTMLInputElement>("signup-name").value,
+                company: byId<HTMLInputElement>("signup-company").value,
+                phone: byId<HTMLInputElement>("signup-phone").value,
+                job_title: byId<HTMLInputElement>("signup-title").value,
+                industry: byId<HTMLSelectElement>("signup-industry").value,
+                contact_type: byId<HTMLSelectElement>("signup-type").value,
+                primary_use: byId<HTMLSelectElement>("signup-use").value,
+                use_details: byId<HTMLTextAreaElement>("signup-details").value,
+                marketing_opt_in:
+                  byId<HTMLInputElement>("signup-marketing").checked,
+              },
+            }
+          : {}),
       },
     );
     byId<HTMLInputElement>("password").value = "";
+    byId<HTMLFormElement>("auth-form").reset();
     await enterWorkspace(info);
   } catch (error) {
     byId("auth-message").textContent = errorText(error);
@@ -595,6 +623,7 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   if (!csrf || csrf !== sessionToken) return;
   isOwner = current.is_owner === true;
   byId("coverage-nav").hidden = !isOwner;
+  byId("crm-nav").hidden = !isOwner;
   byId("email-status").textContent = current.email_verified
     ? "Email verified"
     : current.email_delivery_enabled
@@ -638,7 +667,7 @@ async function navigate(
   view: string,
   preset?: Record<string, string>,
 ): Promise<void> {
-  if (view === "sources" && !isOwner) view = "explore";
+  if (["sources", "crm"].includes(view) && !isOwner) view = "explore";
   if (view !== "billing" && !feedback.allowed(view)) {
     view = billing.state?.enabled
       ? billingDestination(billing.state)
@@ -650,6 +679,7 @@ async function navigate(
     !["billing", "feedback", "hunt"].includes(view)
   )
     view = billingDestination(billing.state);
+  if (view !== "crm") crm.clear();
   currentView = view;
   assistant.update();
   if (view === "explore" && preset) fillForm(form, preset);
@@ -669,6 +699,8 @@ async function navigate(
   const hunting = view === "hunt";
   const givingFeedback = view === "feedback";
   const subscribing = view === "billing";
+  const managingContacts = view === "crm";
+  byId("crm-panel").hidden = !managingContacts;
   byId("billing-panel").hidden = !subscribing;
   byId("feedback-panel").hidden = !givingFeedback;
   if (view === "explore")
@@ -681,33 +713,44 @@ async function navigate(
   byId("research-panel").hidden = !researching;
   byId("hunt-panel").hidden = !hunting;
   byId("explore-panel").hidden =
-    sources || researching || hunting || givingFeedback || subscribing;
-  byId("workspace-title").textContent = subscribing
-    ? "LandWolf membership."
-    : givingFeedback
-      ? "Help shape LandWolf."
-      : sources
-        ? "Know the source. Know the limits."
-        : researching
-          ? "Understand the location."
-          : hunting
-            ? "Find the land that fits."
-            : "Find your next opportunity.";
-  byId("workspace-description").textContent = subscribing
-    ? "Secure payments. Clear terms. Your account stays in control."
-    : givingFeedback
-      ? "Your experience, your priorities, and your feedback pilot status."
-      : sources
-        ? "A transparent view of connected data and current gaps."
-        : researching
-          ? "Public records, with their source and uncertainty in view."
-          : hunting
-            ? "Set your criteria once. Review source-backed matches and changes."
-            : "Real listings. Clear sources. A closer look at what matters.";
+    sources ||
+    researching ||
+    hunting ||
+    givingFeedback ||
+    subscribing ||
+    managingContacts;
+  byId("workspace-title").textContent = managingContacts
+    ? "L91 LLC CRM"
+    : subscribing
+      ? "LandWolf membership."
+      : givingFeedback
+        ? "Help shape LandWolf."
+        : sources
+          ? "Know the source. Know the limits."
+          : researching
+            ? "Understand the location."
+            : hunting
+              ? "Find the land that fits."
+              : "Find your next opportunity.";
+  byId("workspace-description").textContent = managingContacts
+    ? "Contacts, follow-ups, and registrations across your projects."
+    : subscribing
+      ? "Secure payments. Clear terms. Your account stays in control."
+      : givingFeedback
+        ? "Your experience, your priorities, and your feedback pilot status."
+        : sources
+          ? "A transparent view of connected data and current gaps."
+          : researching
+            ? "Public records, with their source and uncertainty in view."
+            : hunting
+              ? "Set your criteria once. Review source-backed matches and changes."
+              : "Real listings. Clear sources. A closer look at what matters.";
   // A tab switch must expose its destination even from a long Research report.
   byId("workspace-title").focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "instant" });
-  if (subscribing) {
+  if (managingContacts) {
+    await crm.open();
+  } else if (subscribing) {
     try {
       await billing.refresh();
     } catch (error) {

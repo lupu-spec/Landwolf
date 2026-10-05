@@ -30,7 +30,10 @@ def register(client: TestClient, email: str = "investor@example.com") -> dict[st
     headers = {"Origin": "http://testserver", "X-LandWolf-Client": "web"}
     response = client.post(
         "/api/auth/register",
-        json={"email": email, "password": "Test-only passphrase 847!"},
+        json={
+            "profile": {"full_name": "Fixture User", "primary_use": "research"},
+            **({"email": email, "password": "Test-only passphrase 847!"}),
+        },
         headers=headers,
     )
     assert response.status_code == 201, response.status_code

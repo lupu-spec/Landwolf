@@ -152,7 +152,14 @@ def main() -> None:
             client.post("/api/search", json={}).status_code == 401,
             "Search must require authentication",
         )
-        response = client.post("/api/auth/register", json=credentials, headers=headers)
+        response = client.post(
+            "/api/auth/register",
+            json={
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(credentials),
+            },
+            headers=headers,
+        )
         require(response.status_code == 201, "PostgreSQL registration failed")
         headers["X-CSRF-Token"] = response.json()["csrf"]
         with app.state.factory() as session, session.begin():
@@ -318,7 +325,14 @@ def main() -> None:
             "email": f"feedback-owner-{suffix}@example.com",
             "password": secrets.token_urlsafe(32),
         }
-        owner_login = client.post("/api/auth/register", json=owner_credentials, headers=headers)
+        owner_login = client.post(
+            "/api/auth/register",
+            json={
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(owner_credentials),
+            },
+            headers=headers,
+        )
         require(owner_login.status_code == 201, "Feedback test owner registration failed")
         owner_headers = {**headers, "X-CSRF-Token": owner_login.json()["csrf"]}
         with app.state.factory() as session:
@@ -330,6 +344,25 @@ def main() -> None:
             )
             settings.owner_account_id = owner.id
             participant_id = participant.id
+        crm_rows = client.get("/api/admin/crm/contacts?q=" + credentials["email"])
+        require(crm_rows.status_code == 200, "PostgreSQL owner CRM failed")
+        require(crm_rows.json()["total"] == 1, "PostgreSQL registration CRM capture failed")
+        crm_contact = crm_rows.json()["contacts"][0]
+        require(crm_contact["full_name"] == "Fixture User", "CRM profile not retained")
+        edited = client.patch(
+            "/api/admin/crm/contacts/" + crm_contact["id"],
+            headers=owner_headers,
+            json={
+                "revision": crm_contact["revision"],
+                "lifecycle": "qualified",
+                "tags": ["Postgres fixture"],
+                "follow_up_on": "2026-12-01",
+            },
+        )
+        require(edited.status_code == 200, "PostgreSQL CRM edit failed")
+        require(
+            client.get("/api/admin/crm/contacts.csv").status_code == 200, "PostgreSQL CSV failed"
+        )
         invited = client.post(
             f"/api/admin/accounts/{participant_id}/feedback-pilot",
             headers=owner_headers,

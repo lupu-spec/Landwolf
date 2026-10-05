@@ -20,6 +20,8 @@ def test_complete_decision_workflow(browser_server, engine_name, width):
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(origin)
         page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Full name", exact=True).fill("Fixture User")
+        page.get_by_label("How will you use LandWolf?", exact=True).select_option("research")
         page.get_by_label("Email address", exact=True).fill("research-browser@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()

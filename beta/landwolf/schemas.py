@@ -5,6 +5,7 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
+from landwolf.crm_core import CONTACT_TYPES, INDUSTRIES, USES, Profile
 from landwolf.states import state_code
 
 Category = Literal[
@@ -19,6 +20,22 @@ class Contract(BaseModel):
 class Credentials(Contract):
     email: EmailStr = Field(max_length=254)
     password: str = Field(min_length=12, max_length=128, repr=False)
+
+
+class RegistrationProfile(Profile):
+    @model_validator(mode="after")
+    def known_categories(self) -> Self:
+        if (
+            self.primary_use not in USES
+            or (self.industry and self.industry not in INDUSTRIES)
+            or (self.contact_type and self.contact_type not in CONTACT_TYPES)
+        ):
+            raise ValueError("Choose a listed category")
+        return self
+
+
+class Registration(Credentials):
+    profile: RegistrationProfile
 
 
 class PropertyRecord(Contract):

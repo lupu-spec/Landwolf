@@ -25,6 +25,7 @@ from landwolf import (
     admin,
     auth,
     billing,
+    crm,
     feedback,
     feedback_export,
     hunt,
@@ -57,7 +58,7 @@ from landwolf.research import (
     ResearchReport,
     ResearchService,
 )
-from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, SearchQuery
+from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, Registration, SearchQuery
 from landwolf.sources import SOURCE_BY_ID
 from landwolf.trust import property_evidence
 from landwolf.version import VERSION, release
@@ -294,7 +295,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/auth/register", status_code=201)
     def register(
-        credentials: Credentials, request: Request, response: Response, session: DB
+        credentials: Registration, request: Request, response: Response, session: DB
     ) -> dict[str, str]:
         return auth.sign_in(credentials, request, response, session, settings, register=True)
 
@@ -755,6 +756,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         auth.limit(session, f"analysis:{account.id}", 10)
         return analyze(spec)
 
+    crm.register(app, settings, factory)
     research_workspace.register(app, settings, factory)
 
     static = Path(__file__).resolve().parent / "static"

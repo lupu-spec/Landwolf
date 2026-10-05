@@ -171,6 +171,13 @@ def main() -> None:
                     page.get_by_role(
                         "button", name="Sign in" if registered else "Create account", exact=True
                     ).click()
+                    if not registered:
+                        page.get_by_label("Full name", exact=True).fill(
+                            "Release verification account"
+                        )
+                        page.get_by_label("How will you use LandWolf?", exact=True).select_option(
+                            "exploring"
+                        )
                     page.get_by_label("Email address", exact=True).fill(email)
                     page.get_by_label("Password", exact=True).fill(password)
                     page.locator("#auth-submit").click()

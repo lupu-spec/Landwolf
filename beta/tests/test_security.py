@@ -55,8 +55,13 @@ def test_cookie_is_http_only_same_site_and_secure_on_https(client: TestClient) -
     response = client.post(
         "/api/auth/register",
         json={
-            "email": "cookie@example.com",
-            "password": "Test-only passphrase 847!",
+            "profile": {"full_name": "Fixture User", "primary_use": "research"},
+            **(
+                {
+                    "email": "cookie@example.com",
+                    "password": "Test-only passphrase 847!",
+                }
+            ),
         },
         headers={"Origin": "http://testserver", "X-LandWolf-Client": "web"},
     )
@@ -207,7 +212,13 @@ def test_rate_limit_is_shared_and_contains_no_raw_identity(client: TestClient) -
 
 
 def test_validation_does_not_echo_password_and_body_is_bounded(client: TestClient) -> None:
-    response = client.post("/api/auth/register", json={"email": "invalid", "password": "short"})
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "profile": {"full_name": "Fixture User", "primary_use": "research"},
+            **({"email": "invalid", "password": "short"}),
+        },
+    )
     assert response.status_code == 422
     assert "short" not in response.text
     assert "invalid" not in response.text
@@ -245,8 +256,13 @@ def test_https_response_sets_secure_cookie_and_hsts(tmp_path: Path) -> None:
         response = client.post(
             "/api/auth/register",
             json={
-                "email": "secure@example.com",
-                "password": "Test-only passphrase 847!",
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(
+                    {
+                        "email": "secure@example.com",
+                        "password": "Test-only passphrase 847!",
+                    }
+                ),
             },
             headers={"Origin": "https://testserver", "X-LandWolf-Client": "web"},
         )
@@ -261,8 +277,13 @@ def test_password_work_is_bounded_and_recovers(client: TestClient) -> None:
         response = client.post(
             "/api/auth/register",
             json={
-                "email": "bounded@example.com",
-                "password": "Test-only passphrase 847!",
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(
+                    {
+                        "email": "bounded@example.com",
+                        "password": "Test-only passphrase 847!",
+                    }
+                ),
             },
             headers={"Origin": "http://testserver", "X-LandWolf-Client": "web"},
         )

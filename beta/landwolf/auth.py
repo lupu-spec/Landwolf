@@ -20,8 +20,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from landwolf.config import Settings
+from landwolf.crm_core import CONSENT_TEXT, CONSENT_VERSION, Intake, capture, record_activity
 from landwolf.db import Account, LoginSession, RateBucket
-from landwolf.schemas import Credentials
+from landwolf.schemas import Credentials, Registration
 
 COOKIE = "landwolf_session"
 PASSWORDS = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
@@ -205,6 +206,28 @@ def sign_in(
         account = Account(id=str(uuid.uuid4()), email=email, password_hash=hashed)
         session.add(account)
         try:
+            if not isinstance(credentials, Registration):
+                raise HTTPException(422, "Registration profile is required")
+            session.flush()
+            contact = capture(
+                session,
+                "landwolf",
+                Intake(
+                    external_id=account.id,
+                    email=email,
+                    consent_version=CONSENT_VERSION,
+                    **credentials.profile.model_dump(),
+                ),
+                source="registration",
+            )
+            record_activity(
+                session,
+                contact.id,
+                account.id,
+                "consent_recorded",
+                ("Opted in: " if credentials.profile.marketing_opt_in else "Not opted in: ")
+                + CONSENT_TEXT,
+            )
             session.commit()
         except IntegrityError as exc:
             session.rollback()

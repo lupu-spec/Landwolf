@@ -154,6 +154,31 @@
             </button>
           </nav>
           <button
+            id="crm-nav"
+            type="button"
+            class="dock-item"
+            data-nav="crm"
+            data-dock="crm"
+            hidden
+            aria-label="L91 LLC CRM"
+            title="L91 LLC CRM"
+          >
+            <span class="dock-tile"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                aria-hidden="true"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="4" />
+                <circle cx="9" cy="9" r="2" />
+                <path
+                  d="M5 17c0-4 8-4 8 0M15 8h3M15 12h3M16 16h2"
+                /></svg></span
+            ><span class="dock-label">L91 CRM</span>
+          </button>
+          <button
             type="button"
             class="wolf-chat-trigger dock-item"
             data-dock="chat"
@@ -268,6 +293,110 @@
               <p class="input-note">
                 Use a unique password of 12–128 characters.
               </p>
+              <fieldset
+                id="registration-profile"
+                class="registration-profile"
+                hidden
+                disabled
+              >
+                <legend>Tell us about yourself</legend>
+                <label for="signup-name">Full name</label
+                ><input
+                  id="signup-name"
+                  autocomplete="name"
+                  maxlength="120"
+                  required
+                />
+                <label for="signup-use">How will you use LandWolf?</label
+                ><select id="signup-use" required>
+                  <option value="">Choose your primary use</option>
+                  <option value="investing">Find investment properties</option>
+                  <option value="research">Research land or property</option>
+                  <option value="deal_analysis">Evaluate deals</option>
+                  <option value="client_work">Support clients</option>
+                  <option value="development">
+                    Plan development or construction
+                  </option>
+                  <option value="personal">Find land for personal use</option>
+                  <option value="exploring">Explore the tool</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="signup-grid">
+                  <label
+                    >Company (optional)<input
+                      id="signup-company"
+                      autocomplete="organization"
+                      maxlength="160"
+                  /></label>
+                  <label
+                    >Job title (optional)<input
+                      id="signup-title"
+                      autocomplete="organization-title"
+                      maxlength="120"
+                  /></label>
+                  <label
+                    >Phone (optional)<input
+                      id="signup-phone"
+                      type="tel"
+                      autocomplete="tel"
+                      maxlength="32"
+                      placeholder="+1 555 010 1234"
+                  /></label>
+                  <label
+                    >Industry (optional)<select id="signup-industry">
+                      <option value="">Choose industry</option>
+                      <option value="real_estate">Real estate</option>
+                      <option value="construction">
+                        Construction &amp; trades
+                      </option>
+                      <option value="woodworking">
+                        Woodworking &amp; manufacturing
+                      </option>
+                      <option value="technology">Technology &amp; AI</option>
+                      <option value="finance">Finance &amp; lending</option>
+                      <option value="professional_services">
+                        Professional services
+                      </option>
+                      <option value="personal">Personal use</option>
+                      <option value="other">Other</option>
+                    </select></label
+                  >
+                </div>
+                <label
+                  >Which best describes you? (optional)<select id="signup-type">
+                    <option value="">Choose role</option>
+                    <option value="investor">Investor</option>
+                    <option value="agent">Agent / broker</option>
+                    <option value="developer">Developer / builder</option>
+                    <option value="lender">Lender</option>
+                    <option value="business_owner">Business owner</option>
+                    <option value="individual">Individual</option>
+                    <option value="other">Other</option>
+                  </select></label
+                >
+                <label
+                  >Anything else about your goals? (optional)<textarea
+                    id="signup-details"
+                    maxlength="1000"
+                    rows="2"
+                  ></textarea>
+                </label>
+                <p class="input-note">
+                  L91 LLC uses these details to manage your account, provide
+                  support, and understand how you use LandWolf. Your profile is
+                  private to the owner. Contact support.landwolf@gmail.com for
+                  access, correction, deletion, or to withdraw email permission.
+                </p>
+                <label class="signup-consent"
+                  ><input id="signup-marketing" type="checkbox" />Email me
+                  LandWolf product news and offers. I can unsubscribe by
+                  contacting support.</label
+                >
+                <p class="input-note">
+                  Optional. Creating an account does not authorize marketing
+                  calls or texts.
+                </p>
+              </fieldset>
               <button
                 id="auth-submit"
                 class="button primary full"
@@ -319,6 +448,12 @@
             </div>
           </div>
         </div>
+
+        <section
+          id="crm-panel"
+          hidden
+          aria-label="Customer relationship management"
+        ></section>
 
         <div class="email-verification" aria-live="polite">
           <span id="email-status"></span>
