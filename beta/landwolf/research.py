@@ -1,4 +1,4 @@
-"""Free public location research. Never turns reference data into a sale or valuation."""
+"""Public location research. Never turns reference data into a sale or valuation."""
 
 import asyncio
 import hashlib

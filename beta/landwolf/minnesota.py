@@ -4,7 +4,7 @@ import re
 from datetime import UTC, datetime
 from urllib.parse import parse_qs, urlsplit
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from landwolf.provider import SourceUnavailable, stamp
 from landwolf.schemas import PropertyRecord
@@ -19,7 +19,23 @@ def parse_minnesota(html: str, *, by_bid: bool) -> list[PropertyRecord]:
     heading = next((h for h in soup.select("h3,h4") if h.get_text(" ", strip=True) == label), None)
     if heading is None:
         raise SourceUnavailable("Minnesota sale-list heading changed")
-    listing = heading.find_next_sibling("ul")
+    # Do not cross into another section's links when this sale list is empty.
+    section: list[Tag] = []
+    for sibling in heading.next_siblings:
+        if not isinstance(sibling, Tag):
+            continue
+        if sibling.name in {"h2", "h3", "h4"}:
+            break
+        section.append(sibling)
+    listing = next((node for node in section if node.name == "ul"), None)
+    section_text = " ".join(" ".join(node.stripped_strings) for node in section)
+    explicit_empty = by_bid and bool(
+        re.search(r"There are currently no\s+properties available for sale by bid\.", section_text)
+    )
+    if explicit_empty and listing is None:
+        return []
+    if explicit_empty:
+        raise SourceUnavailable("Minnesota sale list contradicts its empty notice")
     if listing is None:
         raise SourceUnavailable("Minnesota sale list missing")
     rows = listing.find_all("li", recursive=False)

@@ -109,7 +109,7 @@ def request_action(
     auth.limit(session, f"recovery:account:{normalized}", 3, 1800)
     auth.limit(session, "recovery:global", 100, 3600)
     if not mailer.enabled:
-        raise HTTPException(503, "Email recovery is not configured for this beta. Contact support.")
+        raise HTTPException(503, "Email recovery is not configured. Contact support.")
     account = session.scalar(select(Account).where(Account.email == normalized))
     now = int(time.time())
     session.execute(delete(AccountAction).where(AccountAction.expires_at <= now))

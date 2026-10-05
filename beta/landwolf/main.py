@@ -1,4 +1,4 @@
-"""Same-origin FastAPI beta. Every property and analysis route requires a session."""
+"""Same-origin FastAPI application. Every property and analysis route requires a session."""
 
 import asyncio
 import contextlib
@@ -107,7 +107,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             initialize(engine)
         with factory() as session:
             if session.scalars(select(SchemaVersion.version)).all() != [SCHEMA_VERSION]:
-                raise RuntimeError("Run the explicit beta schema initialization before serving")
+                raise RuntimeError(
+                    "Run the explicit application schema initialization before serving"
+                )
             billing.validate_live_setup(settings, session)
         task = asyncio.create_task(provider.run()) if settings.auto_sync else None
         try:
@@ -272,7 +274,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {"message": "Email address verified. You can return to LandWolf."}
 
     @app.get("/api/capabilities")
-    def beta_capabilities(request: Request, session: DB) -> dict[str, Any]:
+    def application_capabilities(request: Request, session: DB) -> dict[str, Any]:
         auth.authenticate(request, session, settings)
         return {
             "version": 1,

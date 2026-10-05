@@ -244,7 +244,15 @@ def parse_treasury(html: str) -> list[PropertyRecord]:
         recognized += 1
         if re.search(r"\b(?:CANCELLED|CANCELED|POSTPONED)\b", value, re.I):
             continue
-        match = required_match(r"Sale\s*#\s*(\d{2}-\d{2}-\d{3,5})", value)
+        match = re.search(r"Sale\s*#\s*(\d{2}-\d{2}-\d{3,5})", value, re.I)
+        if match is None:
+            # The publisher also shows undated teasers without a sale identifier.
+            # They are not actionable sale records and must not block dated sales.
+            if "sale" not in value.lower() and re.search(
+                r"ONLINE AUCTION\s*DAT\s*E\s*:\s*Coming Soon", value, re.I
+            ):
+                continue
+            raise SourceUnavailable("Treasury sale identifier missing or invalid")
         identifier = match[1]
         heading, remainder = re.split(r"ONLINE AUCTION\s*DAT\s*E\s*:", value, maxsplit=1)
         state = next(
@@ -259,7 +267,7 @@ def parse_treasury(html: str) -> list[PropertyRecord]:
             abbreviation = re.search(r",\s*([A-Z]{2})\s+\d{5}(?:-\d{4})?\b", heading)
             state = abbreviation[1] if abbreviation and abbreviation[1] in STATES else None
         if state is None:
-            # Public pages occasionally include territories. They are outside this beta's
+            # Public pages occasionally include territories. They are outside the app's
             # 50-state contract and must not prevent valid US-state listings from refreshing.
             continue
         day = re.search(r"[A-Z][a-z]+ \d{1,2}, \d{4}", remainder)
@@ -413,6 +421,10 @@ def parse_irs(html: str) -> tuple[list[PropertyRecord], bool]:
             raise SourceUnavailable("IRS filter contract changed")
     result: list[PropertyRecord] = []
     for card in soup.select("article.irs-ad"):
+        # IRS includes separately marked external-sale promotions in filtered results.
+        # Those notices are outside this feed; never follow or import their targets.
+        if "external-sale" in card.get_attribute_list("class"):
+            continue
         anchor = card.select_one("h3 a[href]")
         address = text(card.select_one("address"))
         state = required_match(r"\b([A-Z]{2}),?\s+\d{5}(?:-\d{4})?\b", address)[1].upper()

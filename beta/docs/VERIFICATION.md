@@ -2022,3 +2022,101 @@ they were not counted as passing checks.
   delivery: NOT VERIFIED. Render browser authentication expired. The read-only
   database connector cannot connect because the production database correctly
   blocks external connections; its network policy was not weakened.
+
+## v0.4.2 source recovery and production wording — candidate
+
+Baseline: live Render commit `baf4c1ffdd26710271dec6575d2442a877b1c4ac`.
+The staging branch has no commits ahead of this baseline; its completed features
+are already included. No unfinished valuation, partner or parcel integration is enabled.
+
+Changes: handle MnDOT's explicit empty bid section without crossing into unrelated
+links; exclude Treasury's undated teasers without sale IDs; exclude IRS cards marked
+as external-sale promotions. Retain URL restrictions, bounded retrieval, source
+provenance and snapshot quarantine. Remove obsolete product labels from UI/status/
+model copy; correct current feature documentation. Infrastructure names and historical
+release records retain their existing identifiers. No schema/dependency changes.
+
+The baseline browser test contained literal backslash-n characters at the annual-plan
+selection step and could not parse. Corrected to actual line breaks. Baseline billing
+Python/TypeScript also required formatting; the Python billing AST is unchanged.
+No billing settings, prices, provider API contracts, entitlement or payment logic changed.
+
+Passed locally (exit 0): locked `uv sync --frozen --dev` and `npm ci`; ruff/prettier
+format checks; ruff/eslint; mypy/TypeScript; 9 frontend tests; 364 non-browser tests;
+`npm run build`; `git diff --check`. Initial mypy failure for the new BeautifulSoup
+class access was fixed with its typed attribute-list API before these passes.
+
+Actual `python -m landwolf.cli sync` against a fresh disposable SQLite database
+passed (exit 0): MN 4, AR 0, TX 31, USDA 19, Treasury 19, IRS 1, AK 170, MI 28.
+These are retrieved records, not a claim of every record being current/eligible for search.
+Zero Arkansas records is a successfully parsed upcoming-sale catalog, not an outage.
+
+Public research checks at Dallas and Raleigh returned partial (exit 1): Census,
+USGS, soils and applicable NC parcels returned evidence; FEMA's reviewed endpoint
+returned HTTP 502 on both layers. Its findings remain unknown. No fabricated fallback.
+
+Local Playwright browser installation failed: downloaded browser archives were invalid.
+Hosted CI must provide Chromium/WebKit, disposable PostgreSQL and restore verification
+before promotion. The direct landwolf.ai checks returned a generic Site Unavailable
+page from this execution session; this is not evidence of application-wide downtime.
+
+Daily source-maintenance automation was created for mornings around 08:00
+America/Chicago. It checks current production, repairs confirmed source changes,
+requires repository gates, preserves billing and quarantine, and reports unresolved
+provider/authentication failures. The existing six-hour catalog scheduler remains.
+
+Production deployment and hosted verification are pending; a branch is not a deployment.
+
+Hosted run 37262751984 passed format, lint, types, 364 API/unit tests, PostgreSQL
+integration and disposable backup/restore. Browser results: 22 passed, 8 failed
+because the roadmap CSS selectors were renamed without updating the browser tests.
+Corrected the selectors without changing their assertions. Full rerun required.
+Additional local passes: package build/check; bandit; pip-audit; npm audit;
+secretlint; `uv lock --check`; 53 legacy tests in the separate environment.
+
+
+### v0.4.2 exact local command results
+
+Commands ran from `beta/` unless labeled otherwise. Passed means exit 0.
+
+| Command | Result |
+| --- | --- |
+| `uv sync --frozen --dev`; `npm ci`; `uv lock --check` | Passed |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | Passed; 26 Python modules |
+| `npm run test:unit` | Passed; 9 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed; 364 tests, 30 browser cases excluded for their separate gate |
+| `npm run build` | Passed |
+| `.venv/bin/playwright install chromium webkit` | Failed; invalid downloaded browser archive |
+| `.venv/bin/pytest -q -m browser` | Failed; browsers unavailable locally, 30 launch failures |
+| `.venv/bin/python scripts/check_postgres.py`; `.venv/bin/python scripts/check_restore.py` | Not run locally; passed in hosted run 37262751984 against its disposable database |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | Passed; no findings |
+| `npm audit --audit-level=moderate`; `npm run secrets` | Passed; no findings |
+| `PYTHONPATH=. .venv-legacy/bin/pytest -q` (root) | Passed; 53 legacy tests |
+| `.venv/bin/python -m landwolf.cli sync` (disposable SQLite database) | Passed; all eight listing feeds |
+| `.venv/bin/python -m landwolf.cli check-research` | Failed/partial; FEMA upstream HTTP 502 |
+| `.venv/bin/python -m landwolf.cli check-research --latitude 35.7804 --longitude -78.6391` | Failed/partial; FEMA upstream HTTP 502 |
+| `git diff --check`; `git status --short` (root) | Passed; intended changes reviewed |
+
+The browser-selector correction changes tests only. The initial GitHub upload of
+this audit document was truncated; the full historical text was restored before
+merge. Runtime files were unaffected by that document upload error.
+Render authentication was declined, so no production deployment, database sync,
+or live application verification is claimed. Production remains on the baseline
+commit until an authorized Render deployment can run.
+
+
+### v0.4.2 hosted gate result
+
+[Application run 37263384414](https://github.com/lupu-spec/Landwolf/actions/runs/37263384414)
+passed every gate on runtime commit `0e241d0075bea1f2e40c6a872283e7f0ded17007`:
+locked environments; format; lint; types; unit/API tests; disposable PostgreSQL;
+backup/restore; browser journeys; production package; all security scans; diff
+integrity. [Legacy tests](https://github.com/lupu-spec/Landwolf/actions/runs/37263384425)
+and [release preflight](https://github.com/lupu-spec/Landwolf/actions/runs/37263384431)
+also passed. Subsequent edits restore this audit document and clarify framework
+wording only; runtime source and test code are identical to this passing commit.
+Hosted CI supplies the browser/PostgreSQL verification unavailable locally.
+Production deployment and its live verification remain blocked by Render sign-in.

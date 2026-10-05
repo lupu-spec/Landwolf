@@ -339,7 +339,7 @@ function clearSession(): void {
   byId("county-coverage").replaceChildren();
   byId("account-email").textContent = "";
   byId("email-status").textContent = "";
-  byId("beta-roadmap").replaceChildren();
+  byId("feature-roadmap").replaceChildren();
   huntListSequence++;
   huntResultSequence++;
   byId("hunt-list").replaceChildren();
@@ -701,7 +701,7 @@ async function navigate(
       }>("/api/capabilities");
       if (!csrf || csrf !== sessionToken || navigation !== navigationSequence)
         return;
-      byId("beta-roadmap").replaceChildren(
+      byId("feature-roadmap").replaceChildren(
         ...framework.priorities.map((item) => {
           const row = element("article", "roadmap-item");
           row.append(
@@ -1896,11 +1896,11 @@ void (async () => {
     const info = await api<SessionInfo>("/api/session");
     if (info.version) {
       byId("release-version").textContent =
-        `v${info.version} · ${info.environment === "production" ? "Production" : "Beta"}`;
+        `v${info.version} · ${info.environment === "production" ? "Production" : "Preview"}`;
     }
     if (info.environment === "staging") {
-      const badge = document.querySelector(".beta-tag");
-      if (badge) badge.textContent = "STAGING BETA";
+      const badge = document.querySelector(".environment-tag");
+      if (badge) badge.textContent = "STAGING";
     }
     if (info.authenticated && !accountLinkOpen) await enterWorkspace(info);
   } catch {

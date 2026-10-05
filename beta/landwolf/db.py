@@ -1,4 +1,4 @@
-"""Versioned beta migrations; never touches legacy application tables."""
+"""Versioned application migrations; never touches legacy application tables."""
 
 import time
 from collections.abc import Iterator
@@ -336,7 +336,7 @@ def initialize(engine: Engine) -> None:
             else []
         )
         if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [SCHEMA_VERSION]):
-            raise RuntimeError("Unsupported beta schema version; migration required")
+            raise RuntimeError("Unsupported application schema version; migration required")
         Base.metadata.create_all(connection)
         # Intentionally irreversible. Do not archive or copy retired Saved data.
         # No CASCADE: unexpected dependents must fail the transaction for review.

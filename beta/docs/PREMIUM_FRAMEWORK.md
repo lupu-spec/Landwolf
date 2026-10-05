@@ -1,10 +1,11 @@
-# Premium beta framework
+# LandWolf feature framework
 
-This branch implements priority one and defines typed extension contracts for the
-remaining priorities. It preserves the wolf logo, navy/white theme, authenticated
-search and free access. Saved properties remain permanently removed.
+Production includes the trust and usability implementation below. The remaining
+priorities are extension contracts, not working integrations. Membership and
+complimentary/pilot access are governed by LIVE_BILLING.md. Saved Hunts are available;
+the retired standalone Saved properties feature remains removed.
 
-| Priority | This beta | Gate before activation or expansion |
+| Priority | Implementation | Gate before activation or expansion |
 | --- | --- | --- |
 | 1. Trust and usability | County-scoped publisher parcel identities; distinct sale events; field evidence; refresh history and quarantine; state/county coverage; concise research summary; responsive navigation; one-use email verification/recovery; additive schema v4 | All repository gates; hosted HTTPS check; configured verified email sender; staging restore rehearsal before promotion |
 | 2. Decision quality | `ValuationRequest`, `ValuationResult`, `ValuationProvider`; supported results require comparables, evidence and a range | Licensed or reusable comparable-sale evidence, calibration/backtesting, parcel geometry, cost evidence, explainable assumptions and export review |
@@ -12,7 +13,7 @@ search and free access. Saved properties remain permanently removed.
 | 4. Expansion | `SourceReadiness`; parser, live-check, reuse-review and monitoring gates | Review and connect each adapter explicitly; report partial coverage; establish freshness targets and incident ownership |
 
 The authenticated `/api/capabilities` endpoint and Data coverage page distinguish
-beta functionality from framework-only work. Priorities two through four do not
+available functionality from framework-only work. Priorities two through four do not
 provide working valuation services, partner advertising, lead sharing or automated
 source onboarding. These are extension interfaces, not additional active APIs.
 
@@ -68,7 +69,7 @@ account; sign-in remains the search gate and existing accounts are not locked ou
 ## Isolated staging and recovery
 
 Deployed on 2026-09-20 with the owner's approval of the added $6.30/month database
-charge: [staging beta](https://landwolf-premium-staging.onrender.com/).
+charge: [staging](https://landwolf-premium-staging.onrender.com/).
 The active Blueprint is `render.staging.paid.yaml` on
 `codex/landwolf-premium-staging`. It uses a free web service and separate PostgreSQL
 18 `0.1c-256mb` instance with 1 GB storage. External database access and storage
