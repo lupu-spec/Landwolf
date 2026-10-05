@@ -3,6 +3,16 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.5.0 — research decisions candidate, not deployed
+
+Private research goals/questions, Hunt briefs, cost stress/comparisons,
+reconsideration history and print packets are implemented in candidate `1b640a5`.
+Local tests/builds/security checks passed; hosted browser, PostgreSQL/restore,
+staging and production gates remain outstanding. Automatic approval review blocked
+GitHub publication pending explicit approval for the public repository. No live
+environment or deployment-history row is changed. See
+[candidate verification and remaining gates](beta/docs/RESEARCH_DECISIONS_RELEASE.md).
+
 ## Current environments
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |

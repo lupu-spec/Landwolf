@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from landwolf import admin, auth, billing, feedback, hunt, recovery
+from landwolf import admin, auth, billing, feedback, hunt, recovery, research_workspace
 from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
@@ -32,6 +32,7 @@ from landwolf.db import (
     HuntEvent,
     Listing,
     LoginSession,
+    ResearchCase,
     SchemaVersion,
     SourceState,
     database,
@@ -548,7 +549,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         billing.require_access(session, account, settings)
         item = session.get(Listing, listing_id)
         if item is None:
-            raise HTTPException(404, "Property not found")
+            retained = session.get(ResearchCase, (account.id, listing_id))
+            if retained is None:
+                raise HTTPException(404, "Property not found")
+            item = Listing(
+                id=listing_id,
+                source=retained.source_snapshot["source"],
+                active=False,
+                payload=retained.source_snapshot,
+            )
         return record_payload(item, session)
 
     def owned_hunt(session: Session, account_id: str, hunt_id: str) -> Hunt:
@@ -732,6 +741,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         billing.require_access(session, account, settings)
         auth.limit(session, f"analysis:{account.id}", 10)
         return analyze(spec)
+
+    research_workspace.register(app, settings, factory)
 
     static = Path(__file__).resolve().parent / "static"
     if static.is_dir():

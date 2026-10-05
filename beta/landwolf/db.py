@@ -311,7 +311,31 @@ class HuntEvent(Base):
     created_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
-SCHEMA_VERSION = 8
+class ResearchCase(Base):
+    """Private research attached to a source listing, optionally within a Hunt."""
+
+    __tablename__ = "lw2_research_cases"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    listing_id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    hunt_id: Mapped[str | None] = mapped_column(ForeignKey("lw2_hunts.id"), index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    source_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
+    revision: Mapped[int] = mapped_column(Integer)
+    fingerprint: Mapped[str] = mapped_column(String(64), default="")
+    evaluation: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    history: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+class ResearchGoal(Base):
+    __tablename__ = "lw2_research_goals"
+    hunt_id: Mapped[str] = mapped_column(ForeignKey("lw2_hunts.id"), primary_key=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    revision: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+SCHEMA_VERSION = 9
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -323,7 +347,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add live billing storage in v8; preserve existing user data."""
+    """Add private research storage in v9; preserve existing user data."""
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -335,7 +359,7 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [8], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported application schema version; migration required")
         Base.metadata.create_all(connection)
         # Intentionally irreversible. Do not archive or copy retired Saved data.

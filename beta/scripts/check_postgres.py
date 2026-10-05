@@ -36,6 +36,51 @@ def require(condition: bool, message: str) -> None:
         raise RuntimeError(message)
 
 
+def check_research(client: TestClient, headers: dict[str, str], hunt_id: str, suffix: str) -> None:
+    """Exercise actual PostgreSQL JSON persistence, CAS updates and Hunt ownership."""
+    goal = {"goal": {"budget": 200}}
+    path = f"/api/hunts/{hunt_id}/research-goal"
+    require(client.put(path, headers=headers, json=goal).status_code == 200, "Research goal failed")
+    require(client.put(path, headers=headers, json=goal).status_code == 409, "Goal CAS failed")
+    data = {
+        "hunt_id": hunt_id,
+        "costs": {"known_costs": 25, "unresolved_low": 200, "unresolved_high": 200},
+        "pause_reason": "budget",
+    }
+    path = f"/api/decision-cases/pg-{suffix}-known"
+    first = client.put(path, headers=headers, json=data)
+    require(first.status_code == 200, "PostgreSQL research save failed")
+    require(client.get(path).json()["revision"] == 1, "Research did not persist")
+    require(client.put(path, headers=headers, json=data).status_code == 409, "Research CAS failed")
+    data["revision"] = 1
+    data["costs"] = {"known_costs": 25, "unresolved_low": 50, "unresolved_high": 50}
+    second = client.put(path, headers=headers, json=data)
+    require(second.status_code == 200, "Research update failed")
+    require(second.json()["history"][0]["kind"] == "reconsider", "Research reconsideration failed")
+    require(
+        client.get(path).json()["history"] == second.json()["history"], "Research notices repeat"
+    )
+    data["revision"] = 0
+    require(
+        client.put(f"/api/decision-cases/pg-{suffix}-other", headers=headers, json=data).status_code
+        == 200,
+        "Second comparison case failed",
+    )
+    compared = client.post(
+        f"/api/hunts/{hunt_id}/research-compare",
+        headers=headers,
+        json={"listing_ids": [f"pg-{suffix}-known", f"pg-{suffix}-other"]},
+    )
+    require(
+        compared.status_code == 200 and compared.json()["cost_difference"] == 100,
+        "PostgreSQL research comparison failed",
+    )
+    require(
+        len(client.get(f"/api/hunts/{hunt_id}/research").json()["cases"]) == 2,
+        "Hunt research membership failed",
+    )
+
+
 def main() -> None:
     url = os.environ.get("LANDWOLF_TEST_POSTGRES_URL", "")
     if not url or not urlsplit(url).path.endswith("/landwolf_ci"):
@@ -204,6 +249,7 @@ def main() -> None:
             client.get(f"/api/hunts/{hunt_id}/matches").status_code == 200,
             "Matching cannot retry after source repair",
         )
+        check_research(client, headers, hunt_id, suffix)
         require(
             client.request("DELETE", f"/api/hunts/{hunt_id}", headers=headers, json={}).status_code
             == 200,
@@ -333,11 +379,23 @@ def main() -> None:
                 "Survey extended fixed pilot expiry",
             )
         require(client.get("/api/admin/feedback").status_code == 403, "Owner report leaked")
+        # Leave populated research tables for the exact-content restore rehearsal.
+        retained = client.post(
+            "/api/hunts",
+            headers=headers,
+            json={
+                "name": "Research restore",
+                "criteria": {"mode": "fixed", "states": [], "min_acres": 1, "max_acres": 50},
+            },
+        )
+        require(retained.status_code == 201, "Research restore Hunt failed")
+        check_research(client, headers, retained.json()["id"], suffix)
     print(
         "Passed: PostgreSQL authentication, nationwide JSON filters, "
         "nulls, dates, pagination, permanent Saved deletion, retained accounts/sessions, "
         "trust snapshots, quarantine, parcel evidence, durable Hunt saves "
-        "one-use password recovery, cohort consent/replay, overdue gating and survey restoration"
+        "one-use password recovery, cohort consent/replay, overdue gating and survey restoration; "
+        "private research, optimistic edits, comparisons and reconsideration"
     )
 
 

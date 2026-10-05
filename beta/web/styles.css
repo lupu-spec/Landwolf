@@ -2126,3 +2126,147 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+/* Research controls inherit LandWolf's navy/white identity and stay readable on phones. */
+.decision-workspace {
+  padding: 24px;
+  margin: 20px 0;
+  border: 1px solid #d6dfea;
+  border-radius: 16px;
+  background: #fff;
+  color: #172b48;
+}
+.decision-section {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #d6dfea;
+  border-radius: 10px;
+}
+.decision-section > summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.decision-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+.decision-form input:not([type="checkbox"]),
+.decision-form select,
+.decision-workspace select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #bdcbdc;
+  border-radius: 7px;
+  background: #fff;
+  color: #172b48;
+}
+.decision-form .decision-check {
+  flex-direction: row;
+  align-items: flex-start;
+}
+.decision-check input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-top: 2px;
+}
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+}
+.decision-goal {
+  padding: 16px;
+  border: 1px solid #d6dfea;
+  border-radius: 10px;
+}
+.decision-goal:disabled {
+  opacity: 0.8;
+}
+.decision-metrics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.decision-metrics dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+.decision-output {
+  margin-top: 24px;
+  overflow-wrap: anywhere;
+}
+.decision-questions {
+  padding-left: 22px;
+}
+.decision-questions li {
+  margin: 14px 0;
+}
+.decision-questions p {
+  margin: 6px 0;
+}
+.decision-cases {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 16px 0;
+}
+#decision-print {
+  display: none;
+}
+@media (max-width: 640px) {
+  .decision-workspace {
+    padding: 16px;
+  }
+  .decision-grid,
+  .decision-cases {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .decision-section {
+    padding: 10px;
+  }
+}
+@media print {
+  body.printing-research > * {
+    display: none !important;
+  }
+  body.printing-research > #decision-print {
+    display: block !important;
+  }
+  body.printing-research > dialog[open] {
+    display: block !important;
+    position: static;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    padding: 0;
+  }
+  body.printing-research > dialog[open] > * {
+    display: none !important;
+  }
+  body.printing-research > dialog[open] > #decision-print {
+    display: block !important;
+  }
+  body.printing-research dialog::backdrop {
+    background: transparent;
+  }
+  #decision-print {
+    color: #000;
+    background: #fff;
+    font-size: 11pt;
+  }
+  #decision-print h2,
+  #decision-print h3,
+  #decision-print h4 {
+    break-after: avoid;
+  }
+  #decision-print details > * {
+    display: block;
+  }
+}

@@ -12,7 +12,7 @@ from pydantic import Field, model_validator
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from landwolf.db import Hunt, HuntEvent, HuntMatch, Listing, SourceState
+from landwolf.db import Hunt, HuntEvent, HuntMatch, Listing, ResearchCase, ResearchGoal, SourceState
 from landwolf.schemas import Contract, PropertyRecord
 from landwolf.states import state_code
 
@@ -296,6 +296,8 @@ def refresh(session: Session, hunt: Hunt, *, now: int | None = None) -> dict[str
 
 
 def remove_hunt(session: Session, hunt: Hunt) -> None:
+    session.execute(delete(ResearchCase).where(ResearchCase.hunt_id == hunt.id))
+    session.execute(delete(ResearchGoal).where(ResearchGoal.hunt_id == hunt.id))
     session.execute(delete(HuntEvent).where(HuntEvent.hunt_id == hunt.id))
     session.execute(delete(HuntMatch).where(HuntMatch.hunt_id == hunt.id))
     session.delete(hunt)
