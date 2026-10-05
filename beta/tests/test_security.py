@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 from conftest import register
-from fastapi import HTTPException
+from fastapi import HTTPException, Request, Response
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from landwolf import auth
 from landwolf.config import Settings
@@ -82,12 +82,91 @@ def test_csrf_and_origin_are_enforced(
     assert response.status_code == 403
 
 
-@pytest.mark.parametrize("expiry", ["expires_at", "last_seen"])
-def test_sessions_expire(client: TestClient, signed_in: dict[str, str], expiry: str) -> None:
+def test_expired_sessions_cannot_be_renewed(client: TestClient, signed_in: dict[str, str]) -> None:
     with client.app.state.factory() as session, session.begin():
         login = session.scalar(select(LoginSession))
-        setattr(login, expiry, int(time.time()) - 40000)
+        login.expires_at = int(time.time()) - 1
     assert client.post("/api/search", json={}, headers=signed_in).status_code == 401
+    response = client.get("/api/session")
+    assert response.json()["authenticated"] is False
+    assert "set-cookie" not in response.headers
+
+
+def test_persistent_session_survives_inactivity_and_renews_legacy_cookie(
+    client: TestClient, signed_in: dict[str, str]
+) -> None:
+    now = int(time.time())
+    token = client.cookies.get(auth.COOKIE)
+    with client.app.state.factory() as session, session.begin():
+        login = session.scalar(select(LoginSession))
+        login.last_seen = now - 180 * 86400
+        login.expires_at = now + 60
+    response = client.get("/api/session")
+    assert response.json()["authenticated"] is True
+    assert response.json()["csrf"] == signed_in["X-CSRF-Token"]
+    assert client.cookies.get(auth.COOKIE) == token
+    cookie = response.headers["set-cookie"].lower()
+    assert "max-age=31536000" in cookie and "expires=" in cookie
+    assert "httponly" in cookie and "samesite=strict" in cookie and "path=/" in cookie
+    assert response.headers["cache-control"] == "no-store"
+    with client.app.state.factory() as session:
+        login = session.scalar(select(LoginSession))
+        assert now + 365 * 86400 <= login.expires_at <= int(time.time()) + 365 * 86400
+        assert login.last_seen >= now
+    assert client.post("/api/search", json={}, headers=signed_in).status_code == 200
+
+
+def test_cookie_deletion_cannot_restore_authentication(
+    client: TestClient, signed_in: dict[str, str]
+) -> None:
+    client.cookies.clear()
+    response = client.get("/api/session")
+    assert response.json()["authenticated"] is False
+    assert "set-cookie" not in response.headers
+    assert client.post("/api/search", json={}, headers=signed_in).status_code == 401
+
+
+def test_revocation_during_renewal_does_not_recreate_session(
+    client: TestClient, signed_in: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    token = client.cookies.get(auth.COOKIE)
+    request = Request({"type": "http", "headers": [(b"cookie", f"{auth.COOKIE}={token}".encode())]})
+    response = Response()
+    with client.app.state.factory() as session:
+        original_scalar = session.scalar
+
+        def revoke_before_update(statement):
+            session.execute(
+                delete(LoginSession).where(LoginSession.token_hash == auth.digest(token))
+            )
+            session.commit()
+            return original_scalar(statement)
+
+        monkeypatch.setattr(session, "scalar", revoke_before_update)
+        with pytest.raises(HTTPException) as exc:
+            auth.authenticate(request, session, client.app.state.settings, response=response)
+        assert exc.value.status_code == 401
+        assert "set-cookie" not in response.headers
+    with client.app.state.factory() as session:
+        assert session.get(LoginSession, auth.digest(token)) is None
+
+
+def test_logout_revokes_renewed_session(client: TestClient, signed_in: dict[str, str]) -> None:
+    token = client.cookies.get(auth.COOKIE)
+    assert client.get("/api/session").json()["authenticated"]
+    response = client.post("/api/auth/logout", json={}, headers=signed_in)
+    assert response.status_code == 200
+    assert "max-age=0" in response.headers["set-cookie"].lower()
+    client.cookies.set(auth.COOKIE, token)
+    assert client.get("/api/session").json()["authenticated"] is False
+    with client.app.state.factory() as session:
+        assert session.get(LoginSession, auth.digest(token)) is None
+
+
+@pytest.mark.parametrize("days", [0, 401])
+def test_persistent_cookie_lifetime_is_bounded(days: int) -> None:
+    with pytest.raises(ValueError):
+        Settings(session_days=days)
 
 
 def test_login_rotates_session_and_wrong_password_fails(client: TestClient) -> None:

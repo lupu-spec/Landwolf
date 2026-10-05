@@ -11,9 +11,10 @@ import secrets
 import time
 import uuid
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import httpx
-from playwright.sync_api import expect, sync_playwright
+from playwright.sync_api import Playwright, expect, sync_playwright
 
 from landwolf.version import VERSION
 
@@ -21,6 +22,62 @@ ORIGINS = {
     "staging": "https://landwolf-premium-staging.onrender.com",
     "production": "https://landwolf.ai",
 }
+
+
+def check_persistence(
+    playwright: Playwright, origin: str, email: str, password: str, payments_enabled: bool
+) -> None:
+    """Restart real browser profiles; never export cookies/tokens to CI artifacts."""
+    for engine_name in ("chromium", "webkit"):
+        engine = getattr(playwright, engine_name)
+        with TemporaryDirectory(prefix="landwolf-browser-") as profile:
+
+            def launch(engine=engine, profile=profile):
+                return engine.launch_persistent_context(
+                    profile, viewport={"width": 390, "height": 900}
+                )
+
+            context = launch()
+            try:
+                page = context.new_page()
+                page.goto(origin, wait_until="domcontentloaded", timeout=90000)
+                page.get_by_role("button", name="Sign in", exact=True).click()
+                page.get_by_label("Email address", exact=True).fill(email)
+                page.get_by_label("Password", exact=True).fill(password)
+                page.locator("#auth-submit").click()
+                target = "#billing-panel" if payments_enabled else ".property-card"
+                expect(page.locator(target).first).to_be_visible()
+                cookie = next(c for c in context.cookies() if c["name"] == "landwolf_session")
+                assert cookie["httpOnly"] and cookie["secure"]
+                assert cookie["sameSite"] == "Strict"
+                assert cookie["expires"] > time.time() + 364 * 86400
+                assert "landwolf_session" not in page.evaluate("document.cookie")
+                page.evaluate("""async () => {
+                    localStorage.clear(); sessionStorage.clear();
+                    for (const key of await caches.keys()) await caches.delete(key);
+                }""")
+                if engine_name == "chromium":
+                    context.new_cdp_session(page).send("Network.clearBrowserCache")
+                context.close()
+                context = launch()
+                page = context.new_page()
+                page.goto(origin, wait_until="domcontentloaded", timeout=90000)
+                expect(page.locator(target).first).to_be_visible()
+                expect(page.locator("#coverage-nav")).to_be_hidden()
+                assert context.request.get(f"{origin}/api/session").json()["authenticated"]
+                page.get_by_role("button", name="Sign out", exact=True).click()
+                expect(page.locator("#auth-submit")).to_be_visible()
+                context.close()
+                context = launch()
+                page = context.new_page()
+                page.goto(origin, wait_until="domcontentloaded", timeout=90000)
+                expect(page.locator("#auth-submit")).to_be_visible()
+                assert context.request.get(f"{origin}/api/session").json()["authenticated"] is False
+                print(
+                    f"Passed: {engine_name} persistent cookie, cache clear, browser restart, logout"
+                )
+            finally:
+                context.close()
 
 
 def main() -> None:
@@ -256,8 +313,10 @@ def main() -> None:
                 finally:
                     context.close()
                     browser.close()
+        check_persistence(playwright, origin, email, password, payments_enabled)
     print(
-        "Passed: four hosted customer journeys and owner-only coverage boundary; "
+        "Passed: four hosted customer journeys, persistent sign-in "
+        "and owner-only coverage boundary; "
         "one disposable non-cohort test account retained. "
         "Invitation, consent and due-date transitions are covered in isolated CI, not here."
     )

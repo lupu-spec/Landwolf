@@ -201,9 +201,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return release(settings.environment)
 
     @app.get("/api/session")
-    def current(request: Request, session: DB) -> dict[str, Any]:
+    def current(request: Request, response: Response, session: DB) -> dict[str, Any]:
         try:
-            account = auth.authenticate(request, session, settings)
+            account = auth.authenticate(request, session, settings, response=response)
         except HTTPException as exc:
             if exc.status_code != 401:
                 raise
@@ -335,7 +335,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/feedback")
     def feedback_status(request: Request, session: DB) -> dict[str, Any]:
-        # Reminder polling must not keep an idle login alive indefinitely.
+        # Reminder polling must not renew a persistent login or record user activity.
         account = auth.authenticate(request, session, settings, touch=False)
         billing.claim_invitation(session, account, settings)
         result = feedback.status(session, account, settings=settings)

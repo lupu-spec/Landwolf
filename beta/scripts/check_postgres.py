@@ -110,6 +110,21 @@ def main() -> None:
         response = client.post("/api/auth/register", json=credentials, headers=headers)
         require(response.status_code == 201, "PostgreSQL registration failed")
         headers["X-CSRF-Token"] = response.json()["csrf"]
+        with app.state.factory() as session, session.begin():
+            account = session.scalar(select(Account).where(Account.email == credentials["email"]))
+            login = session.scalar(
+                select(LoginSession).where(LoginSession.account_id == account.id)
+            )
+            login.last_seen = int(time.time()) - 180 * 86400
+            login.expires_at = int(time.time()) + 60
+        renewed = client.get("/api/session")
+        require(renewed.json()["authenticated"], "Persistent PostgreSQL session did not renew")
+        require("Max-Age=31536000" in renewed.headers["set-cookie"], "Cookie lifetime not renewed")
+        with app.state.factory() as session:
+            login = session.scalar(
+                select(LoginSession).where(LoginSession.account_id == account.id)
+            )
+            require(login.expires_at > int(time.time()) + 364 * 86400, "Session expiry not renewed")
 
         def search(**query: object) -> dict:
             response = client.post(

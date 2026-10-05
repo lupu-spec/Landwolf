@@ -233,7 +233,7 @@ def test_acceptance_failure_rolls_back_baseline_and_clock(client: TestClient, mo
         assert session.scalar(select(func.count()).select_from(FeedbackResponse)) == 0
 
 
-def test_reminder_poll_does_not_extend_idle_session(client: TestClient):
+def test_reminder_poll_does_not_renew_session(client: TestClient):
     import time
 
     from landwolf.db import LoginSession
@@ -243,6 +243,9 @@ def test_reminder_poll_does_not_extend_idle_session(client: TestClient):
     with client.app.state.factory() as session, session.begin():
         login = session.scalar(select(LoginSession))
         login.last_seen = observed
+        expiry = login.expires_at
     assert client.get("/api/feedback").status_code == 200
     with client.app.state.factory() as session:
-        assert session.scalar(select(LoginSession)).last_seen == observed
+        login = session.scalar(select(LoginSession))
+        assert login.last_seen == observed
+        assert login.expires_at == expiry
