@@ -298,7 +298,9 @@ svg {
   top: 10px;
 }
 .site-header {
-  height: 101px;
+  height: auto;
+  min-height: 101px;
+  flex-wrap: wrap;
   padding: 0 3.2%;
   display: flex;
   align-items: center;
@@ -2044,4 +2046,29 @@ select {
   .feedback-form > button {
     width: 100%;
   }
+}
+
+/* Membership uses the existing accessible button, spacing, and brand tokens. */
+#billing-content {
+  max-width: 780px;
+  display: grid;
+  gap: 1rem;
+}
+#billing-content p {
+  line-height: 1.6;
+}
+#billing-content label {
+  line-height: 1.6;
+}
+#billing-content input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+.billing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+#billing-message {
+  min-height: 1.5em;
 }

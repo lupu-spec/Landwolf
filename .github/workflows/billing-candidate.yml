@@ -1,0 +1,149 @@
+name: Live billing candidate gates
+on:
+  push:
+    branches: [codex/landwolf-live-billing]
+    paths: [.github/workflows/billing-candidate.yml]
+permissions:
+  contents: write
+concurrency:
+  group: landwolf-live-billing-candidate
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: landwolf_ci
+          POSTGRES_USER: landwolf_ci
+          POSTGRES_PASSWORD: landwolf_ci_disposable
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U landwolf_ci -d landwolf_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: beta/package-lock.json
+      - name: Install locked environments
+        working-directory: beta
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          npm ci
+      - name: Apply reviewed responsive navigation repair
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('beta/web/styles.css')
+          s = p.read_text()
+          old = '.site-header {\n  height: 101px;'
+          new = '.site-header {\n  height: auto;\n  min-height: 101px;\n  flex-wrap: wrap;'
+          if new not in s:
+              assert s.count(old) == 1, 'Unexpected header structure'
+              p.write_text(s.replace(old, new))
+          p = Path('beta/tests/test_browser.py')
+          s = p.read_text()
+          old = '        expect(page.locator("#main-nav button")).to_have_count(5)'
+          new = '''        expect(page.locator("#main-nav button")).to_have_text(
+                      ["Explore properties", "Property research", "Hunt", "Data coverage", "Feedback", "Membership"]
+                  )'''
+          if old in s:
+              assert s.count(old) == 1, 'Unexpected navigation assertion'
+              p.write_text(s.replace(old, new))
+          else:
+              assert '"Membership"' in s, 'Missing membership regression assertion'
+          PY
+      - name: Format and checkpoint engineering branch only
+        run: |
+          test '${{ github.ref_name }}' = codex/landwolf-live-billing
+          cd beta
+          .venv/bin/ruff format landwolf tests scripts
+          .venv/bin/ruff check landwolf tests scripts
+          npm run format
+          cd ..
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add beta/web/styles.css beta/tests/test_browser.py
+          if ! git diff --cached --quiet; then
+            git commit -m 'Keep membership navigation responsive at enlarged text sizes'
+            git push origin HEAD:codex/landwolf-live-billing
+          fi
+          mkdir -p quality-output
+          git rev-parse HEAD | tee quality-output/candidate-commit.txt
+      - name: Format
+        working-directory: beta
+        run: |
+          .venv/bin/ruff format --check landwolf tests scripts
+          npm run format:check
+      - name: Lint
+        working-directory: beta
+        run: |
+          .venv/bin/ruff check landwolf tests scripts
+          npm run lint
+      - name: Types
+        working-directory: beta
+        run: |
+          .venv/bin/mypy landwolf
+          npm run typecheck
+      - name: Unit and API integration
+        working-directory: beta
+        run: |
+          npm run test:unit
+          .venv/bin/pytest -q -m 'not browser'
+      - name: PostgreSQL integration
+        working-directory: beta
+        env:
+          LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
+        run: .venv/bin/python scripts/check_postgres.py
+      - name: Disposable backup and restore
+        working-directory: beta
+        env:
+          LANDWOLF_TEST_POSTGRES_URL: postgresql+psycopg://landwolf_ci:landwolf_ci_disposable@localhost:5432/landwolf_ci
+          LANDWOLF_TEST_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: .venv/bin/python scripts/check_restore.py
+      - name: Browser journey
+        working-directory: beta
+        run: |
+          .venv/bin/playwright install --with-deps chromium webkit > ../quality-output/browser-install.log 2>&1
+          npm run build
+          .venv/bin/pytest -q -m browser
+      - name: Production package
+        working-directory: beta
+        run: |
+          .venv/bin/python -m build
+          .venv/bin/python scripts/check_package.py
+      - name: Security
+        working-directory: beta
+        run: |
+          .venv/bin/bandit -r landwolf
+          .venv/bin/pip-audit --local --skip-editable
+          npm audit --audit-level=moderate
+          npm run secrets
+      - name: Diff integrity
+        run: |
+          git diff --check
+          git status --short
+      - name: Collect verification source
+        if: always()
+        run: |
+          mkdir -p quality-output
+          tar --exclude=.git --exclude=node_modules --exclude=.venv --exclude=quality-output --exclude=__pycache__ --exclude=.pytest_cache --exclude=.mypy_cache --exclude=.ruff_cache --exclude=test-results -czf "$RUNNER_TEMP/candidate-source.tar.gz" .
+          cp "$RUNNER_TEMP/candidate-source.tar.gz" quality-output/
+      - name: Verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-billing-verification-${{ github.run_attempt }}
+          path: |
+            quality-output/
+            beta/test-results/
+          retention-days: 3

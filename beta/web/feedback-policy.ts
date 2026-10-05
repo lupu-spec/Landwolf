@@ -4,6 +4,7 @@ export type FeedbackState =
 export type FeedbackStatus = {
   state: FeedbackState;
   enrolled: boolean;
+  pilot_reserved?: boolean;
   accepted_at: number | null;
   expires_at: number | null;
   terms_version: string;
@@ -23,6 +24,7 @@ export function feedbackViewAllowed(
 ): boolean {
   return (
     view === "feedback" ||
+    view === "billing" ||
     view === "hunt" ||
     (status !== null && status.access_allowed)
   );

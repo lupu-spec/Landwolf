@@ -31,6 +31,7 @@
         <button class="nav-link" data-nav="hunt">Hunt</button>
         <button class="nav-link" data-nav="sources">Data coverage</button>
         <button class="nav-link" data-nav="feedback">Feedback</button>
+        <button class="nav-link" data-nav="billing">Membership</button>
       </nav>
       <div class="account-tools">
         <button id="signout" class="button quiet small" hidden>Sign out</button>
@@ -72,6 +73,11 @@
             <p class="muted">
               Sign in to search, research properties, and run deal scenarios.
               Build a clearer picture before you make a move.
+            </p>
+            <p class="muted">
+              Membership: $29/month or $299/year. Invited feedback pilots and
+              owner-granted complimentary accounts do not need a subscription.
+              Creating an account does not start a charge.
             </p>
             <div
               class="segmented auth-tabs"
@@ -182,6 +188,9 @@
             Review feedback pilot
           </button>
         </aside>
+        <section id="billing-panel" hidden aria-label="Membership and billing">
+          <div id="billing-content"></div>
+        </section>
         <section
           id="feedback-panel"
           class="source-panel"

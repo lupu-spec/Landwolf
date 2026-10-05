@@ -1,3 +1,8 @@
+import {
+  setupBilling,
+  billingDestination,
+  type BillingStatus,
+} from "./billing";
 import L from "leaflet";
 import { setupFeedback } from "./feedback";
 import { bidRange, similarFilters } from "./property-context";
@@ -88,6 +93,8 @@ type SearchResult = {
   coverage_note: string;
 };
 type SessionInfo = {
+  billing?: BillingStatus;
+  payments_enabled?: boolean;
   is_owner?: boolean;
   version?: string;
   authenticated?: boolean;
@@ -179,14 +186,26 @@ const form = byId<HTMLFormElement>("search-form");
 const dialog = byId<HTMLDialogElement>("property-dialog");
 let csrf = "";
 let currentView = "explore";
+const billing = setupBilling(api, async (status) => {
+  await feedback.refresh();
+  if (status.allowed) await navigate("explore");
+});
 const feedback = setupFeedback(api, (status) => {
+  if (billing.state?.enabled) {
+    if (billing.state.allowed !== status.access_allowed)
+      billing.set({ ...billing.state, allowed: status.access_allowed });
+    void billing.refresh().catch((error: unknown) => notify(errorText(error)));
+  }
   if (
     !status.access_allowed &&
     currentView !== "feedback" &&
-    currentView !== "hunt"
+    currentView !== "hunt" &&
+    currentView !== "billing"
   ) {
     dialog.close();
-    void navigate("feedback");
+    void navigate(
+      billing.state?.enabled ? billingDestination(billing.state) : "feedback",
+    );
   }
 });
 let registerMode = false;
@@ -293,6 +312,7 @@ function notify(message: string): void {
 function clearSession(): void {
   csrf = "";
   feedback.clear();
+  billing.clear();
   currentView = "explore";
   scenarioDrafts.clear();
   resaleOverrides.clear();
@@ -368,6 +388,13 @@ async function api<T>(
         !path.startsWith("/api/admin")
       )
         void feedback.refresh();
+      if (response.status === 402 && !path.startsWith("/api/billing")) {
+        dialog.close();
+        void billing
+          .refresh()
+          .then(() => navigate(billingDestination(billing.state)))
+          .catch((error: unknown) => notify(errorText(error)));
+      }
       const description =
         detail && typeof detail === "object" && "message" in detail
           ? String(detail.message)
@@ -474,7 +501,7 @@ function setAuthMode(register: boolean): void {
   byId("login-tab").setAttribute("aria-pressed", String(!register));
   byId("register-tab").setAttribute("aria-pressed", String(register));
   byId("auth-submit").textContent = register
-    ? "Create your free account →"
+    ? "Create your account →"
     : "Sign in to LandWolf →";
   byId<HTMLInputElement>("password").autocomplete = register
     ? "new-password"
@@ -525,9 +552,23 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
     ? "Email verified"
     : current.email_delivery_enabled
       ? "Email not yet verified"
-      : "Email delivery is not configured in this beta.";
+      : "Email delivery is not configured. Contact support for account help.";
   byId("verify-email").hidden =
     Boolean(current.email_verified) || !current.email_delivery_enabled;
+  if (current.billing) billing.set(current.billing);
+  const paymentReturn = new URLSearchParams(window.location.search).get(
+    "billing",
+  );
+  if (paymentReturn) {
+    window.history.replaceState(null, "", window.location.pathname);
+    if (paymentReturn === "return" && current.billing?.enabled) {
+      try {
+        billing.set(await api<BillingStatus>("/api/billing/refresh", "POST"));
+      } catch (error) {
+        notify(errorText(error));
+      }
+    }
+  }
   page = 1;
   await feedback.start(Boolean(current.is_owner));
   if (!csrf || csrf !== sessionToken) return;
@@ -537,17 +578,30 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   byId("workspace").hidden = false;
   byId("main-nav").hidden = false;
   byId("signout").hidden = false;
+  if (current.billing?.enabled) await billing.refresh();
   await navigate(
-    feedback.state?.state === "invited" || !feedback.allowed("explore")
-      ? "feedback"
-      : "explore",
+    billing.state?.enabled && !billing.state.allowed
+      ? billingDestination(billing.state)
+      : feedback.state?.state === "invited" || !feedback.allowed("explore")
+        ? "feedback"
+        : "explore",
   );
 }
 async function navigate(
   view: string,
   preset?: Record<string, string>,
 ): Promise<void> {
-  if (!feedback.allowed(view)) view = "feedback";
+  if (view !== "billing" && !feedback.allowed(view)) {
+    view = billing.state?.enabled
+      ? billingDestination(billing.state)
+      : "feedback";
+  }
+  if (
+    billing.state?.enabled &&
+    !billing.state.allowed &&
+    !["billing", "feedback", "hunt"].includes(view)
+  )
+    view = billingDestination(billing.state);
   currentView = view;
   if (view === "explore" && preset) fillForm(form, preset);
   const navigation = ++navigationSequence;
@@ -565,6 +619,8 @@ async function navigate(
   const researching = view === "research";
   const hunting = view === "hunt";
   const givingFeedback = view === "feedback";
+  const subscribing = view === "billing";
+  byId("billing-panel").hidden = !subscribing;
   byId("feedback-panel").hidden = !givingFeedback;
   if (view === "explore")
     byId("results-layout").dataset.view =
@@ -576,29 +632,39 @@ async function navigate(
   byId("research-panel").hidden = !researching;
   byId("hunt-panel").hidden = !hunting;
   byId("explore-panel").hidden =
-    sources || researching || hunting || givingFeedback;
-  byId("workspace-title").textContent = givingFeedback
-    ? "Help shape LandWolf."
-    : sources
-      ? "Know the source. Know the limits."
-      : researching
-        ? "Understand the location."
-        : hunting
-          ? "Find the land that fits."
-          : "Find your next opportunity.";
-  byId("workspace-description").textContent = givingFeedback
-    ? "Your experience, your priorities, and your feedback pilot status."
-    : sources
-      ? "A transparent view of connected data and current gaps."
-      : researching
-        ? "Public records, with their source and uncertainty in view."
-        : hunting
-          ? "Set your criteria once. Review source-backed matches and changes."
-          : "Real listings. Clear sources. A closer look at what matters.";
+    sources || researching || hunting || givingFeedback || subscribing;
+  byId("workspace-title").textContent = subscribing
+    ? "LandWolf membership."
+    : givingFeedback
+      ? "Help shape LandWolf."
+      : sources
+        ? "Know the source. Know the limits."
+        : researching
+          ? "Understand the location."
+          : hunting
+            ? "Find the land that fits."
+            : "Find your next opportunity.";
+  byId("workspace-description").textContent = subscribing
+    ? "Secure payments. Clear terms. Your account stays in control."
+    : givingFeedback
+      ? "Your experience, your priorities, and your feedback pilot status."
+      : sources
+        ? "A transparent view of connected data and current gaps."
+        : researching
+          ? "Public records, with their source and uncertainty in view."
+          : hunting
+            ? "Set your criteria once. Review source-backed matches and changes."
+            : "Real listings. Clear sources. A closer look at what matters.";
   // A tab switch must expose its destination even from a long Research report.
   byId("workspace-title").focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "instant" });
-  if (givingFeedback) {
+  if (subscribing) {
+    try {
+      await billing.refresh();
+    } catch (error) {
+      notify(errorText(error));
+    }
+  } else if (givingFeedback) {
     await feedback.open();
   } else if (sources) {
     try {

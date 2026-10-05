@@ -1,4 +1,4 @@
-# The rebuilt free production service. Existing resource names preserve accounts/data.
+# The rebuilt production service. Existing resource names preserve accounts/data.
 # Deploy manually after gates pass; keep legacy render.yaml as a rollback reference.
 services:
   - type: web
@@ -19,8 +19,10 @@ services:
     envVars:
       - key: LANDWOLF_ENVIRONMENT
         value: production
+      # Preserve the explicitly configured dashboard value across Blueprint syncs.
+      # Set true only after the live-billing activation checklist is complete.
       - key: LANDWOLF_PAYMENTS_ENABLED
-        value: "false"
+        sync: false
       - key: LANDWOLF_PUBLIC_ORIGIN
         value: https://landwolf.ai
       - key: LANDWOLF_ADDITIONAL_ORIGINS

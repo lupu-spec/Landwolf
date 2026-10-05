@@ -37,7 +37,14 @@ class Settings(BaseSettings):
     additional_origins: tuple[str, ...] = Field(default=(), max_length=4)
     auto_sync: bool = True
     owner_account_id: str | None = Field(default=None, pattern=r"^[0-9a-fA-F-]{36}$")
-    payments_enabled: Literal[False] = False
+    payments_enabled: bool = False
+    stripe_secret_key: SecretStr | None = Field(default=None, repr=False)
+    stripe_webhook_secret: SecretStr | None = Field(default=None, repr=False)
+    stripe_account_id: str | None = Field(default=None, pattern=r"^acct_[A-Za-z0-9]+$")
+    stripe_monthly_price_id: str | None = Field(default=None, pattern=r"^price_[A-Za-z0-9]+$")
+    stripe_annual_price_id: str | None = Field(default=None, pattern=r"^price_[A-Za-z0-9]+$")
+    stripe_portal_configuration_id: str | None = Field(default=None, pattern=r"^bpc_[A-Za-z0-9]+$")
+    pilot_invite_emails: tuple[EmailStr, ...] = Field(default=(), max_length=500, repr=False)
     session_hours: int = Field(default=8, ge=1, le=24)
     idle_minutes: int = Field(default=30, ge=5, le=120)
     auth_limit: int = Field(default=12, ge=1, le=100)
@@ -47,11 +54,18 @@ class Settings(BaseSettings):
 
     @field_validator("payments_enabled", mode="before")
     @classmethod
-    def keep_payments_disabled(cls, value: object) -> Literal[False]:
-        # Environment variables are strings; accept only an explicit false value.
-        if value is False or (isinstance(value, str) and value.casefold() == "false"):
-            return False
-        raise ValueError("Payments must remain disabled for free access")
+    def explicit_payment_flag(cls, value: object) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str) and value.casefold() in {"true", "false"}:
+            return value.casefold() == "true"
+        raise ValueError("Payments flag must be true or false")
+
+    @field_validator("pilot_invite_emails")
+    @classmethod
+    def normalize_pilot_emails(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        # Private deployment configuration, never a public client-side allowlist.
+        return tuple(dict.fromkeys(email.casefold() for email in value))
 
     @model_validator(mode="after")
     def validate_deployment(self) -> Self:
@@ -74,6 +88,29 @@ class Settings(BaseSettings):
             "postgresql+psycopg://"
         ):
             raise ValueError("Production requires a separate PostgreSQL database")
+        if self.payments_enabled:
+            key = self.stripe_secret_key.get_secret_value() if self.stripe_secret_key else ""
+            webhook = (
+                self.stripe_webhook_secret.get_secret_value() if self.stripe_webhook_secret else ""
+            )
+            if not key.startswith(("sk_live_", "rk_live_")) or len(key) < 24:
+                raise ValueError("Payments require a live Stripe server key; sandbox is forbidden")
+            if not webhook.startswith("whsec_") or len(webhook) < 24:
+                raise ValueError("Payments require the live webhook signing secret")
+            if not all(
+                (
+                    self.stripe_account_id,
+                    self.stripe_monthly_price_id,
+                    self.stripe_annual_price_id,
+                    self.stripe_portal_configuration_id,
+                    self.owner_account_id,
+                )
+            ):
+                raise ValueError(
+                    "Payments require account, prices, portal configuration and owner ID"
+                )
+            if self.stripe_monthly_price_id == self.stripe_annual_price_id:
+                raise ValueError("Monthly and annual prices must be distinct")
         return self
 
     def validate_origin(self, origin: str) -> str:

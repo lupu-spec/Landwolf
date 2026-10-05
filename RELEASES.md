@@ -174,3 +174,14 @@ Append deployments below only after Render reports them live and HTTPS checks su
 - The exact commit above passed four live browser journeys in [staging](https://github.com/lupu-spec/Landwolf/actions/runs/37228923125) before production deployment, then four in [production](https://github.com/lupu-spec/Landwolf/actions/runs/37229118822).
 - Invitation-only access lasts three calendar months, with required in-app surveys. Payments and email delivery remain disabled; no real investor was enrolled.
 - [Command results, retained failures and operational limits](beta/docs/INVESTOR_PILOT_RELEASE.md).
+
+## v0.4.0 — live-billing candidate, not yet deployed
+
+- Adds live-only Stripe Checkout, a customer portal, signed webhook reconciliation,
+  server-side paid entitlements and private marketing-pilot reservations.
+- Reuses the approved $29/month and $299/year live recurring prices. No automatic
+  pilot conversion, no testing charges, and no sandbox runtime credentials.
+- Additive schema v8 preserves accounts, sessions, Hunts and feedback records.
+- Deployment and live checkout/webhook verification remain pending. The observed
+  environments and append-only deployment history above have not been changed.
+- See `beta/docs/LIVE_BILLING.md` for configuration, rollback and verification gates.
