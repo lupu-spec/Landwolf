@@ -55,6 +55,13 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
             page.locator("#auth-submit").click()
             expect(page.locator("#workspace")).to_be_visible()
 
+        def logout():
+            page.get_by_role("button", name="Sign out", exact=True).click()
+            # Logout is asynchronous and deliberately clears/collapses chat.
+            # Wait for the session transition before opening the guest helper.
+            expect(page.locator("#auth-view")).to_be_visible()
+            expect(panel).to_be_hidden()
+
         toolbar.click()
         expect(
             panel.get_by_role("button", name="Collapse Romulus and Remus chat")
@@ -151,7 +158,7 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         output = Path("test-results")
         output.mkdir(exist_ok=True)
-        page.screenshot(path=str(output / f"wolf-chat-{engine_name}-{width}.png"), full_page=True)
+        page.screenshot(path=str(output / f"wolf-chat-{engine_name}-{width}.png"))
         page.set_viewport_size({"width": width, "height": 400})
         expect(panel.get_by_role("button", name="Ask the wolves", exact=True)).to_be_in_viewport()
         expect(question).to_be_in_viewport()
@@ -180,7 +187,7 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         question.press("Escape")
         expect(page.locator("#property-dialog")).to_be_visible()
         page.get_by_role("button", name="Close property details", exact=True).click()
-        page.get_by_role("button", name="Sign out", exact=True).click()
+        logout()
         open_chat()
         expect(log).not_to_contain_text("Save Hunt & view matches")
         expect(log).not_to_contain_text("Run 10,000 scenarios")
@@ -196,7 +203,7 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
             ask(f"Unknown fixture question {index}")
         assert log.locator(":scope > .wolf-turn").count() == 12
         collapse()
-        page.get_by_role("button", name="Sign out", exact=True).click()
+        logout()
         open_chat()
         expect(log).not_to_contain_text("The export is owner-only")
         assert page.evaluate("localStorage.length === 0 && sessionStorage.length === 0")

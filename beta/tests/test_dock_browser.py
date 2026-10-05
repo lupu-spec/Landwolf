@@ -39,11 +39,11 @@ def test_glass_dock_navigation(browser_server, engine_name, width):
         assert box
         page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
         page.mouse.wheel(0, 120)
-        page.wait_for_function("document.querySelector('#dock-track').scrollLeft > 20")
+        page.wait_for_function("() => document.querySelector('#dock-track').scrollLeft > 20")
         expect(page.locator('[data-nav="explore"]')).to_have_attribute("aria-current", "page")
         track.evaluate("el => { el.scrollLeft = el.scrollWidth; }")
         page.get_by_role("button", name="Next dock options", exact=True).click()
-        page.wait_for_function("document.querySelector('#dock-track').scrollLeft < 2")
+        page.wait_for_function("() => document.querySelector('#dock-track').scrollLeft < 2")
         # A real horizontal pointer drag must scroll without activating the button beneath it.
         box = track.bounding_box()
         assert box
@@ -85,11 +85,21 @@ def test_glass_dock_navigation(browser_server, engine_name, width):
         expect(page.locator(".site-header .wolf-chat-trigger")).to_be_focused()
         page.keyboard.press("ArrowRight")
         expect(explore).to_be_focused()
+        # A partially clipped option must stay under the pointer until release.
+        hunt = page.locator('[data-nav="hunt"]')
+        track.evaluate("el => { el.scrollLeft = 0; }")
+        hunt.click()
+        expect(page.locator("#hunt-submit")).to_be_visible()
+        expect(hunt).to_have_attribute("aria-current", "page")
+        page.locator('[data-nav="feedback"]').click()
+        expect(page.locator('[data-nav="feedback"]')).to_have_attribute("aria-current", "page")
+        explore.click()
+        expect(explore).to_have_attribute("aria-current", "page")
         # Pointer magnification is decorative and respects the OS motion preference.
         if width == 1440:
             explore.hover()
             page.wait_for_function(
-                "parseFloat(document.querySelector('[data-nav=explore]')"
+                "() => parseFloat(document.querySelector('[data-nav=explore]')"
                 ".style.getPropertyValue('--dock-scale')) > 1.3"
             )
             page.emulate_media(reduced_motion="reduce")

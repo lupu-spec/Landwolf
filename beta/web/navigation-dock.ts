@@ -169,6 +169,9 @@ export function setupNavigationDock(): void {
       });
   }
   track.addEventListener("focusin", (event) => {
+    // Pointer focus arrives between down/up. Scrolling here moves the hit target
+    // before the click finishes; keyboard focus still reveals clipped options.
+    if (drag) return;
     if (event.target instanceof HTMLElement)
       reveal(event.target.closest<HTMLElement>("[data-dock]") ?? undefined);
   });

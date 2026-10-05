@@ -53,11 +53,19 @@ privacy clearing, and all existing customer/payment/owner regressions.
 | `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | Passed locally, exit 0 |
 | `npm audit --audit-level=moderate`; `npm run secrets` | Passed locally, exit 0 |
 | `PYTHONPATH=. .venv-legacy/bin/pytest -q` (root) | Passed, 53 tests, exit 0 |
-| `LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-dock-sources.db .venv/bin/python -m landwolf.cli sync` | Pending isolated live-feed check |
+| `LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-dock-sources.db .venv/bin/python -m landwolf.cli sync` | Passed, exit 0; all 8 sources ready (zero current Arkansas rows) |
 | `git diff --check`; `git status --short` (root) | Passed; intended changes only |
 
 The initial TypeScript check found nullable DOM captures in nested dock functions;
 validated local element references fixed those errors before the full gates.
+The first two hosted browser runs exposed a pointer-focus scroll race: revealing a
+partially clipped icon between pointer-down and release could cancel its click.
+The dock now holds its position through the pointer gesture; direct Hunt and
+Feedback clicks have explicit regression assertions. CSP rejected expression-style
+Playwright polling predicates, which now use function predicates without weakening
+the CSP. The guest-chat focus check now waits for asynchronous sign-out and its
+intentional chat clear/collapse before reopening. Browser screenshots capture the
+actual device viewport, avoiding misleading full-page fixed-panel placement.
 An initial CSS write used the wrong working-directory prefix and made no CSS
 change; the corrected write and formatting succeeded. Existing FastAPI/httpx/npm
 warnings are unrelated. Browser emulation is not physical iPhone/iPad keyboard or
