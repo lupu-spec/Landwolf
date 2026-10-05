@@ -109,31 +109,45 @@ class StripeAPI:
                 ) as response,
             ):
                 if response.status_code < 200 or response.status_code >= 300:
-                    # Stripe error payloads can contain sensitive request context. Log only
-                    # the bounded status/code/parameter needed to diagnose integration
-                    # incompatibilities; never log the message, body, request fields or key.
+                    # Stripe errors can contain request context. Log only bounded,
+                    # control-character-free diagnostic fields; never log the raw body,
+                    # request fields, authorization header, or secret key.
                     status = response.status_code
                     code = "unknown"
                     param = "unknown"
+                    error_type = "unknown"
+                    diagnostic = "unknown"
                     try:
                         error_payload = json.loads(response.read())
                         error = error_payload.get("error", {}) if isinstance(error_payload, dict) else {}
                         if isinstance(error, dict):
                             raw_code = error.get("code")
                             raw_param = error.get("param")
+                            raw_type = error.get("type")
+                            raw_message = error.get("message")
                             if isinstance(raw_code, str) and len(raw_code) <= 80:
                                 code = raw_code
                             if isinstance(raw_param, str) and len(raw_param) <= 120:
                                 param = raw_param
+                            if isinstance(raw_type, str) and len(raw_type) <= 80:
+                                error_type = raw_type
+                            if isinstance(raw_message, str):
+                                clean = "".join(
+                                    ch if ch.isprintable() and ch not in "\r\n" else " "
+                                    for ch in raw_message
+                                )
+                                diagnostic = clean[:240]
                     except (ValueError, httpx.HTTPError):
                         pass
                     logger.warning(
-                        "Stripe API request rejected: method=%s path=%s status=%s code=%s param=%s",
+                        "Stripe API request rejected: method=%s path=%s status=%s code=%s param=%s type=%s diagnostic=%s",
                         method,
                         path,
                         status,
                         code,
                         param,
+                        error_type,
+                        diagnostic,
                     )
                     raise unavailable()
                 chunks = bytearray()
