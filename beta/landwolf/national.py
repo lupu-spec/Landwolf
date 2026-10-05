@@ -248,7 +248,7 @@ def parse_treasury(html: str) -> list[PropertyRecord]:
         if match is None:
             # The publisher also shows undated teasers without a sale identifier.
             # They are not actionable sale records and must not block dated sales.
-            if "Sale" not in value and re.search(
+            if "sale" not in value.lower() and re.search(
                 r"ONLINE AUCTION\s*DAT\s*E\s*:\s*Coming Soon", value, re.I
             ):
                 continue

@@ -147,8 +147,9 @@ def test_treasury_undated_unidentified_teaser_does_not_block_scheduled_sales() -
     assert parse_treasury(teaser) == []
     with pytest.raises(SourceUnavailable, match="identifier"):
         parse_treasury(TREASURY.replace("Sale # 99-66-001.", ""))
-    with pytest.raises(SourceUnavailable, match="identifier"):
-        parse_treasury(teaser.replace("Coming Soon...", "Coming Soon... Sale # invalid"))
+    for marker in ("Sale", "SALE", "sale", "sAlE"):
+        with pytest.raises(SourceUnavailable, match="identifier"):
+            parse_treasury(teaser.replace("Coming Soon...", f"Coming Soon... {marker} # invalid"))
 
 
 def test_irs_external_promotions_are_excluded_from_filtered_property_inventory() -> None:
