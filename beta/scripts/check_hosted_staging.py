@@ -139,6 +139,7 @@ def main() -> None:
             "/api/sources",
             "/api/capabilities",
             "/api/feedback",
+            "/api/admin/feedback/users.csv",
             "/api/decision-cases/unknown",
             "/api/hunts/unknown/research",
         ):
@@ -176,9 +177,21 @@ def main() -> None:
                     expect(page.locator("#workspace")).to_be_visible()
                     registered = True
                     expect(page.locator("#coverage-nav")).to_be_hidden()
-                    for endpoint in ("/api/sources", "/api/capabilities"):
+                    for endpoint in (
+                        "/api/sources",
+                        "/api/capabilities",
+                        "/api/admin/accounts",
+                        "/api/admin/feedback",
+                        "/api/admin/feedback/responses",
+                        "/api/admin/feedback/users.csv",
+                    ):
                         assert context.request.get(f"{origin}{endpoint}").status == 403
+                    page.locator('#main-nav [data-nav="feedback"]').click()
+                    expect(page.locator("#feedback-admin")).to_be_hidden()
+                    expect(page.locator("#feedback-admin")).to_be_empty()
+                    expect(page.get_by_role("button", name="Export users CSV")).to_have_count(0)
                     if payments_enabled:
+                        page.locator('#main-nav [data-nav="billing"]').click()
                         # Verify the unpaid customer's access boundary without creating a charge.
                         expect(page.locator("#billing-panel")).to_be_visible()
                         state = context.request.get(f"{origin}/api/session").json()
@@ -220,6 +233,7 @@ def main() -> None:
                             "paywall, logout"
                         )
                         continue
+                    page.locator('#main-nav [data-nav="explore"]').click()
                     expect(page.locator(".property-card").first).to_be_visible()
                     if engine == "chromium" and width == 390:
                         state = context.request.get(f"{origin}/api/session").json()

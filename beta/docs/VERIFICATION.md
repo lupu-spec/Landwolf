@@ -2212,3 +2212,10 @@ Legacy tests and static preflight passed separately. PR #19 merged as
 Live run 37269249419 passed exact identity/HTTPS/database health, existing payment
 and coverage gates, four customer journeys and actual Chromium/WebKit profile
 restart/cache/logout checks. See [exact commands and limitations](PERSISTENT_SIGN_IN_RELEASE.md).
+
+### v0.5.1 — feedback user privacy and CSV export
+
+The candidate hardens the existing owner-only feedback user list and adds an
+owner-authorized CSV download. See [scope, exact commands and remaining gates](FEEDBACK_USERS_RELEASE.md).
+Production is not yet claimed deployed; the report will be updated after hosted
+verification and staging-first promotion.

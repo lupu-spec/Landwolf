@@ -51,6 +51,8 @@ export function setupFeedback(
   let generation = 0;
   let running = false;
   let owner = false;
+  let adminVerified = false;
+  let download: AbortController | undefined;
   let refreshing = false;
   let rendered = "";
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -59,6 +61,15 @@ export function setupFeedback(
   const notice = get("feedback-notice");
   const noticeText = get("feedback-notice-text");
   const admin = get("feedback-admin");
+
+  function clearAdmin(): void {
+    adminVerified = false;
+    adminSequence++;
+    download?.abort();
+    download = undefined;
+    admin.replaceChildren();
+    admin.hidden = true;
+  }
 
   function renderNotice(current: FeedbackStatus): void {
     notice.hidden =
@@ -340,10 +351,13 @@ export function setupFeedback(
       const next = await api<FeedbackStatus>("/api/feedback");
       if (!running || session !== generation) return;
       status = next;
+      adminVerified = owner && next.access_override === "owner";
+      if (!adminVerified) clearAdmin();
       render(next);
       changed(next);
     } catch (error) {
       if (!running || session !== generation) return;
+      clearAdmin();
       notice.hidden = false;
       noticeText.textContent = `Unable to refresh pilot status. ${message(error)}`;
       if (status === null)
@@ -359,11 +373,15 @@ export function setupFeedback(
   // Owner-only controls are rendered after the authenticated session identifies the owner.
   // The API remains responsible for authorization on every read and write.
   async function loadAdmin(): Promise<void> {
-    if (!owner) return;
+    if (!adminVerified) return;
+    download?.abort();
     const session = generation;
     const sequence = ++adminSequence;
     const current = () =>
-      owner && running && generation === session && sequence === adminSequence;
+      adminVerified &&
+      running &&
+      generation === session &&
+      sequence === adminSequence;
     admin.hidden = false;
     admin.replaceChildren(
       node("h2", "Manage investor feedback pilots"),
@@ -391,6 +409,64 @@ export function setupFeedback(
       );
       const result = node("p", "", "form-message");
       result.setAttribute("role", "status");
+      const exportUsers = button("Export users CSV", () => {
+        if (!current() || exportUsers.disabled) return;
+        exportUsers.disabled = true;
+        const controller = new AbortController();
+        download = controller;
+        const timeout = setTimeout(() => controller.abort(), 30000);
+        result.textContent = "Preparing user export…";
+        void (async () => {
+          try {
+            const response = await fetch("/api/admin/feedback/users.csv", {
+              credentials: "same-origin",
+              cache: "no-store",
+              redirect: "error",
+              headers: { Accept: "text/csv" },
+              signal: controller.signal,
+            });
+            if (!current() || controller.signal.aborted) return;
+            if (response.status === 401 || response.status === 403) {
+              clearAdmin();
+              notice.hidden = false;
+              noticeText.textContent =
+                "Owner authorization is required to view or export users.";
+              return;
+            }
+            if (
+              !response.ok ||
+              !response.headers.get("Content-Type")?.startsWith("text/csv")
+            )
+              throw new Error(
+                response.status === 409
+                  ? "The export exceeds 10,000 accounts. No partial file was created."
+                  : "Unable to export users. Please try again.",
+              );
+            const blob = await response.blob();
+            if (!current() || controller.signal.aborted) return;
+            const url = URL.createObjectURL(blob);
+            const link = node("a");
+            link.href = url;
+            link.download = `landwolf-users-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.append(link);
+            link.click();
+            link.remove();
+            // Allow browsers time to consume the blob before releasing it.
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            result.textContent =
+              "CSV download started. Check your browser’s downloads.";
+          } catch (error) {
+            if (current())
+              result.textContent = controller.signal.aborted
+                ? "The export timed out. Please try again."
+                : message(error);
+          } finally {
+            clearTimeout(timeout);
+            if (download === controller) download = undefined;
+            exportUsers.disabled = false;
+          }
+        })();
+      });
       const wrap = node("div", "", "feedback-table-wrap");
       const table = node("table", "", "feedback-table");
       const caption = node(
@@ -544,6 +620,11 @@ export function setupFeedback(
       });
       admin.append(
         result,
+        exportUsers,
+        node(
+          "p",
+          "The CSV includes all registered users (up to 10,000), roles and pilot dates. The table shows up to 500 accounts. Downloads use your browser’s chosen folder.",
+        ),
         wrap,
         view,
         button("Refresh accounts", () => void loadAdmin()),
@@ -579,8 +660,7 @@ export function setupFeedback(
       rendered = "";
       clearInterval(timer);
       content.replaceChildren();
-      admin.replaceChildren();
-      admin.hidden = true;
+      clearAdmin();
       notice.hidden = true;
     },
     refresh,

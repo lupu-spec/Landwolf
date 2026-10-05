@@ -17,6 +17,7 @@ export type FeedbackStatus = {
   next_due_at: number | null;
   completed_surveys: string[];
   access_allowed: boolean;
+  access_override?: "owner" | "complimentary" | null;
 };
 export function feedbackViewAllowed(
   status: FeedbackStatus | null,
