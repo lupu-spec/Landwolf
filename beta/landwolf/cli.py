@@ -3,10 +3,12 @@
 import argparse
 import asyncio
 import json
+import os
 import time
 
 from sqlalchemy import select
 
+from landwolf.billing_diagnostics import environment_status
 from landwolf.catalog import Catalog
 from landwolf.config import Settings
 from landwolf.db import SCHEMA_VERSION, SourceRun, database, initialize
@@ -23,6 +25,9 @@ def main() -> None:
     parser.add_argument("--latitude", type=float, default=32.7767)
     parser.add_argument("--longitude", type=float, default=-96.7970)
     args = parser.parse_args()
+    if args.command == "init-db":
+        # Whitelisted statuses only; never echo values or change validation.
+        print("Billing process environment status: " + json.dumps(environment_status(os.environ)))
     settings = Settings()
     engine, factory = database(settings.database_url)
     try:
