@@ -1,5 +1,26 @@
 # LandWolf beta verification
 
+## v0.5.0 — research decisions candidate, not deployed — 2026-10-05
+
+Runtime candidate `1b640a5` adds private property/Hunt research, prioritized
+questions, shared planning briefs, cost stress and reversal comparisons, recorded
+pause/reconsideration history and printable packets. Schema 9 adds two private
+research tables; existing billing, persistent sessions and owner-only coverage
+remain in place. No paid provider or additional infrastructure was introduced.
+
+**Passed locally:** formatting, lint, types, 395 backend tests, 9 frontend tests,
+53 legacy tests, frontend/Python builds and package checks, Bandit, both dependency
+audits, secretlint, lock/install verification and eight implemented live listing
+adapters against an isolated database. **Failed locally:** the targeted new browser
+journey could not launch because browser download/install failed. **Not run:**
+completed browser, PostgreSQL/restore and live staging/production gates.
+
+Automatic approval review rejected the GitHub push, requiring explicit approval
+to publish source to the existing public `lupu-spec/Landwolf` repository, despite
+verification against the connected account and production service. No alternate
+publication path or deployment was attempted. Production remains v0.4.4.
+See [every command, result, source counts and remaining gates](RESEARCH_DECISIONS_RELEASE.md).
+
 ## v0.4.0-beta.4 — visible Hunt saving, 2026-09-28
 
 The creation form explicitly labels its save action and the persistent Hunt list.

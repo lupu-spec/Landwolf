@@ -13,6 +13,7 @@ import {
 } from "./trust-ui";
 import { setupAccountActions } from "./account-actions";
 import { acreagePresets, acreageRange, huntName } from "./hunt-form";
+import { setupDecisionWorkspace } from "./decision-workspace";
 
 type ResearchLocation = {
   address: string | null;
@@ -186,6 +187,7 @@ const errorText = (error: unknown) =>
 const form = byId<HTMLFormElement>("search-form");
 const dialog = byId<HTMLDialogElement>("property-dialog");
 let csrf = "";
+const decisions = setupDecisionWorkspace(api, () => csrf, openDetail);
 let currentView = "explore";
 const billing = setupBilling(api, async (status) => {
   await feedback.refresh();
@@ -313,6 +315,7 @@ function notify(message: string): void {
 
 function clearSession(): void {
   csrf = "";
+  decisions.clear();
   feedback.clear();
   billing.clear();
   currentView = "explore";
@@ -1229,7 +1232,16 @@ function propertyActions(record: PropertyRecord): HTMLElement {
     detailSequence++;
     void navigate("explore", similarFilters(record));
   });
-  actions.append(research, similar);
+  const decision = element("button", "button secondary", "Decision research");
+  decision.type = "button";
+  decision.addEventListener("click", () => {
+    void (async () => {
+      if (!dialog.open || currentProperty?.id !== record.id)
+        await openDetail(record.id);
+      byId("decision-workspace").scrollIntoView({ behavior: "smooth" });
+    })();
+  });
+  actions.append(research, decision, similar);
   return actions;
 }
 async function researchPropertyLocation(record: PropertyRecord): Promise<void> {
@@ -1427,7 +1439,7 @@ byId("research-form").addEventListener("submit", (event) => {
   void runResearch();
 });
 
-async function openDetail(id: string): Promise<void> {
+async function openDetail(id: string, preferredHunt?: string): Promise<void> {
   const sequence = ++detailSequence;
   try {
     const record = await api<PropertyRecord>(
@@ -1437,6 +1449,7 @@ async function openDetail(id: string): Promise<void> {
     currentProperty = record;
     pendingResearchProperty = record;
     renderDetail(record);
+    void decisions.property(record.id, preferredHunt);
     const analysisForm = byId<HTMLFormElement>("analysis-form");
     analysisForm.reset();
     resaleOverrides = new Set<string>();
@@ -2137,7 +2150,12 @@ async function loadHunts(): Promise<HuntRow[] | null> {
         "Delete",
         () =>
           void (async () => {
-            if (!window.confirm(`Delete Hunt “${hunt.name}”?`)) return;
+            if (
+              !window.confirm(
+                `Delete Hunt “${hunt.name}” and its research records?`,
+              )
+            )
+              return;
             try {
               await api(`/api/hunts/${hunt.id}`, "DELETE");
               if (editingHunt === hunt.id) resetHuntForm();
@@ -2190,6 +2208,9 @@ async function showHunt(hunt: HuntRow, scroll = true): Promise<void> {
     }>(`/api/hunts/${hunt.id}/events`);
     if (!current()) return;
     target.replaceChildren(element("h2", "", hunt.name));
+    const workspace = element("section", "decision-workspace");
+    target.append(workspace);
+    void decisions.hunt(workspace, hunt.id);
     if (result.paused) {
       target.append(element("p", "muted", "Hunt is paused."));
       return;
@@ -2242,7 +2263,7 @@ async function showHunt(hunt: HuntRow, scroll = true): Promise<void> {
           () =>
             void (async () => {
               try {
-                await openDetail(row.listing_id);
+                await openDetail(row.listing_id, hunt.id);
               } catch (error) {
                 notify(errorText(error));
               }

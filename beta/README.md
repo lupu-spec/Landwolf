@@ -102,6 +102,21 @@ Run actual public API checks explicitly (not part of deterministic fixture CI):
 .venv/bin/python -m landwolf.cli check-research --latitude 35.7804 --longitude -78.6391
 ```
 
+## Research your decision
+
+Property details now include private decision research. Choose intended use, budget
+and requirements; enter known/unresolved costs and optional proceeds or delay
+assumptions. LandWolf calculates remaining cost allowance, prioritizes unanswered
+questions and retains dated customer evidence. **Record research** persists these
+inputs; **Calculate preview** does not. Research can be linked to an existing Hunt.
+Hunts have shared research goals, two-property cost comparisons, scoped question
+briefs and reasons to reconsider a paused property. Print packets use the browser.
+
+Schema 9 adds research tables without changing billing or existing account data.
+There are no new paid providers or model calls. On-open evaluation uses existing
+inventory and recorded answers; no new external refresh scheduler is enabled.
+See [research decisions release](docs/RESEARCH_DECISIONS_RELEASE.md).
+
 ## Deal model
 
 Resale starts at 95% / 100% / 120% of the published price or entered bid, labeled

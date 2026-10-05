@@ -135,7 +135,13 @@ def main() -> None:
                 redirect = www.get("https://www.landwolf.ai/")
                 assert redirect.status_code in {301, 302, 307, 308}
                 assert redirect.headers["location"] == "https://landwolf.ai/"
-        for path in ("/api/sources", "/api/capabilities", "/api/feedback"):
+        for path in (
+            "/api/sources",
+            "/api/capabilities",
+            "/api/feedback",
+            "/api/decision-cases/unknown",
+            "/api/hunts/unknown/research",
+        ):
             assert client.get(path).status_code == 401
         assert client.post("/api/search", json={}).status_code == 401
         assert client.get("/api/saved").status_code == 404
@@ -190,6 +196,14 @@ def main() -> None:
                             == 402
                         )
                         assert context.request.get(f"{origin}/api/hunts").status == 200
+                        assert (
+                            context.request.get(f"{origin}/api/decision-cases/unknown").status
+                            == 402
+                        )
+                        assert (
+                            context.request.get(f"{origin}/api/hunts/unknown/research").status
+                            == 402
+                        )
                         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                         page.screenshot(
                             path=str(output / f"membership-{engine}-{width}.png"), full_page=True
@@ -259,6 +273,41 @@ def main() -> None:
                         "button", name="View property"
                     ).click()
                     expect(page.locator("#property-dialog .trust-panel")).to_be_visible()
+                    research_workspace = page.locator("#decision-workspace")
+                    expect(
+                        research_workspace.get_by_role("button", name="Record research", exact=True)
+                    ).to_be_visible()
+                    research_workspace.get_by_label("Acquisition basis", exact=True).select_option(
+                        "entered"
+                    )
+                    research_workspace.get_by_label("Acquisition assumption ($)", exact=True).fill(
+                        "100000"
+                    )
+                    research_workspace.get_by_label("Known additional costs ($)", exact=True).fill(
+                        "25000"
+                    )
+                    research_workspace.get_by_label("Unresolved work — low ($)", exact=True).fill(
+                        "18000"
+                    )
+                    research_workspace.get_by_label("Unresolved work — high ($)", exact=True).fill(
+                        "18000"
+                    )
+                    research_workspace.get_by_text(
+                        "Investment assumptions and stress controls", exact=True
+                    ).click()
+                    research_workspace.get_by_label(
+                        "Net exit proceeds after selling costs ($, optional)", exact=True
+                    ).fill("160000")
+                    research_workspace.get_by_role(
+                        "button", name="Record research", exact=True
+                    ).click()
+                    expect(research_workspace.get_by_role("status")).to_contain_text(
+                        "Research recorded"
+                    )
+                    expect(research_workspace.locator(".decision-output")).to_contain_text(
+                        "$8,333.33"
+                    )
+                    expect(research_workspace.locator(".decision-output")).to_contain_text("11.89%")
                     page.get_by_text("Inspect field evidence", exact=True).click()
                     expect(page.locator("#property-dialog .evidence-list")).to_be_visible()
                     assert page.locator("#property-dialog").evaluate(
