@@ -92,6 +92,9 @@ export function setupNavigationDock(): void {
     };
   });
   function finish(event: PointerEvent): void {
+    // Touch starts with implicit capture on the icon. Transferring capture to
+    // the track emits a bubbling loss from that icon; the swipe is still active.
+    if (event.type === "lostpointercapture" && event.target !== track) return;
     if (!drag || drag.id !== event.pointerId) return;
     const active = drag;
     drag = undefined;

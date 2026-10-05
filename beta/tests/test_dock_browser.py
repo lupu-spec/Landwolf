@@ -68,7 +68,7 @@ def test_glass_dock_navigation(browser_server, engine_name, width):
                     {"type": "touchMove", "touchPoints": [{"x": x - distance, "y": y}]},
                 )
             cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
-            assert track.evaluate("el => el.scrollLeft") > 25
+            assert track.evaluate("el => el.scrollLeft") > 75
             expect(page.locator('[data-nav="explore"]')).to_have_attribute("aria-current", "page")
             cdp.detach()
         # Keyboard focus can reach every icon, including options outside the clipped window.
@@ -91,8 +91,9 @@ def test_glass_dock_navigation(browser_server, engine_name, width):
         hunt.click()
         expect(page.locator("#hunt-submit")).to_be_visible()
         expect(hunt).to_have_attribute("aria-current", "page")
-        page.locator('[data-nav="feedback"]').click()
-        expect(page.locator('[data-nav="feedback"]')).to_have_attribute("aria-current", "page")
+        feedback = page.locator('#main-nav [data-nav="feedback"]')
+        feedback.click()
+        expect(feedback).to_have_attribute("aria-current", "page")
         explore.click()
         expect(explore).to_have_attribute("aria-current", "page")
         # Pointer magnification is decorative and respects the OS motion preference.
