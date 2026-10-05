@@ -154,37 +154,95 @@ export function setupBilling(
       !status.allowed &&
       !["pilot_invited", "pilot_verification"].includes(status.reason)
     ) {
+      content.append(
+        text(
+          "p",
+          "Pick a plan below. You’ll review the total on Stripe before any payment is submitted.",
+        ),
+      );
+
+      const plans = document.createElement("div");
+      plans.className = "billing-plan-grid";
+      let selectedPlan = status.plans.find((plan) => plan.id === "monthly") ?? status.plans[0];
+
+      const planInputs: HTMLInputElement[] = [];
+      for (const plan of status.plans) {
+        const card = document.createElement("label");
+        card.className = "billing-plan-card";
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "billing-plan";
+        input.value = plan.id;
+        input.checked = plan.id === selectedPlan?.id;
+        input.addEventListener("change", () => {
+          selectedPlan = plan;
+          for (const item of planInputs)
+            item.closest(".billing-plan-card")?.classList.toggle(
+              "selected",
+              item.checked,
+            );
+          checkout.textContent = `Continue to secure checkout — ${plan.label}`;
+        });
+        planInputs.push(input);
+
+        const copy = document.createElement("span");
+        copy.className = "billing-plan-copy";
+        copy.append(
+          text("strong", plan.id === "monthly" ? "Monthly" : "Annual"),
+          text("span", plan.label),
+        );
+        if (plan.id === "annual") {
+          const savings = text("span", "Save $49 vs. paying monthly for a year");
+          savings.className = "billing-plan-note";
+          copy.append(savings);
+        }
+        card.append(input, copy);
+        plans.append(card);
+      }
+      planInputs
+        .find((input) => input.checked)
+        ?.closest(".billing-plan-card")
+        ?.classList.add("selected");
+      content.append(plans);
+
       const terms = document.createElement("label");
+      terms.className = "billing-terms";
       const consent = document.createElement("input");
       consent.type = "checkbox";
       consent.id = "billing-consent";
-      terms.append(
-        consent,
-        " I understand that my selected plan charges now and renews automatically monthly or annually until I cancel through Manage billing. My feedback pilot never converts automatically.",
-      );
+      const termsCopy = document.createElement("span");
+      termsCopy.textContent =
+        "I agree to recurring billing. The selected plan renews automatically until I cancel. I can cancel from Manage billing and keep access through the paid period.";
+      terms.append(consent, termsCopy);
       content.append(terms);
-      const plans = document.createElement("div");
-      plans.className = "billing-actions";
-      for (const plan of status.plans) {
-        plans.append(
-          button(`Subscribe — ${plan.label}`, async () => {
-            if (!consent.checked) {
-              message.textContent =
-                "Please review and accept the recurring payment terms first.";
-              return;
-            }
-            await redirect("/api/billing/checkout", {
-              plan: plan.id,
-              accepted_recurring_terms: true,
-            });
-          }),
-        );
-      }
+
+      const checkout = button(
+        `Continue to secure checkout — ${selectedPlan?.label ?? ""}`,
+        async () => {
+          if (!consent.checked) {
+            message.textContent =
+              "Check the recurring billing box above to continue to Stripe.";
+            consent.focus();
+            return;
+          }
+          if (!selectedPlan) {
+            message.textContent = "Choose a plan to continue.";
+            return;
+          }
+          checkout.textContent = "Opening secure Stripe checkout…";
+          await redirect("/api/billing/checkout", {
+            plan: selectedPlan.id,
+            accepted_recurring_terms: true,
+          });
+        },
+      );
+      checkout.className = "button primary billing-checkout";
       content.append(
-        plans,
+        checkout,
         text(
           "p",
-          "Stripe displays the final amount before you confirm payment. Cancel before renewal; cancellation retains access through the paid period.",
+          "Secure checkout is handled by Stripe. Nothing is charged until you review and submit payment there.",
         ),
       );
     }

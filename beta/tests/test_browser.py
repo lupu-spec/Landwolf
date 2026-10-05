@@ -1066,13 +1066,13 @@ def test_membership_browser_terms_and_pending_payment(
         page.locator("#auth-submit").click()
         expect(page.get_by_role("heading", name="Choose your LandWolf plan")).to_be_visible()
         expect(page.locator("#explore-panel")).to_be_hidden()
-        page.get_by_role("button", name="Subscribe — $29 / month", exact=True).click()
+        page.get_by_role("button", name="Continue to secure checkout — $29 / month", exact=True).click()
         expect(page.locator("#billing-message")).to_contain_text(
-            "accept the recurring payment terms"
+            "Check the recurring billing box"
         )
         assert requests == []
         page.locator("#billing-consent").check()
-        page.get_by_role("button", name="Subscribe — $299 / year", exact=True).click()
+        page.get_by_label("Annual", exact=False).check()\n        expect(page.get_by_role("button", name="Continue to secure checkout — $299 / year", exact=True)).to_be_visible()\n        page.get_by_role("button", name="Continue to secure checkout — $299 / year", exact=True).click()
         expect(page.locator("#billing-message")).to_contain_text("Synthetic billing outage")
         assert requests == [{"plan": "annual", "accepted_recurring_terms": True}]
         page.get_by_role("button", name="Check payment status", exact=True).click()
