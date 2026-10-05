@@ -2171,3 +2171,17 @@ production billing mode and all four customer browser journeys. Schema 8 and the
 payment architecture were preserved; no real subscriber or owner was impersonated.
 The [release verification report](OWNER_COVERAGE_RELEASE.md) records every command,
 resolved failures, live evidence and remaining local/provider verification limits.
+
+### v0.4.4 — persistent sign-in, production — 2026-10-05
+
+The 30-minute idle and eight-hour session limits are replaced with renewable
+365-day sign-in. Browser restart and cache-only clearing retain sign-in; cookie
+deletion, logout, password reset, revocation and actual expiry still require login.
+CI 37268825471 passed 373 backend, 9 frontend and 32 browser tests, disposable
+PostgreSQL renewal and 21-table restore, packaging and all security gates.
+Legacy tests and static preflight passed separately. PR #19 merged as
+`16b3c5818a5a095b1194fddf0abd46a82c1fb67c`; Render deployment
+`dep-db1jj97avr4c73c850vg` became live at 2026-10-05 05:47:01 UTC.
+Live run 37269249419 passed exact identity/HTTPS/database health, existing payment
+and coverage gates, four customer journeys and actual Chromium/WebKit profile
+restart/cache/logout checks. See [exact commands and limitations](PERSISTENT_SIGN_IN_RELEASE.md).
