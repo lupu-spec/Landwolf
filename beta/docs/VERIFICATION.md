@@ -2245,10 +2245,18 @@ privacy/payment boundaries and browser restart/cache/logout checks. Schema 9
 and existing infrastructure are preserved. See [exact commands, failures and
 limits](WOLF_ASSISTANT_RELEASE.md).
 
-### v0.7.0 — glass dock and responsive chat candidate
+### v0.7.0 — glass dock and responsive chat
 
-Replaces the text navigation with a glass icon dock, hover magnification and
-swipe/drag/wheel cycling. Wolf chat becomes a full-screen phone sheet and larger
-iPad/desktop panel with more reading space and keyboard-aware composing controls.
-Schema 9 and existing payment/privacy boundaries are preserved. See [commands,
-results and remaining gates](DOCK_CHAT_RELEASE.md). No deployment is claimed yet.
+The glass icon dock, hover magnification, directional browsing and phone/iPad/
+desktop chat layouts are live. Final candidate CI 37296855330 passed 411 backend,
+15 frontend and 52 browser tests, PostgreSQL/23-table restore, build/package and
+security; 53 legacy tests and preflight passed separately. Pointer-focus and touch
+capture regressions were fixed with browser coverage before promotion.
+PR #23 merged as `b35ef5dbded72e3553282616808f276d39ff7a6b`. Staging
+`dep-db1nrodg1s2s73b2kmng` became live at 10:38:23 UTC; production
+`dep-db1nv7m0tbcc73bo70pg` at 10:45:48 UTC on 2026-10-05. Both passed exact
+identity/HTTPS/health, four live customer/chat journeys and persistent-session
+checks. The first staging attempt timed out reopening a desktop property; the
+unchanged build passed the complete second attempt, with the initial cause not
+established. Production passed first attempt. Schema 9, payments, data sources
+and owner privacy were preserved. See [commands, evidence and limitations](DOCK_CHAT_RELEASE.md).

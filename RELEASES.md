@@ -3,6 +3,20 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.7.0 — glass dock and responsive wolf chat, live in both environments
+
+Compact icon navigation adds hover magnification and directional swipe, drag,
+wheel, arrow and keyboard browsing. Romulus/Remus chat uses a full-screen phone
+sheet and larger iPad/desktop panels with keyboard-aware controls and preserved
+rotation drafts. [PR #23](https://github.com/lupu-spec/Landwolf/pull/23) merged as
+`b35ef5dbded72e3553282616808f276d39ff7a6b`. Final candidate gates passed: 411 backend,
+15 frontend, 52 browser and 53 legacy tests, PostgreSQL/23-table restore, build,
+package and security. Both environments passed exact identity/HTTPS/health,
+four live customer journeys and persistent-session checks. The first staging
+attempt timed out reopening a desktop property; the unchanged build passed the
+complete second attempt. Schema 9, payments, owner privacy and data sources are
+preserved. See [commands, evidence and limits](beta/docs/DOCK_CHAT_RELEASE.md).
+
 ## v0.6.0 — Romulus and Remus app guides, live in both environments
 
 Adds the AI Chat with Romulus and Remus toolbar control, collapsible help on every
@@ -43,8 +57,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.6.0 | `02293e8f8fe953c20ad01abb63b2f520723ac29a` | 2026-10-05 09:30:22 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.6.0 | `02293e8f8fe953c20ad01abb63b2f520723ac29a` | 2026-10-05 09:25:51 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.7.0 | `b35ef5dbded72e3553282616808f276d39ff7a6b` | 2026-10-05 10:45:48 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.7.0 | `b35ef5dbded72e3553282616808f276d39ff7a6b` | 2026-10-05 10:38:23 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -165,6 +179,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-05 08:30:53 | Production | v0.5.1 / `32b3fcf0ebbe6507e7f7142262cb94930b4439e8` | `dep-db1lvvu0tbcc73bg1re0` | Exact staging-tested commit promoted. HTTPS/version/health, live billing mode, four customer journeys, feedback user/export denial and persistent-session checks passed; schema 9 preserved. |
 | 2026-10-05 09:25:51 | Beta | v0.6.0 / `02293e8f8fe953c20ad01abb63b2f520723ac29a` | `dep-db1mpq9srm7s73cdvrgg` | Romulus/Remus collapsible guide chat, toolbar control, black/white wolves and contextual walkthroughs. All required gates and four live browser journeys passed; no model fees, schema or payment changes. |
 | 2026-10-05 09:30:22 | Production | v0.6.0 / `02293e8f8fe953c20ad01abb63b2f520723ac29a` | `dep-db1mru6gekts73ejko50` | Exact staging-tested release promoted. HTTPS/version/health, four live customer chat journeys, owner-only privacy boundaries, billing mode and persistent-session checks passed. |
+| 2026-10-05 10:38:23 | Beta | v0.7.0 / `b35ef5dbded72e3553282616808f276d39ff7a6b` | `dep-db1nrodg1s2s73b2kmng` | Glass icon dock and responsive wolf chat; all candidate gates passed. Full live checks passed on unchanged rerun after an initial desktop property timeout. |
+| 2026-10-05 10:45:48 | Production | v0.7.0 / `b35ef5dbded72e3553282616808f276d39ff7a6b` | `dep-db1nv7m0tbcc73bo70pg` | Exact staging-tested release; four live chat/customer journeys, privacy/payment boundaries, HTTPS/version/health and browser restart/cache/logout checks passed. Schema 9 and existing infrastructure retained. |
 
 ## Version and promotion rules
 
