@@ -53,13 +53,20 @@ def main() -> None:
             time.sleep(10)
         health = client.get("/api/health")
         health.raise_for_status()
-        assert health.json() == {"status": "ok", "version": VERSION, "payments_enabled": False}
+        payments_enabled = health.json()["payments_enabled"]
+        assert isinstance(payments_enabled, bool)
+        assert health.json() == {
+            "status": "ok",
+            "version": VERSION,
+            "payments_enabled": payments_enabled,
+        }
         session = client.get("/api/session")
         session.raise_for_status()
         assert session.json()["environment"] == args.environment, (
             "Refusing a mismatched environment"
         )
         assert session.json()["email_delivery_enabled"] is False
+        assert session.json()["payments_enabled"] is payments_enabled
         root = client.get("/")
         root.raise_for_status()
         if args.environment == "staging":
@@ -75,7 +82,8 @@ def main() -> None:
         assert client.post("/api/search", json={}).status_code == 401
         assert client.get("/api/saved").status_code == 404
     print(
-        "Passed: exact release identity, HTTPS, environment, disabled billing/mail, authentication"
+        "Passed: exact release identity, HTTPS, environment, billing mode, "
+        "disabled mail, authentication"
     )
 
     output.mkdir(parents=True, exist_ok=True)
@@ -101,8 +109,46 @@ def main() -> None:
                     page.get_by_label("Email address", exact=True).fill(email)
                     page.get_by_label("Password", exact=True).fill(password)
                     page.locator("#auth-submit").click()
-                    expect(page.locator(".property-card").first).to_be_visible()
+                    expect(page.locator("#workspace")).to_be_visible()
                     registered = True
+                    expect(page.locator("#coverage-nav")).to_be_hidden()
+                    for endpoint in ("/api/sources", "/api/capabilities"):
+                        assert context.request.get(f"{origin}{endpoint}").status == 403
+                    if payments_enabled:
+                        # Verify the unpaid customer's access boundary without creating a charge.
+                        expect(page.locator("#billing-panel")).to_be_visible()
+                        state = context.request.get(f"{origin}/api/session").json()
+                        assert state["is_owner"] is False
+                        assert state["billing"]["allowed"] is False
+                        headers = {
+                            "Origin": origin,
+                            "X-LandWolf-Client": "web",
+                            "X-CSRF-Token": state["csrf"],
+                        }
+                        assert (
+                            context.request.post(
+                                f"{origin}/api/search", headers=headers, data={}
+                            ).status
+                            == 402
+                        )
+                        assert context.request.get(f"{origin}/api/hunts").status == 200
+                        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                        page.screenshot(
+                            path=str(output / f"membership-{engine}-{width}.png"), full_page=True
+                        )
+                        page.reload(wait_until="domcontentloaded")
+                        expect(page.locator("#billing-panel")).to_be_visible()
+                        expect(page.locator("#coverage-nav")).to_be_hidden()
+                        page.get_by_role("button", name="Sign out", exact=True).click()
+                        expect(page.locator("#auth-submit")).to_be_visible()
+                        assert context.request.get(f"{origin}/api/sources").status == 401
+                        assert not errors
+                        print(
+                            f"Passed: {engine} {width}px login, owner-only coverage, "
+                            "paywall, logout"
+                        )
+                        continue
+                    expect(page.locator(".property-card").first).to_be_visible()
                     if engine == "chromium" and width == 390:
                         state = context.request.get(f"{origin}/api/session").json()
                         headers = {
@@ -112,14 +158,7 @@ def main() -> None:
                         }
                         denied = context.request.post(f"{origin}/api/search", data={})
                         assert denied.status == 403
-                        sources = context.request.get(f"{origin}/api/sources")
-                        assert sources.status == 200
-                        summary = [
-                            {"id": source["id"], "status": source["status"]}
-                            for source in sources.json()["sources"]
-                            if source["automated"]
-                        ]
-                        print(f"Observed live inventory source status: {summary}")
+                        assert context.request.get(f"{origin}/api/sources").status == 403
                         report = context.request.post(
                             f"{origin}/api/research",
                             headers=headers,
@@ -135,7 +174,7 @@ def main() -> None:
                             + research["status"]
                         )
                     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-                    expect(page.locator("#main-nav button")).to_have_count(5)
+                    expect(page.locator("#main-nav button:visible")).to_have_count(5)
                     page.screenshot(
                         path=str(output / f"explore-{engine}-{width}.png"), full_page=True
                     )
@@ -202,23 +241,22 @@ def main() -> None:
                         path=str(output / f"research-{engine}-{width}.png"), full_page=True
                     )
 
-                    page.get_by_role("button", name="Data coverage", exact=True).click()
-                    expect(page.locator("#county-coverage")).not_to_be_empty()
-                    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-                    page.screenshot(
-                        path=str(output / f"coverage-{engine}-{width}.png"), full_page=True
-                    )
+                    expect(page.locator("#coverage-nav")).to_be_hidden()
+                    assert context.request.get(f"{origin}/api/capabilities").status == 403
                     page.reload(wait_until="domcontentloaded")
                     expect(page.locator(".property-card").first).to_be_visible()
                     page.get_by_role("button", name="Sign out", exact=True).click()
                     expect(page.locator("#auth-submit")).to_be_visible()
                     assert not errors, "Browser raised an uncaught script error"
-                    print(f"Passed: {engine} {width}px authentication, evidence, handoff, coverage")
+                    print(
+                        f"Passed: {engine} {width}px authentication, evidence, handoff, "
+                        "coverage restriction"
+                    )
                 finally:
                     context.close()
                     browser.close()
     print(
-        "Passed: four hosted browser journeys, feedback UI and owner authorization; "
+        "Passed: four hosted customer journeys and owner-only coverage boundary; "
         "one disposable non-cohort test account retained. "
         "Invitation, consent and due-date transitions are covered in isolated CI, not here."
     )

@@ -323,7 +323,7 @@ def test_failed_source_preserves_its_snapshot_and_other_sources(
 
 
 def test_all_50_states_and_directory_counts_are_independent_of_feed_completeness(
-    client: TestClient, signed_in: dict[str, str]
+    client: TestClient, owner_signed_in: dict[str, str]
 ) -> None:
     with client.app.state.factory() as session, session.begin():
         for code in STATES:
@@ -337,9 +337,11 @@ def test_all_50_states_and_directory_counts_are_independent_of_feed_completeness
                 )
             )
     for code in STATES:
-        data = client.post("/api/search", json={"state": code.lower()}, headers=signed_in).json()
+        data = client.post(
+            "/api/search", json={"state": code.lower()}, headers=owner_signed_in
+        ).json()
         assert data["total"] == 1 and data["results"][0]["state"] == code
-    all_states = client.post("/api/search", json={"page_size": 100}, headers=signed_in).json()
+    all_states = client.post("/api/search", json={"page_size": 100}, headers=owner_signed_in).json()
     assert all_states["total"] == 50
     coverage = client.get("/api/sources").json()
     assert {s["state"] for s in coverage["states"]} == set(STATES)

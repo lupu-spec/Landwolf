@@ -201,3 +201,11 @@ Fixture tests are isolated from runtime inventory and live checks.
 Original branding was supplied by the owner. Land photography and listing facts
 come from Texas GLO and Alaska DNR. Interactive basemaps use OpenStreetMap contributors with visible
 attribution and normal browser caching; no offline tile harvesting is implemented.
+
+
+Data coverage is available only to the configured owner account, using the same
+authorization as the administrative tools. `/api/sources` and `/api/capabilities`
+reject other accounts. Customer searches and Hunts continue to return their
+normal results; per-property evidence and source links remain available. Detailed
+feed diagnostics are omitted from customer search responses, while generic
+freshness warnings remain. No new administrative roles or billing rules are added.

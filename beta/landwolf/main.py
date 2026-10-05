@@ -275,7 +275,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/capabilities")
     def application_capabilities(request: Request, session: DB) -> dict[str, Any]:
-        auth.authenticate(request, session, settings)
+        admin.require_owner(request, session, settings, write=False)
         return {
             "version": 1,
             "priorities": capabilities(),
@@ -414,8 +414,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/sources")
     def sources(request: Request, session: DB) -> dict[str, Any]:
-        account = auth.authenticate(request, session, settings)
-        billing.require_access(session, account, settings)
+        admin.require_owner(request, session, settings, write=False)
         return {
             "sources": provider.statuses(),
             "states": provider.coverage(),
@@ -531,7 +530,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "page": query.page,
             "page_size": query.page_size,
             "coverage_supported": supported,
-            "sources": sources,
+            "sources": sources if settings.owner_account_id == account.id else [],
+            "data_attention": any(
+                source["automated"] and (source["status"] != "ready" or source["stale"])
+                for source in sources
+            ),
             "coverage_note": (
                 "Partial source coverage in all 50 states. Counts reflect connected "
                 "inventories, not all properties or county sales. Unknown price/acreage is "

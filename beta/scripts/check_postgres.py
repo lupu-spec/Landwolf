@@ -145,9 +145,16 @@ def main() -> None:
             "Retired search filter still accepted",
         )
         require("saved" not in search()["results"][0], "Saved state still exposed")
+        require(client.get("/api/sources").status_code == 403, "Coverage leaked to customer")
+        require(search()["sources"] == [], "Source diagnostics leaked through search")
+        with app.state.factory() as session:
+            settings.owner_account_id = session.scalar(
+                select(Account.id).where(Account.email == credentials["email"])
+            )
         require(
             len(client.get("/api/sources").json()["states"]) == 50, "Coverage aggregation failed"
         )
+        settings.owner_account_id = None
         # A failed matching transaction must not roll back the account's saved preferences.
         broken_id = f"hunt-invalid-{suffix}"
         with app.state.factory() as session, session.begin():

@@ -12,7 +12,7 @@ the retired standalone Saved properties feature remains removed.
 | 3. Partner pilot | `PartnerConsent`, `PartnerGateway`; named recipients, selected fields, disclosure version and explicit consent | Approved partners and disclosure text; consent receipt/storage and revocation policy; delivery safeguards; sponsored-placement labeling; separate commercial/privacy review |
 | 4. Expansion | `SourceReadiness`; parser, live-check, reuse-review and monitoring gates | Review and connect each adapter explicitly; report partial coverage; establish freshness targets and incident ownership |
 
-The authenticated `/api/capabilities` endpoint and Data coverage page distinguish
+The owner-only `/api/capabilities` endpoint and Data coverage page distinguish
 available functionality from framework-only work. Priorities two through four do not
 provide working valuation services, partner advertising, lead sharing or automated
 source onboarding. These are extension interfaces, not additional active APIs.
