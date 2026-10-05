@@ -2227,3 +2227,10 @@ Staging `dep-db1lua6gekts73efmfu0` became live at 08:27:15 UTC; production
 passed exact-version/HTTPS/health, four customer browser journeys, feedback user
 and export privacy boundaries, and session-persistence checks. Schema 9 and
 payments were preserved. See [exact commands, evidence and limitations](FEEDBACK_USERS_RELEASE.md).
+
+### v0.6.0 — Romulus and Remus app guides
+
+Candidate introduces twin black/white wolf guides in a collapsible chat on every
+screen, contextual app answers and guided control walkthroughs. It uses reviewed
+local guidance with no paid model calls. See [commands, scope and outstanding gates](WOLF_ASSISTANT_RELEASE.md).
+No deployment is claimed until staging-first promotion and live checks complete.

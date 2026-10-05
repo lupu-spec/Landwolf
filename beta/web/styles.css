@@ -2270,3 +2270,397 @@ select {
     display: block;
   }
 }
+
+/* Romulus and Remus: a single in-memory helper, including native modal dialogs. */
+.wolf-toolbar-link {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f4f7fb;
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 10px 15px;
+  min-height: 44px;
+}
+.wolf-assistant {
+  pointer-events: none;
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 3000;
+  width: min(390px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  color: #142638;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.wolf-assistant p {
+  margin: 0;
+}
+.wolf-assistant button:focus-visible,
+.wolf-assistant a:focus-visible,
+.wolf-chat-trigger:focus-visible {
+  outline: 3px solid #508adc;
+  outline-offset: 3px;
+}
+.wolf-twins {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.wolf-portrait {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.wolf-twins .wolf-portrait + .wolf-portrait {
+  margin-left: -9px;
+}
+.wolf-launcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 5px 16px 5px 7px;
+  border: 1px solid #435c78;
+  border-radius: 999px;
+  box-shadow: 0 6px 24px #0b213033;
+  background: #112b44;
+  color: white;
+  font-weight: 700;
+  font-size: 0.83rem;
+}
+.wolf-chat-panel {
+  width: 100%;
+  height: min(650px, calc(100dvh - 32px));
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #bdcada;
+  border-radius: 18px;
+  box-shadow: 0 12px 60px #0b213044;
+  background: #fff;
+}
+.wolf-chat-heading {
+  padding: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #112b44;
+  color: #fff;
+}
+.wolf-chat-heading h2 {
+  margin: 0;
+  font-size: 1.08rem;
+  color: #fff;
+  letter-spacing: 0;
+}
+.wolf-chat-heading p {
+  font-size: 0.72rem;
+  color: #d6e4f2;
+}
+.wolf-icon-button {
+  margin-left: auto;
+  align-self: flex-start;
+  border: 1px solid #68809a;
+  border-radius: 9px;
+  background: transparent;
+  color: white;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 1.5rem;
+}
+.wolf-disclosure {
+  padding: 9px 13px;
+  font-size: 0.69rem;
+  line-height: 1.4;
+  color: #526579;
+  background: #edf3f8;
+}
+.wolf-context {
+  padding: 9px 13px 3px;
+  color: #526579;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.wolf-quick-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 6px 12px;
+}
+.wolf-chip {
+  border: 1px solid #cad7e5;
+  border-radius: 9px;
+  color: #1a3e65;
+  background: #f4f8fc;
+  padding: 7px 10px;
+  min-height: 36px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.wolf-chip:hover {
+  background: #e3edf8;
+}
+.wolf-chat-log {
+  flex: 1;
+  min-height: 90px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  background: #f8fafc;
+  scroll-behavior: auto;
+}
+.wolf-turn + .wolf-turn {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #dbe4ee;
+}
+.wolf-message {
+  padding: 10px 12px;
+  margin: 0 0 8px;
+  border: 1px solid #dbe4ee;
+  border-radius: 12px;
+  background: white;
+  overflow-wrap: anywhere;
+}
+.wolf-message p,
+.wolf-message li {
+  font-size: 0.79rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.wolf-message ol {
+  padding-left: 19px;
+  margin: 7px 0 0;
+}
+.wolf-message li + li {
+  margin-top: 5px;
+}
+.wolf-message-author {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  font-size: 0.73rem;
+}
+.wolf-message-author .wolf-portrait {
+  width: 27px;
+  height: 27px;
+}
+.wolf-message-user {
+  margin-left: 22px;
+  background: #eaf2fb;
+  border-color: #d0dfef;
+}
+.wolf-chat-form {
+  border-top: 1px solid #dbe4ee;
+  padding: 10px 12px 5px;
+  display: grid;
+  gap: 5px;
+}
+.wolf-chat-form label {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.wolf-chat-form textarea {
+  width: 100%;
+  max-height: 110px;
+  min-height: 48px;
+  resize: vertical;
+  border: 1px solid #acbfd4;
+  border-radius: 8px;
+  padding: 8px;
+  font: inherit;
+  font-size: 16px;
+  color: #142638;
+  background: #fff;
+}
+.wolf-input-note {
+  font-size: 0.63rem;
+  color: #526579;
+}
+.wolf-chat-status {
+  font-size: 0.72rem;
+  color: #9a2e22;
+}
+.wolf-chat-status:empty {
+  display: none;
+}
+.wolf-chat-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.wolf-chat-controls button {
+  min-height: 40px;
+}
+.wolf-support {
+  padding: 6px 12px 10px;
+  text-align: right;
+  font-size: 0.74rem;
+  color: #285783;
+}
+.wolf-coach {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #9eb7d3;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px #0b213033;
+  background: #fff;
+  max-height: 42dvh;
+  overflow-y: auto;
+}
+.wolf-coach-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.wolf-coach-title strong {
+  font-size: 0.85rem;
+}
+.wolf-coach p {
+  font-size: 0.78rem;
+}
+.wolf-coach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+.wolf-tour-status:not(:empty) {
+  padding-top: 8px;
+  color: #8a3e20;
+}
+.wolf-guide-highlight {
+  outline: 3px solid #2c77d1 !important;
+  outline-offset: 5px;
+}
+@media (max-width: 800px) {
+  .site-header .account-tools {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .wolf-toolbar-link {
+    max-width: 230px;
+  }
+  .detail-topbar > .wolf-chat-trigger {
+    max-width: 135px;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+  }
+}
+@media (max-width: 480px) {
+  .wolf-assistant {
+    right: 12px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .wolf-chat-panel {
+    height: min(620px, calc(100dvh - 24px));
+    max-height: calc(100dvh - 24px);
+  }
+  .site-header .account-tools {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .site-footer {
+    padding-bottom: 90px;
+  }
+}
+@media (max-height: 520px) {
+  .wolf-chat-heading {
+    padding: 5px 10px;
+  }
+  .wolf-disclosure,
+  .wolf-context,
+  .wolf-input-note {
+    display: none;
+  }
+  .wolf-quick-topics {
+    padding: 3px 8px;
+  }
+  .wolf-chat-form {
+    padding: 5px 10px;
+  }
+  .wolf-support {
+    padding: 3px 10px;
+  }
+}
+@media print {
+  .wolf-assistant,
+  .wolf-chat-trigger {
+    display: none !important;
+  }
+}
+
+.wolf-assistant > * {
+  pointer-events: auto;
+}
+html,
+dialog {
+  scroll-padding-bottom: 90px;
+}
+
+@media (max-width: 800px) {
+  .detail-topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  .detail-topbar > .detail-actions {
+    flex: 1 1 100%;
+  }
+  .detail-topbar > .wolf-chat-trigger {
+    max-width: none;
+    flex: 1;
+    text-align: left;
+  }
+}
+
+.wolf-assistant {
+  bottom: max(
+    12px,
+    env(safe-area-inset-bottom),
+    var(--wolf-keyboard-bottom, 12px)
+  );
+}
+.wolf-chat-panel {
+  height: min(650px, calc(var(--wolf-visible-height, 100dvh) - 24px));
+  max-height: calc(var(--wolf-visible-height, 100dvh) - 24px);
+}
+.wolf-assistant[data-compact="true"] .wolf-disclosure,
+.wolf-assistant[data-compact="true"] .wolf-context,
+.wolf-assistant[data-compact="true"] .wolf-input-note,
+.wolf-assistant[data-compact="true"] > .wolf-chat-panel > .wolf-quick-topics,
+.wolf-assistant[data-compact="true"] .wolf-chat-heading p {
+  display: none;
+}
+.wolf-assistant[data-compact="true"] .wolf-chat-heading {
+  padding: 5px 10px;
+}
+.wolf-assistant[data-compact="true"] .wolf-chat-log {
+  min-height: 40px;
+  padding: 6px;
+}
+.wolf-assistant[data-compact="true"] .wolf-chat-form {
+  padding: 5px 10px;
+}
+.wolf-assistant[data-compact="true"] .wolf-chat-form textarea {
+  height: 48px;
+  max-height: 48px;
+  resize: none;
+}
+.wolf-assistant[data-compact="true"] .wolf-support {
+  padding: 3px 10px;
+}
