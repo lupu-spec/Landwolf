@@ -1,25 +1,31 @@
 # LandWolf beta verification
 
-## v0.5.0 — research decisions candidate, not deployed — 2026-10-05
+## v0.5.0 — research decisions, live — 2026-10-05
 
-Runtime candidate `1b640a5` adds private property/Hunt research, prioritized
+Runtime `c333667f6a66b5dae870738387d01755f9ba485c` adds private property/Hunt research, prioritized
 questions, shared planning briefs, cost stress and reversal comparisons, recorded
 pause/reconsideration history and printable packets. Schema 9 adds two private
 research tables; existing billing, persistent sessions and owner-only coverage
 remain in place. No paid provider or additional infrastructure was introduced.
 
-**Passed locally:** formatting, lint, types, 395 backend tests, 9 frontend tests,
+**Passed:** formatting, lint, types, 395 backend tests, 9 frontend tests,
 53 legacy tests, frontend/Python builds and package checks, Bandit, both dependency
 audits, secretlint, lock/install verification and eight implemented live listing
-adapters against an isolated database. **Failed locally:** the targeted new browser
-journey could not launch because browser download/install failed. **Not run:**
-completed browser, PostgreSQL/restore and live staging/production gates.
+adapters against an isolated database. Final hosted CI 37278173446 also passed
+all 36 Chromium/WebKit tests and PostgreSQL/23-table backup/restore. **Failed locally:**
+browser download/launch and the direct production JSON probe; hosted checks supply
+the passing browser and production HTTPS evidence. Earlier hosted failures caught
+an accessible-label defect and a print-hook test setup error; both were corrected
+without weakening assertions, and the complete suite subsequently passed.
 
-Automatic approval review rejected the GitHub push, requiring explicit approval
-to publish source to the existing public `lupu-spec/Landwolf` repository, despite
-verification against the connected account and production service. No alternate
-publication path or deployment was attempted. Production remains v0.4.4.
-See [every command, result, source counts and remaining gates](RESEARCH_DECISIONS_RELEASE.md).
+After explicit publication approval, PR #20 was merged. Staging deployment
+`dep-db1l7sbncjis73f9qhpg` became live at 07:39:25 UTC and passed hosted run
+37278867596. The exact commit was then promoted as production deployment
+`dep-db1l9hh42hec73d7mj5g`, live at 07:42:50 UTC. Hosted run 37278849695 passed
+exact identity/HTTPS/health, payment mode, four customer journeys and persistent
+session/cache/logout checks. Production remains protected by live billing and
+owner-only coverage authorization. No real subscriber was charged or impersonated.
+See [every command, retained failure, live evidence and limit](RESEARCH_DECISIONS_RELEASE.md).
 
 ## v0.4.0-beta.4 — visible Hunt saving, 2026-09-28
 

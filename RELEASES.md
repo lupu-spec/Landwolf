@@ -3,22 +3,24 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
-## v0.5.0 — research decisions candidate, not deployed
+## v0.5.0 — research decisions, live in staging and production
 
 Private research goals/questions, Hunt briefs, cost stress/comparisons,
-reconsideration history and print packets are implemented in candidate `1b640a5`.
-Local tests/builds/security checks passed; hosted browser, PostgreSQL/restore,
-staging and production gates remain outstanding. Automatic approval review blocked
-GitHub publication pending explicit approval for the public repository. No live
-environment or deployment-history row is changed. See
-[candidate verification and remaining gates](beta/docs/RESEARCH_DECISIONS_RELEASE.md).
+reconsideration history and print packets are live. [PR #20](https://github.com/lupu-spec/Landwolf/pull/20)
+merged as `c333667f6a66b5dae870738387d01755f9ba485c`; the exact staging-tested
+commit was promoted to production. All required CI passed: 395 backend, 9 frontend,
+36 browser and 53 legacy tests, PostgreSQL/23-table restore, builds and security.
+Each environment also passed four live browser journeys and persistent-session
+checks. Schema 9 additively stores private research; payment gates, owner-only
+coverage, accounts and existing infrastructure are retained. See
+[commands, live evidence and limits](beta/docs/RESEARCH_DECISIONS_RELEASE.md).
 
 ## Current environments
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.4 | `16b3c5818a5a095b1194fddf0abd46a82c1fb67c` | 2026-10-05 05:47:01 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.1 | `cf34432724b9aae2afa32987362a4df67f57eb86` | 2026-10-05 01:45:45 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.5.0 | `c333667f6a66b5dae870738387d01755f9ba485c` | 2026-10-05 07:42:50 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.5.0 | `c333667f6a66b5dae870738387d01755f9ba485c` | 2026-10-05 07:39:25 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -133,6 +135,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-04 19:40:41 | Production | v0.4.0-beta.7 / `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | `dep-db1amtou01pc73djnmm0` | Exact staging-tested commit promoted; schema v7, identity/health, www redirect and four live HTTPS/browser journeys passed. |
 | 2026-10-05 05:24:17 | Production | v0.4.3 / `b299190d271b4530a696871e10d96b4380323448` | `dep-db1j8i5g1s2s73af02s0` | Owner-only Data coverage UI/API; identical eligible-customer search and Hunt results. Required gates and four live HTTPS/browser customer journeys passed; existing billing and schema 8 preserved. |
 | 2026-10-05 05:47:01 | Production | v0.4.4 / `16b3c5818a5a095b1194fddf0abd46a82c1fb67c` | `dep-db1jj97avr4c73c850vg` | Renewable year-long sign-in; explicit logout/reset revocation retained. All gates and live Chromium/WebKit restart/cache/logout checks passed; billing, owner-only coverage and schema 8 preserved. |
+| 2026-10-05 07:39:25 | Beta | v0.5.0 / `c333667f6a66b5dae870738387d01755f9ba485c` | `dep-db1l7sbncjis73f9qhpg` | Private research decisions, shared Hunt briefs, cost stress/comparisons, reconsideration and print packets. Schema 9; all required gates and four live browser journeys passed before promotion. |
+| 2026-10-05 07:42:50 | Production | v0.5.0 / `c333667f6a66b5dae870738387d01755f9ba485c` | `dep-db1l9hh42hec73d7mj5g` | Exact staging-tested release promoted. HTTPS/version/health, live billing mode, four customer journeys and Chromium/WebKit restart/cache/logout checks passed; accounts, payment configuration and owner-only coverage preserved. |
 
 ## Version and promotion rules
 
