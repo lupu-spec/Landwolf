@@ -128,11 +128,21 @@ def test_assigned_origin_enforces_host_csrf_and_secure_cookie(
         headers = {"Origin": settings.public_origin, "X-LandWolf-Client": "web"}
         rejected = client.post(
             "/api/auth/register",
-            json=credentials,
+            json={
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(credentials),
+            },
             headers={**headers, "Origin": "https://attacker.example"},
         )
         assert rejected.status_code == 403
-        response = client.post("/api/auth/register", json=credentials, headers=headers)
+        response = client.post(
+            "/api/auth/register",
+            json={
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(credentials),
+            },
+            headers=headers,
+        )
         assert response.status_code == 201
         cookie = response.headers["set-cookie"].lower()
         assert "; secure" in cookie and "; httponly" in cookie and "samesite=strict" in cookie

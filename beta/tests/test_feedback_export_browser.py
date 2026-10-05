@@ -36,6 +36,8 @@ def test_feedback_users_and_csv_are_private(browser_server, engine_name, width):
             expect(page.locator("#feedback-content")).to_be_visible()
 
         page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Full name", exact=True).fill("Fixture User")
+        page.get_by_label("How will you use LandWolf?", exact=True).select_option("research")
         login("csv-customer@example.com")
         open_feedback()
         admin = page.locator("#feedback-admin")

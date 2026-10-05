@@ -2260,3 +2260,13 @@ checks. The first staging attempt timed out reopening a desktop property; the
 unchanged build passed the complete second attempt, with the initial cause not
 established. Production passed first attempt. Schema 9, payments, data sources
 and owner privacy were preserved. See [commands, evidence and limitations](DOCK_CHAT_RELEASE.md).
+
+## L91 LLC CRM v0.8.0 candidate
+
+See [CRM operation and connector contract](L91_LLC_CRM.md). Adds transactional
+registration capture, owner-only CRM, scoped project keys, CSV, notes and schema
+10. Local backend: 428 passed; frontend: 15 passed. Formatting, lint, types and
+bundle passed. Local new browser tests could not launch: required Chromium/WebKit
+executables are absent and Playwright dependency installation was rejected by the
+container's apt permissions. These are unavailable gates, not browser passes;
+hosted CI must pass real browsers and disposable PostgreSQL/restore before release.

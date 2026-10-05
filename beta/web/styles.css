@@ -2979,3 +2979,130 @@ select {
     display: none !important;
   }
 }
+
+/* CRM and registration reuse LandWolf's navy, white, and existing controls. */
+.registration-profile {
+  border: 0;
+  padding: 1.25rem 0 0;
+  margin: 0;
+  min-width: 0;
+}
+.registration-profile legend {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.signup-grid,
+.crm-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.signup-consent {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-weight: 400 !important;
+}
+.signup-consent input {
+  width: auto !important;
+  flex: 0 0 auto;
+  margin-top: 0.25rem !important;
+}
+#crm-panel {
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid #dce2ea;
+  border-radius: 18px;
+  margin-bottom: 1.5rem;
+}
+#crm-panel label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 1rem;
+}
+#crm-panel input,
+#crm-panel select,
+#crm-panel textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 1rem;
+}
+.crm-fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  margin-bottom: 1rem;
+}
+.crm-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.crm-contact {
+  padding: 1.2rem;
+  border: 1px solid #dce2ea;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.crm-contact h3 {
+  margin-top: 0;
+}
+.crm-detail:not(:empty) {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #183652;
+  overflow-wrap: anywhere;
+}
+.crm-facts {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  gap: 0.5rem 1rem;
+}
+.crm-facts dt {
+  font-weight: 600;
+}
+.crm-facts dd {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.crm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0.8rem 0;
+}
+#crm-panel details {
+  margin: 1.2rem 0;
+}
+#crm-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.crm-key:not(:empty) {
+  padding: 1rem;
+  background: #edf3f9;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 800px) {
+  .crm-fields,
+  .crm-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 540px) {
+  .signup-grid,
+  .crm-fields,
+  .crm-list {
+    grid-template-columns: 1fr;
+  }
+  #crm-panel {
+    padding: 1rem;
+  }
+  .crm-facts {
+    grid-template-columns: 1fr;
+  }
+  .crm-facts dd {
+    margin-bottom: 0.5rem;
+  }
+}

@@ -112,7 +112,10 @@ def test_only_same_origin_can_register(
         assert client.get("/api/sources").status_code == 401
         response = client.post(
             "/api/auth/register",
-            json=CREDENTIALS,
+            json={
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(CREDENTIALS),
+            },
             headers={"Origin": request_origin, "X-LandWolf-Client": "web"},
         )
         assert response.status_code == (201 if host_origin == request_origin else 403)
@@ -144,7 +147,10 @@ def test_untrusted_headers_cannot_widen_access(
     with TestClient(create_app(domain_settings(tmp_path)), base_url=ORIGINS[0]) as client:
         response = client.post(
             "/api/auth/register",
-            json=CREDENTIALS,
+            json={
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(CREDENTIALS),
+            },
             headers={"Origin": ORIGINS[0], "X-LandWolf-Client": "web", **headers},
         )
         assert response.status_code == expected
@@ -155,7 +161,14 @@ def test_accounts_survive_signing_in_on_new_domain(tmp_path: Path) -> None:
     with TestClient(app, base_url=ORIGINS[2]) as client:
         seed(app.state.factory)
         old_headers = {"Origin": ORIGINS[2], "X-LandWolf-Client": "web"}
-        registration = client.post("/api/auth/register", json=CREDENTIALS, headers=old_headers)
+        registration = client.post(
+            "/api/auth/register",
+            json={
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(CREDENTIALS),
+            },
+            headers=old_headers,
+        )
         assert registration.status_code == 201
         old_headers["X-CSRF-Token"] = registration.json()["csrf"]
 
@@ -193,7 +206,10 @@ def test_local_origin_ports_remain_supported(tmp_path: Path) -> None:
     with TestClient(create_app(settings), base_url=settings.public_origin) as client:
         response = client.post(
             "/api/auth/register",
-            json=CREDENTIALS,
+            json={
+                "profile": {"full_name": "Fixture User", "primary_use": "research"},
+                **(CREDENTIALS),
+            },
             headers={
                 "Origin": settings.public_origin,
                 "Host": urlsplit(settings.public_origin).netloc,

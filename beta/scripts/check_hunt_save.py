@@ -58,7 +58,16 @@ def main() -> int:
         status, health = request("/api/health")
         report["health_status"], report["health"] = status, health
         status, login = request(
-            "/api/auth/register", "POST", {"email": email, "password": password}
+            "/api/auth/register",
+            "POST",
+            {
+                "email": email,
+                "password": password,
+                "profile": {
+                    "full_name": "Release verification account",
+                    "primary_use": "exploring",
+                },
+            },
         )
         if status != 201 or not login.get("csrf"):
             raise RuntimeError(f"Disposable registration failed: HTTP {status}")
@@ -108,7 +117,16 @@ def main() -> int:
                 )
                 csrf = ""
                 status, login = request(
-                    "/api/auth/login", "POST", {"email": email, "password": password}
+                    "/api/auth/login",
+                    "POST",
+                    {
+                        "email": email,
+                        "password": password,
+                        "profile": {
+                            "full_name": "Release verification account",
+                            "primary_use": "exploring",
+                        },
+                    },
                 )
                 if status != 200 or not login.get("csrf"):
                     raise RuntimeError(f"Fresh login failed: HTTP {status}")

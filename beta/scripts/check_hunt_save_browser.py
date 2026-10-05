@@ -29,6 +29,10 @@ def main() -> None:
                 assert version["environment"] == "staging"
                 page.goto(ORIGIN, wait_until="domcontentloaded", timeout=90000)
                 page.get_by_role("button", name="Create account", exact=True).click()
+                page.get_by_label("Full name", exact=True).fill("Release verification account")
+                page.get_by_label("How will you use LandWolf?", exact=True).select_option(
+                    "exploring"
+                )
                 email = f"hunt-browser-qa-{uuid.uuid4().hex}@example.com"
                 password = secrets.token_urlsafe(32)
                 page.get_by_label("Email address", exact=True).fill(email)

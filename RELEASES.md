@@ -3,6 +3,16 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.8.0 — L91 LLC CRM and registration profiles, candidate
+
+Adds private multi-project contact capture, owner filters, lifecycle/tags/follow-up,
+notes, safe CSV downloads, and write-only project connector keys. Name and intended
+use are required for new registrations; company, phone, job title, industry, role,
+goals and email marketing are optional. Schema 10 adds CRM storage and preserves
+existing account facts. No payment settings or paid dependencies change.
+See [operation, categories, API and migration](beta/docs/L91_LLC_CRM.md) and
+[verification record](beta/docs/VERIFICATION.md). Not yet deployed.
+
 ## v0.7.0 — glass dock and responsive wolf chat, live in both environments
 
 Compact icon navigation adds hover magnification and directional swipe, drag,

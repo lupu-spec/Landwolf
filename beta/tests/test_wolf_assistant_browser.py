@@ -121,6 +121,8 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         expect(page.locator("body > #wolf-assistant")).to_have_count(1)
 
         page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Full name", exact=True).fill("Fixture User")
+        page.get_by_label("How will you use LandWolf?", exact=True).select_option("research")
         login("wolf-guide-fixture@example.com")
         open_chat()
         expect(log).not_to_contain_text("Enter a question")

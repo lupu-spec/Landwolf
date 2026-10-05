@@ -15,6 +15,7 @@ from sqlalchemy import (
     create_engine,
     insert,
     inspect,
+    literal,
     select,
     text,
     update,
@@ -335,7 +336,7 @@ class ResearchGoal(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
 
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -347,7 +348,9 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add private research storage in v9; preserve existing user data."""
+    """Add CRM storage in v10; preserve existing accounts and research."""
+    from landwolf.crm_core import Contact, CRMBase, Project
+
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -359,9 +362,33 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [8], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [8], [9], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported application schema version; migration required")
         Base.metadata.create_all(connection)
+        CRMBase.metadata.create_all(connection)
+        if connection.scalar(select(Project.id).where(Project.id == "landwolf")) is None:
+            connection.execute(
+                insert(Project).values(id="landwolf", name="LandWolf", created_at=int(time.time()))
+            )
+        # Retain only facts already held. Legacy users have no inferred profile or consent.
+        connection.execute(
+            insert(Contact).from_select(
+                ["id", "project_id", "external_id", "email", "source", "created_at", "updated_at"],
+                select(
+                    Account.id,
+                    literal("landwolf"),
+                    Account.id,
+                    Account.email,
+                    literal("existing_account"),
+                    Account.created_at,
+                    Account.created_at,
+                ).where(
+                    ~select(Contact.id)
+                    .where(Contact.project_id == "landwolf", Contact.external_id == Account.id)
+                    .exists()
+                ),
+            )
+        )
         # Intentionally irreversible. Do not archive or copy retired Saved data.
         # No CASCADE: unexpected dependents must fail the transaction for review.
         connection.execute(text("DROP TABLE IF EXISTS lw2_saved_records"))

@@ -13,6 +13,8 @@ with ZipFile(wheels[-1]) as wheel:
         raise SystemExit("Wheel contains retired Saved implementation")
     required = {
         "landwolf/main.py",
+        "landwolf/crm.py",
+        "landwolf/crm_core.py",
         "landwolf/locations.py",
         "landwolf/static/index.html",
         "landwolf/static/assets/app.js",
