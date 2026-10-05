@@ -55,6 +55,7 @@ def main() -> None:
         health.raise_for_status()
         payments_enabled = health.json()["payments_enabled"]
         assert isinstance(payments_enabled, bool)
+        assert payments_enabled is (args.environment == "production"), "Unexpected billing mode"
         assert health.json() == {
             "status": "ok",
             "version": VERSION,
