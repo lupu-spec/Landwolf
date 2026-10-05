@@ -21,7 +21,16 @@ from sqlalchemy.orm import Session
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from landwolf import admin, auth, billing, feedback, hunt, recovery, research_workspace
+from landwolf import (
+    admin,
+    auth,
+    billing,
+    feedback,
+    feedback_export,
+    hunt,
+    recovery,
+    research_workspace,
+)
 from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
 from landwolf.config import Settings
@@ -368,6 +377,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/admin/feedback/responses")
     def feedback_responses(request: Request, session: DB) -> dict[str, Any]:
         return feedback.report(request, session, settings)
+
+    @app.get("/api/admin/feedback/users.csv")
+    def feedback_users_csv(request: Request, session: DB) -> Response:
+        return feedback_export.users_csv(request, session, settings)
 
     @app.post("/api/admin/accounts/{account_id}/feedback-pilot", status_code=201)
     def invite_feedback_pilot(
