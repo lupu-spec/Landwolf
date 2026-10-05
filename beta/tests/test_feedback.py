@@ -206,7 +206,6 @@ def test_all_protected_read_routes_deny_expired_pilot(client: TestClient, monkey
     accepted = client.post("/api/feedback/accept", headers=headers, json=ACCEPT).json()
     monkeypatch.setattr(feedback, "_now", lambda: accepted["expires_at"])
     for path in [
-        "/api/sources",
         "/api/properties/unknown",
         "/api/hunts/unknown/matches",
         "/api/hunts/unknown/events",
@@ -214,6 +213,7 @@ def test_all_protected_read_routes_deny_expired_pilot(client: TestClient, monkey
         response = client.get(path)
         assert response.status_code == 403, (path, response.text)
         assert response.json()["detail"]["code"] == "PILOT_EXPIRED"
+    assert client.get("/api/sources").status_code == 403
     assert client.get("/api/hunts").status_code == 200
     assert client.get("/api/feedback").status_code == 200
 

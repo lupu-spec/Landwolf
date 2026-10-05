@@ -6,9 +6,10 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from landwolf.config import Settings
-from landwolf.db import Listing
+from landwolf.db import Account, Listing
 from landwolf.main import create_app
 from landwolf.schemas import AnalysisInput, PropertyRecord
 
@@ -39,6 +40,13 @@ def register(client: TestClient, email: str = "investor@example.com") -> dict[st
 @pytest.fixture
 def signed_in(client: TestClient) -> dict[str, str]:
     return register(client)
+
+
+@pytest.fixture
+def owner_signed_in(client: TestClient, signed_in: dict[str, str]) -> dict[str, str]:
+    with client.app.state.factory() as session:
+        client.app.state.settings.owner_account_id = session.scalar(select(Account.id))
+    return signed_in
 
 
 def seed(factory: Any) -> None:

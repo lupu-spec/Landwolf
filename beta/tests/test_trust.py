@@ -105,7 +105,7 @@ def test_invalid_source_snapshot_cannot_publish(client: TestClient, records):
         assert session.scalar(select(func.count()).select_from(Listing)) == 0
 
 
-def test_authenticated_evidence_and_coverage(client, signed_in, inventory):
+def test_authenticated_evidence_and_coverage(client, owner_signed_in, inventory):
     detail = client.get("/api/properties/glo-99001").json()
     assert detail["trust"]["identity"]["status"] == "unresolved"
     assert detail["trust"]["freshness"] == "needs_attention"

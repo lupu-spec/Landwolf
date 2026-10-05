@@ -178,7 +178,6 @@ def event_request(client, event_id="evt_fixture", *, live=True, stamp=None, corr
 def test_unpaid_accounts_are_gated_but_can_recover_and_manage_saved_hunts(paid_app):
     client, _, _, headers, fake = paid_app
     for path in [
-        "/api/sources",
         "/api/properties/fixture",
         "/api/hunts/fixture/matches",
         "/api/hunts/fixture/events",
@@ -188,6 +187,7 @@ def test_unpaid_accounts_are_gated_but_can_recover_and_manage_saved_hunts(paid_a
     assert client.get("/api/hunts").status_code == 200
     assert client.get("/api/session").json()["billing"]["allowed"] is False
     assert client.get("/api/feedback").json()["access_allowed"] is False
+    assert client.get("/api/sources").status_code == 403
     assert fake.calls == []
     assert client.get("/api/health").json()["payments_enabled"] is True
 
@@ -255,6 +255,8 @@ def test_signed_webhook_paid_access_duplicate_and_out_of_order(paid_app):
     assert event_request(client).status_code == 200
     current = client.get("/api/billing/status").json()
     assert current["allowed"] and current["cancel_at_period_end"]
+    assert client.get("/api/sources").status_code == 403
+    assert client.get("/api/capabilities").status_code == 403
     assert client.post("/api/search", headers=headers, json={}).status_code == 200
     fake.fail = True
     assert event_request(client).status_code == 200

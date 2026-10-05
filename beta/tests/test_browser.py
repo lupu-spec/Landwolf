@@ -19,7 +19,8 @@ from conftest import seed, seed_national
 from playwright.sync_api import Route, expect, sync_playwright
 from sqlalchemy import select
 
-from landwolf.db import Listing, SourceState, database, initialize
+from landwolf import auth
+from landwolf.db import Account, Listing, SourceState, database, initialize
 
 pytestmark = pytest.mark.browser
 
@@ -250,16 +251,22 @@ def test_saved_feature_absent_and_research_handoff_remains(
         page.locator("#auth-submit").click()
         expect(page.locator(".property-card")).to_have_count(2)
         expect(page.get_by_role("button", name=re.compile(r"save", re.I))).to_have_count(0)
-        expect(page.locator("#main-nav button")).to_have_text(
+        expect(page.locator("#main-nav button:visible")).to_have_text(
             [
                 "Explore properties",
                 "Property research",
                 "Hunt",
-                "Data coverage",
                 "Feedback",
                 "Membership",
             ]
         )
+        expect(page.locator("#coverage-nav")).to_be_hidden()
+        assert page.request.get(f"{origin}/api/sources").status == 403
+        assert page.request.get(f"{origin}/api/capabilities").status == 403
+        page.locator("#coverage-nav").evaluate("button => button.click()")
+        expect(page.locator("#source-panel")).to_be_hidden()
+        expect(page.locator(".property-card")).to_have_count(2)
+        assert "Data coverage" not in page.locator("#source-summary").inner_text()
         card = page.locator(".property-card").filter(has_text="Test fixture 99002")
         card.scroll_into_view_if_needed()
         Path("test-results").mkdir(exist_ok=True)
@@ -445,9 +452,8 @@ def test_public_research_authentication_sources_mobile_and_stale_results(
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         Path("test-results").mkdir(exist_ok=True)
         page.screenshot(path="test-results/research-mobile.png", full_page=True)
-        page.get_by_role("button", name="Data coverage", exact=True).click()
-        expect(page.locator("#research-catalog .source-card")).to_have_count(5)
-        expect(page.locator("#source-panel")).to_contain_text("Live MLS is not connected")
+        expect(page.locator("#coverage-nav")).to_be_hidden()
+        assert page.request.get(f"{origin}/api/sources").status == 403
         page.get_by_role("button", name="Property research", exact=True).click()
         page.get_by_label("Research by", exact=True).select_option("coordinates")
         expect(page.locator("#research-results")).to_be_empty()
@@ -490,6 +496,17 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
     url = f"sqlite:///{tmp_path / 'browser.db'}"
     engine, factory = database(url)
     initialize(engine)
+    mode = getattr(request, "param", "")
+    owner_mode = mode in {"research_owner", "nationwide_owner"}
+    if owner_mode:
+        with factory() as session, session.begin():
+            session.add(
+                Account(
+                    id="00000000-0000-0000-0000-000000000001",
+                    email="owner-fixture@example.com",
+                    password_hash=auth.PASSWORDS.hash("Test-only passphrase 847!"),
+                )
+            )
     if os.environ.get("LANDWOLF_E2E_LIVE") == "1":
         source_engine, source_factory = database("sqlite:///./landwolf-beta.db")
         with source_factory() as source, factory() as target, target.begin():
@@ -511,7 +528,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 )
             )
         source_engine.dispose()
-    elif getattr(request, "param", "") == "nationwide":
+    elif mode in {"nationwide", "nationwide_owner"}:
         seed_national(factory)
     else:
         seed(factory)
@@ -550,7 +567,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                             },
                         )
                     )
-        if getattr(request, "param", "") == "research":
+        if mode in {"research", "research_owner"}:
             with factory() as session, session.begin():
                 entry = session.get(Listing, "glo-99002")
                 entry.payload = {
@@ -574,6 +591,8 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
         "LANDWOLF_PUBLIC_ORIGIN": origin,
         "LANDWOLF_AUTO_SYNC": "false",
     }
+    if owner_mode:
+        environment["LANDWOLF_OWNER_ACCOUNT_ID"] = "00000000-0000-0000-0000-000000000001"
     if getattr(request, "param", "") == "mail":
         environment["LANDWOLF_TEST_MAILBOX"] = str(tmp_path / "mailbox.json")
     with (tmp_path / "server.log").open("w") as log:
@@ -583,7 +602,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 "-m",
                 "uvicorn",
                 "research_fixture:create_fixture_app"
-                if getattr(request, "param", "") in {"research", "mail"}
+                if mode in {"research", "research_owner", "mail"}
                 else "landwolf.main:create_app",
                 "--app-dir",
                 "tests",
@@ -787,7 +806,7 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         browser.close()
 
 
-@pytest.mark.parametrize("browser_server", ["nationwide"], indirect=True)
+@pytest.mark.parametrize("browser_server", ["nationwide_owner"], indirect=True)
 def test_nationwide_categories_unknown_prices_and_coverage(browser_server: tuple[str, int]) -> None:
     origin, _ = browser_server
     with sync_playwright() as playwright:
@@ -800,8 +819,7 @@ def test_nationwide_categories_unknown_prices_and_coverage(browser_server: tuple
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(origin)
         expect(page.locator("#search-form")).to_be_hidden()
-        page.get_by_role("button", name="Create account", exact=True).click()
-        page.get_by_label("Email address", exact=True).fill("nationwide@example.com")
+        page.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
         expect(page.locator(".property-card")).to_have_count(3)

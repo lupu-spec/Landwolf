@@ -14,7 +14,7 @@ pytestmark = pytest.mark.browser
 
 @pytest.mark.parametrize("engine_name", ["chromium", "webkit"])
 @pytest.mark.parametrize("width", [320, 390, 768, 1440])
-@pytest.mark.parametrize("browser_server", ["research"], indirect=True)
+@pytest.mark.parametrize("browser_server", ["research_owner"], indirect=True)
 def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine_name, width):
     origin, _ = browser_server
     with sync_playwright() as playwright:
@@ -35,11 +35,8 @@ def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine
         expect(page.locator("#account-action-message")).to_contain_text("not configured")
         assert page.locator("#account-dialog").evaluate("el => el.scrollWidth <= el.clientWidth")
         page.locator("#close-account-action").click()
-        page.get_by_role("button", name="Create account", exact=True).click()
-        page.get_by_label("Email address", exact=True).fill(
-            f"trust-{engine_name}-{width}@example.com"
-        )
-        page.get_by_label("Password", exact=True).fill("Synthetic browser passphrase 941!")
+        page.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
         expect(page.locator(".property-card")).to_have_count(2)
         expect(page.locator(".evidence-badge").first).to_have_text("Parcel match needs review")
@@ -76,6 +73,8 @@ def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine
         page.locator(".feature-roadmap summary").click()
         expect(page.locator(".roadmap-item")).to_have_count(4)
         expect(page.locator("#feature-roadmap")).to_contain_text("data sharing are disabled")
+        expect(page.locator("#research-catalog .source-card")).to_have_count(5)
+        expect(page.locator("#source-panel")).to_contain_text("Live MLS is not connected")
         page.get_by_label("Coverage state", exact=True).select_option("MN")
         expect(page.locator("#source-cards")).to_contain_text(
             "Minnesota Department of Transportation"
@@ -100,6 +99,17 @@ def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine
             "el => parseFloat(getComputedStyle(el).fontSize) >= 28"
         )
         assert errors == []
+        page.get_by_role("button", name="Sign out", exact=True).click()
+        expect(page.locator("#coverage-nav")).to_be_hidden()
+        expect(page.locator("#source-panel")).to_be_hidden()
+        expect(page.locator("#source-cards")).to_be_empty()
+        expect(page.locator("#source-summary")).to_have_text("Loading listings…")
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Email address", exact=True).fill("customer-fixture@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        expect(page.locator("#coverage-nav")).to_be_hidden()
         context.close()
         browser.close()
 

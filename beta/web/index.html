@@ -29,7 +29,9 @@
         </button>
         <button class="nav-link" data-nav="research">Property research</button>
         <button class="nav-link" data-nav="hunt">Hunt</button>
-        <button class="nav-link" data-nav="sources">Data coverage</button>
+        <button id="coverage-nav" class="nav-link" data-nav="sources" hidden>
+          Data coverage
+        </button>
         <button class="nav-link" data-nav="feedback">Feedback</button>
         <button class="nav-link" data-nav="billing">Membership</button>
       </nav>
@@ -648,7 +650,7 @@
             >
           </div>
           <div class="coverage-strip">
-            <p id="source-summary">Checking source coverage…</p>
+            <p id="source-summary">Loading listings…</p>
             <button id="refresh-results" class="text-button">
               Refresh results
             </button>

@@ -89,6 +89,7 @@ type SearchResult = {
   page: number;
   page_size: number;
   coverage_supported: boolean;
+  data_attention: boolean;
   sources: Source[];
   coverage_note: string;
 };
@@ -263,6 +264,7 @@ let markers: L.LayerGroup | null = null;
 let mapRecords: PropertyRecord[] = [];
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
 let coverageSources: Source[] = [];
+let isOwner = false;
 let coverageStates: StateCoverage[] = [];
 let coverageCounties: {
   state: string;
@@ -330,10 +332,14 @@ function clearSession(): void {
   byId("analysis-results").replaceChildren();
   byId<HTMLFormElement>("analysis-form").reset();
   byId("property-list").replaceChildren();
+  byId("source-summary").textContent = "Loading listings…";
   byId("source-cards").replaceChildren();
   byId("state-coverage").replaceChildren();
   byId("research-catalog").replaceChildren();
   coverageSources = [];
+  isOwner = false;
+  byId("coverage-nav").hidden = true;
+  byId("source-panel").hidden = true;
   coverageStates = [];
   coverageCounties = [];
   byId("county-coverage").replaceChildren();
@@ -548,6 +554,8 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   byId("account-email").textContent = info.email;
   const current = await api<SessionInfo>("/api/session");
   if (!csrf || csrf !== sessionToken) return;
+  isOwner = current.is_owner === true;
+  byId("coverage-nav").hidden = !isOwner;
   byId("email-status").textContent = current.email_verified
     ? "Email verified"
     : current.email_delivery_enabled
@@ -591,6 +599,7 @@ async function navigate(
   view: string,
   preset?: Record<string, string>,
 ): Promise<void> {
+  if (view === "sources" && !isOwner) view = "explore";
   if (view !== "billing" && !feedback.allowed(view)) {
     view = billing.state?.enabled
       ? billingDestination(billing.state)
@@ -819,11 +828,12 @@ function renderResults(result: SearchResult): void {
   const ready = feeds.filter(
     (source) => source.status === "ready" && !source.stale,
   );
-  const attention = feeds.some(
-    (source) => source.status !== "ready" || source.stale,
-  );
-  byId("source-summary").textContent =
-    `${ready.length} of ${feeds.length} matching feeds refreshed${attention ? " · Some feeds need attention" : ""} · Partial coverage; inspect Data coverage`;
+  const attention = result.data_attention;
+  byId("source-summary").textContent = isOwner
+    ? `${ready.length} of ${feeds.length} matching feeds refreshed${attention ? " · Some feeds need attention" : ""} · Partial coverage; inspect Data coverage`
+    : attention
+      ? "Some listing data could not be refreshed. Confirm availability with the original listing."
+      : "Confirm availability and sale terms with the original listing.";
   byId("source-summary").parentElement?.classList.toggle("stale", attention);
   const empty = result.results.length === 0;
   byId("empty-state").hidden = !empty;
@@ -835,9 +845,13 @@ function renderResults(result: SearchResult): void {
         ? "Results are incomplete while sources need attention."
         : "No matching listings in connected sources.";
     byId("empty-description").textContent = !result.coverage_supported
-      ? "An automated feed for this selection is not connected. Open Data coverage for official source links and current gaps. A pre-foreclosure notice is not a confirmed sale."
+      ? isOwner
+        ? "An automated feed for this selection is not connected. Open Data coverage for official source links and current gaps. A pre-foreclosure notice is not a confirmed sale."
+        : "No listings are currently available for this selection. Try a different state or filter. A pre-foreclosure notice is not a confirmed sale."
       : result.coverage_note +
-        " Try a different state or filter, or inspect Data coverage.";
+        (isOwner
+          ? " Try a different state or filter, or inspect Data coverage."
+          : " Try a different state or filter.");
   }
   byId("property-list").replaceChildren(...result.results.map(propertyCard));
   const pages = Math.max(1, Math.ceil(total / result.page_size));
