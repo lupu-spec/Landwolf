@@ -9,6 +9,7 @@ read, serialized per account, so old or duplicate webhooks cannot roll state bac
 import hashlib
 import hmac
 import json
+import logging
 import re
 import time
 import uuid
@@ -25,6 +26,8 @@ from landwolf import admin, feedback, recovery
 from landwolf.config import Settings
 from landwolf.db import Account, BillingCustomer, BillingEvent, FeedbackAudit, FeedbackEnrollment
 from landwolf.schemas import Contract
+
+logger = logging.getLogger(__name__)
 
 API_VERSION = "2026-08-26.dahlia"
 SYNC_SECONDS = 300
@@ -106,6 +109,32 @@ class StripeAPI:
                 ) as response,
             ):
                 if response.status_code < 200 or response.status_code >= 300:
+                    # Stripe error payloads can contain sensitive request context. Log only
+                    # the bounded status/code/parameter needed to diagnose integration
+                    # incompatibilities; never log the message, body, request fields or key.
+                    status = response.status_code
+                    code = "unknown"
+                    param = "unknown"
+                    try:
+                        error_payload = json.loads(response.read())
+                        error = error_payload.get("error", {}) if isinstance(error_payload, dict) else {}
+                        if isinstance(error, dict):
+                            raw_code = error.get("code")
+                            raw_param = error.get("param")
+                            if isinstance(raw_code, str) and len(raw_code) <= 80:
+                                code = raw_code
+                            if isinstance(raw_param, str) and len(raw_param) <= 120:
+                                param = raw_param
+                    except (ValueError, httpx.HTTPError):
+                        pass
+                    logger.warning(
+                        "Stripe API request rejected: method=%s path=%s status=%s code=%s param=%s",
+                        method,
+                        path,
+                        status,
+                        code,
+                        param,
+                    )
                     raise unavailable()
                 chunks = bytearray()
                 for chunk in response.iter_bytes():
