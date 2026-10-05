@@ -1,4 +1,4 @@
-# Scenario model beta-1.0
+# Scenario model 1.0
 
 This is an illustrative planning model, not an appraisal, lien opinion, property
 quality rating, or recommendation to bid. Resale and repair assumptions belong to

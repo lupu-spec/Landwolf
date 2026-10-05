@@ -73,9 +73,9 @@ def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine
             path=f"test-results/trust-research-{engine_name}-{width}.png", full_page=True
         )
         page.get_by_role("button", name="Data coverage", exact=True).click()
-        page.locator(".beta-framework summary").click()
+        page.locator(".feature-roadmap summary").click()
         expect(page.locator(".roadmap-item")).to_have_count(4)
-        expect(page.locator("#beta-roadmap")).to_contain_text("data sharing are disabled")
+        expect(page.locator("#feature-roadmap")).to_contain_text("data sharing are disabled")
         page.get_by_label("Coverage state", exact=True).select_option("MN")
         expect(page.locator("#source-cards")).to_contain_text(
             "Minnesota Department of Transportation"
