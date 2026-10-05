@@ -332,6 +332,7 @@ function clearSession(): void {
   byId("analysis-results").replaceChildren();
   byId<HTMLFormElement>("analysis-form").reset();
   byId("property-list").replaceChildren();
+  byId("source-summary").textContent = "Loading listings…";
   byId("source-cards").replaceChildren();
   byId("state-coverage").replaceChildren();
   byId("research-catalog").replaceChildren();

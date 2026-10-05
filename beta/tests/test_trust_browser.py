@@ -103,6 +103,7 @@ def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine
         expect(page.locator("#coverage-nav")).to_be_hidden()
         expect(page.locator("#source-panel")).to_be_hidden()
         expect(page.locator("#source-cards")).to_be_empty()
+        expect(page.locator("#source-summary")).to_have_text("Loading listings…")
         page.get_by_role("button", name="Create account", exact=True).click()
         page.get_by_label("Email address", exact=True).fill("customer-fixture@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
