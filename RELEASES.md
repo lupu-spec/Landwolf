@@ -7,7 +7,7 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.3 | `b299190d271b4530a696871e10d96b4380323448` | 2026-10-05 05:24:17 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.4 | `16b3c5818a5a095b1194fddf0abd46a82c1fb67c` | 2026-10-05 05:47:01 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.1 | `cf34432724b9aae2afa32987362a4df67f57eb86` | 2026-10-05 01:45:45 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
@@ -122,6 +122,7 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-04 19:37:40 | Beta | v0.4.0-beta.7 / `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | `dep-db1alfh42hec73epuo7g` | Investor feedback pilot, additive schema v7, required gates and four live HTTPS/browser journeys passed. |
 | 2026-10-04 19:40:41 | Production | v0.4.0-beta.7 / `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | `dep-db1amtou01pc73djnmm0` | Exact staging-tested commit promoted; schema v7, identity/health, www redirect and four live HTTPS/browser journeys passed. |
 | 2026-10-05 05:24:17 | Production | v0.4.3 / `b299190d271b4530a696871e10d96b4380323448` | `dep-db1j8i5g1s2s73af02s0` | Owner-only Data coverage UI/API; identical eligible-customer search and Hunt results. Required gates and four live HTTPS/browser customer journeys passed; existing billing and schema 8 preserved. |
+| 2026-10-05 05:47:01 | Production | v0.4.4 / `16b3c5818a5a095b1194fddf0abd46a82c1fb67c` | `dep-db1jj97avr4c73c850vg` | Renewable year-long sign-in; explicit logout/reset revocation retained. All gates and live Chromium/WebKit restart/cache/logout checks passed; billing, owner-only coverage and schema 8 preserved. |
 
 ## Version and promotion rules
 
@@ -229,3 +230,22 @@ The staging environment row was reconciled with its existing Render deployment
 - Existing production infrastructure, schema 8 and payment architecture were
   preserved. Staging remains on its previously observed runtime and is not redeployed.
 - [Exact command results, evidence and limits](beta/docs/OWNER_COVERAGE_RELEASE.md).
+
+## v0.4.4 — persistent sign-in
+
+- Production runtime `16b3c5818a5a095b1194fddf0abd46a82c1fb67c`,
+  Render deployment `dep-db1jj97avr4c73c850vg`, live 2026-10-05 05:47:01 UTC.
+- Replaces the 30-minute idle and eight-hour absolute limits with a rolling
+  365-day HttpOnly cookie/server session, renewed when the app opens. Existing
+  valid sessions upgrade on return. Logout/password reset/revocation still apply.
+- Browser restarts and cache-only clearing retain sign-in. Deleting cookies,
+  private-profile cleanup or browser privacy restrictions can require sign-in;
+  no credential is duplicated in JavaScript storage or recovered by fingerprinting.
+- [Candidate CI](https://github.com/lupu-spec/Landwolf/actions/runs/37268825471)
+  passed 373 backend, 9 frontend and 32 browser tests, PostgreSQL/21-table restore,
+  build/package and security gates. Legacy tests and static preflight passed.
+- [Live release checks](https://github.com/lupu-spec/Landwolf/actions/runs/37269249419)
+  passed exact version/commit/health, four customer journeys and actual Chromium/
+  WebKit profile restart, cache-clear and logout persistence checks.
+- Payment gates, owner-only coverage, accounts, schema and infrastructure retained.
+  Staging was not redeployed. See [commands, evidence and limits](beta/docs/PERSISTENT_SIGN_IN_RELEASE.md).
