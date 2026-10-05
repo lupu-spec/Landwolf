@@ -1,3 +1,4 @@
+import { setupNavigationDock } from "./navigation-dock";
 import {
   setupBilling,
   billingDestination,
@@ -276,6 +277,7 @@ let coverageCounties: {
   source: string;
   record_count: number;
 }[] = [];
+setupNavigationDock();
 const assistant = setupWolfAssistant({
   context: () => ({
     authenticated: Boolean(csrf),

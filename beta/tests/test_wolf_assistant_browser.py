@@ -12,12 +12,14 @@ pytestmark = pytest.mark.browser
 
 @pytest.mark.parametrize("browser_server", ["nationwide_owner"], indirect=True)
 @pytest.mark.parametrize("engine_name", ["chromium", "webkit"])
-@pytest.mark.parametrize("width", [390, 1440])
+@pytest.mark.parametrize("width", [390, 834, 1440])
 def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
     origin, _ = browser_server
     with sync_playwright() as playwright:
         browser = getattr(playwright, engine_name).launch()
-        context = browser.new_context(viewport={"width": width, "height": 950})
+        context = browser.new_context(
+            viewport={"width": width, "height": 950}, has_touch=width < 1100
+        )
         page = context.new_page()
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -27,13 +29,17 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         log = page.locator("#wolf-chat-log")
         question = page.locator("#wolf-question")
         toolbar = page.locator(".site-header .wolf-chat-trigger")
-        expect(toolbar).to_have_text("AI Chat with Romulus and Remus")
+        expect(toolbar).to_have_attribute("aria-label", "AI Chat with Romulus and Remus")
         expect(panel).to_be_hidden()
 
         def open_chat():
             launcher.click()
             expect(panel).to_be_visible()
-            expect(question).to_be_focused()
+            expect(
+                panel.get_by_role("button", name="Collapse Romulus and Remus chat")
+                if width < 1100
+                else question
+            ).to_be_focused()
 
         def ask(text):
             question.fill(text)
@@ -50,8 +56,23 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
             expect(page.locator("#workspace")).to_be_visible()
 
         toolbar.click()
-        expect(question).to_be_focused()
+        expect(
+            panel.get_by_role("button", name="Collapse Romulus and Remus chat")
+            if width < 1100
+            else question
+        ).to_be_focused()
+        panel.locator("summary").click()
+        expect(panel.locator(".wolf-disclosure")).to_be_visible()
         expect(panel).to_contain_text("prepared answers matched on your device")
+        panel.locator("summary").click()
+        if width < 640:
+            expect(panel).to_have_attribute("aria-modal", "true")
+            assert page.locator(".site-header").evaluate("el => el.inert")
+            panel.get_by_role("button", name="Ask the wolves", exact=True).focus()
+            page.keyboard.press("Tab")
+            expect(panel.get_by_role("button", name="Clear chat", exact=True)).to_be_focused()
+        else:
+            expect(panel).not_to_have_attribute("aria-modal", "true")
         page.wait_for_function(
             "Array.from(document.querySelectorAll('.wolf-chat-heading img'))"
             ".every(image => image.complete && image.naturalWidth > 0)"
@@ -60,6 +81,8 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
             assert image.evaluate("image => image.complete && image.naturalWidth > 0")
         ask("How do I save a Hunt?")
         expect(log).to_contain_text("Save Hunt & view matches")
+        expect(log.locator(".wolf-turn").last.locator(".wolf-message").nth(1)).to_be_in_viewport()
+        assert log.evaluate("el => el.clientHeight") >= (450 if width < 640 else 250)
         context.set_offline(True)
         ask("How do I reset my password?")
         expect(log).to_contain_text("Forgot password?")
@@ -71,6 +94,7 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         question.press("Escape")
         expect(panel).to_be_hidden()
         expect(toolbar).to_be_focused()
+        assert not page.locator(".site-header").evaluate("el => el.inert")
         open_chat()
         expect(log).to_contain_text("PRIVATE-CHAT-FIXTURE")
         panel.get_by_role("button", name="Clear chat", exact=True).click()
@@ -134,6 +158,17 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         expect(
             panel.get_by_role("button", name="Collapse Romulus and Remus chat")
         ).to_be_in_viewport()
+        if width < 640:
+            page.set_viewport_size({"width": 320, "height": 568})
+            expect(
+                panel.get_by_role("button", name="Ask the wolves", exact=True)
+            ).to_be_in_viewport()
+            assert panel.evaluate("el => el.scrollWidth <= el.clientWidth")
+        elif width == 834:
+            question.fill("A draft survives rotation")
+            page.set_viewport_size({"width": 1194, "height": 834})
+            expect(question).to_have_value("A draft survives rotation")
+            expect(question).to_be_in_viewport()
         page.set_viewport_size({"width": width, "height": 950})
         # Screen-reader controls, mobile layout and print output keep distinct responsibilities.
         box = panel.bounding_box()

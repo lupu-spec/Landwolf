@@ -403,7 +403,7 @@ const topics: HelpTopic[] = [
       "support contact human person help desk bug broken error problem email assistance report issue",
     views: ["account"],
     steps: [
-      "Choose Contact support below to open your email app.",
+      "Open About & privacy in this chat, then choose Contact support to open your email app.",
       "Describe which screen or control you used and the visible error message.",
       "Leave out passwords, payment card data and password-reset links.",
     ],

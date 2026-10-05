@@ -62,21 +62,40 @@ export function setupWolfAssistant(bridge: Bridge) {
   panel.id = "wolf-chat-panel";
   panel.setAttribute("aria-labelledby", "wolf-chat-title");
   panel.hidden = true;
+  panel.tabIndex = -1;
   const heading = node("header", "", "wolf-chat-heading");
-  const titleBlock = node("div");
+  const titleBlock = node("div", "", "wolf-title-block");
   const title = node("h2", "Romulus & Remus");
   title.id = "wolf-chat-title";
-  titleBlock.append(title, node("p", "Twin brothers. Your LandWolf guides."));
-  const close = button("−", () => toggle(false), "wolf-icon-button");
+  titleBlock.append(title, node("p", "Your LandWolf guides"));
+  const close = button("⌄", () => toggle(false), "wolf-icon-button");
   close.setAttribute("aria-label", "Collapse Romulus and Remus chat");
-  heading.append(twins(), titleBlock, close);
+  close.title = "Collapse chat";
+  const clear = button(
+    "↺",
+    () => {
+      reset();
+      focusComposer();
+    },
+    "wolf-icon-button",
+  );
+  clear.setAttribute("aria-label", "Clear chat");
+  clear.title = "Clear chat";
+  const headingActions = node("div", "", "wolf-heading-actions");
+  headingActions.append(clear, close);
+  heading.append(twins(), titleBlock, headingActions);
+  const info = node("details", "", "wolf-info");
+  const infoTitle = node("summary", "Guide-based help · About & privacy");
   const disclosure = node(
     "p",
     "Guide-based help • prepared answers matched on your device. Messages stay in this tab and clear on sign-out or reload.",
     "wolf-disclosure",
   );
+  const support = node("a", "Contact support ↗", "wolf-support");
+  support.href = `mailto:${SUPPORT_EMAIL}`;
+  info.append(infoTitle, disclosure, support);
   const contextLabel = node("p", "", "wolf-context");
-  const quick = node("div", "", "wolf-quick-topics");
+  const quick = node("div", "", "wolf-quick-topics wolf-suggestions");
   quick.setAttribute("aria-label", "Suggested help topics");
   const log = node("div", "", "wolf-chat-log");
   log.id = "wolf-chat-log";
@@ -84,47 +103,52 @@ export function setupWolfAssistant(bridge: Bridge) {
   log.setAttribute("aria-label", "Conversation with Romulus and Remus");
   log.setAttribute("aria-live", "polite");
   log.setAttribute("aria-relevant", "additions");
+  log.tabIndex = 0;
   const form = node("form", "", "wolf-chat-form");
-  const label = node("label", "Ask how to use LandWolf");
+  const label = node("label", "Ask how to use LandWolf", "sr-only");
   label.htmlFor = "wolf-question";
   const input = node("textarea");
   input.id = "wolf-question";
   input.name = "question";
-  input.rows = 2;
+  input.rows = 1;
   input.maxLength = MAX_QUESTION;
-  input.placeholder = "How do I save a Hunt?";
+  input.placeholder = "Ask Romulus & Remus…";
   input.autocomplete = "off";
   input.setAttribute("aria-describedby", "wolf-question-note wolf-chat-status");
   const note = node(
     "p",
     `Up to ${MAX_QUESTION} characters. Keep passwords and payment details out of chat.`,
-    "wolf-input-note",
+    "sr-only",
   );
   note.id = "wolf-question-note";
   const status = node("p", "", "wolf-chat-status");
   status.id = "wolf-chat-status";
   status.setAttribute("role", "status");
-  const controls = node("div", "", "wolf-chat-controls");
-  const send = node("button", "Ask the wolves", "button primary small");
+  const send = node("button", "↑", "wolf-send");
   send.type = "submit";
-  const clear = button(
-    "Clear chat",
-    () => {
-      reset();
-      input.focus();
-    },
-    "text-button",
+  send.setAttribute("aria-label", "Ask the wolves");
+  send.title = "Send question";
+  const composer = node("div", "", "wolf-composer");
+  composer.append(input, send);
+  const hint = node(
+    "p",
+    "Private to this tab · App guidance",
+    "wolf-composer-hint",
   );
-  controls.append(clear, send);
-  form.append(label, input, note, status, controls);
-  const support = node("a", "Contact support ↗", "wolf-support");
-  support.href = `mailto:${SUPPORT_EMAIL}`;
-  panel.append(heading, disclosure, contextLabel, quick, log, form, support);
+  form.append(label, composer, note, status, hint);
+  panel.append(heading, info, contextLabel, quick, log, form);
   const coach = node("section", "", "wolf-coach");
   coach.id = "wolf-coach";
   coach.setAttribute("aria-label", "Guided walkthrough");
   coach.hidden = true;
-  const launcher = button("", () => toggle(panel.hidden), "wolf-launcher");
+  const launcher = button(
+    "",
+    () => {
+      opener = launcher;
+      toggle(panel.hidden);
+    },
+    "wolf-launcher",
+  );
   launcher.id = "wolf-chat-launcher";
   launcher.setAttribute("aria-label", "AI Chat with Romulus and Remus");
   launcher.setAttribute("aria-controls", panel.id);
@@ -139,6 +163,44 @@ export function setupWolfAssistant(bridge: Bridge) {
   let tour: { topic: HelpTopic; index: number } | undefined;
   let highlight: HTMLElement | undefined;
   let showingStep = false;
+  const phone = matchMedia("(max-width: 639px)");
+  const touch = matchMedia("(pointer: coarse)");
+  const inertSiblings = new Map<HTMLElement, boolean>();
+  function releaseBackground(): void {
+    for (const [element, original] of inertSiblings) element.inert = original;
+    inertSiblings.clear();
+    document.documentElement.classList.remove("wolf-sheet-open");
+  }
+  function present(): void {
+    releaseBackground();
+    root.dataset.expanded = String(expanded);
+    root.dataset.sheet = String(phone.matches);
+    panel.setAttribute("role", phone.matches && expanded ? "dialog" : "region");
+    if (phone.matches && expanded) {
+      panel.setAttribute("aria-modal", "true");
+      document.documentElement.classList.add("wolf-sheet-open");
+      let branch: HTMLElement = root;
+      while (branch.parentElement) {
+        for (const sibling of branch.parentElement.children)
+          if (sibling !== branch && sibling instanceof HTMLElement) {
+            inertSiblings.set(sibling, sibling.inert);
+            sibling.inert = true;
+          }
+        branch = branch.parentElement;
+        if (branch === document.body) break;
+      }
+    } else panel.removeAttribute("aria-modal");
+  }
+  function focusComposer(): void {
+    (phone.matches || touch.matches ? close : input).focus({
+      preventScroll: true,
+    });
+  }
+  function sizeInput(): void {
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, root.dataset.compact === "true" ? 64 : 112)}px`;
+  }
+  input.addEventListener("input", sizeInput);
 
   function context(): HelpContext {
     return bridge.context();
@@ -159,7 +221,9 @@ export function setupWolfAssistant(bridge: Bridge) {
     coach.replaceChildren();
   }
   function toggle(open: boolean): void {
+    const hadFocus = panel.contains(document.activeElement);
     expanded = open;
+    present();
     panel.hidden = !open;
     launcher.hidden = open;
     coach.hidden = open || !tour;
@@ -169,9 +233,9 @@ export function setupWolfAssistant(bridge: Bridge) {
       control.setAttribute("aria-expanded", String(open));
     if (open) {
       updateContext();
-      input.focus({ preventScroll: true });
-      log.scrollTop = log.scrollHeight;
-    } else if (panel.contains(document.activeElement)) {
+      focusComposer();
+      sizeInput();
+    } else if (hadFocus) {
       const target =
         opener.isConnected &&
         visible(opener) &&
@@ -219,7 +283,12 @@ export function setupWolfAssistant(bridge: Bridge) {
   }
   function trim(): void {
     while (log.children.length > MAX_TURNS) log.firstElementChild?.remove();
-    log.scrollTop = log.scrollHeight;
+    const latest = log.lastElementChild;
+    if (latest)
+      log.scrollTop +=
+        latest.getBoundingClientRect().top -
+        log.getBoundingClientRect().top -
+        12;
   }
   function showTopic(topic: HelpTopic, turn?: HTMLElement): void {
     if (!allowed(topic)) {
@@ -284,14 +353,21 @@ export function setupWolfAssistant(bridge: Bridge) {
       choices(turn, answer.topics);
     }
     trim();
-    input.focus({ preventScroll: true });
+    sizeInput();
+    if (phone.matches || touch.matches) input.blur();
+    else input.focus({ preventScroll: true });
   }
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     ask();
   });
   input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey &&
+      !event.isComposing &&
+      ((!phone.matches && !touch.matches) || event.ctrlKey || event.metaKey)
+    ) {
       event.preventDefault();
       ask();
     }
@@ -412,13 +488,19 @@ export function setupWolfAssistant(bridge: Bridge) {
       ...document.querySelectorAll<HTMLDialogElement>("dialog[open]"),
     ];
     const host = dialogs.at(-1) ?? document.body;
-    if (root.parentElement !== host) host.append(root);
+    if (root.parentElement !== host) {
+      releaseBackground();
+      host.append(root);
+      present();
+    }
     updateContext();
   }
   function reset(): void {
     stopTour();
     previous = undefined;
     input.value = "";
+    input.style.height = "";
+    info.open = false;
     status.textContent = "";
     lastContext = "";
     welcome();
@@ -438,6 +520,25 @@ export function setupWolfAssistant(bridge: Bridge) {
   document.addEventListener(
     "keydown",
     (event) => {
+      if (event.key === "Tab" && expanded && phone.matches) {
+        const controls = [
+          ...panel.querySelectorAll<HTMLElement>(
+            "button, textarea, summary, a, [tabindex='0']",
+          ),
+        ].filter(visible);
+        const first = controls[0];
+        const last = controls.at(-1);
+        if (
+          event.shiftKey &&
+          (document.activeElement === first || document.activeElement === panel)
+        ) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
       if (
         event.key === "Escape" &&
         expanded &&
@@ -462,8 +563,14 @@ export function setupWolfAssistant(bridge: Bridge) {
       window.innerHeight - height - (viewport?.offsetTop ?? 0),
     );
     root.style.setProperty("--wolf-visible-height", `${height}px`);
+    root.style.setProperty(
+      "--wolf-viewport-top",
+      `${viewport?.offsetTop ?? 0}px`,
+    );
     root.style.setProperty("--wolf-keyboard-bottom", `${covered + 12}px`);
     root.dataset.compact = String(height < 520);
+    if (height < 520) info.open = false;
+    sizeInput();
   }
   window.addEventListener("resize", fitViewport, { passive: true });
   window.visualViewport?.addEventListener("resize", fitViewport, {
@@ -472,6 +579,11 @@ export function setupWolfAssistant(bridge: Bridge) {
   window.visualViewport?.addEventListener("scroll", fitViewport, {
     passive: true,
   });
+  phone.addEventListener("change", () => {
+    present();
+    fitViewport();
+  });
+  present();
   fitViewport();
   welcome();
   updateContext();

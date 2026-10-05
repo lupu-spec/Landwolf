@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <meta
       name="description"
       content="LandWolf property intelligence across all 50 states, official sale inventories, and transparent deal scenarios."
@@ -23,22 +26,168 @@
           width="270"
           height="90"
       /></a>
-      <nav class="main-nav" aria-label="Main navigation" id="main-nav" hidden>
-        <button class="nav-link active" data-nav="explore">
-          Explore properties
+      <div class="navigation-dock" aria-label="App dock">
+        <button
+          type="button"
+          class="dock-arrow"
+          data-dock-shift="-1"
+          aria-label="Previous dock options"
+          aria-controls="dock-track"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m14 6-6 6 6 6" />
+          </svg>
         </button>
-        <button class="nav-link" data-nav="research">Property research</button>
-        <button class="nav-link" data-nav="hunt">Hunt</button>
-        <button id="coverage-nav" class="nav-link" data-nav="sources" hidden>
-          Data coverage
+        <div
+          id="dock-track"
+          class="dock-track"
+          aria-label="Swipe, drag or scroll to browse app tools"
+        >
+          <nav
+            class="main-nav"
+            aria-label="Main navigation"
+            id="main-nav"
+            hidden
+          >
+            <button
+              type="button"
+              class="nav-link dock-item active"
+              data-nav="explore"
+              data-dock="explore"
+              aria-label="Explore properties"
+              title="Explore properties"
+            >
+              <span class="dock-tile dock-explore"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="m16 8-2.5 5.5L8 16l2.5-5.5Z" /></svg
+              ></span>
+              <span class="dock-label" aria-hidden="true">Explore</span
+              ><span class="sr-only">Explore properties</span>
+            </button>
+            <button
+              type="button"
+              class="nav-link dock-item"
+              data-nav="research"
+              data-dock="research"
+              aria-label="Property research"
+              title="Property research"
+            >
+              <span class="dock-tile dock-research"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M13 3H5v18h8M13 3v5h5V3Z M8 7h2M8 11h3" />
+                  <circle cx="16" cy="15" r="4" />
+                  <path d="m19 18 3 3" /></svg
+              ></span>
+              <span class="dock-label" aria-hidden="true">Research</span
+              ><span class="sr-only">Property research</span>
+            </button>
+            <button
+              type="button"
+              class="nav-link dock-item"
+              data-nav="hunt"
+              data-dock="hunt"
+              aria-label="Hunt"
+              title="Hunt"
+            >
+              <span class="dock-tile dock-hunt"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m3 11 2-7h4l1 7m4 0 1-7h4l2 7M10 14h4M10 10h4" />
+                  <circle cx="6" cy="16" r="4" />
+                  <circle cx="18" cy="16" r="4" /></svg
+              ></span>
+              <span class="dock-label" aria-hidden="true">Hunt</span
+              ><span class="sr-only">Hunt</span>
+            </button>
+            <button
+              type="button"
+              class="nav-link dock-item"
+              data-nav="sources"
+              data-dock="sources"
+              aria-label="Data coverage"
+              title="Data coverage"
+              id="coverage-nav"
+              hidden
+            >
+              <span class="dock-tile dock-sources"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="m12 3 10 6-10 6L2 9Zm-10 10 10 6 10-6M2 17l10 6 10-6"
+                  /></svg
+              ></span>
+              <span class="dock-label" aria-hidden="true">Sources</span
+              ><span class="sr-only">Data coverage</span>
+            </button>
+            <button
+              type="button"
+              class="nav-link dock-item"
+              data-nav="feedback"
+              data-dock="feedback"
+              aria-label="Feedback"
+              title="Feedback"
+            >
+              <span class="dock-tile dock-feedback"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M21 11a8 8 0 0 1-8 8H8l-5 3v-8a8 8 0 0 1 8-11h2a8 8 0 0 1 8 8Z"
+                  />
+                  <path d="M7 9h10M7 13h6" /></svg
+              ></span>
+              <span class="dock-label" aria-hidden="true">Feedback</span
+              ><span class="sr-only">Feedback</span>
+            </button>
+            <button
+              type="button"
+              class="nav-link dock-item"
+              data-nav="billing"
+              data-dock="billing"
+              aria-label="Membership"
+              title="Membership"
+            >
+              <span class="dock-tile dock-billing"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="2" y="4" width="20" height="16" rx="4" />
+                  <path d="M2 9h20M6 15h4M15 15h3" /></svg
+              ></span>
+              <span class="dock-label" aria-hidden="true">Membership</span
+              ><span class="sr-only">Membership</span>
+            </button>
+          </nav>
+          <button
+            type="button"
+            class="wolf-chat-trigger dock-item"
+            data-dock="chat"
+            aria-label="AI Chat with Romulus and Remus"
+            title="AI Chat with Romulus and Remus"
+          >
+            <span class="dock-tile dock-chat"
+              ><img
+                src="/assets/romulus.svg"
+                alt=""
+                width="28"
+                height="28" /><img
+                src="/assets/remus.svg"
+                alt=""
+                width="28"
+                height="28"
+            /></span>
+            <span class="dock-label" aria-hidden="true">AI Chat</span
+            ><span class="sr-only">AI Chat with Romulus and Remus</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          class="dock-arrow"
+          data-dock-shift="1"
+          aria-label="Next dock options"
+          aria-controls="dock-track"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m10 6 6 6-6 6" />
+          </svg>
         </button>
-        <button class="nav-link" data-nav="feedback">Feedback</button>
-        <button class="nav-link" data-nav="billing">Membership</button>
-      </nav>
+      </div>
       <div class="account-tools">
-        <button type="button" class="wolf-chat-trigger wolf-toolbar-link">
-          AI Chat with Romulus and Remus
-        </button>
         <button id="signout" class="button quiet small" hidden>Sign out</button>
       </div>
     </header>

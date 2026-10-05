@@ -2244,3 +2244,11 @@ identity/HTTPS/health, four live customer browser journeys including the chat,
 privacy/payment boundaries and browser restart/cache/logout checks. Schema 9
 and existing infrastructure are preserved. See [exact commands, failures and
 limits](WOLF_ASSISTANT_RELEASE.md).
+
+### v0.7.0 — glass dock and responsive chat candidate
+
+Replaces the text navigation with a glass icon dock, hover magnification and
+swipe/drag/wheel cycling. Wolf chat becomes a full-screen phone sheet and larger
+iPad/desktop panel with more reading space and keyboard-aware composing controls.
+Schema 9 and existing payment/privacy boundaries are preserved. See [commands,
+results and remaining gates](DOCK_CHAT_RELEASE.md). No deployment is claimed yet.

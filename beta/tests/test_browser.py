@@ -317,15 +317,16 @@ def test_saved_feature_absent_and_research_handoff_remains(
         page.locator("#auth-submit").click()
         expect(page.locator(".property-card")).to_have_count(2)
         expect(page.get_by_role("button", name=re.compile(r"save", re.I))).to_have_count(0)
-        expect(page.locator("#main-nav button:visible")).to_have_text(
-            [
-                "Explore properties",
-                "Property research",
-                "Hunt",
-                "Feedback",
-                "Membership",
-            ]
+        labels = page.locator("#main-nav button:visible").evaluate_all(
+            "buttons => buttons.map(button => button.getAttribute('aria-label'))"
         )
+        assert labels == [
+            "Explore properties",
+            "Property research",
+            "Hunt",
+            "Feedback",
+            "Membership",
+        ]
         expect(page.locator("#coverage-nav")).to_be_hidden()
         assert page.request.get(f"{origin}/api/sources").status == 403
         assert page.request.get(f"{origin}/api/capabilities").status == 403
