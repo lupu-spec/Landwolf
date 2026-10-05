@@ -106,9 +106,10 @@ def test_complete_decision_workflow(browser_server, engine_name, width):
         hunt.get_by_text("Shared research questions", exact=True).click()
         expect(hunt).to_contain_text("Fixture county planning — Permitted use")
         expect(hunt).to_contain_text("2 properties")
+        # Do not return the assigned function: Playwright would invoke it immediately.
         page.evaluate(
-            "window.print = () => { window.researchPrinted = "
-            "document.querySelector('#decision-print').textContent; }"
+            "() => { window.print = () => { window.researchPrinted = "
+            "document.querySelector('#decision-print').textContent; }; }"
         )
         hunt.get_by_role("button", name="Print shared research brief").click()
         assert "Fixture county planning" in page.evaluate("window.researchPrinted")
@@ -139,8 +140,8 @@ def test_complete_decision_workflow(browser_server, engine_name, width):
         workspace.get_by_text("Research changes", exact=True).click()
         expect(workspace).to_contain_text("Other requirements still need attention")
         page.evaluate(
-            "window.print = () => { window.researchPrinted = "
-            "document.querySelector('#decision-print').textContent; }"
+            "() => { window.print = () => { window.researchPrinted = "
+            "document.querySelector('#decision-print').textContent; }; }"
         )
         workspace.get_by_role("button", name="Print displayed research").click()
         assert "One cabin" in page.evaluate("window.researchPrinted")
