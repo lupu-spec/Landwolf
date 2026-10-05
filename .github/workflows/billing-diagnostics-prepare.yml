@@ -1,0 +1,50 @@
+name: Prepare secret-safe billing diagnostics
+on:
+  push:
+    branches: [codex/landwolf-billing-diagnostics]
+    paths: [.github/workflows/billing-diagnostics-prepare.yml]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/codex/landwolf-billing-diagnostics'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply exact version and CLI integration changes
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('beta/landwolf/cli.py')
+          s = p.read_text()
+          assert 'from landwolf.billing_diagnostics import' not in s
+          assert s.count('    settings = Settings()') == 1
+          s = s.replace('import json\n', 'import json\nimport os\n')
+          s = s.replace('from landwolf.catalog import Catalog', 'from landwolf.billing_diagnostics import environment_status\nfrom landwolf.catalog import Catalog')
+          s = s.replace('    settings = Settings()', '    if args.command == "init-db":\n        # Whitelisted statuses only; never echo values or change validation.\n        print("Billing process environment status: " + json.dumps(environment_status(os.environ)))\n    settings = Settings()')
+          p.write_text(s)
+          for name in ['beta/landwolf/version.py', 'beta/pyproject.toml', 'beta/package.json']:
+              p = Path(name)
+              s = p.read_text()
+              assert s.count('"0.4.0"') == 1, name
+              p.write_text(s.replace('"0.4.0"', '"0.4.1"'))
+          p = Path('beta/uv.lock')
+          s = p.read_text()
+          old = 'name = "landwolf-beta"\nversion = "0.4.0"'
+          assert s.count(old) == 1
+          p.write_text(s.replace(old, 'name = "landwolf-beta"\nversion = "0.4.1"'))
+          p = Path('beta/package-lock.json')
+          d = json.loads(p.read_text())
+          assert d['version'] == d['packages']['']['version'] == '0.4.0'
+          d['version'] = d['packages']['']['version'] = '0.4.1'
+          p.write_text(json.dumps(d, indent=2) + '\n')
+          PY
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add beta/landwolf/cli.py beta/landwolf/version.py beta/pyproject.toml beta/uv.lock beta/package.json beta/package-lock.json
+          git commit -m 'Integrate status-only billing diagnostics in v0.4.1 pre-deploy'
+          git push origin HEAD:codex/landwolf-billing-diagnostics
+          git rev-parse HEAD
