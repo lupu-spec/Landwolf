@@ -250,7 +250,16 @@ def test_saved_feature_absent_and_research_handoff_remains(
         page.locator("#auth-submit").click()
         expect(page.locator(".property-card")).to_have_count(2)
         expect(page.get_by_role("button", name=re.compile(r"save", re.I))).to_have_count(0)
-        expect(page.locator("#main-nav button")).to_have_count(5)
+        expect(page.locator("#main-nav button")).to_have_text(
+            [
+                "Explore properties",
+                "Property research",
+                "Hunt",
+                "Data coverage",
+                "Feedback",
+                "Membership",
+            ]
+        )
         card = page.locator(".property-card").filter(has_text="Test fixture 99002")
         card.scroll_into_view_if_needed()
         Path("test-results").mkdir(exist_ok=True)

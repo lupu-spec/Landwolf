@@ -298,7 +298,9 @@ svg {
   top: 10px;
 }
 .site-header {
-  height: 101px;
+  height: auto;
+  min-height: 101px;
+  flex-wrap: wrap;
   padding: 0 3.2%;
   display: flex;
   align-items: center;
