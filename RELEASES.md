@@ -3,7 +3,7 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
-## v0.8.0 — L91 LLC CRM and registration profiles, candidate
+## v0.8.0 — L91 LLC CRM and registration profiles, live in both environments
 
 Adds private multi-project contact capture, owner filters, lifecycle/tags/follow-up,
 notes, safe CSV downloads, and write-only project connector keys. Name and intended
@@ -11,7 +11,12 @@ use are required for new registrations; company, phone, job title, industry, rol
 goals and email marketing are optional. Schema 10 adds CRM storage and preserves
 existing account facts. No payment settings or paid dependencies change.
 See [operation, categories, API and migration](beta/docs/L91_LLC_CRM.md) and
-[verification record](beta/docs/VERIFICATION.md). Not yet deployed.
+[verification record](beta/docs/L91_CRM_RELEASE.md). [PR #24](https://github.com/lupu-spec/Landwolf/pull/24)
+merged as `7c3dc29889c1894bce34c55db29d1a591179bd66`, with the identical runtime
+tree tested in staging. Final candidate gates passed: 429 backend, 15 frontend,
+56 browser and 53 legacy tests, disposable PostgreSQL/26-table restore, build,
+package and security. Both environments passed exact identity/HTTPS/health,
+four live customer browser journeys and persistent-session checks.
 
 ## v0.7.0 — glass dock and responsive wolf chat, live in both environments
 
@@ -67,8 +72,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.7.0 | `b35ef5dbded72e3553282616808f276d39ff7a6b` | 2026-10-05 10:45:48 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.7.0 | `b35ef5dbded72e3553282616808f276d39ff7a6b` | 2026-10-05 10:38:23 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.8.0 | `7c3dc29889c1894bce34c55db29d1a591179bd66` | 2026-10-05 12:54:15 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.8.0 | `476b683bca5bc56c67984a38c49298a63673f23c` | 2026-10-05 12:50:41 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -191,6 +196,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-05 09:30:22 | Production | v0.6.0 / `02293e8f8fe953c20ad01abb63b2f520723ac29a` | `dep-db1mru6gekts73ejko50` | Exact staging-tested release promoted. HTTPS/version/health, four live customer chat journeys, owner-only privacy boundaries, billing mode and persistent-session checks passed. |
 | 2026-10-05 10:38:23 | Beta | v0.7.0 / `b35ef5dbded72e3553282616808f276d39ff7a6b` | `dep-db1nrodg1s2s73b2kmng` | Glass icon dock and responsive wolf chat; all candidate gates passed. Full live checks passed on unchanged rerun after an initial desktop property timeout. |
 | 2026-10-05 10:45:48 | Production | v0.7.0 / `b35ef5dbded72e3553282616808f276d39ff7a6b` | `dep-db1nv7m0tbcc73bo70pg` | Exact staging-tested release; four live chat/customer journeys, privacy/payment boundaries, HTTPS/version/health and browser restart/cache/logout checks passed. Schema 9 and existing infrastructure retained. |
+| 2026-10-05 12:50:41 | Beta | v0.8.0 / `476b683bca5bc56c67984a38c49298a63673f23c` | `dep-db1ppmqd0e5s738s9im0` | L91 LLC CRM, registration profiles, owner workspace and project intake; schema 10. All candidate gates and live HTTPS/health/browser/session checks passed before promotion. |
+| 2026-10-05 12:54:15 | Production | v0.8.0 / `7c3dc29889c1894bce34c55db29d1a591179bd66` | `dep-db1prh7avr4c73d2o2ag` | Identical staging-tested runtime tree. Exact release/HTTPS/health, four customer browser journeys and persistent-session checks passed; accounts, billing settings and infrastructure preserved. |
 
 ## Version and promotion rules
 

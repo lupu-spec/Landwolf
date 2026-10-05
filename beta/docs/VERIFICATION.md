@@ -2261,12 +2261,26 @@ unchanged build passed the complete second attempt, with the initial cause not
 established. Production passed first attempt. Schema 9, payments, data sources
 and owner privacy were preserved. See [commands, evidence and limitations](DOCK_CHAT_RELEASE.md).
 
-## L91 LLC CRM v0.8.0 candidate
+## L91 LLC CRM v0.8.0 — live in both environments — 2026-10-05
 
 See [CRM operation and connector contract](L91_LLC_CRM.md). Adds transactional
 registration capture, owner-only CRM, scoped project keys, CSV, notes and schema
-10. Local backend: 428 passed; frontend: 15 passed. Formatting, lint, types and
-bundle passed. Local new browser tests could not launch: required Chromium/WebKit
-executables are absent and Playwright dependency installation was rejected by the
-container's apt permissions. These are unavailable gates, not browser passes;
-hosted CI must pass real browsers and disposable PostgreSQL/restore before release.
+10. Final candidate CI 37311235811 passed 429 backend, 15 frontend and 56 real
+Chromium/WebKit browser tests, disposable PostgreSQL/26-table restore, formatting,
+lint, types, build/package and security. The separate legacy suite passed 53 tests.
+PR #24 merged as `7c3dc29889c1894bce34c55db29d1a591179bd66`; its runtime tree is
+identical to candidate `476b683bca5bc56c67984a38c49298a63673f23c` tested in staging.
+Staging `dep-db1ppmqd0e5s738s9im0` became live at 12:50:41 UTC; production
+`dep-db1prh7avr4c73d2o2ag` at 12:54:15 UTC. Live runs 37312219631 and 37312673954
+passed exact identity/HTTPS/health, four customer browser journeys and persistent
+sign-in. Narrow post-deployment error-log queries returned no entries. Eight
+automated upstream listing feeds completed a separate live sync.
+
+Local browser executables and apt permissions prevented local browser tests;
+hosted CI supplied the successful browser gate. The first new hosted CRM tests
+found a select-label accessibility defect, fixed without weakening assertions.
+The initial ledger smoke failed against the old v0.7 table during promotion;
+the table is now reconciled to the observed deployments. Independent live checks
+passed. Production direct SQL inspection and owner-session live CRM review were
+not run; read-only access limitations and all exact command results are retained
+in [the release report](L91_CRM_RELEASE.md).
