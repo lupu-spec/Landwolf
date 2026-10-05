@@ -94,7 +94,7 @@ def capabilities() -> list[dict[str, object]]:
             "priority": 1,
             "id": "trust",
             "name": "Trust and usability",
-            "status": "beta",
+            "status": "available",
             "description": "Evidence, research summary, source monitoring and account recovery.",
         },
         {

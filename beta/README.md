@@ -8,7 +8,7 @@ The owner, explicit complimentary grants, and accepted eligible investor pilots
 bypass payment. Pilots never auto-convert to a subscription. Live activation is
 separate from deploying the code: follow [LIVE_BILLING.md](docs/LIVE_BILLING.md).
 
-The premium staging branch implements trust/usability and scaffolds decision
+Production implements trust/usability and scaffolds decision
 quality, partner consent and source expansion. See
 [PREMIUM_FRAMEWORK.md](docs/PREMIUM_FRAMEWORK.md) for implemented scope, email setup,
 quarantine review commands and the separate staging deployment.
@@ -75,7 +75,7 @@ without parcel coordinates remain in the list and have no invented map marker.
 No owner contact lists or interested-party columns are imported. Title, ownership,
 liens, flood risk and current market values are not independently verified.
 
-## Free public property research
+## Public property research
 
 After signing in, open **Property research** and enter a complete street address
 or coordinates. Census geographic lookup, FEMA digital flood mapping, USGS ground
@@ -179,7 +179,7 @@ separate operational gate.
 ## Deployment and verification
 
 [render.beta.yaml](../render.beta.yaml) describes the existing rebuilt Render service
-and PostgreSQL database, promoted to free production without replacing their data.
+and PostgreSQL database, promoted to production without replacing their data.
 Resource names retain `beta` for continuity; automatic deployment stays disabled.
 The deploy branch is `codex/landwolf-beta-rebuild`, with Blueprint path
 `render.beta.yaml`. The legacy service/main branch remains a rollback reference.

@@ -139,6 +139,32 @@ def test_treasury_skips_territories_and_accepts_state_abbreviations() -> None:
     assert parse_treasury(abbreviated)[0].state == "NC"
 
 
+def test_treasury_undated_unidentified_teaser_does_not_block_scheduled_sales() -> None:
+    teaser = TREASURY.replace("Sale # 99-66-001.", "").replace(
+        "Friday, October 2, 2099", "Coming Soon..."
+    )
+    assert len(parse_treasury(TREASURY + teaser)) == 1
+    assert parse_treasury(teaser) == []
+    with pytest.raises(SourceUnavailable, match="identifier"):
+        parse_treasury(TREASURY.replace("Sale # 99-66-001.", ""))
+    with pytest.raises(SourceUnavailable, match="identifier"):
+        parse_treasury(teaser.replace("Coming Soon...", "Coming Soon... Sale # invalid"))
+
+
+def test_irs_external_promotions_are_excluded_from_filtered_property_inventory() -> None:
+    promotion = (
+        '<article class="irs-ad external-sale"><h3>'
+        '<a href="https://www.gsaauctions.gov/auctions">Fixture truck</a>'
+        "</h3><address></address></article>"
+    )
+    records, more = parse_irs(IRS + promotion)
+    assert [item.id for item in records] == ["irs-9900"]
+    assert not more
+    assert parse_irs(IRS_FILTERS + promotion) == ([], False)
+    with pytest.raises(SourceUnavailable):
+        parse_irs(IRS + promotion.replace(" external-sale", ""))
+
+
 def test_irs_filter_markup_without_selected_attribute_remains_reviewed() -> None:
     current_markup = IRS.replace(" selected", "")
     assert parse_irs(current_markup)[0][0].state == "WA"

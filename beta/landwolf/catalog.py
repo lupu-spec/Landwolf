@@ -81,7 +81,7 @@ class InventoryProvider:
                         timeout=httpx.Timeout(30, connect=8),
                         follow_redirects=False,
                         headers={
-                            "User-Agent": "LandWolfBeta/0.2 (+https://github.com/lupu-spec/Landwolf)",
+                            "User-Agent": "LandWolf/0.4.2 (+https://github.com/lupu-spec/Landwolf)",
                             "Accept": "text/html",
                         },
                     ) as client,

@@ -2022,3 +2022,47 @@ they were not counted as passing checks.
   delivery: NOT VERIFIED. Render browser authentication expired. The read-only
   database connector cannot connect because the production database correctly
   blocks external connections; its network policy was not weakened.
+
+## v0.4.2 source recovery and production wording — candidate
+
+Baseline: live Render commit `baf4c1ffdd26710271dec6575d2442a877b1c4ac`.
+The staging branch has no commits ahead of this baseline; its completed features
+are already included. No unfinished valuation, partner or parcel integration is enabled.
+
+Changes: handle MnDOT's explicit empty bid section without crossing into unrelated
+links; exclude Treasury's undated teasers without sale IDs; exclude IRS cards marked
+as external-sale promotions. Retain URL restrictions, bounded retrieval, source
+provenance and snapshot quarantine. Remove obsolete product labels from UI/status/
+model copy; correct current feature documentation. Infrastructure names and historical
+release records retain their existing identifiers. No schema/dependency changes.
+
+The baseline browser test contained literal backslash-n characters at the annual-plan
+selection step and could not parse. Corrected to actual line breaks. Baseline billing
+Python/TypeScript also required formatting; the Python billing AST is unchanged.
+No billing settings, prices, provider API contracts, entitlement or payment logic changed.
+
+Passed locally (exit 0): locked `uv sync --frozen --dev` and `npm ci`; ruff/prettier
+format checks; ruff/eslint; mypy/TypeScript; 9 frontend tests; 364 non-browser tests;
+`npm run build`; `git diff --check`. Initial mypy failure for the new BeautifulSoup
+class access was fixed with its typed attribute-list API before these passes.
+
+Actual `python -m landwolf.cli sync` against a fresh disposable SQLite database
+passed (exit 0): MN 4, AR 0, TX 31, USDA 19, Treasury 19, IRS 1, AK 170, MI 28.
+These are retrieved records, not a claim of every record being current/eligible for search.
+Zero Arkansas records is a successfully parsed upcoming-sale catalog, not an outage.
+
+Public research checks at Dallas and Raleigh returned partial (exit 1): Census,
+USGS, soils and applicable NC parcels returned evidence; FEMA's reviewed endpoint
+returned HTTP 502 on both layers. Its findings remain unknown. No fabricated fallback.
+
+Local Playwright browser installation failed: downloaded browser archives were invalid.
+Hosted CI must provide Chromium/WebKit, disposable PostgreSQL and restore verification
+before promotion. The direct landwolf.ai checks returned a generic Site Unavailable
+page from this execution session; this is not evidence of application-wide downtime.
+
+Daily source-maintenance automation was created for mornings around 08:00
+America/Chicago. It checks current production, repairs confirmed source changes,
+requires repository gates, preserves billing and quarantine, and reports unresolved
+provider/authentication failures. The existing six-hour catalog scheduler remains.
+
+Production deployment and hosted verification are pending; a branch is not a deployment.

@@ -196,7 +196,7 @@ def refresh(session: Session, hunt: Hunt, *, now: int | None = None) -> dict[str
         .limit(MAX_CANDIDATES + 1)
     ).all()
     if len(rows) > MAX_CANDIDATES:
-        raise ValueError("Catalog exceeds Hunt beta evaluation limit")
+        raise ValueError("Catalog exceeds Hunt evaluation limit")
     sources = {s.id: s for s in session.scalars(select(SourceState))}
     previous = {
         m.listing_id: m

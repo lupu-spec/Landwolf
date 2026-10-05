@@ -81,7 +81,7 @@ def analyze(spec: AnalysisInput) -> dict[str, Any]:
         return {f"p{q}": round(float(np.percentile(values, q)), 2) for q in (10, 50, 90)}
 
     return {
-        "model_version": "beta-1.0",
+        "model_version": "1.0",
         "iterations": n,
         "seed": spec.seed,
         "profit": percentiles(profits),

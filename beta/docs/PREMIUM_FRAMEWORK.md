@@ -1,10 +1,11 @@
-# Premium beta framework
+# LandWolf feature framework
 
-This branch implements priority one and defines typed extension contracts for the
-remaining priorities. It preserves the wolf logo, navy/white theme, authenticated
-search and free access. Saved properties remain permanently removed.
+Production includes the trust and usability implementation below. The remaining
+priorities are extension contracts, not working integrations. Membership and
+complimentary/pilot access are governed by LIVE_BILLING.md. Saved Hunts are available;
+the retired standalone Saved properties feature remains removed.
 
-| Priority | This beta | Gate before activation or expansion |
+| Priority | Implementation | Gate before activation or expansion |
 | --- | --- | --- |
 | 1. Trust and usability | County-scoped publisher parcel identities; distinct sale events; field evidence; refresh history and quarantine; state/county coverage; concise research summary; responsive navigation; one-use email verification/recovery; additive schema v4 | All repository gates; hosted HTTPS check; configured verified email sender; staging restore rehearsal before promotion |
 | 2. Decision quality | `ValuationRequest`, `ValuationResult`, `ValuationProvider`; supported results require comparables, evidence and a range | Licensed or reusable comparable-sale evidence, calibration/backtesting, parcel geometry, cost evidence, explainable assumptions and export review |

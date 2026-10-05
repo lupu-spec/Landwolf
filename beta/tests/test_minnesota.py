@@ -67,3 +67,22 @@ def test_only_reviewed_minnesota_pages_can_be_fetched():
         "https://www.dot.state.mn.us.evil.example/row/propsales.html",
     ]:
         assert not approved_url("mn_dot", url)
+
+
+def test_explicit_empty_bid_section_does_not_parse_other_sections():
+    html = (
+        "<h3>Current properties for sale by bid</h3>"
+        "<p>There are currently no  properties available for sale by bid. Check back.</p>"
+        '<h3>Other state property sale sites</h3><ul><li><a href="other">Other</a></li></ul>'
+    )
+    assert parse_minnesota(html, by_bid=True) == []
+    with pytest.raises(SourceUnavailable, match="sale list missing"):
+        parse_minnesota(html.replace("There are currently no", "Check upcoming"), by_bid=True)
+
+
+def test_empty_notice_cannot_hide_a_conflicting_inventory():
+    html = BID.replace(
+        "</h3>", "</h3><p>There are currently no properties available for sale by bid.</p>"
+    )
+    with pytest.raises(SourceUnavailable, match="contradicts"):
+        parse_minnesota(html, by_bid=True)

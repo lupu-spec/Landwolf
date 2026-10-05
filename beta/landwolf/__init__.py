@@ -1,1 +1,1 @@
-"""LandWolf beta: independent of the legacy application and billing."""
+"""LandWolf application: independent of the legacy runtime."""

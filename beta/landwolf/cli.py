@@ -73,7 +73,7 @@ def main() -> None:
         elif args.command == "init-db":
             initialize(engine)
             print(
-                f"Beta schema version {SCHEMA_VERSION} ready; retired Saved tables removed; "
+                f"Application schema version {SCHEMA_VERSION} ready; retired Saved tables removed; "
                 "accounts, sessions and source listings preserved"
             )
         else:
