@@ -2143,3 +2143,17 @@ sign-in was unnecessary. Payment configuration and infrastructure were unchanged
 Independent HTTPS checks are triggered by the ledger update. Source-state rows
 in production have not been independently inspected; successful startup alone
 does not prove every feed is ready. The normal automatic refresh starts at startup.
+
+
+### Independent live HTTPS verification
+
+[Live smoke run 37265777851](https://github.com/lupu-spec/Landwolf/actions/runs/37265777851)
+passed against deployed production v0.4.2 and exact commit
+`3f395b4a546c806d7eacd04229f3ac6a1f510659`: HTTPS version, database/schema health,
+fallback-image hash, and the www HTTPS endpoint. The initial run 37265714374
+passed production but failed on the preexisting stale staging ledger row; corrected
+that row to the independently observed existing v0.4.1 staging deployment, then
+the full smoke rerun passed. Staging was not redeployed. No warning/error logs
+were returned for production from startup through 2026-10-05 04:57:47 UTC.
+This does not establish complete upstream source coverage or independently inspect
+production source-state rows. FEMA remains unavailable; daily maintenance is enabled.
