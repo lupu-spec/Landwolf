@@ -39,19 +39,28 @@ jobs:
           pip install uv==0.12.11
           uv sync --frozen --dev
           npm ci
-      - name: Explicitly normalize missing or invalid subscription expiry
+      - name: Apply reviewed responsive navigation repair
         run: |
           python - <<'PY'
           from pathlib import Path
-          p = Path('beta/landwolf/billing.py')
+          p = Path('beta/web/styles.css')
           s = p.read_text()
-          old = '        period_end = item.get("current_period_end")\n'
-          new = old + '        if not isinstance(period_end, int) or isinstance(period_end, bool):\n            period_end = 0\n'
-          assert s.count(old) == 1, 'Unexpected expiry reader'
+          old = '.site-header {\n  height: 101px;'
+          new = '.site-header {\n  height: auto;\n  min-height: 101px;\n  flex-wrap: wrap;'
           if new not in s:
-              assert '            and type(period_end) is int\n' in s
-              s = s.replace(old, new).replace('            and type(period_end) is int\n', '')
-              p.write_text(s)
+              assert s.count(old) == 1, 'Unexpected header structure'
+              p.write_text(s.replace(old, new))
+          p = Path('beta/tests/test_browser.py')
+          s = p.read_text()
+          old = '        expect(page.locator("#main-nav button")).to_have_count(5)'
+          new = '''        expect(page.locator("#main-nav button")).to_have_text(
+                      ["Explore properties", "Property research", "Hunt", "Data coverage", "Feedback", "Membership"]
+                  )'''
+          if old in s:
+              assert s.count(old) == 1, 'Unexpected navigation assertion'
+              p.write_text(s.replace(old, new))
+          else:
+              assert '"Membership"' in s, 'Missing membership regression assertion'
           PY
       - name: Format and checkpoint engineering branch only
         run: |
@@ -63,9 +72,9 @@ jobs:
           cd ..
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add beta
+          git add beta/web/styles.css beta/tests/test_browser.py
           if ! git diff --cached --quiet; then
-            git commit -m 'Normalize missing Stripe item expiry before entitlement comparison'
+            git commit -m 'Keep membership navigation responsive at enlarged text sizes'
             git push origin HEAD:codex/landwolf-live-billing
           fi
           mkdir -p quality-output
