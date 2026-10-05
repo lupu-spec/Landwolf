@@ -67,6 +67,7 @@ export function setupCRM(api: Api) {
   const panel = document.getElementById("crm-panel")!;
   let sequence = 0;
   let active = false;
+  let downloadController: AbortController | undefined;
   let catalog: Catalog;
   let page = 1;
   let selected = "";
@@ -85,6 +86,8 @@ export function setupCRM(api: Api) {
   detail.className = "crm-detail";
   const controls = node("div");
   function clear() {
+    downloadController?.abort();
+    downloadController = undefined;
     active = false;
     sequence++;
     panel.replaceChildren();
@@ -286,23 +289,38 @@ export function setupCRM(api: Api) {
   }
   async function download() {
     const stamp = sequence;
-    const response = await fetch(
-      `/api/admin/crm/contacts.csv?${new URLSearchParams(filters)}`,
-      { credentials: "same-origin" },
-    );
-    if (!response.ok) {
-      if ([401, 403].includes(response.status)) clear();
-      throw new Error("Unable to export contacts. Please refresh and retry.");
+    downloadController?.abort();
+    const controller = new AbortController();
+    downloadController = controller;
+    const timer = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(
+        `/api/admin/crm/contacts.csv?${new URLSearchParams(filters)}`,
+        {
+          credentials: "same-origin",
+          signal: controller.signal,
+        },
+      );
+      if (!response.ok) {
+        if ([401, 403].includes(response.status)) clear();
+        throw new Error("Unable to export contacts. Please refresh and retry.");
+      }
+      const blob = await response.blob();
+      if (!active || stamp !== sequence) return;
+      const url = URL.createObjectURL(blob);
+      const a = node("a");
+      a.href = url;
+      a.download = "l91-llc-crm-contacts.csv";
+      a.hidden = true;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status.textContent = "CSV download started.";
+    } finally {
+      clearTimeout(timer);
+      if (downloadController === controller) downloadController = undefined;
     }
-    const blob = await response.blob();
-    if (!active || stamp !== sequence) return;
-    const url = URL.createObjectURL(blob);
-    const a = node("a");
-    a.href = url;
-    a.download = "l91-llc-crm-contacts.csv";
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    status.textContent = "CSV download started.";
   }
   function renderControls() {
     controls.replaceChildren();
