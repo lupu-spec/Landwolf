@@ -151,6 +151,7 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         expect(log).not_to_contain_text("Run 10,000 scenarios")
         collapse()
 
+        page.get_by_role("button", name="Sign in", exact=True).click()
         login("owner-fixture@example.com")
         page.locator('#main-nav [data-nav="feedback"]').click()
         open_chat()

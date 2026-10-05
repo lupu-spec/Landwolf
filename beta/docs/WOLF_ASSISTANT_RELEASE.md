@@ -78,6 +78,11 @@ Existing FastAPI/httpx and npm environment deprecation warnings are unrelated.
 Avatar SVGs were rendered with Inkscape and visually inspected; its GTK warning
 was nonfatal. Browser screenshots, keyboard behavior, modal accessibility and
 download/payment/source regressions remain subject to the hosted browser gate.
+The first hosted browser run passed all 40 existing journeys. The four new
+journeys passed the guest/customer, offline, modal, short-viewport and sign-out
+checks, then failed because the test retained Create account mode before signing
+in as the existing owner fixture. The test now selects Sign in; its assertions
+are unchanged. A complete hosted rerun is required before promotion.
 Physical-device keyboard and assistive-technology testing are not performed.
 
 ## Deployment
