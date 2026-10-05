@@ -11,7 +11,7 @@ import time
 import uuid
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, ValidationInfo, field_validator
 from sqlalchemy import JSON, Boolean, ForeignKey, Index, Integer, String, UniqueConstraint, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
@@ -113,8 +113,9 @@ class Contract(BaseModel):
 
     @field_validator("*", mode="after")
     @classmethod
-    def no_controls(cls, value: Any) -> Any:
-        if isinstance(value, str) and any(ord(c) < 32 for c in value):
+    def no_controls(cls, value: Any, info: ValidationInfo) -> Any:
+        whitespace = "\r\n\t" if info.field_name in {"text", "use_details"} else ""
+        if isinstance(value, str) and any(ord(c) < 32 and c not in whitespace for c in value):
             raise ValueError("Control characters are not allowed")
         return value
 

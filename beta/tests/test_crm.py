@@ -133,12 +133,14 @@ def test_owner_filters_edits_notes_export_and_csrf(client, owner_signed_in):
     assert client.patch(url, headers=headers, json=body).status_code == 409
     assert (
         client.post(
-            url + "/notes", headers=headers, json={"text": "<script>not executable</script>"}
+            url + "/notes",
+            headers=headers,
+            json={"text": "<script>not executable</script>\nFollow-up notes can use paragraphs."},
         ).status_code
         == 201
     )
     detail = client.get(url).json()
-    assert any(a["kind"] == "note" for a in detail["activities"])
+    assert any(a["kind"] == "note" and "\nFollow-up" in a["text"] for a in detail["activities"])
     exported = client.get("/api/admin/crm/contacts.csv?industry=real_estate")
     assert exported.status_code == 200 and exported.headers["cache-control"] == "no-store"
     data = list(csv.DictReader(io.StringIO(exported.content.decode("utf-8-sig"))))
@@ -244,3 +246,9 @@ def test_migration_backfills_known_facts_only_and_is_idempotent(client):
         assert row.email == "legacy@example.com" and row.full_name == ""
         assert row.source == "existing_account" and row.consent_recorded_at is None
         assert not row.marketing_opt_in
+
+
+def test_registration_accepts_multiline_goals(client):
+    assert signup(client, use_details="First goal.\nSecond goal.").status_code == 201
+    with client.app.state.factory() as db:
+        assert db.scalar(select(crm_core.Contact)).use_details == "First goal.\nSecond goal."
