@@ -33,6 +33,7 @@ API_VERSION = "2026-08-26.dahlia"
 SYNC_SECONDS = 300
 MAX_STRIPE_BYTES = 1024 * 1024
 CHECKOUT_SECONDS = 3600
+CHECKOUT_REQUEST_VERSION = "managed-payments-v1"
 PLANS: dict[str, dict[str, str | int]] = {
     "monthly": {"amount": 2900, "interval": "month", "label": "$29 / month"},
     "annual": {"amount": 29900, "interval": "year", "label": "$299 / year"},
@@ -505,7 +506,10 @@ def resolve_checkout(
             "POST",
             "/checkout/sessions",
             checkout_fields(customer, settings),
-            idempotency_key=f"landwolf-live-checkout-{customer.checkout_attempt}",
+            idempotency_key=(
+                f"landwolf-live-checkout-{CHECKOUT_REQUEST_VERSION}-"
+                f"{customer.checkout_attempt}"
+            ),
         )
     if (
         result.get("livemode") is not True
