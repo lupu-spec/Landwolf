@@ -189,6 +189,7 @@ function select(
 ): HTMLSelectElement {
   const wrapper = node("label", label);
   const field = node("select");
+  field.setAttribute("aria-label", label);
   for (const [value, text] of values) {
     const option = node("option", text);
     option.value = value;
