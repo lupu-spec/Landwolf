@@ -5,7 +5,8 @@ import time
 import pytest
 from sqlalchemy import select
 
-from landwolf.db import AccountAction
+from landwolf import auth
+from landwolf.db import AccountAction, LoginSession
 
 
 class FixtureMailer:
@@ -42,6 +43,8 @@ def test_recovery_responses_do_not_reveal_account_existence(client, signed_in, m
 
 
 def test_reset_is_one_use_and_revokes_sessions(client, signed_in, mailer):
+    session_token = client.cookies.get(auth.COOKIE)
+    assert client.get("/api/session").json()["authenticated"]
     request_reset(client, signed_in)
     token = mailer.messages[0][2]
     password = "New synthetic passphrase 941!"
@@ -50,6 +53,11 @@ def test_reset_is_one_use_and_revokes_sessions(client, signed_in, mailer):
     )
     assert response.status_code == 200
     assert client.get("/api/sources").status_code == 401
+    client.cookies.set(auth.COOKIE, session_token)
+    assert client.get("/api/session").json()["authenticated"] is False
+    with client.app.state.factory() as session:
+        assert session.get(LoginSession, auth.digest(session_token)) is None
+    client.cookies.clear()
     assert (
         client.post(
             "/api/auth/reset-password",

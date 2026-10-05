@@ -140,7 +140,12 @@ seed are displayed. See [MODEL.md](docs/MODEL.md) for equations and limitations.
 
 - Argon2id password hashes; revocable opaque sessions stored as hashes; HttpOnly,
   SameSite=Strict cookies; Secure cookies and HSTS on HTTPS.
-- Server-side account ownership, idle/absolute expiry, origin checks, CSRF tokens,
+- Rolling 365-day sign-in, renewed on returning to the app; no short idle timeout.
+  Browser restarts and cache-only clearing retain sign-in. Deleting site cookies,
+  private browsing cleanup, logout, password reset or server revocation require
+  sign-in again. `LANDWOLF_SESSION_DAYS` accepts 1–400; legacy session-hours and
+  idle-minutes settings are retired. Existing unexpired cookies upgrade on return.
+- Server-side account ownership, session expiry/revocation, origin checks, CSRF tokens,
   same-origin APIs, body limits, shared database rate limits, and restrictive CSP.
 - Secrets and personal records never belong in Git or log messages. Source HTML is
   parsed into validated fields; the browser uses text nodes and allowlisted URLs.

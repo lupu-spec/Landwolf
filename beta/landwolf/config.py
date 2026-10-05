@@ -45,8 +45,7 @@ class Settings(BaseSettings):
     stripe_annual_price_id: str | None = Field(default=None, pattern=r"^price_[A-Za-z0-9]+$")
     stripe_portal_configuration_id: str | None = Field(default=None, pattern=r"^bpc_[A-Za-z0-9]+$")
     pilot_invite_emails: tuple[EmailStr, ...] = Field(default=(), max_length=500, repr=False)
-    session_hours: int = Field(default=8, ge=1, le=24)
-    idle_minutes: int = Field(default=30, ge=5, le=120)
+    session_days: int = Field(default=365, ge=1, le=400)
     auth_limit: int = Field(default=12, ge=1, le=100)
     mail_provider: Literal["disabled", "resend"] = "disabled"
     mail_from: EmailStr | None = None

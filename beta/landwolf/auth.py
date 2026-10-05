@@ -6,13 +6,14 @@ import time
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from threading import BoundedSemaphore
 from urllib.parse import urlsplit
 
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
 from fastapi import HTTPException, Request, Response
-from sqlalchemy import delete, select
+from sqlalchemy import case, delete, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import IntegrityError
@@ -89,17 +90,14 @@ def authenticate(
     *,
     write: bool = False,
     touch: bool = True,
+    response: Response | None = None,
 ) -> Account:
     token = request.cookies.get(COOKIE, "")
     if len(token) != 43:
         raise HTTPException(401, "Sign in to access LandWolf")
     login = session.get(LoginSession, digest(token))
     now = int(time.time())
-    if (
-        login is None
-        or login.expires_at <= now
-        or login.last_seen + settings.idle_minutes * 60 <= now
-    ):
+    if login is None or login.expires_at <= now:
         if login is not None:
             session.delete(login)
             session.commit()
@@ -117,10 +115,47 @@ def authenticate(
         ):
             raise HTTPException(403, "Invalid security token; reload the page")
     if touch:
-        login.last_seen = now
+        # Update only an existing, valid row: concurrent logout/reset must never
+        # resurrect a revoked session. /api/session renews both database and cookie.
+        deadline = now + settings.session_days * 86400
+        renewed = session.scalar(
+            update(LoginSession)
+            .where(LoginSession.token_hash == login.token_hash, LoginSession.expires_at > now)
+            .values(
+                last_seen=now,
+                expires_at=(
+                    case(
+                        (LoginSession.expires_at < deadline, deadline),
+                        else_=LoginSession.expires_at,
+                    )
+                    if response is not None
+                    else LoginSession.expires_at
+                ),
+            )
+            .returning(LoginSession.expires_at)
+        )
         session.commit()
+        if renewed is None:
+            raise HTTPException(401, "Sign in to access LandWolf")
+        if response is not None:
+            set_session_cookie(response, token, settings, now)
     request.state.login = login
     return account
+
+
+def set_session_cookie(response: Response, token: str, settings: Settings, now: int) -> None:
+    """Keep credentials in a persistent HttpOnly cookie, never browser script storage."""
+    lifetime = settings.session_days * 86400
+    response.set_cookie(
+        COOKIE,
+        token,
+        max_age=lifetime,
+        expires=datetime.fromtimestamp(now + lifetime, UTC),
+        httponly=True,
+        secure=settings.secure_cookies,
+        samesite="strict",
+        path="/",
+    )
 
 
 def establish(
@@ -137,20 +172,12 @@ def establish(
             token_hash=digest(token),
             account_id=account.id,
             csrf=csrf,
-            expires_at=now + settings.session_hours * 3600,
+            expires_at=now + settings.session_days * 86400,
             last_seen=now,
         )
     )
     session.commit()
-    response.set_cookie(
-        COOKIE,
-        token,
-        max_age=settings.session_hours * 3600,
-        httponly=True,
-        secure=settings.secure_cookies,
-        samesite="strict",
-        path="/",
-    )
+    set_session_cookie(response, token, settings, now)
     return {"email": account.email, "csrf": csrf}
 
 

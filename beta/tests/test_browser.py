@@ -25,6 +25,72 @@ from landwolf.db import Account, Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
+@pytest.mark.parametrize("browser_kind", ["chromium", "webkit"])
+def test_persistent_login_restart_cache_clear_and_logout(
+    browser_server: tuple[str, int], tmp_path: Path, browser_kind: str
+) -> None:
+    origin, _ = browser_server
+    profile = tmp_path / "persistent-profile"
+    with sync_playwright() as playwright:
+        engine = getattr(playwright, browser_kind)
+
+        def launch():
+            return engine.launch_persistent_context(
+                str(profile), viewport={"width": 390, "height": 850}
+            )
+
+        context = launch()
+        try:
+            page = context.new_page()
+            page.goto(origin)
+            page.get_by_role("button", name="Create account", exact=True).click()
+            page.get_by_label("Email address", exact=True).fill("persistent@example.com")
+            page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+            page.locator("#auth-submit").click()
+            expect(page.locator(".property-card").first).to_be_visible()
+            cookie = next(c for c in context.cookies() if c["name"] == auth.COOKIE)
+            assert cookie["expires"] > time.time() + 364 * 86400
+            assert cookie["httpOnly"] and cookie["sameSite"] == "Strict"
+            assert auth.COOKIE not in page.evaluate("document.cookie")
+            assert page.evaluate("localStorage.length === 0 && sessionStorage.length === 0")
+            page.evaluate("""async () => {
+                localStorage.clear(); sessionStorage.clear();
+                for (const key of await caches.keys()) await caches.delete(key);
+            }""")
+            if browser_kind == "chromium":
+                context.new_cdp_session(page).send("Network.clearBrowserCache")
+            context.close()
+
+            # A fresh browser process reads its own cookie profile; no storage-state injection.
+            context = launch()
+            page = context.new_page()
+            page.goto(origin)
+            expect(page.locator(".property-card").first).to_be_visible()
+            expect(page.locator("#coverage-nav")).to_be_hidden()
+            page.get_by_role("button", name="Sign out", exact=True).click()
+            expect(page.locator("#auth-submit")).to_be_visible()
+            assert context.request.get(f"{origin}/api/session").json()["authenticated"] is False
+            context.close()
+
+            context = launch()
+            page = context.new_page()
+            page.goto(origin)
+            expect(page.locator("#auth-submit")).to_be_visible()
+            expect(page.locator("#workspace")).to_be_hidden()
+            # Cookie deletion must also stay signed out, even if other site data survives.
+            page.get_by_label("Email address", exact=True).fill("persistent@example.com")
+            page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+            page.locator("#auth-submit").click()
+            expect(page.locator(".property-card").first).to_be_visible()
+            context.clear_cookies()
+            page.reload()
+            expect(page.locator("#auth-submit")).to_be_visible()
+            expect(page.locator("#workspace")).to_be_hidden()
+            assert context.request.get(f"{origin}/api/hunts").status == 401
+        finally:
+            context.close()
+
+
 @pytest.mark.parametrize("width", [390, 1280])
 def test_hunt_browser_flow(browser_server: tuple[str, int], width: int) -> None:
     origin, _ = browser_server
