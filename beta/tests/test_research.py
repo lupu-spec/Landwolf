@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -10,7 +11,7 @@ from pydantic import ValidationError
 from research_fixture import public_response
 from sqlalchemy import select
 
-from landwolf import research
+from landwolf import auth, research
 from landwolf.db import Listing
 from landwolf.research import (
     CENSUS,
@@ -327,7 +328,13 @@ def test_api_requires_auth_csrf_and_retains_existing_data(
     assert client.post("/api/research", json=POINT).status_code == 401
 
 
-def test_api_uses_published_coordinates_and_rate_limits(client, signed_in, inventory) -> None:
+def test_api_uses_published_coordinates_and_rate_limits(
+    client, signed_in, inventory, monkeypatch
+) -> None:
+    # Keep all requests in one bucket even when the real clock crosses a minute.
+    now = auth.time.time()
+    monkeypatch.setattr(auth, "time", SimpleNamespace(time=lambda: now))
+
     def handler(request):
         response = public_response(request)
         if str(request.url).startswith(CENSUS):

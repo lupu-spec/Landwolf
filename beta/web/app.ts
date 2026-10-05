@@ -5,6 +5,8 @@ import {
 } from "./billing";
 import L from "leaflet";
 import { setupFeedback } from "./feedback";
+import { setupWolfAssistant } from "./wolf-assistant";
+import type { HelpView } from "./help-guide";
 import { bidRange, similarFilters } from "./property-context";
 import {
   propertyTrustCard,
@@ -274,6 +276,35 @@ let coverageCounties: {
   source: string;
   record_count: number;
 }[] = [];
+const assistant = setupWolfAssistant({
+  context: () => ({
+    authenticated: Boolean(csrf),
+    owner: isOwner,
+    access: billing.state?.enabled
+      ? billing.state.allowed
+      : feedback.allowed("explore"),
+    view: byId<HTMLDialogElement>("account-dialog").open
+      ? "account"
+      : dialog.open
+        ? "property"
+        : csrf
+          ? (currentView as HelpView)
+          : "auth",
+  }),
+  navigate: async (view) => {
+    if (view === "auth")
+      return !csrf && !byId<HTMLDialogElement>("account-dialog").open;
+    if (view === "property") return Boolean(csrf && dialog.open);
+    if (view === "account" || !csrf || (view === "sources" && !isOwner))
+      return false;
+    if (!byId<HTMLDialogElement>("account-dialog").open) {
+      dialog.close();
+      if (currentView !== view) await navigate(view);
+      return currentView === view;
+    }
+    return false;
+  },
+});
 const resaleNames = ["resale_low", "resale_likely", "resale_high"];
 let resaleOverrides = new Set<string>();
 const scenarioDrafts = new Map<
@@ -315,6 +346,8 @@ function notify(message: string): void {
 
 function clearSession(): void {
   csrf = "";
+  isOwner = false;
+  assistant.clear();
   decisions.clear();
   feedback.clear();
   billing.clear();
@@ -552,6 +585,7 @@ byId("signout").addEventListener("click", async () => {
 });
 
 async function enterWorkspace(info: SessionInfo): Promise<void> {
+  assistant.clear();
   csrf = info.csrf;
   const sessionToken = csrf;
   byId("account-email").textContent = info.email;
@@ -615,6 +649,7 @@ async function navigate(
   )
     view = billingDestination(billing.state);
   currentView = view;
+  assistant.update();
   if (view === "explore" && preset) fillForm(form, preset);
   const navigation = ++navigationSequence;
   const sessionToken = csrf;

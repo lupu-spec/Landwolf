@@ -19,6 +19,8 @@ with ZipFile(wheels[-1]) as wheel:
         "landwolf/static/assets/styles.css",
         "landwolf/static/assets/leaflet.css",
         "landwolf/static/assets/landwolf-logo.png",
+        "landwolf/static/assets/romulus.svg",
+        "landwolf/static/assets/remus.svg",
         "landwolf/static/assets/landscape.jpg",
     }
     missing = required - names

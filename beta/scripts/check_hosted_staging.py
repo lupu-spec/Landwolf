@@ -176,6 +176,18 @@ def main() -> None:
                     page.locator("#auth-submit").click()
                     expect(page.locator("#workspace")).to_be_visible()
                     registered = True
+                    page.locator(".site-header .wolf-chat-trigger").click()
+                    chat = page.locator("#wolf-chat-panel")
+                    expect(chat).to_be_visible()
+                    page.locator("#wolf-question").fill("How do I save a Hunt?")
+                    chat.get_by_role("button", name="Ask the wolves", exact=True).click()
+                    expect(page.locator("#wolf-chat-log")).to_contain_text(
+                        "Save Hunt & view matches"
+                    )
+                    expect(
+                        chat.get_by_role("button", name="Export feedback users", exact=True)
+                    ).to_have_count(0)
+                    chat.get_by_role("button", name="Collapse Romulus and Remus chat").click()
                     expect(page.locator("#coverage-nav")).to_be_hidden()
                     for endpoint in (
                         "/api/sources",

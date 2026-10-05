@@ -229,3 +229,17 @@ reject other accounts. Customer searches and Hunts continue to return their
 normal results; per-property evidence and source links remain available. Detailed
 feed diagnostics are omitted from customer search responses, while generic
 freshness warnings remain. No new administrative roles or billing rules are added.
+
+## Romulus and Remus app help
+
+The black and white twin wolf guides are available from **AI Chat with Romulus
+and Remus** in the toolbar or their collapsible launcher on every screen, including
+sign-in, membership and native property/account dialogs. They match questions to
+reviewed, built-in app guidance on the device. This release uses prepared answers,
+not a live generative model, and introduces no token charges or external AI calls.
+Romulus gives steps; Remus explains practical details. Guided walkthroughs highlight
+controls and navigate only on request; users submit forms and confirm actions.
+Unknown or ambiguous questions offer topics or the existing support email.
+Messages remain in bounded tab memory and clear on sign-out, account changes or
+reload. The assistant does not read form values, user lists or private property
+records. Existing authorization and billing gates continue to apply.
