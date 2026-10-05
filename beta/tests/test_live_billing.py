@@ -201,6 +201,7 @@ def test_checkout_is_live_bounded_and_never_authorizes_without_payment(paid_app)
     assert params["line_items[0][price]"] == "price_monthly"
     assert params["client_reference_id"] == user.id
     assert params["subscription_data[metadata][account_id]"] == user.id
+    assert not any(key.startswith("payment_method_types") for key in params)
     assert params["success_url"] == "http://testserver/?billing=return"
     assert not any("trial" in key for key in params)
     assert client.get("/api/billing/status").json()["allowed"] is False
