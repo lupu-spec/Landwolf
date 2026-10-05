@@ -112,3 +112,13 @@ After deliberate logout, another restart remained signed out in both engines.
 The isolated browser suite separately verifies that deleting cookies stays signed
 out. No live owner/subscriber was impersonated, mail sent, or payment made; one
 disposable non-cohort account was retained. Staging runtime remains v0.4.1.
+
+**Passed:** the inline Python HTTPS/version/health/image command in
+`.github/workflows/live-smoke.yml`,
+[run 37269486630](https://github.com/lupu-spec/Landwolf/actions/runs/37269486630).
+It independently confirmed production v0.4.4 and the exact deployed merge above,
+existing staging v0.4.1, database/schema health, expected fallback image bytes on
+both sites and the www HTTPS version endpoint. The ledger was synchronized into
+the staging branch as documentation only. Final diff checks passed; the local
+tracked worktree was clean after publication. Documentation commits do not change
+the deployed runtime revision.
