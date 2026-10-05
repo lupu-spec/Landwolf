@@ -2022,3 +2022,36 @@ they were not counted as passing checks.
   delivery: NOT VERIFIED. Render browser authentication expired. The read-only
   database connector cannot connect because the production database correctly
   blocks external connections; its network policy was not weakened.
+
+
+## Private Seller Listings candidate — 2026-10-05
+Baseline: observed production commit `baf4c1ffdd26710271dec6575d2442a877b1c4ac`. This candidate is not deployed. No live source collector or cron job is active.
+Adds a private-market category, representative fields, internal acquisition provenance, schema v9, a bounded normalized-feed importer, and an unapplied 12-hour cron blueprint. Upstream HTML extraction and full nationwide collection remain unimplemented/unverified because the target refused the inspection browser.
+Baseline gate repairs: corrected literal newline escapes in the existing checkout browser test and applied required formatting to billing code/styles. No billing logic, pricing, entitlements or checkout contracts changed.
+Commands ran from `beta/`, with `PYTHONPATH` set to this checkout; the existing matching Python and Node dependency environments were reused.
+| Command | Result | Evidence / limitation |
+| --- | --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts` | **Passed** | Exit 0. |
+| `npm run format:check` | **Passed** | Exit 0. |
+| `.venv/bin/ruff check landwolf tests scripts` | **Passed** | Exit 0. |
+| `npm run lint` | **Passed** | Exit 0. |
+| `.venv/bin/mypy landwolf` | **Passed** | Exit 0. |
+| `npm run typecheck` | **Passed** | Exit 0. |
+| `npm run test:unit` | **Passed** | 9 passed. |
+| `.venv/bin/pytest -q -m not browser` | **Passed** | 383 passed, 31 deselected, including 23 private import tests. |
+| `.venv/bin/python scripts/check_postgres.py` | **Failed** | Disposable landwolf_ci PostgreSQL database unavailable; no production database used. |
+| `.venv/bin/python scripts/check_restore.py` | **Failed** | Disposable GitHub PostgreSQL service container unavailable. |
+| `npm run build` | **Passed** | Exit 0. |
+| `.venv/bin/pytest -q -m browser` | **Failed** | 31 launch failures: pinned Chromium executable missing locally; no browser behavior verified. |
+| `.venv/bin/python -m build` | **Passed** | Exit 0. |
+| `.venv/bin/python scripts/check_package.py` | **Passed** | Exit 0. |
+| `.venv/bin/bandit -r landwolf` | **Passed** | Exit 0. |
+| `.venv/bin/pip-audit --local --skip-editable` | **Passed** | No known vulnerabilities reported. |
+| `npm audit --audit-level=moderate` | **Passed** | No known vulnerabilities reported. |
+| `npm run secrets` | **Passed** | Exit 0. |
+| `git diff --check` | **Passed** | Exit 0. |
+| `git status --short` | **Passed** | Exit 0. |
+
+Additional focused browser retry failed for the same missing pinned Chromium executable. Initial repository gate attempts failed on pre-existing checkout test syntax/formatting; corrected above before the final gate run. The initial private API test used the wrong response key; corrected to the actual `results` contract before the passing full suite.
+
+**Not run:** legacy root suite (legacy application untouched), actual upstream sync, hosted PostgreSQL/restore verification, source-specific scraper validation, production deploy, scheduled-job creation, and a second scheduled-run observation. No complete-inventory or 12-hour freshness claim is established. See `PRIVATE_SELLER_LISTINGS.md` for the exact contract and activation sequence.

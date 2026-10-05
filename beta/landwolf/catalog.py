@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from landwolf import private_listings
 from landwolf.db import Listing, SourceState
 from landwolf.national import PublicReader, retrieve
 from landwolf.provider import REFRESH_SECONDS, GLOProvider, SourceUnavailable
@@ -124,6 +125,10 @@ class Catalog:
     ) -> list[dict[str, Any]]:
         result = []
         for d in SOURCES:
+            if d.id == private_listings.SOURCE:
+                if matches(d, state, category, source_id):
+                    result.append(private_listings.status(self.factory))
+                continue
             if not matches(d, state, category, source_id):
                 continue
             if d.automated:

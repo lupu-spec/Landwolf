@@ -201,3 +201,8 @@ Fixture tests are isolated from runtime inventory and live checks.
 Original branding was supplied by the owner. Land photography and listing facts
 come from Texas GLO and Alaska DNR. Interactive basemaps use OpenStreetMap contributors with visible
 attribution and normal browser caching; no offline tile harvesting is implemented.
+
+## Private Seller Listings candidate
+
+The separate private-market import path, internal provenance, original seller links
+and proposed 12-hour schedule are documented in [PRIVATE_SELLER_LISTINGS.md](docs/PRIVATE_SELLER_LISTINGS.md). No private feed is connected by default.

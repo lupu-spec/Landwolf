@@ -311,7 +311,19 @@ class HuntEvent(Base):
     created_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
-SCHEMA_VERSION = 8
+class PrivateListingOrigin(Base):
+    """Internal acquisition provenance; never serialized into listing responses."""
+
+    __tablename__ = "lw2_private_listing_origins"
+    listing_id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    provider_key: Mapped[str] = mapped_column(String(40), index=True)
+    external_id: Mapped[str] = mapped_column(String(160))
+    acquisition_url: Mapped[str] = mapped_column(String(1000))
+    access_reference: Mapped[str] = mapped_column(String(300))
+    snapshot_id: Mapped[str] = mapped_column(String(160))
+
+
+SCHEMA_VERSION = 9
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -323,7 +335,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add live billing storage in v8; preserve existing user data."""
+    """Add internal listing provenance in v9; preserve existing user data."""
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
             # sqlite's legacy driver does not start a transaction for DDL.
@@ -335,7 +347,7 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [SCHEMA_VERSION]):
+        if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [8], [SCHEMA_VERSION]):
             raise RuntimeError("Unsupported beta schema version; migration required")
         Base.metadata.create_all(connection)
         # Intentionally irreversible. Do not archive or copy retired Saved data.

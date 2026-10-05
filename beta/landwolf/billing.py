@@ -120,7 +120,11 @@ class StripeAPI:
                     diagnostic = "unknown"
                     try:
                         error_payload = json.loads(response.read())
-                        error = error_payload.get("error", {}) if isinstance(error_payload, dict) else {}
+                        error = (
+                            error_payload.get("error", {})
+                            if isinstance(error_payload, dict)
+                            else {}
+                        )
                         if isinstance(error, dict):
                             raw_code = error.get("code")
                             raw_param = error.get("param")
@@ -141,7 +145,8 @@ class StripeAPI:
                     except (ValueError, httpx.HTTPError):
                         pass
                     logger.warning(
-                        "Stripe API request rejected: method=%s path=%s status=%s code=%s param=%s type=%s diagnostic=%s",
+                        "Stripe API request rejected: method=%s path=%s status=%s "
+                        "code=%s param=%s type=%s diagnostic=%s",
                         method,
                         path,
                         status,
@@ -507,8 +512,7 @@ def resolve_checkout(
             "/checkout/sessions",
             checkout_fields(customer, settings),
             idempotency_key=(
-                f"landwolf-live-checkout-{CHECKOUT_REQUEST_VERSION}-"
-                f"{customer.checkout_attempt}"
+                f"landwolf-live-checkout-{CHECKOUT_REQUEST_VERSION}-{customer.checkout_attempt}"
             ),
         )
     if (

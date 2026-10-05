@@ -6,19 +6,30 @@ import json
 import os
 import time
 
+import httpx
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 from landwolf.billing_diagnostics import environment_status
 from landwolf.catalog import Catalog
 from landwolf.config import Settings
-from landwolf.db import SCHEMA_VERSION, SourceRun, database, initialize
+from landwolf.db import SCHEMA_VERSION, SchemaVersion, SourceRun, database, initialize
+from landwolf.private_listings import sync as sync_private
 from landwolf.research import ResearchQuery, ResearchService
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "command", choices=["init-db", "sync", "check-research", "review-source", "approve-source"]
+        "command",
+        choices=[
+            "init-db",
+            "sync",
+            "sync-private",
+            "check-research",
+            "review-source",
+            "approve-source",
+        ],
     )
     parser.add_argument("--source")
     parser.add_argument("--fingerprint")
@@ -31,7 +42,22 @@ def main() -> None:
     settings = Settings()
     engine, factory = database(settings.database_url)
     try:
-        if args.command in {"review-source", "approve-source"}:
+        if args.command == "sync-private":
+            with factory() as session:
+                if session.scalars(select(SchemaVersion.version)).all() != [SCHEMA_VERSION]:
+                    raise SystemExit("Deploy the compatible schema before private listing import")
+            try:
+                count = asyncio.run(
+                    sync_private(factory, os.environ.get("LANDWOLF_PRIVATE_FEEDS", "[]"))
+                )
+            except (ValueError, TimeoutError, httpx.HTTPError, SQLAlchemyError):
+                # Validation errors can contain private configuration/input; do not echo them.
+                raise SystemExit(
+                    "Private listing import did not complete; "
+                    "inspect internal configuration and feed status."
+                ) from None
+            print(json.dumps({"collection": "private_seller_listings", "records_processed": count}))
+        elif args.command in {"review-source", "approve-source"}:
             if not args.source:
                 parser.error("--source is required")
             with factory() as session, session.begin():
