@@ -46,22 +46,22 @@ existing LandWolf logo; the logo is unchanged.
 
 ## Verification
 
-Run from `beta/` except where marked. Pending gates are not recorded as passes.
+Run from `beta/` except where marked. Final candidate [CI 37289099883](https://github.com/lupu-spec/Landwolf/actions/runs/37289099883) passed all application gates on the exact tree promoted in PR #22. Every Passed command below exited 0; unavailable local gates were supplied by hosted CI.
 
 | Command | Result |
 | --- | --- |
 | `uv lock --check`; `npm ci` | Passed, exit 0; project metadata only, no dependency upgrade |
-| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed locally, exit 0 |
-| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed locally, exit 0 |
-| `.venv/bin/mypy landwolf`; `npm run typecheck` | Passed locally, exit 0 |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed locally and in hosted CI, exit 0 |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed locally and in hosted CI, exit 0 |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | Passed locally and in hosted CI, exit 0 |
 | `npm run test:unit` | Passed, 13 tests, exit 0 |
 | `.venv/bin/pytest -q -m 'not browser'` | Passed, 411 tests, exit 0; 44 browser tests deselected for their separate gate |
-| `.venv/bin/python scripts/check_postgres.py`; `.venv/bin/python scripts/check_restore.py` | Not run locally: no disposable PostgreSQL; required in hosted CI |
-| `npm run build` | Passed locally, exit 0 |
-| `.venv/bin/pytest -q -m browser` | Not run locally: previous browser downloads returned invalid archives; required in hosted CI |
-| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed locally, exit 0; avatar assets included |
-| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | Passed locally, exit 0 |
-| `npm audit --audit-level=moderate`; `npm run secrets` | Passed locally, exit 0 |
+| `.venv/bin/python scripts/check_postgres.py`; `.venv/bin/python scripts/check_restore.py` | Passed in hosted CI: PostgreSQL 18 integration and exact backup/restore row digests across 23 tables; not run locally (no disposable service) |
+| `npm run build` | Passed locally and in hosted CI, exit 0 |
+| `.venv/bin/pytest -q -m browser` | Passed in hosted CI, 44 Chromium/WebKit journeys, exit 0; not run locally (previous downloads returned invalid archives) |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed locally and in hosted CI, exit 0; avatar assets included |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | Passed locally and in hosted CI, exit 0 |
+| `npm audit --audit-level=moderate`; `npm run secrets` | Passed locally and in hosted CI, exit 0 |
 | `PYTHONPATH=. .venv-legacy/bin/pytest -q` (root) | Passed, 53 tests, exit 0 |
 | `LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-wolves-sources.db .venv/bin/python -m landwolf.cli sync` | Passed, exit 0; eight implemented listing feeds ready in isolated verification database |
 | `git diff --check`; `git status --short` (root) | Passed; intended files only |
@@ -76,16 +76,51 @@ bucket for that test; all 13 request assertions are preserved. The complete suit
 then passed. Production rate limiting is unchanged.
 Existing FastAPI/httpx and npm environment deprecation warnings are unrelated.
 Avatar SVGs were rendered with Inkscape and visually inspected; its GTK warning
-was nonfatal. Browser screenshots, keyboard behavior, modal accessibility and
-download/payment/source regressions remain subject to the hosted browser gate.
+was nonfatal. Captured phone Chromium and desktop WebKit screenshots were visually reviewed.
+The hosted gate passed modal/focus, short-viewport composer, offline answers,
+XSS-as-text, bounded memory, guided navigation, sign-out clearing and owner-topic
+checks, plus all existing download/payment/source browser regressions.
 The first hosted browser run passed all 40 existing journeys. The four new
 journeys passed the guest/customer, offline, modal, short-viewport and sign-out
 checks, then failed because the test retained Create account mode before signing
 in as the existing owner fixture. The test now selects Sign in; its assertions
-are unchanged. A complete hosted rerun is required before promotion.
+are unchanged. The complete hosted rerun passed all 44 browser journeys before promotion.
 Physical-device keyboard and assistive-technology testing are not performed.
 
 ## Deployment
 
-Candidate only. Staging and production deployment are not claimed until the exact
-version/commit and live HTTPS/browser checks are observed and recorded here.
+[PR #22](https://github.com/lupu-spec/Landwolf/pull/22) merged as
+`02293e8f8fe953c20ad01abb63b2f520723ac29a`. Staging and production serve that exact v0.6.0 commit.
+
+| Environment | Deployment | Observed live UTC | Live verification |
+| --- | --- | --- | --- |
+| Staging | `dep-db1mpq9srm7s73cdvrgg` | 2026-10-05 09:25:51 | [Passed, run 37289871481](https://github.com/lupu-spec/Landwolf/actions/runs/37289871481) |
+| Production | `dep-db1mru6gekts73ejko50` | 2026-10-05 09:30:22 | [Passed, run 37289869411](https://github.com/lupu-spec/Landwolf/actions/runs/37289869411) |
+
+Both ran `.venv/bin/python scripts/check_hosted_staging.py --environment staging`
+or `--environment production`, respectively, with the exact commit supplied by
+`GITHUB_SHA`. Each passed version/commit/environment identity, HTTPS and health,
+expected billing mode, four Chromium/WebKit customer journeys (390/1440px), the
+new deployed chat question/answer, owner-only feedback user/export denial, and
+persistent-cookie browser restart/cache-clear/logout checks. Production also
+passed the www redirect. Production synthetic customers exercise the existing
+paywall; no paid subscription or real customer account was created or modified.
+One reserved example.com smoke account remains per environment, as the existing
+smoke harness specifies. Full entitled flows and owner guides ran in isolated CI.
+
+The existing production PostgreSQL 18 instance was observed available on its
+paid plan with no external IP allowlist. Recovery logs show successful WAL
+archival at 09:09:02 UTC; prior same-session backup-marker evidence is retained.
+Schema 9 is unchanged, and no restore, billing setting or infrastructure tier was
+changed. Physical-device keyboard/assistive-technology testing and live model
+inference are not performed.
+
+Additional hosted checks passed: `PYTHONPATH=. pytest -q` (53 legacy tests),
+`PYTHONPATH=. pytest -q tests/unit/test_deployment_preflight.py`, and
+`python scripts/deployment_preflight.py --environment staging` / `production` in
+the configured static preflight workflow. These are compatibility/configuration
+checks, not evidence of a new card charge or email delivery.
+
+Changed implementation files are `web/help-guide.ts`, `web/wolf-assistant.ts`,
+`web/app.ts`, `web/index.html`, `web/styles.css` and the two wolf SVGs; tests,
+package/live-check scripts, version metadata and documentation accompany them.

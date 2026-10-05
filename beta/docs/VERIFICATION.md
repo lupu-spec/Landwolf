@@ -2230,7 +2230,17 @@ payments were preserved. See [exact commands, evidence and limitations](FEEDBACK
 
 ### v0.6.0 — Romulus and Remus app guides
 
-Candidate introduces twin black/white wolf guides in a collapsible chat on every
-screen, contextual app answers and guided control walkthroughs. It uses reviewed
-local guidance with no paid model calls. See [commands, scope and outstanding gates](WOLF_ASSISTANT_RELEASE.md).
-No deployment is claimed until staging-first promotion and live checks complete.
+Twin black/white wolf guides, the AI Chat toolbar control, a collapsible chat on
+every screen, reviewed local answers and guided control walkthroughs are live.
+No paid model, message API or database change was introduced. Final candidate
+CI 37289099883 passed 411 backend, 13 frontend and 44 browser tests,
+PostgreSQL/23-table restore, builds and security; 53 legacy tests and static
+preflight passed separately. The initial rate-limit clock race and browser-test
+sign-in mode failures are recorded with their fixes in the linked report.
+PR #22 merged as `02293e8f8fe953c20ad01abb63b2f520723ac29a`. Staging
+`dep-db1mpq9srm7s73cdvrgg` became live at 09:25:51 UTC; production
+`dep-db1mru6gekts73ejko50` at 09:30:22 UTC on 2026-10-05. Both passed exact
+identity/HTTPS/health, four live customer browser journeys including the chat,
+privacy/payment boundaries and browser restart/cache/logout checks. Schema 9
+and existing infrastructure are preserved. See [exact commands, failures and
+limits](WOLF_ASSISTANT_RELEASE.md).
