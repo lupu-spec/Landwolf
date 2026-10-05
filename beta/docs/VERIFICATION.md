@@ -2215,7 +2215,15 @@ restart/cache/logout checks. See [exact commands and limitations](PERSISTENT_SIG
 
 ### v0.5.1 — feedback user privacy and CSV export
 
-The candidate hardens the existing owner-only feedback user list and adds an
-owner-authorized CSV download. See [scope, exact commands and remaining gates](FEEDBACK_USERS_RELEASE.md).
-Production is not yet claimed deployed; the report will be updated after hosted
-verification and staging-first promotion.
+The existing owner-only feedback user list now clears private details on session
+and authorization failures, and **Export users CSV** downloads registered users,
+roles and pilot dates. Final candidate CI 37282901379 passed 411 backend, 9 frontend,
+40 browser tests, PostgreSQL/23-table restore, packaging and all security gates;
+53 legacy tests and static preflight passed separately. The initial new-browser
+callback failure was fixed in the test harness without changing assertions.
+PR #21 merged as `32b3fcf0ebbe6507e7f7142262cb94930b4439e8`.
+Staging `dep-db1lua6gekts73efmfu0` became live at 08:27:15 UTC; production
+`dep-db1lvvu0tbcc73bg1re0` at 08:30:53 UTC on 2026-10-05. Both environments
+passed exact-version/HTTPS/health, four customer browser journeys, feedback user
+and export privacy boundaries, and session-persistence checks. Schema 9 and
+payments were preserved. See [exact commands, evidence and limitations](FEEDBACK_USERS_RELEASE.md).

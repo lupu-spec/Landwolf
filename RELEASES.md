@@ -3,6 +3,18 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.5.1 — private feedback user list and CSV export, live in both environments
+
+Feedback user details and CSV downloads require the existing owner administration
+privilege. Private UI state is cleared on sign-out and authorization failures.
+The new **Export users CSV** button downloads registered-user emails, roles and
+pilot dates through the browser. Schema 9, payment architecture and dependencies
+are preserved. [PR #21](https://github.com/lupu-spec/Landwolf/pull/21) merged as
+`32b3fcf0ebbe6507e7f7142262cb94930b4439e8`; all candidate gates passed, including
+411 backend, 9 frontend, 40 browser and 53 legacy tests, PostgreSQL/restore,
+packaging and security. The exact staging-tested commit is live in production.
+See [verification commands and limits](beta/docs/FEEDBACK_USERS_RELEASE.md).
+
 ## v0.5.0 — research decisions, live in staging and production
 
 Private research goals/questions, Hunt briefs, cost stress/comparisons,
@@ -19,8 +31,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.5.0 | `c333667f6a66b5dae870738387d01755f9ba485c` | 2026-10-05 07:42:50 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.5.0 | `c333667f6a66b5dae870738387d01755f9ba485c` | 2026-10-05 07:39:25 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.5.1 | `32b3fcf0ebbe6507e7f7142262cb94930b4439e8` | 2026-10-05 08:30:53 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.5.1 | `32b3fcf0ebbe6507e7f7142262cb94930b4439e8` | 2026-10-05 08:27:15 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -137,6 +149,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-05 05:47:01 | Production | v0.4.4 / `16b3c5818a5a095b1194fddf0abd46a82c1fb67c` | `dep-db1jj97avr4c73c850vg` | Renewable year-long sign-in; explicit logout/reset revocation retained. All gates and live Chromium/WebKit restart/cache/logout checks passed; billing, owner-only coverage and schema 8 preserved. |
 | 2026-10-05 07:39:25 | Beta | v0.5.0 / `c333667f6a66b5dae870738387d01755f9ba485c` | `dep-db1l7sbncjis73f9qhpg` | Private research decisions, shared Hunt briefs, cost stress/comparisons, reconsideration and print packets. Schema 9; all required gates and four live browser journeys passed before promotion. |
 | 2026-10-05 07:42:50 | Production | v0.5.0 / `c333667f6a66b5dae870738387d01755f9ba485c` | `dep-db1l9hh42hec73d7mj5g` | Exact staging-tested release promoted. HTTPS/version/health, live billing mode, four customer journeys and Chromium/WebKit restart/cache/logout checks passed; accounts, payment configuration and owner-only coverage preserved. |
+| 2026-10-05 08:27:15 | Beta | v0.5.1 / `32b3fcf0ebbe6507e7f7142262cb94930b4439e8` | `dep-db1lua6gekts73efmfu0` | Owner-only feedback users and CSV download; all required gates, four hosted browser journeys, session persistence and live privacy/API checks passed before promotion. |
+| 2026-10-05 08:30:53 | Production | v0.5.1 / `32b3fcf0ebbe6507e7f7142262cb94930b4439e8` | `dep-db1lvvu0tbcc73bg1re0` | Exact staging-tested commit promoted. HTTPS/version/health, live billing mode, four customer journeys, feedback user/export denial and persistent-session checks passed; schema 9 preserved. |
 
 ## Version and promotion rules
 
