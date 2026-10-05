@@ -8,7 +8,7 @@ Check each site's `/api/version` for the running version and immutable commit.
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.4.2 | `3f395b4a546c806d7eacd04229f3ac6a1f510659` | 2026-10-05 04:55:21 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.0-beta.7 | `4f52057d6499d420f6cfce6a9e97b1baa29d0dfe` | 2026-10-04 19:37:40 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.4.1 | `cf34432724b9aae2afa32987362a4df67f57eb86` | 2026-10-05 01:45:45 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -206,3 +206,6 @@ Append deployments below only after Render reports them live and HTTPS checks su
 - Daily source maintenance is enabled for around 08:00 America/Chicago.
 - Live HTTPS checks run independently on this ledger update. See
   `beta/docs/VERIFICATION.md` for exact commands, retained failures and limitations.
+
+The staging environment row was reconciled with its existing Render deployment
+`dep-db1g20ou01pc73e9dbi0`; staging was not redeployed for this production patch.
