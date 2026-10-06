@@ -62,7 +62,7 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
             expect(page.locator("#auth-view")).to_be_visible()
             expect(panel).to_be_hidden()
 
-        toolbar.click()
+        (launcher if width < 640 else toolbar).click()
         expect(
             panel.get_by_role("button", name="Collapse Romulus and Remus chat")
             if width < 1100

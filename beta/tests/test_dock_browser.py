@@ -21,7 +21,25 @@ def test_glass_dock_navigation(browser_server, engine_name, width):
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(origin)
         expect(page.locator("#main-nav")).to_be_hidden()
-        expect(page.locator(".site-header .wolf-chat-trigger")).to_be_visible()
+        if width < 640:
+            expect(page.locator(".navigation-dock")).to_be_hidden()
+            expect(
+                page.get_by_role("button", name="AI Chat with Romulus and Remus", exact=True)
+            ).to_have_count(1)
+        else:
+            expect(page.locator(".site-header .wolf-chat-trigger")).to_be_visible()
+        if width == 390:
+            # Boundary resize and a short viewport model space left by a keyboard.
+            page.set_viewport_size({"width": 640, "height": 950})
+            expect(page.locator(".navigation-dock")).to_be_visible()
+            page.set_viewport_size({"width": 639, "height": 450})
+            expect(page.locator(".navigation-dock")).to_be_hidden()
+            page.get_by_label("Email address", exact=True).focus()
+            expect(page.locator("#wolf-chat-launcher")).to_be_in_viewport()
+            page.locator("#wolf-chat-launcher").click()
+            expect(page.locator("#wolf-chat-panel")).to_be_visible()
+            page.get_by_role("button", name="Collapse Romulus and Remus chat").click()
+            page.set_viewport_size({"width": width, "height": 950})
         page.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
@@ -112,6 +130,12 @@ def test_glass_dock_navigation(browser_server, engine_name, width):
         page.get_by_role("button", name="Sign out", exact=True).click()
         expect(page.locator("#coverage-nav")).to_be_hidden()
         expect(page.locator("#main-nav")).to_be_hidden()
-        expect(page.locator(".site-header .wolf-chat-trigger")).to_be_visible()
+        if width < 640:
+            expect(page.locator(".navigation-dock")).to_be_hidden()
+            expect(
+                page.get_by_role("button", name="AI Chat with Romulus and Remus", exact=True)
+            ).to_have_count(1)
+        else:
+            expect(page.locator(".site-header .wolf-chat-trigger")).to_be_visible()
         assert not errors
         browser.close()
