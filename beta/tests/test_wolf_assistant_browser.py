@@ -100,7 +100,7 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         context.set_offline(False)
         question.press("Escape")
         expect(panel).to_be_hidden()
-        expect(toolbar).to_be_focused()
+        expect(launcher if width < 640 else toolbar).to_be_focused()
         assert not page.locator(".site-header").evaluate("el => el.inert")
         open_chat()
         expect(log).to_contain_text("PRIVATE-CHAT-FIXTURE")

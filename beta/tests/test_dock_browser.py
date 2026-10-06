@@ -40,6 +40,8 @@ def test_glass_dock_navigation(browser_server, engine_name, width):
             expect(page.locator("#wolf-chat-panel")).to_be_visible()
             page.get_by_role("button", name="Collapse Romulus and Remus chat").click()
             page.set_viewport_size({"width": width, "height": 950})
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path=f"test-results/mobile-login-{engine_name}-{width}.png")
         page.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
