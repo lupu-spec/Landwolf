@@ -118,6 +118,15 @@ class AccountEmail(Base):
     verified_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
+class AccountRestriction(Base):
+    __tablename__ = "lw2_account_restrictions"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    suspended: Mapped[bool] = mapped_column(Boolean, default=False)
+    reason: Mapped[str] = mapped_column(String(500), default="")
+    updated_by: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
 class AccountAction(Base):
     __tablename__ = "lw2_account_actions"
     token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
@@ -183,6 +192,21 @@ class AdminAuditLog(Base):
         Index("ix_lw2_admin_audit_target_created", "target_account_id", "created_at"),
         Index("ix_lw2_admin_audit_action_created", "action", "created_at"),
     )
+
+
+class AccountAdminAudit(Base):
+    __tablename__ = "lw2_account_admin_audit"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    actor_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    target_account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("lw2_accounts.id"), nullable=True
+    )
+    contact_id: Mapped[str] = mapped_column(String(36), index=True)
+    action: Mapped[str] = mapped_column(String(80))
+    reason: Mapped[str] = mapped_column(String(500))
+    previous_state: Mapped[dict[str, Any]] = mapped_column(JSON)
+    new_state: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
 class FeedbackEnrollment(Base):
@@ -336,7 +360,7 @@ class ResearchGoal(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
 
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -348,7 +372,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add CRM storage in v10; preserve existing accounts and research."""
+    """Add owner account administration in v11; preserve account and billing history."""
     from landwolf.crm_core import Contact, CRMBase, Project
 
     with engine.begin() as connection:
@@ -362,7 +386,20 @@ def initialize(engine: Engine) -> None:
             if inspect(connection).has_table(SchemaVersion.__tablename__)
             else []
         )
-        if versions not in ([], [1], [2], [3], [4], [5], [6], [7], [8], [9], [SCHEMA_VERSION]):
+        if versions not in (
+            [],
+            [1],
+            [2],
+            [3],
+            [4],
+            [5],
+            [6],
+            [7],
+            [8],
+            [9],
+            [10],
+            [SCHEMA_VERSION],
+        ):
             raise RuntimeError("Unsupported application schema version; migration required")
         Base.metadata.create_all(connection)
         CRMBase.metadata.create_all(connection)

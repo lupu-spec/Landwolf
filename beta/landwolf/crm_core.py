@@ -12,7 +12,17 @@ import uuid
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, ValidationInfo, field_validator
-from sqlalchemy import JSON, Boolean, ForeignKey, Index, Integer, String, UniqueConstraint, select
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    UniqueConstraint,
+    select,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 INDUSTRIES = {
@@ -95,6 +105,29 @@ class Contact(CRMBase):
         UniqueConstraint("project_id", "external_id", name="uq_crm_project_identity"),
         UniqueConstraint("project_id", "email", name="uq_crm_project_email"),
         Index("ix_crm_project_created", "project_id", "created_at"),
+    )
+
+
+class Reservation(CRMBase):
+    __tablename__ = "crm_access_reservations"
+    contact_id: Mapped[str] = mapped_column(ForeignKey("crm_contacts.id"), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))
+    days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    state: Mapped[str] = mapped_column(String(20))
+    owner_id: Mapped[str] = mapped_column(String(36))
+    reason: Mapped[str] = mapped_column(String(500))
+    created_at: Mapped[int] = mapped_column(Integer)
+    activated_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    expires_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    __table_args__ = (
+        CheckConstraint("kind IN ('trial','complimentary')", name="ck_crm_reservation_kind"),
+        CheckConstraint(
+            "state IN ('reserved','activated','revoked')", name="ck_crm_reservation_state"
+        ),
+        CheckConstraint(
+            "days IS NULL OR (days >= 1 AND days <= 365)", name="ck_crm_reservation_days"
+        ),
+        CheckConstraint("kind != 'trial' OR days IS NOT NULL", name="ck_crm_trial_duration"),
     )
 
 
@@ -222,10 +255,40 @@ def capture(session: Session, project_id: str, body: Intake, *, source: str) -> 
         if existing.email != email:
             raise ValueError("Registration identity conflicts with an existing contact")
         return existing
-    if session.scalar(
-        select(Contact.id).where(Contact.project_id == project_id, Contact.email == email)
-    ):
-        raise ValueError("Registration identity conflicts with an existing contact")
+    manual = session.scalar(
+        select(Contact)
+        .where(Contact.project_id == project_id, Contact.email == email)
+        .with_for_update()
+    )
+    if manual:
+        if (
+            project_id != "landwolf"
+            or source != "registration"
+            or manual.source != "owner_manual"
+            or not manual.external_id.startswith("manual:")
+        ):
+            raise ValueError("Registration identity conflicts with an existing contact")
+        # Registration attaches the existing record; never duplicate or discard owner notes.
+        manual.external_id = body.external_id
+        for field in (
+            "full_name",
+            "company",
+            "phone",
+            "job_title",
+            "industry",
+            "contact_type",
+            "primary_use",
+            "use_details",
+        ):
+            if not getattr(manual, field):
+                setattr(manual, field, getattr(body, field))
+        manual.marketing_opt_in = body.marketing_opt_in
+        manual.consent_version = body.consent_version
+        manual.consent_recorded_at = int(time.time())
+        manual.revision += 1
+        manual.updated_at = int(time.time())
+        record_activity(session, manual.id, body.external_id, "account_linked")
+        return manual
     if body.marketing_opt_in and not body.consent_version:
         raise ValueError("Consent wording version is required for marketing opt-in")
     now = int(time.time())

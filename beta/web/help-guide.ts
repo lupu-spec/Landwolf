@@ -30,6 +30,7 @@ export type HelpTopic = {
   views: HelpView[];
   tour?: HelpStep[];
   owner?: boolean;
+  accountAction?: "reset" | "profile";
 };
 export const MAX_QUESTION = 600;
 export const SUPPORT_EMAIL = "support.landwolf@gmail.com";
@@ -45,7 +46,7 @@ const topics: HelpTopic[] = [
       "Open Explore properties for a one-time search, or Hunt to save your criteria.",
       "Open a property to review its evidence, research questions and deal scenario.",
     ],
-    tip: "We’re Romulus (the black wolf) and Remus (the white wolf), your twin guides. Our prepared answers explain LandWolf’s controls; they do not inspect your private records.",
+    tip: "We’re Romulus (the black wolf) and Remus (the white wolf), your twin guides. Ask us to reset your password or update your profile. Account forms use your signed-in account and only save when you confirm.",
     tour: [
       {
         view: "auth",
@@ -76,12 +77,39 @@ const topics: HelpTopic[] = [
     keywords:
       "login log in sign in password reset forgot account email verification verify locked access account recovery",
     views: ["auth", "account"],
+    accountAction: "reset",
     steps: [
       "Use Sign in with the email you registered and your password.",
-      "For a forgotten password, choose Forgot password? on the sign-in screen.",
+      "Choose Request password reset here, or Forgot password? on the sign-in screen.",
+      "Confirm the email request, then open the single-use link sent to your account email to choose a new password.",
       "If email delivery is unavailable, use Contact support for account assistance.",
     ],
     tip: "Do not share passwords, reset links, card numbers or session details with us. Password reset links expire and a completed reset signs out existing sessions.",
+  },
+  {
+    id: "profile",
+    title: "Update my profile",
+    keywords:
+      "update edit change correct profile personal data details information contact name company phone number job title industry role goals preferences crm email",
+    views: ["billing", "account"],
+    accountAction: "profile",
+    steps: [
+      "Sign in, then choose Review my profile here to open your own CRM details.",
+      "Edit your name, company, phone, job title, industry, role, intended use or product-news preference.",
+      "Choose Review my changes, check the summary, then Save my changes.",
+    ],
+    tip: "We only save fields you review in the account form. This does not delete your account or CRM history. Login email corrections require support; billing and owner access controls are not editable here.",
+  },
+  {
+    id: "no-delete",
+    title: "Account data cannot be deleted in chat",
+    keywords: "delete erase purge remove account profile data record history",
+    views: [],
+    steps: [
+      "Romulus and Remus can help correct your profile or request a password reset.",
+      "Chat cannot delete accounts, CRM contacts or their history. Contact support for other account requests.",
+    ],
+    tip: "Your request has not deleted or changed anything. Profile changes always require your review and confirmation in an account form.",
   },
   {
     id: "session",
@@ -462,6 +490,32 @@ export function answerHelp(
   if (!question.trim() || question.length > MAX_QUESTION)
     return { kind: "invalid", topics: [] };
   const allowed = availableTopics(context);
+  const words = new Set(helpTokens(question));
+  const deleting = ["delete", "erase", "purge", "remove"].some((word) =>
+    words.has(word),
+  );
+  if (
+    deleting &&
+    ["account", "profile", "data", "record", "history"].some((word) =>
+      words.has(word),
+    )
+  ) {
+    return {
+      kind: "answer",
+      topics: allowed.filter((topic) => topic.id === "no-delete"),
+    };
+  }
+  if (
+    words.has("password") &&
+    ["reset", "forgot", "forgotten", "change", "update"].some((word) =>
+      words.has(word),
+    )
+  ) {
+    return {
+      kind: "answer",
+      topics: allowed.filter((topic) => topic.id === "login"),
+    };
+  }
   if (
     /^(next|more|tell me more|what next|what about that)[?.!\s]*$/i.test(
       question.trim(),

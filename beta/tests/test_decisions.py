@@ -12,6 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from test_hunt import criteria, record
 
 from landwolf.db import (
+    SCHEMA_VERSION,
     Account,
     Base,
     Listing,
@@ -315,7 +316,7 @@ def test_real_v8_migration_is_additive_and_idempotent(tmp_path):
     initialize(engine)
     with factory() as session:
         assert session.get(Account, "retained").password_hash == "fixture"
-        assert session.scalars(select(SchemaVersion.version)).all() == [10]
+        assert session.scalars(select(SchemaVersion.version)).all() == [SCHEMA_VERSION]
     assert inspect(engine).has_table("lw2_research_cases")
     assert inspect(engine).has_table("lw2_research_goals")
     engine.dispose()

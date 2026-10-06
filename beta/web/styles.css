@@ -2784,6 +2784,62 @@ select {
   padding: 12px 12px 10px;
   background: #fff;
 }
+.wolf-account-card {
+  border: 1px solid #ccddf0;
+  border-radius: 16px;
+  background: #fff;
+  padding: 14px;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+.wolf-account-card h3 {
+  margin-top: 0;
+}
+.wolf-account-card p,
+.wolf-account-card li {
+  font-size: 0.875rem;
+}
+.wolf-account-card fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+.wolf-account-card label {
+  display: grid;
+  gap: 5px;
+}
+.wolf-account-card input,
+.wolf-account-card select,
+.wolf-account-card textarea {
+  min-width: 0;
+  width: 100%;
+  font-size: 16px;
+}
+.wolf-account-card .wolf-account-consent {
+  display: flex;
+  align-items: flex-start;
+}
+.wolf-account-consent input {
+  width: auto;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.wolf-account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.wolf-account-actions button {
+  max-width: 100%;
+  white-space: normal;
+}
+.wolf-account-review ul {
+  padding-left: 20px;
+}
 .wolf-composer {
   display: flex;
   align-items: flex-end;
@@ -3105,4 +3161,33 @@ select {
   .crm-facts dd {
     margin-bottom: 0.5rem;
   }
+}
+
+.crm-admin-section {
+  margin-block: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--line, #d8e0e8);
+  border-radius: 12px;
+}
+.crm-admin-section summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.crm-admin-section > label {
+  display: block;
+  margin-block: 1rem;
+}
+.crm-admin-section input,
+.crm-admin-section select,
+.crm-admin-section textarea {
+  max-width: 100%;
+  min-width: 0;
+}
+.crm-admin-section .crm-actions {
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.crm-admin-section .crm-facts dd {
+  overflow-wrap: anywhere;
 }

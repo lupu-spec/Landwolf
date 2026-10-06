@@ -20,6 +20,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from landwolf.config import Settings
+from landwolf.crm_access import ensure_enabled
 from landwolf.crm_core import CONSENT_TEXT, CONSENT_VERSION, Intake, capture, record_activity
 from landwolf.db import Account, LoginSession, RateBucket
 from landwolf.schemas import Credentials, Registration
@@ -106,6 +107,7 @@ def authenticate(
     account = session.get(Account, login.account_id)
     if account is None:
         raise HTTPException(401, "Sign in to access LandWolf")
+    ensure_enabled(session, account, settings)
     if write:
         origin_guard(request, settings)
         supplied_csrf = request.headers.get("x-csrf-token", "")
@@ -229,7 +231,7 @@ def sign_in(
                 + CONSENT_TEXT,
             )
             session.commit()
-        except IntegrityError as exc:
+        except (IntegrityError, ValueError) as exc:
             session.rollback()
             raise HTTPException(
                 400, "Unable to create account. Try signing in or contact support."
@@ -247,4 +249,5 @@ def sign_in(
         if PASSWORDS.check_needs_rehash(account.password_hash):
             with password_work():
                 account.password_hash = PASSWORDS.hash(credentials.password)
+    ensure_enabled(session, account, settings)
     return establish(account, request, response, session, settings)

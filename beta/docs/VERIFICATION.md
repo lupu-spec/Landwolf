@@ -2284,3 +2284,29 @@ the table is now reconciled to the observed deployments. Independent live checks
 passed. Production direct SQL inspection and owner-session live CRM review were
 not run; read-only access limitations and all exact command results are retained
 in [the release report](L91_CRM_RELEASE.md).
+
+## CRM owner administration v0.9.0 — local candidate — 2026-10-06
+
+Implementation `cbbdca8509024c633516be6e616ecad1615d695f` adds manual contacts,
+profile/email corrections, trial reservations and grants, complimentary access,
+account suspension/restoration, session revocation and recovery-mail controls.
+Schema 11 additively stores restrictions, reservations and account audit events.
+**Passed:** 443 backend, 15 frontend and 53 legacy tests; format/lint/types,
+production build, package validation, security checks and a separate eight-feed
+source sync. **Failed:** local browser launch/install because executables could
+not be downloaded. **Not run:** complete browser, disposable PostgreSQL/restore,
+hosted CI and live deployment checks. Automatic approval review blocked GitHub
+publication pending explicit user approval. Neither staging nor production was
+changed. See [exact commands, resolved failures and limitations](CRM_ACCOUNT_ADMIN_RELEASE.md).
+
+## Romulus/Remus account help — v0.9.0 candidate extension — 2026-10-06 UTC
+
+Customers can request an emailed password reset or review and save their own CRM
+profile through the guide chat. No deletion or owner privilege is exposed. **Passed:**
+468 backend, 16 frontend and 53 legacy tests; format/lint/types, production build,
+package and security gates, plus a dedicated local source sync. **Failed:** the
+new browser suite could not launch missing Chromium. **Not run:** full browser,
+disposable PostgreSQL/restore, hosted CI, live deployment and real-mailbox checks.
+The initial TypeScript undefined-control error was fixed before the final gates.
+GitHub publication still awaits explicit approval after the prior automatic
+review block. See [exact commands and scope](WOLF_ACCOUNT_HELP_RELEASE.md).
