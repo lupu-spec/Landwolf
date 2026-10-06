@@ -1,5 +1,8 @@
 # Romulus and Remus account help — v0.9.0 candidate
 
+> Historical candidate notes below. v0.9.0 is now deployed; see the
+> [current verification and email limitation](CRM_ACCOUNT_HELP_DEPLOYMENT.md).
+
 This adds customer self-service to the unpublished CRM owner-administration
 candidate on `codex/crm-account-administration`, following `ed39e1f`. Version 0.9.0
 has not been deployed; this extension remains part of that candidate. Observed

@@ -135,7 +135,7 @@ use only the disposable CI PostgreSQL database; hosted backup restoration is a
 separate operational procedure.
 
 Scope: contact capture/segmentation/follow-up workspace and project intake, not a
-full sales ERP. The v0.9.0 candidate adds the owner and self-service profile
+full sales ERP. The v0.9.0 release adds the owner and self-service profile
 controls described below. No account/contact deletion control is provided. No
 external project is connected until its backend implements the intake call.
 
@@ -144,8 +144,8 @@ property reference: https://knowledge.hubspot.com/properties/hubspots-default-co
 
 ## Owner account administration (v0.9.0)
 
-This version is a local candidate pending publication and deployment; see the
-release reports for observed verification and environment status.
+Version 0.9.0 is deployed in both environments. See
+[observed verification and email setup limitation](CRM_ACCOUNT_HELP_DEPLOYMENT.md).
 
 After owner sign-in, open **L91 CRM**. **Add contact** accepts a name, email,
 project and use, plus optional profile fields. Opening a contact exposes **Edit
@@ -201,7 +201,7 @@ activity. No account, subscription, password, source inventory or existing note
 is reset. Migration from schema 10 is additive and idempotent. Rollback requires
 a schema-11-compatible fix-forward release. Never drop the new tables in production.
 
-## Customer account help through Romulus and Remus (v0.9.0 candidate)
+## Customer account help through Romulus and Remus (v0.9.0)
 
 Users can ask either wolf **“Reset my password”** or **“Update my profile.”**
 The chat offers an explicit account form; question text is not parsed into an

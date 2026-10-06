@@ -3,6 +3,18 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.9.0 — owner administration and chat account help, live in both environments
+
+Owner CRM account administration and customer chat profile/reset-request tools
+are deployed. PR #25 merged as `610457a303894f4b6f592387f489d5af309511c2`, with
+application tree identical to staging candidate `19c2b7cf42216efe1e2c7e0614b9d943dec266b3`.
+Candidate gates passed 468 backend, 16 frontend, 68 browser and 53 legacy tests,
+PostgreSQL/29-table restore, package and security. Both environments passed
+exact-release HTTPS/health/browser/session checks. Schema 11 preserves existing
+records. **Email delivery remains disabled; live reset mail is not operational.**
+See [commands, deployment evidence and remaining setup](beta/docs/CRM_ACCOUNT_HELP_DEPLOYMENT.md).
+The earlier candidate notes below are historical and superseded by this release.
+
 ## v0.8.0 — L91 LLC CRM and registration profiles, live in both environments
 
 Adds private multi-project contact capture, owner filters, lifecycle/tags/follow-up,
@@ -72,8 +84,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.8.0 | `7c3dc29889c1894bce34c55db29d1a591179bd66` | 2026-10-05 12:54:15 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.8.0 | `476b683bca5bc56c67984a38c49298a63673f23c` | 2026-10-05 12:50:41 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.0 | `610457a303894f4b6f592387f489d5af309511c2` | 2026-10-06 05:42:47 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.9.0 | `19c2b7cf42216efe1e2c7e0614b9d943dec266b3` | 2026-10-06 05:39:11 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -198,6 +210,9 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-05 10:45:48 | Production | v0.7.0 / `b35ef5dbded72e3553282616808f276d39ff7a6b` | `dep-db1nv7m0tbcc73bo70pg` | Exact staging-tested release; four live chat/customer journeys, privacy/payment boundaries, HTTPS/version/health and browser restart/cache/logout checks passed. Schema 9 and existing infrastructure retained. |
 | 2026-10-05 12:50:41 | Beta | v0.8.0 / `476b683bca5bc56c67984a38c49298a63673f23c` | `dep-db1ppmqd0e5s738s9im0` | L91 LLC CRM, registration profiles, owner workspace and project intake; schema 10. All candidate gates and live HTTPS/health/browser/session checks passed before promotion. |
 | 2026-10-05 12:54:15 | Production | v0.8.0 / `7c3dc29889c1894bce34c55db29d1a591179bd66` | `dep-db1prh7avr4c73d2o2ag` | Identical staging-tested runtime tree. Exact release/HTTPS/health, four customer browser journeys and persistent-session checks passed; accounts, billing settings and infrastructure preserved. |
+
+| 2026-10-06 05:39:11 | Beta | v0.9.0 / `19c2b7cf42216efe1e2c7e0614b9d943dec266b3` | `dep-db28igbbc2fs73flvjb0` | All candidate gates passed; exact live identity/HTTPS/health, four browser journeys, persistence and additional account-help API checks passed. Mail remains disabled. |
+| 2026-10-06 05:42:47 | Production | v0.9.0 / `610457a303894f4b6f592387f489d5af309511c2` | `dep-db28k8uk1f9s739hmqc0` | Identical staging-tested application tree; exact release, custom-domain HTTPS/health, four customer browser journeys and persistent sessions passed. Owner session/CRM inspected; billing retained. Mail setup remains. |
 
 ## Version and promotion rules
 

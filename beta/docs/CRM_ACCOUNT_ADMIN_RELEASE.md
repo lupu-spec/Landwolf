@@ -1,5 +1,8 @@
 # L91 LLC CRM owner administration — v0.9.0 candidate
 
+> Historical candidate notes below. v0.9.0 is now deployed; see the
+> [current verification and email limitation](CRM_ACCOUNT_HELP_DEPLOYMENT.md).
+
 The owner can add contacts before registration, edit profile details, correct
 login emails, manage trial/complimentary access and feedback pilot invitations,
 suspend/restore users, revoke sessions, and request account recovery mail.

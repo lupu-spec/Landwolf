@@ -2310,3 +2310,14 @@ disposable PostgreSQL/restore, hosted CI, live deployment and real-mailbox check
 The initial TypeScript undefined-control error was fixed before the final gates.
 GitHub publication still awaits explicit approval after the prior automatic
 review block. See [exact commands and scope](WOLF_ACCOUNT_HELP_RELEASE.md).
+
+
+## v0.9.0 deployed — 2026-10-06
+
+Candidate CI 37418762391 passed 468 backend, 16 frontend, 68 browser tests,
+PostgreSQL/29-table restore, format/lint/types/build/package/security. Separate
+legacy/preflight passed. Staging and production exact-release hosted checks
+37419507329 and 37419788789 passed. Existing owner session, CRM controls,
+aggregate database counts and eight live source refreshes were inspected.
+Real reset-email delivery remains unavailable: no runtime sender credentials.
+See [full commands, resolved script failure, deployments and limits](CRM_ACCOUNT_HELP_DEPLOYMENT.md).
