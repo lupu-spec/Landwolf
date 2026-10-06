@@ -162,6 +162,27 @@ def main() -> None:
         )
         require(response.status_code == 201, "PostgreSQL registration failed")
         headers["X-CSRF-Token"] = response.json()["csrf"]
+        own_profile = client.get("/api/account/profile").json()["profile"]
+        self_edit = {key: value for key, value in own_profile.items() if key != "email"}
+        self_edit["company"] = "PostgreSQL profile fixture"
+        require(
+            client.patch("/api/account/profile", json=self_edit, headers=headers).status_code
+            == 200,
+            "PostgreSQL self-profile write failed",
+        )
+        require(
+            client.patch("/api/account/profile", json=self_edit, headers=headers).status_code
+            == 409,
+            "PostgreSQL stale self-profile write accepted",
+        )
+        require(
+            client.get("/api/account/profile").json()["profile"]["company"] == self_edit["company"],
+            "PostgreSQL self-profile did not persist",
+        )
+        require(
+            client.delete("/api/account/profile", headers=headers).status_code == 405,
+            "Unexpected profile deletion route",
+        )
         with app.state.factory() as session, session.begin():
             account = session.scalar(select(Account).where(Account.email == credentials["email"]))
             login = session.scalar(
@@ -362,6 +383,50 @@ def main() -> None:
         require(edited.status_code == 200, "PostgreSQL CRM edit failed")
         require(
             client.get("/api/admin/crm/contacts.csv").status_code == 200, "PostgreSQL CSV failed"
+        )
+        manual = client.post(
+            "/api/admin/crm/contacts",
+            headers=owner_headers,
+            json={
+                "email": f"crm-admin-{suffix}@example.com",
+                "full_name": "Postgres Admin Fixture",
+                "primary_use": "exploring",
+            },
+        )
+        require(manual.status_code == 201, "PostgreSQL manual contact creation failed")
+        manual_row = manual.json()
+        manual_url = "/api/admin/crm/contacts/" + manual_row["id"]
+        reservation_body = {
+            "revision": manual_row["revision"],
+            "action": "trial",
+            "days": 14,
+            "reason": "Synthetic PostgreSQL trial",
+        }
+        reserved = client.post(manual_url + "/access", headers=owner_headers, json=reservation_body)
+        require(
+            reserved.status_code == 200 and reserved.json()["state"] == "reserved",
+            "PostgreSQL trial reservation failed",
+        )
+        require(
+            client.post(
+                manual_url + "/access", headers=owner_headers, json=reservation_body
+            ).status_code
+            == 409,
+            "PostgreSQL stale administration update accepted",
+        )
+        current_manual = client.get(manual_url).json()["contact"]
+        require(
+            client.post(
+                manual_url + "/access",
+                headers=owner_headers,
+                json={
+                    "revision": current_manual["revision"],
+                    "action": "revoke",
+                    "reason": "Synthetic PostgreSQL revocation",
+                },
+            ).status_code
+            == 200,
+            "PostgreSQL reservation revocation failed",
         )
         invited = client.post(
             f"/api/admin/accounts/{participant_id}/feedback-pilot",

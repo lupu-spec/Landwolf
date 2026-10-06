@@ -324,3 +324,25 @@ The staging environment row was reconciled with its existing Render deployment
   WebKit profile restart, cache-clear and logout persistence checks.
 - Payment gates, owner-only coverage, accounts, schema and infrastructure retained.
   Staging was not redeployed. See [commands, evidence and limits](beta/docs/PERSISTENT_SIGN_IN_RELEASE.md).
+
+## v0.9.0 — CRM owner administration candidate, not deployed
+
+- Local implementation `cbbdca8509024c633516be6e616ecad1615d695f` adds contact
+  creation/editing, account administration, trial reservations, access grants,
+  session revocation and recovery-mail controls; schema 11 is additive.
+- Local gates passed 443 backend, 15 frontend and 53 legacy tests, builds,
+  packaging, formatting, lint, types and security. Browser launch/download failed
+  locally; hosted browser and disposable PostgreSQL/restore gates remain pending.
+- GitHub publication was blocked by automatic approval review pending explicit
+  approval. No staging or production deployment occurred. Current environment
+  records above remain unchanged. See [commands and limitations](beta/docs/CRM_ACCOUNT_ADMIN_RELEASE.md).
+
+### v0.9.0 candidate extension — customer account help, not deployed
+
+Romulus and Remus now offer explicit password-reset requests and customer CRM
+profile review/save forms. Email token verification remains required for password
+resets. No deletion route or customer access to owner CRM controls is added.
+Local gates passed 468 backend, 16 frontend and 53 legacy tests, build/package and
+security. Browser launch failed locally; hosted browser/PostgreSQL/restore and
+live checks remain pending. Publication is still awaiting explicit approval; no
+environment row or deployment changed. See [verification](beta/docs/WOLF_ACCOUNT_HELP_RELEASE.md).

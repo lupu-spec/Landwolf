@@ -8,10 +8,13 @@ import {
   type HelpTopic,
   type HelpView,
 } from "./help-guide";
+import { setupWolfAccount } from "./wolf-account";
 
 type Bridge = {
   context: () => HelpContext;
   navigate: (view: HelpView) => Promise<boolean>;
+  api: <T>(path: string, method?: string, body?: unknown) => Promise<T>;
+  session: () => string;
 };
 const MAX_TURNS = 12;
 function node<K extends keyof HTMLElementTagNameMap>(
@@ -55,6 +58,7 @@ function visible(element: HTMLElement): boolean {
 }
 
 export function setupWolfAssistant(bridge: Bridge) {
+  const accountHelp = setupWolfAccount(bridge.api, bridge.session);
   const root = node("aside", "", "wolf-assistant");
   root.id = "wolf-assistant";
   root.setAttribute("aria-label", "Romulus and Remus app help");
@@ -88,7 +92,7 @@ export function setupWolfAssistant(bridge: Bridge) {
   const infoTitle = node("summary", "Guide-based help · About & privacy");
   const disclosure = node(
     "p",
-    "Guide-based help • prepared answers matched on your device. Messages stay in this tab and clear on sign-out or reload.",
+    "Guide-based help • prepared answers matched on your device. Messages stay in this tab and clear on sign-out or reload. Account forms securely read your own CRM profile; only confirmed changes and reset requests are sent to LandWolf.",
     "wolf-disclosure",
   );
   const support = node("a", "Contact support ↗", "wolf-support");
@@ -272,7 +276,7 @@ export function setupWolfAssistant(bridge: Bridge) {
     turn.append(
       bubble(
         "Romulus",
-        "I’ll show you where to go and what to do. Ask a question or choose a topic.",
+        "I’ll show you where to go and what to do. You can also ask me to reset your password or update your profile.",
       ),
       bubble(
         "Remus",
@@ -301,6 +305,18 @@ export function setupWolfAssistant(bridge: Bridge) {
       bubble("Romulus", topic.title, topic.steps),
       bubble("Remus", topic.tip),
     );
+    const accountAction = topic.accountAction;
+    if (accountAction)
+      group.append(
+        button(
+          accountAction === "reset"
+            ? "Request password reset"
+            : "Review my profile",
+          () => {
+            void accountHelp.open(accountAction, group);
+          },
+        ),
+      );
     if (topic.tour)
       group.append(
         button("Walk me through it", () => {
@@ -496,6 +512,7 @@ export function setupWolfAssistant(bridge: Bridge) {
     updateContext();
   }
   function reset(): void {
+    accountHelp.clear();
     stopTour();
     previous = undefined;
     input.value = "";
@@ -523,7 +540,7 @@ export function setupWolfAssistant(bridge: Bridge) {
       if (event.key === "Tab" && expanded && phone.matches) {
         const controls = [
           ...panel.querySelectorAll<HTMLElement>(
-            "button, textarea, summary, a, [tabindex='0']",
+            "button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, a, [tabindex='0']",
           ),
         ].filter(visible);
         const first = controls[0];

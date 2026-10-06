@@ -281,6 +281,8 @@ let coverageCounties: {
 }[] = [];
 setupNavigationDock();
 const assistant = setupWolfAssistant({
+  api,
+  session: () => csrf,
   context: () => ({
     authenticated: Boolean(csrf),
     owner: isOwner,
@@ -427,7 +429,9 @@ async function api<T>(
     const result: unknown = await response.json();
     if (!response.ok) {
       if (response.status === 401 && csrf) clearSession();
-      if (response.status === 403 && path.startsWith("/api/admin/crm")) {
+      if (response.status === 403 && path.startsWith("/api/account/"))
+        clearSession();
+      if (response.status === 403 && path.startsWith("/api/admin/")) {
         crm.clear();
         byId("crm-nav").hidden = true;
       }

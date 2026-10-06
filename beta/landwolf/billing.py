@@ -371,6 +371,9 @@ def refresh_customer(
 
 
 def access(session: Session, account: Account, settings: Settings) -> dict[str, Any]:
+    from landwolf.crm_access import activate_reserved
+
+    activate_reserved(session, account, settings)
     override = admin.entitlement(session, account, settings)
     pilot = feedback.status(session, account, settings=settings)
     customer = session.get(BillingCustomer, account.id)

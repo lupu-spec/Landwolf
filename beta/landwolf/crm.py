@@ -12,13 +12,16 @@ from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
-from landwolf import admin, auth
+from landwolf import account_profile, admin, auth, crm_admin
 from landwolf import crm_core as core
 from landwolf.config import Settings
 from landwolf.feedback_export import spreadsheet_text
 
 
 def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -> None:
+    crm_admin.register(app, settings, factory)
+    account_profile.register(app, settings, factory)
+
     def db() -> Iterator[Session]:
         with factory() as session:
             try:

@@ -128,3 +128,42 @@ test("all reviewed topics and tours are bounded, local, and useful without accou
     );
   }
 });
+
+test("account help offers explicit forms and never deletion or arbitrary operations", () => {
+  for (const authenticated of [true, false]) {
+    const context = { ...customer, authenticated };
+    for (const question of [
+      "Romulus, reset my password",
+      "Remus I forgot my password",
+      "Change my password",
+    ]) {
+      const result = answerHelp(question, context);
+      assert.equal(result.kind, "answer", question);
+      assert.equal(result.topics[0].accountAction, "reset", question);
+    }
+    for (const question of [
+      "Update my profile",
+      "Remus please update my phone number",
+      "Change my company",
+      "Update my personal data",
+      "Correct my job title",
+    ]) {
+      const result = answerHelp(question, context);
+      assert.equal(result.kind, "answer", question);
+      assert.equal(result.topics[0].accountAction, "profile", question);
+    }
+    for (const question of [
+      "Delete my account",
+      "Erase my CRM data",
+      "Remove my profile",
+    ]) {
+      const result = answerHelp(question, context);
+      assert.equal(result.topics[0].id, "no-delete", question);
+      assert.equal(result.topics[0].accountAction, undefined);
+    }
+  }
+  for (const topic of availableTopics(owner)) {
+    if (topic.accountAction)
+      assert.ok(["reset", "profile"].includes(topic.accountAction));
+  }
+});

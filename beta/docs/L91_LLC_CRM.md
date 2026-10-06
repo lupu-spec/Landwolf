@@ -135,9 +135,107 @@ use only the disposable CI PostgreSQL database; hosted backup restoration is a
 separate operational procedure.
 
 Scope: contact capture/segmentation/follow-up workspace and project intake, not a
-full sales ERP. Profile correction/deletion requests currently require an owner
-operational data update; the UI edits lifecycle, tags, follow-up and notes. No
+full sales ERP. The v0.9.0 candidate adds the owner and self-service profile
+controls described below. No account/contact deletion control is provided. No
 external project is connected until its backend implements the intake call.
 
 Standard contact fields were cross-checked against HubSpot's published contact
 property reference: https://knowledge.hubspot.com/properties/hubspots-default-contact-properties
+
+## Owner account administration (v0.9.0)
+
+This version is a local candidate pending publication and deployment; see the
+release reports for observed verification and environment status.
+
+After owner sign-in, open **L91 CRM**. **Add contact** accepts a name, email,
+project and use, plus optional profile fields. Opening a contact exposes **Edit
+contact profile** and **Account administration**. A manual record links to the
+same email's later LandWolf registration, retaining its ID, notes and tags.
+
+Profile editing supports name, email, company, phone, job title, industry, role,
+use and goals. Login email changes also update the account, clear mailbox
+verification and marketing consent, invalidate recovery links and sign out every
+session. Existing billing/research ownership stays attached to the immutable
+account ID. Owner login email and owner access cannot be changed here. Marketing
+opt-in cannot be invented by an administrator; the existing unsubscribe control
+remains available.
+
+Account administration shows registration/verification status, active sessions,
+last activity, cached subscription status and dates, complimentary access,
+reservations and feedback pilot state. Cached Stripe details carry a synchronization
+time. No passwords, hashes, session credentials, recovery tokens or payment
+credentials are returned. Subscription billing changes remain in Stripe.
+
+- **Activate trial** grants 1–365 days of access (90 by default). Renewing replaces
+  the old complimentary grant and starts the selected duration now.
+- **Grant complimentary access** grants access without an expiration. The API
+  also accepts a bounded duration for a complimentary grant.
+- Before registration, those controls become **Reserve trial** / **Reserve
+  complimentary access**. The reservation starts only after registration and
+  mailbox verification. When email delivery is disabled, the owner can review
+  the registered account and activate it explicitly from this screen.
+- **Revoke trial / complimentary access** cancels reservations and current grants;
+  any separate paid subscription or accepted feedback pilot still governs access.
+- **Invite to feedback pilot** uses the existing three-calendar-month program.
+  The participant accepts the terms and baseline; owners do not accept for them.
+  Existing lifetime-pilot and survey rules remain. **Revoke feedback pilot** is
+  independent of complimentary grants.
+- **Suspend account** revokes sessions and pending recovery links and blocks
+  login and protected APIs. **Restore account** restores sign-in, subject to its
+  existing billing entitlement. Suspension does not cancel Stripe billing.
+- **Sign out all sessions** invalidates every device's session.
+- **Send password reset** and **Send email verification** use the configured
+  delivery provider. They are disabled when delivery is unavailable. Credentials
+  are never shown to the owner. Buttons send mail only when the owner invokes them.
+
+Every account operation requires an explanatory reason. Stale contact revisions
+return 409; reopen the contact before retrying. All routes require the immutable
+owner ID on the server, an authenticated session, trusted origin and CSRF token
+for writes. Connector keys and ordinary users cannot call them. Owner controls
+are cleared on sign-out, navigation, and authorization failure.
+
+Schema 11 adds account restrictions, an append-only account-administration audit,
+and CRM access reservations. Existing billing audit constraints remain intact;
+grant/revoke operations record their usual billing audit events as well as CRM
+activity. No account, subscription, password, source inventory or existing note
+is reset. Migration from schema 10 is additive and idempotent. Rollback requires
+a schema-11-compatible fix-forward release. Never drop the new tables in production.
+
+## Customer account help through Romulus and Remus (v0.9.0 candidate)
+
+Users can ask either wolf **“Reset my password”** or **“Update my profile.”**
+The chat offers an explicit account form; question text is not parsed into an
+account mutation. Both guides use the same server-authorized actions. No model
+API, message storage, paid service or additional migration is introduced.
+
+- Password help is available before sign-in. The user enters the account email
+  and chooses **Send password reset email**. Responses do not disclose whether
+  an account exists. When signed in, the displayed reset address is read-only
+  and the server selects the current account's stored email; alternate recipient
+  fields are rejected. The password changes only through the
+  existing emailed, single-use 30-minute link and secure new-password form.
+  Completing the reset invalidates existing sessions. Chat never asks for a
+  password, reset token or link. Delivery must be configured; unavailable mail is
+  explained rather than reported as sent.
+- Profile help requires sign-in and remains available without a paid property
+  search entitlement. Users edit their own name, company, phone, job title,
+  industry, role/interest, intended use, goals and product-news preference.
+  **Review my changes** displays proposed changes; **Keep editing** returns to
+  the form, and **Save my changes** persists them to the existing CRM contact.
+  Login email corrections remain an owner/support operation.
+- The session identifies the contact; no contact/account ID is accepted from
+  chat. Owner notes, tags, lifecycle, follow-up, access grants, billing and other
+  users' records are excluded. No deletion route is added. A deletion request
+  explains the limit without changing data.
+- Writes require trusted origin, CSRF, field validation and an optimistic contact
+  revision. Stale edits return 409. Save events record the acting account and
+  changed field names in owner-visible CRM activity. Consent changes record the
+  existing wording version and time. Errors roll back the entire save.
+- Private form values remain only in the current tab while editing and clear on
+  sign-out, account transition, Clear chat and reload. Responses are not cached.
+  Delayed responses cannot reopen a cleared form or populate another session.
+
+API: `GET /api/account/profile`, `PATCH /api/account/profile`, and
+`POST /api/account/password-reset` (empty JSON object). The unauthenticated
+recovery request continues to use `POST /api/auth/recovery`. Neither action grants
+CRM owner access. See [verification and remaining gates](WOLF_ACCOUNT_HELP_RELEASE.md).

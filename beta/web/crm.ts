@@ -1,6 +1,12 @@
 /** Owner-only CRM. Personal records live in the server, never local browser storage. */
-type Api = <T>(path: string, method?: string, body?: unknown) => Promise<T>;
-type Contact = {
+import { addContactForm, renderAccountAdmin } from "./crm-admin";
+
+export type Api = <T>(
+  path: string,
+  method?: string,
+  body?: unknown,
+) => Promise<T>;
+export type Contact = {
   id: string;
   project_id: string;
   email: string;
@@ -23,7 +29,7 @@ type Contact = {
   created_at: number;
 };
 type Project = { id: string; name: string; connected: boolean };
-type Catalog = {
+export type Catalog = {
   projects: Project[];
   categories: Record<
     "industries" | "uses" | "stages" | "contact_types",
@@ -153,13 +159,30 @@ export function setupCRM(api: Api) {
       "Primary use": catalog.categories.uses[c.primary_use] || c.primary_use,
       "Use details": c.use_details,
       Source: c.source,
-      Registered: new Date(c.created_at * 1000).toLocaleDateString(),
+      "Added to CRM": new Date(c.created_at * 1000).toLocaleDateString(),
       "Email marketing": c.marketing_opt_in ? "Opted in" : "Not opted in",
       "Consent wording": c.consent_version || "Not collected",
     })) {
       fields.append(node("dt", label), node("dd", value || "Not provided"));
     }
     detail.append(fields);
+    const administration = node("div");
+    detail.append(administration);
+    void renderAccountAdmin(
+      administration,
+      c,
+      catalog,
+      api,
+      async (text) => {
+        if (!active || stamp !== sequence || selected !== c.id) return;
+        await load();
+        if (!active) return;
+        await showContact(c.id);
+        status.textContent = text;
+      },
+      message,
+      () => active && stamp === sequence && selected === c.id,
+    ).catch(message);
     const form = node("form");
     form.className = "crm-fields";
     const stage = selectField(
@@ -236,7 +259,7 @@ export function setupCRM(api: Api) {
       detail.append(
         node(
           "p",
-          `${new Date(a.created_at * 1000).toLocaleString()} · ${a.text || a.kind.replaceAll("_", " ")}`,
+          `${new Date(a.created_at * 1000).toLocaleString()} · ${a.kind.replaceAll("_", " ")}${a.text ? `: ${a.text}` : ""}`,
         ),
       );
   }
@@ -379,6 +402,21 @@ export function setupCRM(api: Api) {
       }
     });
     controls.append(filter, button("Export contacts CSV", download));
+    controls.append(
+      addContactForm(
+        catalog,
+        api,
+        async (id) => {
+          if (!active) return;
+          filters.q = "";
+          page = 1;
+          renderControls();
+          await load();
+          if (active) await showContact(id);
+        },
+        message,
+      ),
+    );
     const integrations = node("details");
     integrations.append(node("summary", "Connect another project"));
     integrations.append(
