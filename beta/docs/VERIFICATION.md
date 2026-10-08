@@ -2348,3 +2348,30 @@ runner has no local PostgreSQL or container runtime and the restore script is
 deliberately restricted to GitHub Actions. Hosted CI must supply all three gates
 before production deployment. Production data, billing, credentials, access rules,
 source snapshots and quarantine state have not been modified by candidate testing.
+
+### Hosted gates and production deployment
+
+[GitHub run 37784084080](https://github.com/lupu-spec/Landwolf/actions/runs/37784084080)
+first **Failed** to complete because Ubuntu's package mirror downloaded Playwright
+system libraries too slowly and hit the workflow's 20-minute limit. No application
+test ran in that attempt. The unchanged retry **Passed**: 472 backend/API tests,
+16 frontend tests, 68 Chromium/WebKit tests, disposable PostgreSQL integration,
+an exact 29-table backup/restore, build/package, format/lint/types and all security
+checks. Separate Test run 37784084022 and Release Preflight run 37784084218 passed.
+
+Production deployment `dep-db3q1c5g1s2s73beear0` became live at
+2026-10-08 13:56:13 UTC on exact commit
+`1a49915940095830577c5d4ca7468fc714aaa035`. Independent custom-domain checks
+returned v0.9.1, `environment: production`, `status: ok` and
+`payments_enabled: true`. Render reported schema 11 ready with accounts, sessions
+and source listings preserved; its bounded deployment-window error query returned
+no entries. The production service, branch, billing configuration, entitlement
+logic, source allowlists, credentials, network policy, database and instance plan
+were not changed.
+
+The startup refresh runs all automated feeds serially. A second bounded Render
+query through 13:59:43 UTC found no `Source` warning and no error-level entry,
+including no recurrence of the Treasury parser failure. Successful refreshes do
+not emit per-source application logs, so exact production source-state rows were
+not claimed: the database's empty external IP allowlist was preserved. The direct
+official-source verification remains the record-level evidence for this repair.
