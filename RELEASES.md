@@ -3,6 +3,17 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.9.1 — Treasury announced-date parser repair candidate
+
+The U.S. Treasury real-property page changed its identified unscheduled-sale label
+from uppercase to title case (`Coming Soon...`). The parser now accepts that phrase
+case-insensitively while continuing to reject other unrecognized date text. A direct
+official-source sync recovered 21 Treasury records: 17 scheduled auctions and four
+identified sales whose date is not announced. No schema, dependency, URL, billing,
+entitlement, account, allowlist, snapshot or quarantine behavior changes. Production
+remains on v0.9.0 until hosted browser/PostgreSQL/restore gates pass and the exact
+candidate is observed live.
+
 ## v0.9.0 — owner administration and chat account help, live in both environments
 
 Owner CRM account administration and customer chat profile/reset-request tools

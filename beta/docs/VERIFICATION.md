@@ -2321,3 +2321,30 @@ legacy/preflight passed. Staging and production exact-release hosted checks
 aggregate database counts and eight live source refreshes were inspected.
 Real reset-email delivery remains unavailable: no runtime sender credentials.
 See [full commands, resolved script failure, deployments and limits](CRM_ACCOUNT_HELP_DEPLOYMENT.md).
+
+## Treasury publisher-label repair — v0.9.1 candidate — 2026-10-08 UTC
+
+Production refresh logs showed four consecutive `us_treasury` failures with
+`Treasury auction date is not recognized` after the official publisher changed
+identified unscheduled auctions to title-case `Coming Soon...`. The parser repair
+matches `COMING SOON` case-insensitively and tolerates publisher whitespace, while
+the regression test proves unrelated unrecognized text still fails closed.
+
+**Passed locally:** focused Treasury regression (8 tests), direct Treasury fetch
+(21 records: 17 scheduled and four dates not announced), all eight implemented
+listing feeds, 472 non-browser tests, 16 frontend tests, 53 legacy tests,
+format/lint/types, frontend build, package validation, Bandit, pip-audit, npm audit,
+secret scan, and lockfile validation. Dallas and Raleigh live research probes kept
+Census, USGS, USDA soils and North Carolina OneMap available; FEMA remained
+unavailable and results correctly stayed partial.
+
+**Failed locally:** `.venv/bin/pytest -q -m browser` could not launch missing
+Chromium/WebKit executables (68 launch failures). `.venv/bin/playwright install
+chromium webkit` then failed because the runner received empty/truncated browser
+archives. These are runner/tooling failures, not passed browser tests.
+
+**Not run locally:** disposable PostgreSQL and backup/restore checks because this
+runner has no local PostgreSQL or container runtime and the restore script is
+deliberately restricted to GitHub Actions. Hosted CI must supply all three gates
+before production deployment. Production data, billing, credentials, access rules,
+source snapshots and quarantine state have not been modified by candidate testing.
