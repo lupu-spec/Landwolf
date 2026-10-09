@@ -1,5 +1,8 @@
 # v0.7.0 — glass navigation dock and responsive wolf chat
 
+> For current contact-opening and mobile login behavior, see
+> [the v0.9.2 mobile fix](CRM_MOBILE_FIX_RELEASE.md). Historical evidence follows.
+
 The text-heavy navigation becomes a compact frosted-glass icon dock. A compass
 represents Explore, a document/magnifier Research, binoculars Hunt, stacked layers
 owner-only Sources, a speech bubble Feedback, a card Membership, and the existing

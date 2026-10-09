@@ -239,3 +239,16 @@ API: `GET /api/account/profile`, `PATCH /api/account/profile`, and
 `POST /api/account/password-reset` (empty JSON object). The unauthenticated
 recovery request continues to use `POST /api/auth/recovery`. Neither action grants
 CRM owner access. See [verification and remaining gates](WOLF_ACCOUNT_HELP_RELEASE.md).
+
+## Opening and editing contacts (v0.9.2)
+
+Choose **Open contact**. The page moves directly to the contact heading, even
+when the list is long. Choose **Edit contact profile** near the top, make the
+correction, enter a reason, and choose **Save profile**. **Back to contacts**
+returns focus to the list. A loading message appears immediately; a failed open
+shows **Retry opening contact** without changing the record. Owner permission
+checks, revision checks, and audit records still apply.
+
+On phone screens below 640 CSS pixels, signed-out screens show one floating
+Romulus/Remus chat launcher. The app dock appears after sign-in. Password-reset
+verification and the current email-delivery limitation are unchanged.

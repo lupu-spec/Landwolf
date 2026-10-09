@@ -2516,8 +2516,9 @@ select {
   .dock-track {
     width: calc(100vw - 112px);
   }
-  .dock-track:has(#main-nav[hidden]) {
-    width: 5.3rem;
+  /* Guests have one chat launcher; the app dock appears after sign-in. */
+  .navigation-dock:has(#main-nav[hidden]) {
+    display: none;
   }
   .dock-tile {
     width: 42px;
@@ -2970,6 +2971,9 @@ select {
     bottom: max(120px, calc(env(safe-area-inset-bottom) + 120px));
     width: min(390px, calc(100vw - 24px));
   }
+  body:has(#main-nav[hidden]) > .wolf-assistant {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
   dialog .wolf-assistant {
     bottom: max(12px, env(safe-area-inset-bottom));
   }
@@ -3108,6 +3112,9 @@ select {
   padding-top: 1.5rem;
   border-top: 2px solid #183652;
   overflow-wrap: anywhere;
+}
+.crm-detail h3 {
+  scroll-margin-top: 110px;
 }
 .crm-facts {
   display: grid;

@@ -92,3 +92,12 @@ jobs:
           name: beta-browser-evidence
           path: beta/test-results/
           retention-days: 7
+      - name: Mobile fix evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-fix-evidence
+          path: |
+            beta/test-results/mobile-contact-*.png
+            beta/test-results/mobile-login-*.png
+          retention-days: 7

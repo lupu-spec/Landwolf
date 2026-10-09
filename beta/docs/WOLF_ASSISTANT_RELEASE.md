@@ -1,5 +1,8 @@
 # v0.6.0 — Romulus and Remus app guides
 
+> For current contact-opening and mobile login behavior, see
+> [the v0.9.2 mobile fix](CRM_MOBILE_FIX_RELEASE.md). Historical evidence follows.
+
 The requested **AI Chat with Romulus and Remus** toolbar control and persistent
 collapsible chat introduce matching black/white twin wolf portraits. Romulus
 provides steps; Remus explains controls and practical limitations. Help works on

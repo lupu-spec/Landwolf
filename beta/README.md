@@ -243,3 +243,10 @@ Unknown or ambiguous questions offer topics or the existing support email.
 Messages remain in bounded tab memory and clear on sign-out, account changes or
 reload. The assistant does not read form values, user lists or private property
 records. Existing authorization and billing gates continue to apply.
+
+## Mobile contact editing and login help
+
+**Open contact** scrolls and focuses the selected CRM contact. Use **Edit contact
+profile** near the top to correct its details, then **Back to contacts** to return.
+On mobile signed-out screens, one floating wolf launcher opens chat; the dock
+appears after login. See [CRM operations](docs/L91_LLC_CRM.md).

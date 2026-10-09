@@ -77,6 +77,7 @@ export function setupCRM(api: Api) {
   let catalog: Catalog;
   let page = 1;
   let selected = "";
+  let contactOpener: HTMLButtonElement | undefined;
   let filters = {
     project_id: "",
     q: "",
@@ -101,6 +102,7 @@ export function setupCRM(api: Api) {
     detail.replaceChildren();
     controls.replaceChildren();
     selected = "";
+    contactOpener = undefined;
     page = 1;
     filters = {
       project_id: "",
@@ -133,17 +135,49 @@ export function setupCRM(api: Api) {
     });
     return button;
   }
+  function focusDetail(heading: HTMLElement) {
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+    heading.scrollIntoView({ block: "start", behavior: "instant" });
+  }
+  function backToContacts() {
+    selected = "";
+    detail.replaceChildren();
+    const target = contactOpener?.isConnected
+      ? contactOpener
+      : list.querySelector("button");
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: "center", behavior: "instant" });
+  }
   async function showContact(id: string) {
     selected = id;
     detail.replaceChildren();
     const stamp = sequence;
-    const data = await api<{
+    const heading = node("h3", "Loading contact…");
+    detail.append(heading, button("Back to contacts", backToContacts));
+    focusDetail(heading);
+    let data: {
       contact: Contact;
       activities: { kind: string; text: string; created_at: number }[];
-    }>(`/api/admin/crm/contacts/${encodeURIComponent(id)}`);
+    };
+    try {
+      data = await api<typeof data>(
+        `/api/admin/crm/contacts/${encodeURIComponent(id)}`,
+      );
+    } catch (error) {
+      if (!active || stamp !== sequence || selected !== id) return;
+      heading.textContent = "Unable to open contact";
+      detail.append(
+        node("p", "Please retry or return to the contact list."),
+        button("Retry opening contact", () => showContact(id)),
+      );
+      message(error);
+      return;
+    }
     if (!active || stamp !== sequence || selected !== id) return;
     const c = data.contact;
-    detail.append(node("h3", c.full_name || c.email), node("p", c.email));
+    heading.textContent = c.full_name || c.email;
+    detail.append(node("p", c.email));
     const fields = node("dl");
     fields.className = "crm-facts";
     for (const [label, value] of Object.entries({
@@ -165,9 +199,8 @@ export function setupCRM(api: Api) {
     })) {
       fields.append(node("dt", label), node("dd", value || "Not provided"));
     }
-    detail.append(fields);
     const administration = node("div");
-    detail.append(administration);
+    detail.append(administration, fields);
     void renderAccountAdmin(
       administration,
       c,
@@ -262,6 +295,7 @@ export function setupCRM(api: Api) {
           `${new Date(a.created_at * 1000).toLocaleString()} · ${a.kind.replaceAll("_", " ")}${a.text ? `: ${a.text}` : ""}`,
         ),
       );
+    focusDetail(heading);
   }
   async function load() {
     const stamp = ++sequence;
@@ -280,6 +314,10 @@ export function setupCRM(api: Api) {
     for (const c of result.contacts) {
       const card = node("article");
       card.className = "crm-contact";
+      const openContact = button("Open contact", () => {
+        contactOpener = openContact;
+        return showContact(c.id);
+      });
       card.append(
         node("h3", c.full_name || "Profile not yet provided"),
         node("p", c.email),
@@ -288,7 +326,7 @@ export function setupCRM(api: Api) {
           "p",
           `${catalog.projects.find((p) => p.id === c.project_id)?.name || c.project_id} · ${catalog.categories.stages[c.lifecycle] || c.lifecycle}`,
         ),
-        button("Open contact", () => showContact(c.id)),
+        openContact,
       );
       list.append(card);
     }
