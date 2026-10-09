@@ -240,7 +240,7 @@ API: `GET /api/account/profile`, `PATCH /api/account/profile`, and
 recovery request continues to use `POST /api/auth/recovery`. Neither action grants
 CRM owner access. See [verification and remaining gates](WOLF_ACCOUNT_HELP_RELEASE.md).
 
-## Opening and editing contacts (v0.9.1)
+## Opening and editing contacts (v0.9.2)
 
 Choose **Open contact**. The page moves directly to the contact heading, even
 when the list is long. Choose **Edit contact profile** near the top, make the

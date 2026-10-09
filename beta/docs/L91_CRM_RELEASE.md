@@ -1,5 +1,8 @@
 # L91 LLC CRM v0.8.0 — release verification
 
+> For current contact-opening and mobile login behavior, see
+> [the v0.9.2 mobile fix](CRM_MOBILE_FIX_RELEASE.md). Historical evidence follows.
+
 Implementation and operator guide: [L91_LLC_CRM.md](L91_LLC_CRM.md).
 Merged PR: https://github.com/lupu-spec/Landwolf/pull/24.
 Final candidate CI: https://github.com/lupu-spec/Landwolf/actions/runs/37311235811.

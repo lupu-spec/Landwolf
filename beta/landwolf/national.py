@@ -272,7 +272,7 @@ def parse_treasury(html: str) -> list[PropertyRecord]:
             continue
         day = re.search(r"[A-Z][a-z]+ \d{1,2}, \d{4}", remainder)
         auction_date = datetime.strptime(day[0], "%B %d, %Y").date() if day else None
-        if auction_date is None and "COMING SOON" not in remainder:
+        if auction_date is None and not re.search(r"\bCOMING\s+SOON\b", remainder, re.I):
             raise SourceUnavailable("Treasury auction date is not recognized")
         anchor = next((a for a in cell.select("a[href]") if "complete details" in text(a)), None)
         url = urljoin(TREASURY, str(anchor["href"])) if anchor else TREASURY + "realprop.shtml"

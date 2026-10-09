@@ -3,6 +3,19 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.9.1 — Treasury announced-date parser repair, live in production
+
+The U.S. Treasury real-property page changed its identified unscheduled-sale label
+from uppercase to title case (`Coming Soon...`). The parser now accepts that phrase
+case-insensitively while continuing to reject other unrecognized date text. A direct
+official-source sync recovered 21 Treasury records: 17 scheduled auctions and four
+identified sales whose date is not announced. No schema, dependency, URL, billing,
+entitlement, account, allowlist, snapshot or quarantine behavior changes. Production
+deployment `dep-db3q1c5g1s2s73beear0` became live at 2026-10-08 13:56:13 UTC on
+verified commit `1a49915940095830577c5d4ca7468fc714aaa035`. Hosted gates passed
+472 backend, 16 frontend and 68 browser tests, PostgreSQL/29-table restore,
+package and security. Custom-domain health reports v0.9.1 with payments enabled.
+
 ## v0.9.0 — owner administration and chat account help, live in both environments
 
 Owner CRM account administration and customer chat profile/reset-request tools
@@ -84,7 +97,7 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.0 | `610457a303894f4b6f592387f489d5af309511c2` | 2026-10-06 05:42:47 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.1 | `1a49915940095830577c5d4ca7468fc714aaa035` | 2026-10-08 13:56:13 |
 | Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.9.0 | `19c2b7cf42216efe1e2c7e0614b9d943dec266b3` | 2026-10-06 05:39:11 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
@@ -213,6 +226,7 @@ Append deployments below only after Render reports them live and HTTPS checks su
 
 | 2026-10-06 05:39:11 | Beta | v0.9.0 / `19c2b7cf42216efe1e2c7e0614b9d943dec266b3` | `dep-db28igbbc2fs73flvjb0` | All candidate gates passed; exact live identity/HTTPS/health, four browser journeys, persistence and additional account-help API checks passed. Mail remains disabled. |
 | 2026-10-06 05:42:47 | Production | v0.9.0 / `610457a303894f4b6f592387f489d5af309511c2` | `dep-db28k8uk1f9s739hmqc0` | Identical staging-tested application tree; exact release, custom-domain HTTPS/health, four customer browser journeys and persistent sessions passed. Owner session/CRM inspected; billing retained. Mail setup remains. |
+| 2026-10-08 13:56:13 | Production | v0.9.1 / `1a49915940095830577c5d4ca7468fc714aaa035` | `dep-db3q1c5g1s2s73beear0` | Repairs title-case Treasury `Coming Soon...` parsing. Hosted backend/browser/PostgreSQL/restore/package/security gates passed; exact custom-domain version/health and live payments verified. Schema 11, accounts, billing, allowlists, snapshots and quarantine protections preserved. |
 
 ## Version and promotion rules
 

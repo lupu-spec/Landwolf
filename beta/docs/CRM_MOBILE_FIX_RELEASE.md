@@ -1,4 +1,4 @@
-# CRM contact opening and mobile login — v0.9.1
+# CRM contact opening and mobile login — v0.9.2
 
 ## Changes
 
@@ -23,3 +23,10 @@ viewport. Emulation does not claim a physical iPhone keyboard test.
 
 Candidate checks are in progress. Deployment and final results will be recorded
 after observation in RELEASES.md and VERIFICATION.md.
+
+## Resumed release
+
+The original mobile candidate passed all gates in run 37422754074 (74 browser tests).
+While paused, the Treasury parser repair shipped as production v0.9.1. The resumed
+v0.9.2 release merges that repair and its regression test; it does not revert newer
+production changes. Full combined checks and live promotion evidence follow.

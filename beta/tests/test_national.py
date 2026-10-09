@@ -152,6 +152,18 @@ def test_treasury_undated_unidentified_teaser_does_not_block_scheduled_sales() -
             parse_treasury(teaser.replace("Coming Soon...", f"Coming Soon... {marker} # invalid"))
 
 
+@pytest.mark.parametrize("label", ["Coming Soon...", "COMING SOON", "coming   soon"])
+def test_treasury_identified_coming_soon_sale_has_no_invented_date(label: str) -> None:
+    item = parse_treasury(TREASURY.replace("Friday, October 2, 2099", label))[0]
+    assert item.auction_date is None
+    assert item.sale_status == "Date not announced"
+
+
+def test_treasury_unrecognized_identified_date_still_fails_closed() -> None:
+    with pytest.raises(SourceUnavailable, match="date"):
+        parse_treasury(TREASURY.replace("Friday, October 2, 2099", "Date pending review"))
+
+
 def test_irs_external_promotions_are_excluded_from_filtered_property_inventory() -> None:
     promotion = (
         '<article class="irs-ad external-sale"><h3>'

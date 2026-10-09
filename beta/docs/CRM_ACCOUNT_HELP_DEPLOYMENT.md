@@ -1,5 +1,8 @@
 # CRM administration and chat account help — v0.9.0 deployment verification
 
+> For current contact-opening and mobile login behavior, see
+> [the v0.9.2 mobile fix](CRM_MOBILE_FIX_RELEASE.md). Historical evidence follows.
+
 ## Candidate and scope
 
 User authorized publication and staging/production deployment on 2026-10-06.
