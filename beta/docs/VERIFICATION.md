@@ -1,5 +1,62 @@
 # LandWolf beta verification
 
+## Gmail recovery candidate — 2026-10-09
+
+PR [#27](https://github.com/lupu-spec/Landwolf/pull/27) adds an optional Gmail
+transport from `support.landwolf@gmail.com` to the shared login/chat recovery
+mailer. Modified runtime files: `landwolf/config.py`, `landwolf/recovery.py`;
+regressions: `tests/test_gmail_recovery.py`; setup: `docs/GMAIL_RECOVERY.md` plus
+README/framework links. No schema, billing, entitlement, source or dependency
+changes. The published code tree `8c998df2829a0afcd582093d9f54b0af6686425d`
+(commit `4c25dcb1835d2ebf70057a2e356dbb41e0114dcb`) exactly matches the local
+candidate. Runtime version stays at 0.9.2 until a release is prepared.
+
+Local commands run from `beta/`, each **Passed**, exit 0:
+
+- `.venv/bin/ruff format landwolf/config.py landwolf/recovery.py tests/test_gmail_recovery.py`
+- `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check`
+- `.venv/bin/ruff check landwolf tests scripts`; `npm run lint`
+- `.venv/bin/mypy landwolf`; `npm run typecheck`
+- `.venv/bin/pytest -q tests/test_gmail_recovery.py tests/test_recovery.py tests/test_account_profile.py`
+  — 48 tests
+- `npm run test:unit` — 16 tests
+- `.venv/bin/pytest -q -m 'not browser'` — 488 tests, 74 browser cases deselected
+- `npm run build`; `.venv/bin/python -m build`;
+  `.venv/bin/python scripts/check_package.py`
+- `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`;
+  `npm audit --audit-level=moderate`; `npm run secrets`
+- Repository root: `git diff --check`; `git status --short` — clean after commit.
+
+Two existing Starlette deprecation warnings remain. All 16 added tests use a
+synthetic SMTP transport; no real mailbox credential or reset token was exposed.
+They cover TLS verification, sender/reply-to/recipient, execution off the event
+loop, both reset API paths, one-use tokens/session revocation, invalid credentials,
+authentication/TLS/network failures and rejected recipients.
+
+Hosted [candidate gates](https://github.com/lupu-spec/Landwolf/actions/runs/37998341311)
+**Passed** on the exact published code commit. In repository-required order, all
+local commands above also passed there, plus `uv sync --frozen --dev`, `npm ci`,
+`.venv/bin/playwright install --with-deps chromium webkit`,
+`.venv/bin/python scripts/check_postgres.py`,
+`.venv/bin/python scripts/check_restore.py` (exact 29-table restoration), and
+`.venv/bin/pytest -q -m browser` (74 Chromium/WebKit tests, 373.51 seconds).
+PostgreSQL checks used only the disposable `landwolf_ci` service. Separate legacy
+`PYTHONPATH=. pytest -q` **Passed**, 53 tests, in
+[run 37998340831](https://github.com/lupu-spec/Landwolf/actions/runs/37998340831).
+Release Preflight **Passed** in run 37998340688.
+Final diff/security review found no credentials, new dependencies, arbitrary SMTP
+hosts, untrusted recipient overrides, database migration or privilege changes.
+The follow-up verification-document commit changes no executable code.
+
+**Not run:** live Gmail delivery, inbox-link completion and deployment. The support
+Google account app password must be entered securely into Render first. Current
+production `/api/session` independently reports `email_delivery_enabled=false`;
+`/api/version` remains v0.9.2, commit `356b64ad4a6d6694bd764dd0ec0ff0f6ee942774`.
+The service remains Starter with automatic deploy disabled. The existing free
+staging service blocks SMTP ports; no upgrade or network change was performed.
+No environment variables were changed. Full credential setup and safe activation
+order are in [Gmail recovery](GMAIL_RECOVERY.md).
+
 ## v0.5.0 — research decisions, live — 2026-10-05
 
 Runtime `c333667f6a66b5dae870738387d01755f9ba485c` adds private property/Hunt research, prioritized
