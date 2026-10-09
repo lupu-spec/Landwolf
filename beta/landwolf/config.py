@@ -47,9 +47,10 @@ class Settings(BaseSettings):
     pilot_invite_emails: tuple[EmailStr, ...] = Field(default=(), max_length=500, repr=False)
     session_days: int = Field(default=365, ge=1, le=400)
     auth_limit: int = Field(default=12, ge=1, le=100)
-    mail_provider: Literal["disabled", "resend"] = "disabled"
+    mail_provider: Literal["disabled", "resend", "gmail"] = "disabled"
     mail_from: EmailStr | None = None
     mail_api_key: SecretStr | None = Field(default=None, repr=False)
+    gmail_app_password: SecretStr | None = Field(default=None, repr=False)
 
     @field_validator("payments_enabled", mode="before")
     @classmethod
@@ -83,6 +84,15 @@ class Settings(BaseSettings):
             not self.mail_from or not self.mail_api_key or not self.mail_api_key.get_secret_value()
         ):
             raise ValueError("Resend requires a verified sender and an API key")
+        if self.mail_provider == "gmail":
+            if self.mail_from != "support.landwolf@gmail.com":
+                raise ValueError("Gmail delivery requires the LandWolf support sender")
+            password = self.gmail_app_password
+            # Google displays app passwords in four groups; accept pasted spaces.
+            normalized = password.get_secret_value().replace(" ", "") if password else ""
+            if len(normalized) != 16 or not normalized.isascii() or not normalized.isalpha():
+                raise ValueError("Gmail requires a 16-letter app password")
+            self.gmail_app_password = SecretStr(normalized)
         if self.environment in {"staging", "production"} and not self.database_url.startswith(
             "postgresql+psycopg://"
         ):
