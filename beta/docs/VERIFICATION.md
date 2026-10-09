@@ -2375,3 +2375,28 @@ including no recurrence of the Treasury parser failure. Successful refreshes do
 not emit per-source application logs, so exact production source-state rows were
 not claimed: the database's empty external IP allowlist was preserved. The direct
 official-source verification remains the record-level evidence for this repair.
+
+
+## CRM mobile corrections — v0.9.2, 2026-10-09
+
+**Passed:** the combined candidate preserves the October 8 Treasury repair and
+fixes CRM detail focus/scroll, edit placement, list return/retry and duplicate
+signed-out phone chat controls. Chromium/WebKit regression coverage uses 31 contacts
+and 390/768/1440 widths, plus the 639/640 breakpoint and short viewports.
+
+Final CI [37884284006](https://github.com/lupu-spec/Landwolf/actions/runs/37884284006)
+passed 472 backend, 16 frontend, 74 browser, PostgreSQL/29-table restore, formatting,
+lint, types, builds, packaging and security. Separate legacy suite: 53 passed.
+Both exact-release hosted browser/session checks passed: staging
+[37884384630](https://github.com/lupu-spec/Landwolf/actions/runs/37884384630) and
+production [37884987232](https://github.com/lupu-spec/Landwolf/actions/runs/37884987232).
+Production `356b64ad4a6d6694bd764dd0ec0ff0f6ee942774` has the identical tested tree
+as staging `bb56ad94d19cd56714238c51a701e8c3824ca75e`. Both are observed v0.9.2.
+
+**Failed locally:** targeted browser launch (missing Chromium executable), and
+custom-domain JSON access (environment returned an HTML Site Unavailable page).
+Hosted browser and custom-domain checks passed independently. The initial resumed
+live-smoke failed against a stale release ledger; corrected observed deployment
+identities are now recorded. **Not run:** physical iPhone keyboard verification or
+real reset-email delivery (sender remains disabled). No live customer profile or
+billing changes were used for testing. See [exact commands, results and limits](CRM_MOBILE_FIX_RELEASE.md).

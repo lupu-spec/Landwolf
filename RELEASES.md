@@ -3,6 +3,18 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.9.2 — CRM contact opening and mobile login chat, live in both environments
+
+Open contact moves focus and the viewport to the contact editor, including loading,
+retry and Back to contacts. Profile/account editing appears before long facts. Phone
+login below 640 CSS pixels retains one floating chat launcher and hides the duplicate
+chat-only dock. The current production Treasury repair is included. Schema 11,
+permissions, billing and existing account data are preserved. Email delivery remains
+disabled. Candidate gates passed 472 backend, 16 frontend, 74 browser and 53 legacy
+tests, PostgreSQL/29-table restore, package and security. [PR #26](https://github.com/lupu-spec/Landwolf/pull/26)
+merged as `356b64ad4a6d6694bd764dd0ec0ff0f6ee942774` with the identical tested
+staging tree. See [commands, live evidence and limits](beta/docs/CRM_MOBILE_FIX_RELEASE.md).
+
 ## v0.9.1 — Treasury announced-date parser repair, live in production
 
 The U.S. Treasury real-property page changed its identified unscheduled-sale label
@@ -97,8 +109,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.1 | `1a49915940095830577c5d4ca7468fc714aaa035` | 2026-10-08 13:56:13 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.9.0 | `19c2b7cf42216efe1e2c7e0614b9d943dec266b3` | 2026-10-06 05:39:11 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.2 | `356b64ad4a6d6694bd764dd0ec0ff0f6ee942774` | 2026-10-09 04:42:04 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.9.2 | `bb56ad94d19cd56714238c51a701e8c3824ca75e` | 2026-10-09 04:34:05 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -227,6 +239,9 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-06 05:39:11 | Beta | v0.9.0 / `19c2b7cf42216efe1e2c7e0614b9d943dec266b3` | `dep-db28igbbc2fs73flvjb0` | All candidate gates passed; exact live identity/HTTPS/health, four browser journeys, persistence and additional account-help API checks passed. Mail remains disabled. |
 | 2026-10-06 05:42:47 | Production | v0.9.0 / `610457a303894f4b6f592387f489d5af309511c2` | `dep-db28k8uk1f9s739hmqc0` | Identical staging-tested application tree; exact release, custom-domain HTTPS/health, four customer browser journeys and persistent sessions passed. Owner session/CRM inspected; billing retained. Mail setup remains. |
 | 2026-10-08 13:56:13 | Production | v0.9.1 / `1a49915940095830577c5d4ca7468fc714aaa035` | `dep-db3q1c5g1s2s73beear0` | Repairs title-case Treasury `Coming Soon...` parsing. Hosted backend/browser/PostgreSQL/restore/package/security gates passed; exact custom-domain version/health and live payments verified. Schema 11, accounts, billing, allowlists, snapshots and quarantine protections preserved. |
+| 2026-10-06 06:17:43 | Beta | v0.9.1 / `e32b7da81c3215a0b5f47a1fa4b75dac7327cd31` | `dep-db294evlot8c73eb8a30` | Interrupted mobile candidate; late history entry recorded October 9. Full 74-browser CI passed; not promoted. Superseded by combined v0.9.2 after production Treasury repair. |
+| 2026-10-09 04:34:05 | Beta | v0.9.2 / `bb56ad94d19cd56714238c51a701e8c3824ca75e` | `dep-db46ss60tbcc73dbpj2g` | Combined mobile contact/chat fixes and current production Treasury repair. Full gates plus hosted exact-release HTTPS, browser and session checks passed. |
+| 2026-10-09 04:42:04 | Production | v0.9.2 / `356b64ad4a6d6694bd764dd0ec0ff0f6ee942774` | `dep-db470mrbc2fs73arhgh0` | PR #26, identical staging-tested tree; Render live and exact runtime version/health observed. Full gate and live evidence in CRM_MOBILE_FIX_RELEASE.md. |
 
 ## Version and promotion rules
 
