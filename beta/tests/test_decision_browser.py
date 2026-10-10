@@ -49,6 +49,7 @@ def test_complete_decision_workflow(browser_server, engine_name, width):
                 workspace.get_by_label("Total project budget ($, optional)", exact=True)
             ).to_have_value("300000")
             workspace.get_by_label("Known additional costs ($)", exact=True).fill("25000")
+            workspace.get_by_text("Advanced — costs and stress test", exact=True).click()
             workspace.get_by_label("Unresolved work — low ($)", exact=True).fill("18000")
             workspace.get_by_label("Unresolved work — high ($)", exact=True).fill("18000")
             workspace.get_by_text("Record evidence and answers", exact=True).click()
@@ -59,9 +60,6 @@ def test_complete_decision_workflow(browser_server, engine_name, width):
                 "I confirmed this planning authority has jurisdiction", exact=True
             ).check()
             if tract == "99001":
-                workspace.get_by_text(
-                    "Investment assumptions and stress controls", exact=True
-                ).click()
                 workspace.get_by_label(
                     "Net exit proceeds after selling costs ($, optional)", exact=True
                 ).fill("160000")
@@ -134,6 +132,7 @@ def test_complete_decision_workflow(browser_server, engine_name, width):
             "25000"
         )
         expect(workspace.locator(".decision-output")).to_contain_text("$8,333.33")
+        workspace.get_by_text("Advanced — costs and stress test", exact=True).click()
         workspace.get_by_label("Unresolved work — low ($)", exact=True).fill("5000")
         workspace.get_by_label("Unresolved work — high ($)", exact=True).fill("5000")
         workspace.get_by_role("button", name="Record research", exact=True).click()

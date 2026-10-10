@@ -518,6 +518,7 @@ def test_scenario_defaults_and_property_handoffs(browser_server: tuple[str, int]
         expect(page.locator("#analysis-results")).to_be_visible()
         expect(page.locator("#analysis-results")).to_contain_text("zero placeholders")
         expect(page.locator("#analysis-results")).to_contain_text("hypothetical asking-price/bid")
+        page.locator("#analysis-advanced > summary").click()
         field("resale_high").fill("155000")
         field("purchase_price").fill("110000")
         expect(field("resale_low")).to_have_value("104500")
@@ -549,6 +550,7 @@ def test_scenario_defaults_and_property_handoffs(browser_server: tuple[str, int]
         expect(page.locator(".property-card")).to_have_count(2)
         page.locator(".property-card").first.get_by_role("button", name="View property").click()
         expect(field("resale_high")).to_have_value("155000")
+        page.locator("#analysis-advanced > summary").click()
         page.locator("#reapply-bid-range").click()
         expect(field("resale_high")).to_have_value("132000")
         field("purchase_price").fill("")
@@ -931,6 +933,7 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
             page.locator('input[name="resale_likely"]').input_value()
             == page.locator('input[name="purchase_price"]').input_value()
         )
+        page.locator("#analysis-advanced > summary").click()
         for name, value in {
             "resale_low": 350000,
             "resale_likely": 400000,

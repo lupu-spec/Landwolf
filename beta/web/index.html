@@ -1099,39 +1099,14 @@
           <p class="eyebrow">THE NUMBERS BEHIND THE OPPORTUNITY</p>
           <h2 id="analysis-title">Build your deal scenario.</h2>
           <p>
-            Start with an editable bid-based scenario. Review its assumptions
-            before modeling potential outcomes.
+            A quick check of your purchase, sale and costs. Expand Advanced
+            whenever you want more control.
           </p>
           <p id="scenario-property-context" class="input-note"></p>
         </div>
-        <form id="analysis-form">
-          <fieldset>
-            <legend>Acquisition &amp; resale</legend>
-            <div class="analysis-grid">
-              <label
-                >Downside below bid (%)<input
-                  name="downside_pct"
-                  type="number"
-                  min="0"
-                  max="99.9"
-                  step="0.1"
-                  value="5"
-                  required
-              /></label>
-              <label
-                >Upside above bid (%)<input
-                  name="upside_pct"
-                  type="number"
-                  min="0"
-                  max="1000"
-                  step="0.1"
-                  value="20"
-                  required
-              /></label>
-            </div>
-            <button id="reapply-bid-range" type="button" class="text-button">
-              Reapply bid-based resale range (replace resale overrides)
-            </button>
+        <form id="analysis-form" novalidate>
+          <fieldset class="analysis-basics">
+            <legend>Start with four figures</legend>
             <div class="analysis-grid">
               <label
                 >Purchase / bid price ($)<input
@@ -1140,62 +1115,20 @@
                   min="0"
                   max="1000000000"
                   step="0.01"
-                  required /></label
-              ><label
-                >Resale — low ($)<input
-                  name="resale_low"
-                  step="0.01"
-                  type="number"
-                  min="0.01"
-                  max="1000000000"
-                  placeholder="Your conservative estimate"
-                  required /></label
-              ><label
-                >Resale — likely ($)<input
+                  required
+              /></label>
+              <label
+                >Expected sale price ($)<input
                   name="resale_likely"
                   step="0.01"
                   type="number"
                   min="0.01"
                   max="1000000000"
                   placeholder="Your base estimate"
-                  required /></label
-              ><label
-                >Resale — high ($)<input
-                  name="resale_high"
-                  step="0.01"
-                  type="number"
-                  min="0.01"
-                  max="1000000000"
-                  placeholder="Your upside estimate"
                   required
               /></label>
-            </div>
-            <p id="scenario-basis" class="input-note" role="status"></p>
-          </fieldset>
-          <fieldset>
-            <legend>Costs &amp; reserves</legend>
-            <p class="input-note">
-              Evidence gap: connected records do not supply calibrated
-              property-specific or broader-area estimates for these costs.
-              Unestimated inputs start at 0 by your requested policy; 0 is an
-              assumption, not a verified absence of costs. Source-reported taxes
-              may be arrears and are not used as annual taxes or surviving
-              liens.
-            </p>
-            <div class="analysis-grid">
               <label
-                >Repairs — low ($)<input
-                  name="repairs_low"
-                  value="0"
-                  data-unestimated-cost
-                  step="0.01"
-                  type="number"
-                  min="0"
-                  max="1000000000"
-                  required
-                  placeholder="Your estimate" /></label
-              ><label
-                >Repairs — likely ($)<input
+                >Repairs / improvements ($)<input
                   name="repairs_likely"
                   value="0"
                   data-unestimated-cost
@@ -1204,30 +1137,9 @@
                   min="0"
                   max="1000000000"
                   required
-                  placeholder="Your estimate" /></label
-              ><label
-                >Repairs — high ($)<input
-                  name="repairs_high"
-                  value="0"
-                  data-unestimated-cost
-                  step="0.01"
-                  type="number"
-                  min="0"
-                  max="1000000000"
-                  required
-                  placeholder="Your estimate" /></label
-              ><label
-                >Liens / back-tax reserve ($)<input
-                  name="lien_reserve"
-                  value="0"
-                  data-unestimated-cost
-                  step="0.01"
-                  type="number"
-                  min="0"
-                  max="1000000000"
-                  required
-                  placeholder="Not independently verified" /></label
-              ><label
+                  placeholder="Your estimate"
+              /></label>
+              <label
                 >Title &amp; closing costs ($)<input
                   name="closing_costs"
                   value="0"
@@ -1237,109 +1149,233 @@
                   min="0"
                   max="1000000000"
                   required
-                  placeholder="Your estimate" /></label
-              ><label
-                >Monthly holding cost ($)<input
-                  name="monthly_holding"
-                  value="0"
-                  data-unestimated-cost
-                  step="0.01"
-                  type="number"
-                  min="0"
-                  max="1000000"
-                  required
-                  placeholder="Include property taxes" /></label
-              ><label
-                >Holding period (months)<input
-                  name="holding_months"
-                  data-unestimated-cost
-                  type="number"
-                  min="0"
-                  max="120"
-                  value="0"
-                  required /></label
-              ><label
-                >Buyer auction fee (%)<input
-                  name="buyer_premium_pct"
-                  value="0"
-                  data-unestimated-cost
-                  type="number"
-                  min="0"
-                  max="50"
-                  step="0.1"
-                  required
-                  placeholder="Check seller terms" /></label
-              ><label
-                >Selling costs (%)<input
-                  name="selling_cost_pct"
-                  data-unestimated-cost
-                  type="number"
-                  min="0"
-                  max="50"
-                  step="0.1"
-                  value="0"
-                  required /></label
-              ><label
-                >Financing APR (%)<input
-                  name="annual_financing_pct"
-                  value="0"
-                  data-unestimated-cost
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  required
-                  placeholder="0 for cash purchase"
+                  placeholder="Your estimate"
               /></label>
             </div>
             <p class="input-note">
-              Financing models simple interest on the full bid. Unknown costs
-              use explicit zero placeholders, which can overstate profit.
+              Enter your estimates, then calculate. Expected sale starts at the
+              bid; the initial resale range is −5% / +20%. Repairs use your
+              entered budget unless you adjust their range in Advanced.
             </p>
+            <p id="scenario-basis" class="input-note" role="status"></p>
+            <p id="scenario-assumptions" class="input-note"></p>
           </fieldset>
-          <fieldset>
-            <legend>Your investment targets</legend>
+          <details id="analysis-advanced" class="analysis-advanced">
+            <summary>Advanced</summary>
             <p class="input-note">
-              Editable preferences—not statistical property estimates.
+              Adjust ranges, fees, financing and investment targets. These
+              values remain included when Advanced is closed.
             </p>
-            <div class="analysis-grid">
-              <label
-                >Target median ROI (%)<input
-                  name="target_roi_pct"
-                  type="number"
-                  min="0"
-                  max="200"
-                  value="20"
-                  step="0.1"
-                  required /></label
-              ><label
-                >Minimum median profit ($)<input
-                  name="min_profit"
-                  type="number"
-                  min="0"
-                  max="1000000000"
-                  value="25000"
-                  required /></label
-              ><label
-                >Maximum loss probability (%)<input
-                  name="max_loss_probability_pct"
-                  type="number"
-                  min="0"
-                  max="50"
-                  value="10"
-                  step="0.1"
-                  required /></label
-              ><label
-                >Reproducibility seed<input
-                  name="seed"
-                  type="number"
-                  min="0"
-                  max="4294967295"
-                  value="847291"
-                  required
-              /></label>
-            </div>
-          </fieldset>
+            <fieldset>
+              <legend>Resale range</legend>
+              <div class="analysis-grid">
+                <label
+                  >Resale — low ($)<input
+                    name="resale_low"
+                    step="0.01"
+                    type="number"
+                    min="0.01"
+                    max="1000000000"
+                    placeholder="Your conservative estimate"
+                    required
+                /></label>
+                <label
+                  >Resale — high ($)<input
+                    name="resale_high"
+                    step="0.01"
+                    type="number"
+                    min="0.01"
+                    max="1000000000"
+                    placeholder="Your upside estimate"
+                    required
+                /></label>
+                <label
+                  >Downside below expected sale (%)<input
+                    name="downside_pct"
+                    type="number"
+                    min="0"
+                    max="99.9"
+                    step="0.1"
+                    value="5"
+                    required
+                /></label>
+                <label
+                  >Upside above expected sale (%)<input
+                    name="upside_pct"
+                    type="number"
+                    min="0"
+                    max="1000"
+                    step="0.1"
+                    value="20"
+                    required
+                /></label>
+              </div>
+              <button id="reapply-bid-range" type="button" class="text-button">
+                Reset expected sale and range to the bid
+              </button>
+            </fieldset>
+            <fieldset>
+              <legend>Repair uncertainty</legend>
+              <div class="analysis-grid">
+                <label
+                  >Repairs — low ($)<input
+                    name="repairs_low"
+                    value="0"
+                    data-unestimated-cost
+                    step="0.01"
+                    type="number"
+                    min="0"
+                    max="1000000000"
+                    required
+                    placeholder="Your estimate"
+                /></label>
+                <label
+                  >Repairs — high ($)<input
+                    name="repairs_high"
+                    value="0"
+                    data-unestimated-cost
+                    step="0.01"
+                    type="number"
+                    min="0"
+                    max="1000000000"
+                    required
+                    placeholder="Your estimate"
+                /></label>
+              </div>
+              <p class="input-note">
+                Low and high follow the repairs budget until you edit them here.
+                Changing or closing Advanced never discards your edits.
+              </p>
+            </fieldset>
+            <fieldset>
+              <legend>Fees, holding costs &amp; financing</legend>
+              <div class="analysis-grid">
+                <label
+                  >Liens / back-tax reserve ($)<input
+                    name="lien_reserve"
+                    value="0"
+                    data-unestimated-cost
+                    step="0.01"
+                    type="number"
+                    min="0"
+                    max="1000000000"
+                    required
+                    placeholder="Not independently verified"
+                /></label>
+                <label
+                  >Monthly holding cost ($)<input
+                    name="monthly_holding"
+                    value="0"
+                    data-unestimated-cost
+                    step="0.01"
+                    type="number"
+                    min="0"
+                    max="1000000"
+                    required
+                    placeholder="Include property taxes"
+                /></label>
+                <label
+                  >Holding period (months)<input
+                    name="holding_months"
+                    data-unestimated-cost
+                    type="number"
+                    min="0"
+                    max="120"
+                    value="0"
+                    required
+                /></label>
+                <label
+                  >Buyer auction fee (%)<input
+                    name="buyer_premium_pct"
+                    value="0"
+                    data-unestimated-cost
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    required
+                    placeholder="Check seller terms"
+                /></label>
+                <label
+                  >Selling costs (%)<input
+                    name="selling_cost_pct"
+                    data-unestimated-cost
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value="0"
+                    required
+                /></label>
+                <label
+                  >Financing APR (%)<input
+                    name="annual_financing_pct"
+                    value="0"
+                    data-unestimated-cost
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    required
+                    placeholder="0 for cash purchase"
+                /></label>
+              </div>
+              <p class="input-note">
+                Unestimated costs start at 0; these are placeholders, not
+                verified zero costs. Add researched costs and reserves.
+                Financing uses simple interest on the full bid. Include taxes,
+                insurance and maintenance in monthly holding costs;
+                source-reported taxes are not verified surviving liens or annual
+                tax estimates.
+              </p>
+            </fieldset>
+            <fieldset>
+              <legend>Your investment targets</legend>
+              <p class="input-note">
+                Editable preferences, not estimates of this property.
+              </p>
+              <div class="analysis-grid">
+                <label
+                  >Target median ROI (%)<input
+                    name="target_roi_pct"
+                    type="number"
+                    min="0"
+                    max="200"
+                    value="20"
+                    step="0.1"
+                    required
+                /></label>
+                <label
+                  >Minimum median profit ($)<input
+                    name="min_profit"
+                    type="number"
+                    min="0"
+                    max="1000000000"
+                    value="25000"
+                    required
+                /></label>
+                <label
+                  >Maximum loss probability (%)<input
+                    name="max_loss_probability_pct"
+                    type="number"
+                    min="0"
+                    max="50"
+                    value="10"
+                    step="0.1"
+                    required
+                /></label>
+                <label
+                  >Reproducibility seed<input
+                    name="seed"
+                    type="number"
+                    min="0"
+                    max="4294967295"
+                    value="847291"
+                    required
+                /></label>
+              </div>
+            </fieldset>
+          </details>
           <div id="zero-cost-warning" class="zero-cost-warning">
             <p>
               Zero-cost assumptions omit expenses and may overstate returns. A
@@ -1359,8 +1395,10 @@
           </div>
           <div class="analysis-actions">
             <button id="run-analysis" class="button primary" type="submit">
-              Run 10,000 scenarios <span aria-hidden="true">→</span></button
-            ><span>Illustrative defaults are editable.</span>
+              Calculate deal <span aria-hidden="true">→</span></button
+            ><span
+              >10,000 illustrative scenarios · Assumptions are editable.</span
+            >
           </div>
           <p id="analysis-error" class="form-message" role="alert"></p>
         </form>
