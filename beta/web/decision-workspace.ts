@@ -1,3 +1,5 @@
+import { dismissMobileKeyboard } from "./mobile-keyboard";
+
 /** Private, deterministic research. All untrusted content is rendered as text. */
 type Api = <T>(path: string, method?: string, body?: unknown) => Promise<T>;
 const topics = {
@@ -813,6 +815,7 @@ export function setupDecisionWorkspace(
           }
         }
         if (!form.reportValidity()) return;
+        dismissMobileKeyboard();
         busy = true;
         for (const b of actions.querySelectorAll("button")) b.disabled = true;
         try {
@@ -906,6 +909,7 @@ export function setupDecisionWorkspace(
       const goal = goalFields(form, data.goal);
       const save = button("Update Hunt research goal", () => {
         if (!form.reportValidity()) return;
+        dismissMobileKeyboard();
         save.disabled = true;
         void (async () => {
           try {

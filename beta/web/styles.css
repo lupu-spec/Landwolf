@@ -2335,6 +2335,18 @@ select {
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
 }
+.keyboard-done {
+  display: none;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: var(--blue);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
 .dock-track {
   display: flex;
   align-items: flex-end;
@@ -2982,15 +2994,35 @@ select {
 }
 @media (max-width: 800px) {
   .detail-topbar {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
     gap: 8px;
     padding: 10px 14px;
   }
   .detail-topbar > .detail-actions {
-    flex: 1 1 100%;
+    min-width: 0;
+    grid-column: 1;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .detail-actions .property-actions {
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+  .detail-actions .property-actions button {
+    flex-shrink: 0;
+    min-height: 44px;
+    white-space: nowrap;
+    font-size: 0.875rem;
+  }
+  .detail-topbar > #close-detail {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    min-height: 44px;
   }
   .detail-topbar > .wolf-chat-trigger {
-    flex: 1;
+    grid-column: 1;
     text-align: left;
     font-size: 0.77rem;
   }
@@ -3266,4 +3298,103 @@ select {
 .trial-card a {
   display: inline-block;
   margin: 12px 0;
+}
+
+/* Follow the visual viewport while editing; never disable user zoom. */
+@media (min-width: 640px) {
+  html[data-mobile-editing="true"] .keyboard-done-floating {
+    display: block;
+    position: fixed;
+    z-index: 1100;
+    right: 16px;
+    bottom: calc(var(--app-viewport-bottom, 0px) + 12px);
+  }
+  html[data-mobile-editing="true"]
+    body:has(dialog[open])
+    > .keyboard-done-floating,
+  html[data-mobile-editing="true"]
+    body:has(.wolf-assistant[data-expanded="true"])
+    > .keyboard-done-floating {
+    display: none;
+  }
+}
+@media (max-width: 1100px), (any-pointer: coarse) {
+  #research-form input,
+  #research-form select,
+  .decision-form input:not([type="checkbox"]),
+  .decision-workspace select {
+    font-size: 16px;
+  }
+  html[data-mobile-editing="true"] {
+    scroll-padding-bottom: calc(var(--app-viewport-bottom, 0px) + 90px);
+  }
+  html[data-mobile-editing="true"] #main {
+    padding-bottom: calc(var(--app-viewport-bottom, 0px) + 90px);
+  }
+  html[data-mobile-editing="true"][data-viewport-fit="true"] .property-dialog {
+    position: fixed;
+    top: calc(var(--app-viewport-top, 0px) + 8px);
+    bottom: auto;
+    margin: 0 auto;
+    max-height: calc(var(--app-viewport-height, 100dvh) - 16px);
+    overflow-y: auto;
+    scroll-padding-top: 76px;
+    scroll-padding-bottom: 24px;
+  }
+  html[data-mobile-editing="true"] .detail-topbar {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 8px;
+  }
+  html[data-mobile-editing="true"] .detail-actions {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+  }
+  html[data-mobile-editing="true"] .detail-actions .property-actions {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  html[data-mobile-editing="true"] .detail-topbar > .wolf-chat-trigger {
+    display: none;
+  }
+  html[data-mobile-editing="true"] .detail-topbar .keyboard-done {
+    display: block;
+    flex-shrink: 0;
+  }
+  html[data-mobile-editing="true"]
+    body
+    > .wolf-assistant:not([data-expanded="true"]) {
+    visibility: hidden;
+  }
+}
+@media (max-width: 639px) {
+  html[data-mobile-editing="true"] .navigation-dock {
+    bottom: calc(var(--app-viewport-bottom, 0px) + 8px);
+    max-width: calc(100vw - 16px);
+  }
+  html[data-mobile-editing="true"] .dock-track {
+    width: calc(100vw - 180px);
+    padding: 6px 2px;
+  }
+  html[data-mobile-editing="true"] .navigation-dock .dock-item {
+    min-height: 44px;
+    gap: 3px;
+    padding-bottom: 0;
+  }
+  html[data-mobile-editing="true"] .dock-tile {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+    border-radius: 8px;
+    transform: none;
+  }
+  html[data-mobile-editing="true"] .dock-tile svg {
+    width: 20px;
+    height: 20px;
+  }
+  html[data-mobile-editing="true"] .navigation-dock .keyboard-done {
+    display: block;
+  }
 }

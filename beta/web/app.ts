@@ -1,5 +1,6 @@
 import { setupCRM } from "./crm";
 import { setupNavigationDock } from "./navigation-dock";
+import { dismissMobileKeyboard, setupMobileKeyboard } from "./mobile-keyboard";
 import {
   setupBilling,
   billingDestination,
@@ -292,6 +293,7 @@ let coverageCounties: {
   record_count: number;
 }[] = [];
 setupNavigationDock();
+setupMobileKeyboard();
 const assistant = setupWolfAssistant({
   api,
   session: () => csrf,
@@ -695,6 +697,7 @@ async function navigate(
   view: string,
   preset?: Record<string, string>,
 ): Promise<void> {
+  dismissMobileKeyboard();
   if (["sources", "crm"].includes(view) && !isOwner) view = "explore";
   if (view !== "billing" && !feedback.allowed(view)) {
     view = billing.state?.enabled
@@ -1436,7 +1439,9 @@ function newResearchProperty(): void {
   pendingResearchProperty = null;
   resetResearch();
   void navigate("research");
-  byId<HTMLInputElement>("research-address").focus();
+  // Let phone users read the screen before deliberately opening the keyboard.
+  if (matchMedia("(min-width: 1101px) and (any-pointer: fine)").matches)
+    byId<HTMLInputElement>("research-address").focus();
 }
 byId("research-new").addEventListener("click", newResearchProperty);
 function renderResearch(report: ResearchReport): void {
@@ -1520,6 +1525,7 @@ function renderResearch(report: ResearchReport): void {
 async function runResearch(): Promise<void> {
   const researchForm = byId<HTMLFormElement>("research-form");
   if (!csrf || !researchForm.reportValidity()) return;
+  dismissMobileKeyboard();
   const sequence = ++researchSequence;
   const sessionToken = csrf;
   const body = researchListingId

@@ -358,6 +358,16 @@ def main() -> None:
                     research_workspace.get_by_label("Known additional costs ($)", exact=True).fill(
                         "25000"
                     )
+                    if width < 640:
+                        keyboard_done = page.locator(".detail-topbar .keyboard-done")
+                        expect(keyboard_done).to_be_visible()
+                        assert page.locator(".detail-topbar").bounding_box()["height"] < 90
+                        keyboard_done.click()
+                        expect(
+                            research_workspace.get_by_label(
+                                "Known additional costs ($)", exact=True
+                            )
+                        ).to_have_value("25000")
                     research_workspace.get_by_label("Unresolved work — low ($)", exact=True).fill(
                         "18000"
                     )
@@ -409,6 +419,19 @@ def main() -> None:
                         "button", name="Research property", exact=True
                     ).click()
                     expect(page.locator("#research-property-context")).not_to_be_empty()
+                    if width < 640:
+                        page.locator("#research-new").click()
+                        address = page.locator("#research-address")
+                        expect(address).not_to_be_focused()
+                        address.fill("Mobile keyboard verification — no provider request")
+                        keyboard_done = page.locator(".navigation-dock .keyboard-done")
+                        expect(keyboard_done).to_be_visible()
+                        assert address.evaluate("el => getComputedStyle(el).fontSize") == "16px"
+                        keyboard_done.click()
+                        expect(address).not_to_be_focused()
+                        expect(address).to_have_value(
+                            "Mobile keyboard verification — no provider request"
+                        )
                     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                     page.screenshot(
                         path=str(output / f"research-{engine}-{width}.png"), full_page=True

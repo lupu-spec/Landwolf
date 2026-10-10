@@ -1,5 +1,14 @@
 # LandWolf beta verification
 
+## Mobile research keyboard repair — v0.12.1 candidate
+
+Keyboard-aware dock and dialog sizing, compact research actions, explicit Done,
+16px mobile research inputs and deliberate focus handling. See
+[cause, regressions and verification limits](MOBILE_RESEARCH_KEYBOARD.md).
+Physical OS keyboards are not represented as tested; explicit viewport emulation
+and hosted browser checks establish layout/navigation behavior.
+
+
 ## First-login map repair — v0.10.2 live, 2026-10-10
 
 Production triage confirmed 92 current listings, 30 source-coordinate locations,
