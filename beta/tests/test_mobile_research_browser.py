@@ -58,6 +58,17 @@ def test_research_keyboard_navigation(browser_server, engine_name, width):
             page.wait_for_function(condition)
 
         viewport(420, 60)
+        if mobile:
+            bounds = address.bounding_box()
+            assert bounds["y"] >= 60 and bounds["y"] + bounds["height"] <= 390
+            # Scrolling away while editing must not snap back to the input.
+            before = page.evaluate("scrollY")
+            page.evaluate("""() => {
+                scrollBy(0, 100);
+                window.visualViewport.dispatchEvent(new Event('scroll'));
+            }""")
+            page.wait_for_timeout(50)
+            assert page.evaluate("scrollY") >= before + 99
         done = page.locator(".navigation-dock .keyboard-done")
         if width == 390:
             expect(done).to_be_visible()
@@ -70,6 +81,10 @@ def test_research_keyboard_navigation(browser_server, engine_name, width):
             expect(address).to_have_value("1 Synthetic Way, Fixture, NC 27000")
         elif mobile:
             assert address.evaluate("el => getComputedStyle(el).fontSize") == "16px"
+            tablet_done = page.locator("body > .keyboard-done-floating")
+            expect(tablet_done).to_be_visible()
+            tablet_done.tap()
+            expect(address).not_to_be_focused()
         else:
             expect(done).to_be_hidden()
         viewport(950)

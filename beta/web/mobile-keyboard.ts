@@ -62,8 +62,11 @@ export function setupMobileKeyboard(): void {
   document.body.append(floatingDone);
 
   let frame = 0;
+  let revealEditor = false;
   function fit(): void {
     frame = 0;
+    const reveal = revealEditor;
+    revealEditor = false;
     const viewport = window.visualViewport;
     const bounds = viewportInsets(
       window.innerHeight,
@@ -86,7 +89,13 @@ export function setupMobileKeyboard(): void {
     }
     const field = editor();
     const dialog = field?.closest<HTMLDialogElement>(".property-dialog[open]");
-    if (bounds && dialog && field && (mobile.matches || touch.matches)) {
+    if (
+      reveal &&
+      bounds &&
+      dialog &&
+      field &&
+      (mobile.matches || touch.matches)
+    ) {
       const box = field.getBoundingClientRect();
       const top = dialog
         .querySelector(".detail-topbar")
@@ -95,9 +104,24 @@ export function setupMobileKeyboard(): void {
       if (top !== undefined && box.top < top + 8)
         dialog.scrollTop += box.top - top - 8;
       else if (box.bottom > bottom) dialog.scrollTop += box.bottom - bottom;
+    } else if (
+      reveal &&
+      bounds &&
+      field?.closest("#research-form, .decision-form, #hunt-form") &&
+      (mobile.matches || touch.matches)
+    ) {
+      const box = field.getBoundingClientRect();
+      const top = bounds.top + 8;
+      const bottom = bounds.top + bounds.height - 90;
+      if (box.top < top)
+        window.scrollBy({ top: box.top - top, behavior: "instant" });
+      else if (box.bottom > bottom)
+        window.scrollBy({ top: box.bottom - bottom, behavior: "instant" });
     }
   }
-  function schedule(): void {
+  function schedule(event: Event): void {
+    // Follow an editor on focus/resize, never fight a user's deliberate scrolling.
+    revealEditor ||= event.type === "focusin" || event.type === "resize";
     if (!frame) frame = requestAnimationFrame(fit);
   }
   document.addEventListener("focusin", schedule);

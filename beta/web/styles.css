@@ -3321,6 +3321,9 @@ select {
 @media (max-width: 1100px), (any-pointer: coarse) {
   #research-form input,
   #research-form select,
+  #hunt-form input,
+  #hunt-form select,
+  .analysis-grid input,
   .decision-form input:not([type="checkbox"]),
   .decision-workspace select {
     font-size: 16px;
@@ -3363,9 +3366,7 @@ select {
     display: block;
     flex-shrink: 0;
   }
-  html[data-mobile-editing="true"]
-    body
-    > .wolf-assistant:not([data-expanded="true"]) {
+  html[data-mobile-editing="true"] .wolf-assistant:not([data-expanded="true"]) {
     visibility: hidden;
   }
 }
