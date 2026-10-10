@@ -1,13 +1,30 @@
 # LandWolf beta verification
 
-## Mobile research hosted acceptance follow-up — v0.12.2 candidate
+## Mobile research keyboard repair — v0.12.2 live, October 10, 2026
 
-v0.12.1 reached isolated staging and passed the standard exact hosted journeys.
-An additional hosted phone/tablet check found inactive address/coordinate inputs
-still blocked native validation after mode switching. v0.12.2 disables inactive
-inputs while retaining their values, with regression coverage in both directions.
-New full gates, corrected hosted acceptance and production promotion remain pending.
-See [retained failures and deployment evidence](MOBILE_RESEARCH_KEYBOARD.md).
+PR #35 merged as `f6cf068809bbc18ec9c8919156967a003e280b93`, with its entire
+tree identical to staging candidate `deafae9734a589718bf99912cdfab94164bdafa0`.
+Production Render `dep-db59v7lckfvc739fkme0` became live at 20:28:08 UTC;
+staging `dep-db59puflot8c73e70rq0` became live at 20:16:52 UTC.
+Keyboard-aware navigation, Done, 16px research inputs and preserved validation/retry
+values now apply to both research interfaces. Hosted acceptance found and corrected
+hidden invalid fields blocking the other research mode; inactive fields are disabled
+without clearing their values, with tests for both switching directions.
+
+**Passed:** 536 backend, 18 frontend, 108 unique browser and 53 legacy tests;
+format/lint/types, disposable PostgreSQL/32-table restore, build/package/security;
+exact staged and production identity/health, standard hosted login/privacy/session
+checks, and six focused phone/tablet/desktop research journeys per environment.
+Pre-existing account, billing and CRM row counts/digests matched after deployment
+and acceptance; live JS/CSS assets match between staging and production. Temporary
+smoke-account research access was revoked and its sessions cleared, with audit.
+**Failed, resolved:** acceptance harness session-field assumption; hidden-mode
+native validation; one staged final sign-in hit the normal rate limit, then passed
+on rerun without security changes. **Not run locally:** browser/PostgreSQL/restore
+and separately installed legacy suite; completed hosted gates cover those gaps.
+**Not run:** physical-device OS keyboards; viewport and failure injection are explicit.
+See [all commands, deployment IDs, retained failures and screenshots](MOBILE_RESEARCH_KEYBOARD.md).
+The v0.12.1 notes below are historical and superseded.
 
 ## Mobile research keyboard repair — v0.12.1 candidate
 

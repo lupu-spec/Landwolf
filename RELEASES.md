@@ -3,6 +3,21 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.12.2 — mobile research navigation and preserved validation, live in both environments
+
+Both research views fit navigation and dialog controls to the visible viewport,
+provide Done, use 16px mobile inputs and preserve values through validation and
+failed-request retries. Inactive address/coordinate inputs no longer block the
+other mode's native validation; values remain available when switching back.
+PR #35 merged as `f6cf068809bbc18ec9c8919156967a003e280b93`, whose complete
+tree equals the staging-tested candidate. 536 backend, 18 frontend, 108 browser
+and 53 legacy tests, PostgreSQL/32-table restore, build/package/security, exact
+hosted staging/production session/privacy checks and six focused research journeys
+per environment passed. Existing account, billing and CRM snapshots matched.
+Schema 12, services, databases and production billing configuration are preserved.
+Physical OS keyboards were not tested. See
+[commands, observed deployments, failures and screenshots](beta/docs/MOBILE_RESEARCH_KEYBOARD.md).
+
 ## v0.12.0 — simple investment tools, live in both environments
 
 The deal model starts with purchase/bid, expected sale, repairs/improvements and
@@ -181,8 +196,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.12.0 | `7b06ded06beca5bb4b54f3dcbaf83158e072c74f` | 2026-10-10 12:24:06 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.12.0 | `e062b5386d8a9d672af462594c0b29d524a3c638` | 2026-10-10 12:20:08 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.12.2 | `f6cf068809bbc18ec9c8919156967a003e280b93` | 2026-10-10 20:28:08 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.12.2 | `deafae9734a589718bf99912cdfab94164bdafa0` | 2026-10-10 20:16:52 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -331,6 +346,10 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 06:51:38 | Production | v0.11.1 / `a8e66152e753ccdd3fa96821bc32f6c944e8d25f` | `dep-db4u0jid0e5s73dgdt7g` | PR #33 after all final gates. Same staged application code plus corrected browser selector. New-account cutoff enabled; schema 12, account/billing/pilot counts, public terms, email and live billing verified. Hosted production privacy/paywall/session checks passed. |
 | 2026-10-10 12:20:08 | Beta | v0.12.0 / `e062b5386d8a9d672af462594c0b29d524a3c638` | `dep-db52qe2d0e5s73e0hblg` | Four basic deal inputs and optional Advanced; research budgets simplified. Full final gates and exact staged HTTPS, real calculation/research, browser/privacy/session checks passed. |
 | 2026-10-10 12:24:06 | Production | v0.12.0 / `7b06ded06beca5bb4b54f3dcbaf83158e072c74f` | `dep-db52sd7avr4c73f8u6l0` | PR #34, identical tested/staged tree. Exact production identity, database health, four basic input HTML, billing/email/trial flags and hosted browser/privacy/session checks passed. Schema 12 and existing architecture retained. See SIMPLE_INVESTMENT_TOOLS.md. |
+| 2026-10-10 20:02:17 | Beta | v0.12.1 / `a2ee4071b305efc0f444b1b38f03706d2b0255f7` | `dep-db59irqjnfac739mufp0` | Initial mobile keyboard repair; full candidate gates and exact standard staging research/navigation/session checks passed. Additional acceptance exposed inactive-field native validation; superseded by v0.12.2 before production. |
+| 2026-10-10 20:16:52 | Beta | v0.12.2 / `deafae9734a589718bf99912cdfab94164bdafa0` | `dep-db59puflot8c73e70rq0` | Inactive inputs disabled without losing values. Full final gates, six focused Chromium/WebKit research journeys and standard exact hosted/session checks passed. One rate-limited sign-in rerun passed in the normal window. |
+| 2026-10-10 20:28:08 | Production | v0.12.2 / `f6cf068809bbc18ec9c8919156967a003e280b93` | `dep-db59v7lckfvc739fkme0` | PR #35, entire tree identical to staging. Exact production health/billing/email/auth/privacy/session and six focused both-research-view journeys passed. Existing accounts/billing/CRM digests match; temporary audited test access revoked. Physical OS keyboards not run. See MOBILE_RESEARCH_KEYBOARD.md. |
+
 
 ## Version and promotion rules
 
