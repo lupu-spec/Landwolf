@@ -109,8 +109,9 @@ export function setupMobileKeyboard(): void {
         ?.getBoundingClientRect().bottom;
       const bottom = dialog.getBoundingClientRect().bottom - 24;
       if (top !== undefined && box.top < top + 8)
-        dialog.scrollTop += box.top - top - 8;
-      else if (box.bottom > bottom) dialog.scrollTop += box.bottom - bottom;
+        dialog.scrollTop += Math.floor(box.top - top - 8);
+      else if (box.bottom > bottom)
+        dialog.scrollTop += Math.ceil(box.bottom - bottom);
     } else if (
       reveal &&
       bounds &&
@@ -121,9 +122,15 @@ export function setupMobileKeyboard(): void {
       const top = bounds.top + 8;
       const bottom = bounds.top + bounds.height - 90;
       if (box.top < top)
-        window.scrollBy({ top: box.top - top, behavior: "instant" });
+        window.scrollBy({
+          top: Math.floor(box.top - top),
+          behavior: "instant",
+        });
       else if (box.bottom > bottom)
-        window.scrollBy({ top: box.bottom - bottom, behavior: "instant" });
+        window.scrollBy({
+          top: Math.ceil(box.bottom - bottom),
+          behavior: "instant",
+        });
     }
   }
   function schedule(event: Event): void {
