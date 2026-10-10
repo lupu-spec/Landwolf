@@ -156,7 +156,8 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         open_chat()
         expect(panel.locator(".wolf-context")).to_contain_text("property details")
         ask("How can I run a deal scenario?")
-        expect(log).to_contain_text("Run 10,000 scenarios")
+        expect(log).to_contain_text("Calculate deal")
+        expect(log).to_contain_text("Expand Advanced")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         output = Path("test-results")
         output.mkdir(exist_ok=True)
@@ -192,7 +193,7 @@ def test_twin_wolves_help_on_every_screen(browser_server, engine_name, width):
         logout()
         open_chat()
         expect(log).not_to_contain_text("Save Hunt & view matches")
-        expect(log).not_to_contain_text("Run 10,000 scenarios")
+        expect(log).not_to_contain_text("Calculate deal")
         collapse()
 
         page.get_by_role("button", name="Sign in", exact=True).click()

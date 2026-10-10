@@ -29,8 +29,31 @@ move into a collapsed Advanced section without changing saved research or math.
 
 ## Verification record
 
-**Passed locally:** formatting, lint and type checks for Python/TypeScript;
-`npm run test:unit` (16 invariants); `npm run build`.
+| Command (from beta unless noted) | Local result |
+| --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | **Passed**, exit 0 |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | **Passed**, exit 0 |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | **Passed**, exit 0 |
+| `npm run test:unit` | **Passed**, exit 0, 16 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed**, exit 0, 536 tests |
+| `npm run build` | **Passed**, exit 0 |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | **Passed**, exit 0, runtime/logo assets packaged |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | **Passed**, exit 0, no findings |
+| `npm audit --audit-level=moderate`; `npm run secrets` | **Passed**, exit 0, no findings |
+| `uv lock --check` | **Passed**, exit 0; only the application version changed |
+| Root `git diff --check`; `git status --short` | **Passed**, exit 0, all changes reviewed |
+
+Formatters `.venv/bin/ruff format` on the edited test/script files and
+`npm run format` also exited 0 before the checks. Python/JavaScript dependencies
+were not changed. A before/after HTML parser comparison confirmed all 21 model
+form inputs (20 numeric plus acknowledgement) retain identical input attributes.
+
+**Passed hosted:** root `PYTHONPATH=. pytest -q`, 53 legacy tests, exit 0 in
+[38049824216](https://github.com/lupu-spec/Landwolf/actions/runs/38049824216).
+Root `PYTHONPATH=. pytest -q tests/unit/test_deployment_preflight.py` passed in
+[38049824194](https://github.com/lupu-spec/Landwolf/actions/runs/38049824194).
+The workflow's deploy-only legacy environment jobs are intentionally skipped
+on PR events, rather than claimed as passed.
 
 **Failed locally, environment limitation:**
 `.venv/bin/pytest -q -m browser tests/test_investment_browser.py` could not launch
@@ -48,3 +71,27 @@ The hosted staging journey verifies four visible deal inputs and real calculatio
 
 Final gate results and observed staging/production deployment identities will be
 recorded after execution. No deployment is claimed here yet.
+
+## Independent source availability check
+
+**Failed**, exit 1, 2026-10-10: explicit disposable-database command
+`LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-simple-investment-sources.db LANDWOLF_AUTO_SYNC=false .venv/bin/python -m landwolf.cli sync`.
+Arkansas COSL returned HTTP 500 from its official `/Home/Contents` endpoint.
+Seven other implemented feeds were ready: Minnesota 4, Texas 29, USDA 19,
+Treasury 21, IRS 1, Alaska 170, Michigan 28 raw snapshot records. This check
+never touched production data or snapshots. No source/parser change is part of
+this calculator release. The publisher outage remains a separate limitation.
+
+## Retained and resolved candidate failure
+
+The first full hosted gate run
+[38049824189](https://github.com/lupu-spec/Landwolf/actions/runs/38049824189)
+passed 536 backend and 16 frontend tests, PostgreSQL integration and 32-table
+restore. Browser testing returned **Failed**, exit 1: 96 passed and six help-chat
+cases still expected the old button wording `Run 10,000 scenarios`. All six new
+simple/Advanced journeys passed. The test now requires `Calculate deal` plus
+`Expand Advanced` and checks that the new message clears at logout. This changes
+only test expectations to the reviewed UI wording; no assertion is removed.
+The full final gates must pass before deployment. Package/security steps in that
+failed run were skipped, rather than passed. Local package/security checks passed
+as recorded above. No application code changed after this browser run.
