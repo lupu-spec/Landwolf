@@ -1,6 +1,9 @@
 # Private owner financial management — v0.13.0
 
-Status: candidate; not yet deployed. Production remains the verified v0.12.2.
+Status: draft [PR #36](https://github.com/lupu-spec/Landwolf/pull/36); not deployed.
+Production remains the verified v0.12.2. Both live databases reject external
+inspection due to their empty IP allowlists. Network restrictions were not changed;
+deployment awaits an approved internal data-preservation verification path.
 
 ## Usage
 
@@ -30,6 +33,8 @@ only recognized Render, Spaceship and OpenAI/ChatGPT descriptions. Review every 
 match and allocation before confirming. Card numbers, bank credentials, complete
 descriptions and unrelated personal transactions are not saved. Prefer exporting
 only business rows. There is no active live Amex/bank connector; none was confirmed.
+Amounts containing commas must be quoted and properly grouped. Extra/duplicate
+columns or ambiguous grouping fail atomically rather than changing a charge amount.
 
 Enter verified monthly/annual budgets and annual renewal dates. ChatGPT membership
 and OpenAI API usage are separate costs. No amount is inferred from the user's plan.
@@ -58,7 +63,8 @@ billing, CRM and trial information must remain intact. Forecast settings use
 optimistic revisions; failed submissions preserve form values. CSV changes invalidate
 the preview, preventing stale confirmations. Logout removes financial DOM content.
 
-Local checks: 20 frontend tests, 561 full backend tests, targeted 25 finance tests,
+Local checks: 20 frontend tests, 567 full backend tests before the final CSV
+hardening, and 35 focused finance tests after it;
 format/lint/types, browser build, source/wheel/package, Bandit, dependency audits,
 secretlint and diff check passed. Browser launch failed because executables are
 unavailable; that is not a browser pass. Disposable PostgreSQL/restore and legacy
@@ -71,3 +77,31 @@ Six browser cases exercise Chromium/WebKit at 390/834/1440 px, synthetic revenue
 accessible charts, mobile input sizing, failure/retry values, CSV preview/confirmation,
 duplicate recovery and logout cleanup. Their screenshots contain synthetic fixture
 aggregates only, never live owner's finances. Hosted gate/deployment evidence pending.
+
+The initial candidate `0ddc3b6820aa4d1d963777533aed370e08098d06` passed hosted
+format/lint/types, frontend/backend, PostgreSQL integration and exact restore gates;
+browser/build/security gates are still running. Hosted legacy run `38086909782`
+passed 53 tests, and static release preflight passed in `38086909795`; conditional
+production/staging preflight jobs were skipped, not passes. Final CSV hardening
+requires another full candidate gate run. Staging/production acceptance is **Not run**.
+
+## Exact local commands
+
+From `beta/`, unless noted. Successful chained commands preserve failure exit status.
+
+| Commands | Result |
+| --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | Passed |
+| `npm run test:unit` | Passed, 20 |
+| `.venv/bin/pytest -q -m 'not browser' --tb=short` | Passed, 567 before final CSV hardening; final rerun in progress |
+| `.venv/bin/pytest -q tests/test_finance.py --tb=short` | Passed, 35 after CSV hardening |
+| `npm run build` | Passed |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed |
+| `.venv/bin/bandit -q -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | Passed |
+| `npm audit --audit-level=moderate`; `npm run secrets` | Passed |
+| `uv lock --check`; `git diff --check` | Passed |
+| `.venv/bin/pytest -q -m browser tests/test_finance_browser.py --tb=short` | Failed launch: six cases, browser executables missing |
+| `.venv/bin/python scripts/check_postgres.py`; `.venv/bin/python scripts/check_restore.py` | Not run successfully locally: disposable CI service required |
+| Legacy `PYTHONPATH=. pytest -q` | Not run locally; 53 passed hosted |

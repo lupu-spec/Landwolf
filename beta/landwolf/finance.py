@@ -166,13 +166,19 @@ def import_rows(body: ImportInput) -> tuple[list[ExpenseInput], int]:
     try:
         reader = csv.DictReader(io.StringIO(body.csv_text.lstrip("\ufeff")), strict=True)
         headers = reader.fieldnames or []
-        if len(headers) > 40 or not {"Date", "Description", "Amount"}.issubset(headers):
+        if (
+            len(headers) > 40
+            or len(set(headers)) != len(headers)
+            or not {"Date", "Description", "Amount"}.issubset(headers)
+        ):
             raise ValueError("CSV needs Date, Description and Amount columns")
         rows: list[ExpenseInput] = []
         skipped = 0
         for index, record in enumerate(reader):
             if index >= 500:
                 raise ValueError("Import at most 500 rows per file")
+            if None in record:
+                raise ValueError("CSV row has extra columns; quote amounts containing commas")
             description = record.get("Description") or ""
             # Only recognized business vendors are selected. Never retain descriptions,
             # account columns, card numbers or unrelated personal transactions.
@@ -189,11 +195,14 @@ def import_rows(body: ImportInput) -> tuple[list[ExpenseInput], int]:
             raw_date = (record.get("Date") or "").strip()
             if re.fullmatch(r"\d{1,2}/\d{1,2}/\d{4}", raw_date):
                 raw_date = datetime.strptime(raw_date, "%m/%d/%Y").date().isoformat()
-            raw_amount = (record.get("Amount") or "").strip().replace(",", "").replace("$", "")
+            raw_amount = (record.get("Amount") or "").strip()
             if raw_amount.startswith("(") and raw_amount.endswith(")"):
                 raw_amount = "-" + raw_amount[1:-1]
-            if not re.fullmatch(r"-?\d{1,9}(?:\.\d{1,2})?", raw_amount):
+            if not re.fullmatch(
+                r"-?\$?(?:\d{1,9}|\d{1,3}(?:,\d{3}){1,2})(?:\.\d{1,2})?", raw_amount
+            ):
                 raise ValueError("Recognized vendor row has an invalid USD amount")
+            raw_amount = raw_amount.replace(",", "").replace("$", "")
             rows.append(
                 ExpenseInput(
                     date=raw_date,

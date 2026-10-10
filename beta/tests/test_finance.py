@@ -335,3 +335,28 @@ def test_credit_offset_is_allocated_and_all_time_unknown_stays_unknown(client, o
     report = client.get("/api/admin/finance").json()
     assert report["history"][-1]["expenses_cents"] == -351
     assert report["subscription_collections_all_time_cents"] is None
+
+
+@pytest.mark.parametrize(
+    "csv",
+    [
+        "Date,Description,Amount\n2026-09-01,Render,$1,200.00",
+        'Date,Description,Amount\n2026-09-01,Render,"12,34.00"',
+        "Date,Description,Amount,Amount\n2026-09-01,Render,1.00,200.00",
+    ],
+)
+def test_ambiguous_csv_never_silently_changes_amounts(csv):
+    with pytest.raises(HTTPException) as error:
+        finance.import_rows(finance.ImportInput(csv_text=csv, allocation_percent=100))
+    assert error.value.status_code == 422
+
+
+def test_quoted_grouped_currency_and_parenthesized_credit_are_exact():
+    rows, skipped = finance.import_rows(
+        finance.ImportInput(
+            csv_text='Date,Description,Amount\n2026-09-01,Render,"$1,200.50"\n'
+            '2026-09-02,OpenAI,"($12.50)"',
+            allocation_percent=100,
+        )
+    )
+    assert skipped == 0 and [row.amount_cents for row in rows] == [120050, -1250]
