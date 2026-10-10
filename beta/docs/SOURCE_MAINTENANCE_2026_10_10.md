@@ -59,6 +59,7 @@ No FEMA URL, parser or allowlist was changed to work around it.
 | `.venv/bin/python -m landwolf.cli check-research --latitude 35.7804 --longitude -78.6391` | **Failed**, exit 1 locally: FEMA HTTP 502; NC parcels and other applicable adapters ready |
 | Live-service Dallas/Raleigh research checks | **Passed**, both ready, all applicable adapters valid |
 | Production origin `/api/version`, `/api/health`, anonymous `/api/session` | **Passed**, exact v0.12.0/commit, database health ok, billing/email/trial enabled |
+| Independent hosted HTTPS live smoke, run `38058534464` | **Passed**, exit 0: canonical domain and www, exact production/staging version and commit, database health, supplied logo and unchanged fallback |
 | Source repair regression/release gates and source deployment | **Not run**: no confirmed source code repair was needed |
 
 The external database query tool was blocked by the existing empty IP allowlist.
@@ -66,8 +67,10 @@ The existing internal service shell supplied the read-only inspection instead;
 network/security permissions were preserved. A direct `landwolf.ai` request from
 this check environment returned a non-JSON Site Unavailable page; the Render
 production origin returned valid JSON. This environment limitation does not
-establish a domain outage. Independent hosted HTTPS checks are recorded with
-their actual results in the release verification report.
+establish a domain outage. The independent
+[hosted HTTPS check](https://github.com/lupu-spec/Landwolf/actions/runs/38058534464)
+passed for landwolf.ai, www and staging after this source check. Production still
+reported v0.12.0 at the baseline runtime commit; no new deployment was triggered.
 
 No source connection recovered during this check: seven listings were already
 healthy, all public research adapters worked from production, and Arkansas
