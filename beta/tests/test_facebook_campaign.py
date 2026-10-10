@@ -49,10 +49,14 @@ def test_campaign_verified_email_and_feedback_required_for_access(client: TestCl
     assert response.status_code == 201, response.text
     headers = {**ORIGIN, "X-CSRF-Token": response.json()["csrf"]}
     with client.app.state.factory() as session:
-        account = session.scalar(select(Account).where(Account.email == "campaign-user@example.com"))
+        account = session.scalar(
+            select(Account).where(Account.email == "campaign-user@example.com")
+        )
         assert account is not None
         contact = session.scalar(
-            select(Contact).where(Contact.project_id == "landwolf", Contact.external_id == account.id)
+            select(Contact).where(
+                Contact.project_id == "landwolf", Contact.external_id == account.id
+            )
         )
         assert contact is not None
         assert CAMPAIGN in contact.tags
@@ -87,9 +91,14 @@ def test_campaign_verified_email_and_feedback_required_for_access(client: TestCl
     with client.app.state.factory() as session:
         assert session.get(BillingCustomer, account.id) is None
         assert session.scalar(select(func.count()).select_from(FeedbackEnrollment)) == 1
-        assert session.scalar(
-            select(func.count()).select_from(FeedbackAudit).where(FeedbackAudit.action == "invite")
-        ) == 1
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(FeedbackAudit)
+                .where(FeedbackAudit.action == "invite")
+            )
+            == 1
+        )
 
 
 def test_bad_campaign_is_rejected_and_normal_signup_cannot_claim(client: TestClient):
@@ -104,11 +113,14 @@ def test_bad_campaign_is_rejected_and_normal_signup_cannot_claim(client: TestCli
         session.add(AccountEmail(account_id=account.id, verified_at=int(time.time())))
     assert client.get("/api/feedback").json()["pilot_reserved"] is False
     assert client.get("/api/feedback").json()["state"] == "none"
-    assert client.post(
-        "/api/feedback/accept",
-        headers={**ORIGIN, "X-CSRF-Token": normal.json()["csrf"]},
-        json=ACCEPT,
-    ).status_code == 403
+    assert (
+        client.post(
+            "/api/feedback/accept",
+            headers={**ORIGIN, "X-CSRF-Token": normal.json()["csrf"]},
+            json=ACCEPT,
+        ).status_code
+        == 403
+    )
 
 
 def test_campaign_requires_new_registration_not_existing_login(client: TestClient):
