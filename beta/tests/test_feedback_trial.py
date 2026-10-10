@@ -31,6 +31,8 @@ def trial_app(billing_fixture, monkeypatch):  # noqa: F811
     fake.setups = {}
     fake.subscription_creations = 0
     fake.payment_attempts = 0
+    fake.lost_payment = False
+    fake.bad_descriptor = False
     fake.descriptor = None
     fake.invoice_total = 2900
     fake.lost_conversion = False
@@ -95,7 +97,7 @@ def trial_app(billing_fixture, monkeypatch):  # noqa: F811
             return copy.deepcopy(fake.rows[0])
         if path == "/invoices/in_trial":
             if method == "POST":
-                fake.descriptor = fields["statement_descriptor"]
+                fake.descriptor = None if fake.bad_descriptor else fields["statement_descriptor"]
             return {
                 "id": "in_trial",
                 "livemode": True,
@@ -115,6 +117,9 @@ def trial_app(billing_fixture, monkeypatch):  # noqa: F811
             assert fake.descriptor == "LANDWOLF* TRIAL OVER"
             fake.payment_attempts += 1
             fake.rows[0]["status"] = "active"
+            if fake.lost_payment:
+                fake.lost_payment = False
+                raise billing.unavailable()
             return {"status": "paid"}
         if method == "DELETE" and path == "/subscriptions/sub_trial":
             fake.rows[0]["status"] = "incomplete_expired"
@@ -405,3 +410,68 @@ def test_new_facebook_campaign_uses_conditional_offer_not_legacy_invitation(tria
     assert value["self_service_trial"]["eligible"] is True
     with client.app.state.factory() as session:
         assert session.get(FeedbackEnrollment, user.id) is None
+
+
+def test_self_service_feedback_is_visible_only_in_owner_report(trial_app, monkeypatch):
+    from test_live_billing import login
+
+    client, owner, user, headers, _, _ = trial_app
+    start = enroll(trial_app)
+    tick(trial_app, start + 30 * trials.DAY, monkeypatch)
+    assert (
+        client.post(
+            "/api/trial/feedback", headers=headers, json={"day": 30, "answers": ANSWERS}
+        ).status_code
+        == 200
+    )
+    assert client.get("/api/admin/feedback/responses").status_code == 403
+    login(client, owner.email)
+    result = client.get("/api/admin/feedback/responses")
+    assert result.status_code == 200
+    response = next(r for r in result.json()["responses"] if r["account_id"] == user.id)
+    assert response["survey_key"] == "self-service-day30"
+    assert response["answers"]["usage"] == ANSWERS["usage"]
+
+
+def test_lost_payment_response_never_charges_twice(trial_app, monkeypatch):
+    start = enroll(trial_app)
+    tick(trial_app, start + 30 * trials.DAY, monkeypatch)
+    deadline = row(trial_app).charge_at
+    trial_app[4].lost_payment = True
+    tick(trial_app, deadline, monkeypatch)
+    assert row(trial_app).state == "converting"
+    tick(trial_app, deadline + 3600, monkeypatch)
+    assert row(trial_app).state == "subscribed"
+    assert trial_app[4].payment_attempts == 1
+    assert trial_app[4].subscription_creations == 1
+
+
+def test_unverified_statement_descriptor_withholds_payment(trial_app, monkeypatch):
+    start = enroll(trial_app)
+    tick(trial_app, start + 30 * trials.DAY, monkeypatch)
+    deadline = row(trial_app).charge_at
+    trial_app[4].bad_descriptor = True
+    tick(trial_app, deadline, monkeypatch)
+    assert trial_app[4].payment_attempts == 0
+    assert row(trial_app).state == "converting"
+
+
+def test_schema_11_upgrade_is_additive_and_repeatable(trial_app):
+    from sqlalchemy import inspect, select, update
+
+    from landwolf.db import Account, SchemaVersion, TrialMessage, initialize
+
+    client, _, user, _, _, _ = trial_app
+    engine = client.app.state.factory.kw["bind"]
+    with client.app.state.factory() as session, session.begin():
+        original = session.get(Account, user.id).password_hash
+        session.execute(update(SchemaVersion).values(version=11))
+    TrialMessage.__table__.drop(engine)
+    TrialResponse.__table__.drop(engine)
+    FeedbackTrial.__table__.drop(engine)
+    initialize(engine)
+    initialize(engine)
+    assert inspect(engine).has_table("lw2_trial_messages")
+    with client.app.state.factory() as session:
+        assert session.scalar(select(SchemaVersion.version)) == 12
+        assert session.get(Account, user.id).password_hash == original
