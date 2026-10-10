@@ -32,7 +32,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add beta/web/assets/landwolf-wolf-only.png beta/web/assets/landwolf-wolf-only-preview.png
+          git add beta/web/assets/landwolf-wolf-only.png beta/web/assets/landwolf-wolf-only-preview.png beta/web/assets/landwolf-mask-debug.png
           if ! git diff --cached --quiet; then
             git commit -m "Export extracted wolf head PNG from original artwork"
             git push
