@@ -3,6 +3,14 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.10.3 — supplied header logo, live in both environments
+
+The shared header on login and app screens uses the exact supplied JPEG, with
+responsive contain sizing and a new asset URL. The no-photo fallback is preserved
+byte-for-byte. PR #30 promotes the identical staging-tested tree. All 512 backend,
+16 frontend, 90 browser and 53 legacy tests plus PostgreSQL/restore/build/security
+gates passed. See [commands and evidence](beta/docs/LOGO_REFRESH.md).
+
 ## v0.10.2 — first-login property map repair, live in both environments
 
 The initial map previously used only the first 12 list results. Production's
@@ -146,8 +154,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.10.2 | `255fd1d9b8969e6c1c352188afca8e8d1669dd56` | 2026-10-10 04:40:48 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.10.2 | `e10111c5c9030bb478c2175923fcede22dcbd640` | 2026-10-10 04:30:22 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.10.3 | `886906372f809c07277fb35b7f7f2cd2fddf85e9` | 2026-10-10 05:26:16 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.10.3 | `536d83a2e74075aa85dcdd4438b6554e3bdc03d9` | 2026-10-10 05:14:29 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -289,6 +297,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 04:29:30 | Beta | v0.10.2 / `df7854b8a3f125c7b4c5e6ed7c8736fbf28ae881` | `dep-db4rttijnfac738ail40` | Identical runtime; browser regression explicitly selects Sign in after registration/logout. |
 | 2026-10-10 04:30:22 | Beta | v0.10.2 / `e10111c5c9030bb478c2175923fcede22dcbd640` | `dep-db4ru71rn11c73d1otp0` | Identical runtime; hosted verification now asserts marker intersection with visible map. Exact HTTPS/browser checks passed on live source inventory, including 30 mapped locations beyond the unlocated first list page. |
 | 2026-10-10 04:40:48 | Production | v0.10.2 / `255fd1d9b8969e6c1c352188afca8e8d1669dd56` | `dep-db4s35nlot8c73cqeh3g` | PR #29, identical tested staging tree. Separates map inventory from list pagination and fixes hidden-map framing. Full gate and deployment evidence in MAP_FIRST_LOGIN_FIX.md. |
+| 2026-10-10 05:14:29 | Beta | v0.10.3 / `536d83a2e74075aa85dcdd4438b6554e3bdc03d9` | `dep-db4sis5ckfvc7383rs2g` | Exact supplied header logo; fallback unchanged. Full gates and hosted staging verified. |
+| 2026-10-10 05:26:16 | Production | v0.10.3 / `886906372f809c07277fb35b7f7f2cd2fddf85e9` | `dep-db4sogl9fdbs73ap63lg` | PR #30, identical staging-tested tree. Exact logo and fallback verification in LOGO_REFRESH.md. |
 
 ## Version and promotion rules
 

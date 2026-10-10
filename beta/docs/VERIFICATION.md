@@ -2543,3 +2543,10 @@ live-smoke failed against a stale release ledger; corrected observed deployment
 identities are now recorded. **Not run:** physical iPhone keyboard verification or
 real reset-email delivery (sender remains disabled). No live customer profile or
 billing changes were used for testing. See [exact commands, results and limits](CRM_MOBILE_FIX_RELEASE.md).
+
+
+## v0.10.3 supplied logo refresh — October 10, 2026
+
+See [LOGO_REFRESH.md](LOGO_REFRESH.md) for exact asset hashes, commands, hosted
+gates, responsive screenshots and observed deployments. Production and staging
+use the same verified app tree. The no-photo fallback is unchanged.

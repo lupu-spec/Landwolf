@@ -33,6 +33,10 @@ jobs:
               Path("beta/web/assets/no-photo-available.png").read_bytes()
           ).hexdigest()
 
+          expected_logo = hashlib.sha256(
+              Path("beta/web/assets/landwolf-logo.jpg").read_bytes()
+          ).hexdigest()
+
           def fetch(url):
               for attempt in range(3):
                   try:
@@ -64,6 +68,11 @@ jobs:
                   html = fetch(site).decode("utf-8")
                   assert 'id="hunt-budget-label"' in html
                   assert 'id="hunt-cancel"' in html
+              html = fetch(site).decode("utf-8")
+              assert '/assets/landwolf-logo.jpg' in html, site
+              logo = fetch(f"{site}/assets/landwolf-logo.jpg")
+              assert hashlib.sha256(logo).hexdigest() == expected_logo, site
+              print(f"{environment}: exact supplied logo verified")
               image = fetch(f"{site}/assets/no-photo-available.png")
               assert hashlib.sha256(image).hexdigest() == expected_image, site
               print(f"{environment}: {version} {commit}, fallback image verified")
