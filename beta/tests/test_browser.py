@@ -669,7 +669,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
     engine, factory = database(url)
     initialize(engine)
     mode = getattr(request, "param", "")
-    owner_mode = mode in {"research_owner", "nationwide_owner"}
+    owner_mode = mode in {"research_owner", "nationwide_owner", "finance_owner"}
     if owner_mode:
         with factory() as session, session.begin():
             session.add(
@@ -677,6 +677,36 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                     id="00000000-0000-0000-0000-000000000001",
                     email="owner-fixture@example.com",
                     password_hash=auth.PASSWORDS.hash("Test-only passphrase 847!"),
+                )
+            )
+    if mode == "finance_owner":
+        from datetime import UTC, datetime
+
+        from landwolf.finance_models import FinanceSnapshot
+
+        # Explicit synthetic aggregate facts; never a real owner's financial screenshot.
+        label = datetime.now(UTC).strftime("%Y-%m")
+        with factory() as session, session.begin():
+            session.add(
+                FinanceSnapshot(
+                    id="stripe",
+                    updated_at=int(time.time()),
+                    payload={
+                        "as_of": int(time.time()),
+                        "plan_run_rate_cents": 14500,
+                        "active_subscriptions": 5,
+                        "scheduled_cancellations": 0,
+                        "excluded_records": 0,
+                        "basis": "Synthetic finance fixture, not live revenue.",
+                        "history": {
+                            label: {
+                                "receipts": 14500,
+                                "refunds": 0,
+                                "fees": 585,
+                                "subscription_receipts": 14500,
+                            }
+                        },
+                    },
                 )
             )
     if os.environ.get("LANDWOLF_E2E_LIVE") == "1":
@@ -700,7 +730,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 )
             )
         source_engine.dispose()
-    elif mode in {"nationwide", "nationwide_owner"}:
+    elif mode in {"nationwide", "nationwide_owner", "finance_owner"}:
         seed_national(factory)
     else:
         seed(factory)

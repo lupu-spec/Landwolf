@@ -1,4 +1,5 @@
 import { setupCRM } from "./crm";
+import { setupFinance } from "./finance";
 import { setupNavigationDock } from "./navigation-dock";
 import { dismissMobileKeyboard, setupMobileKeyboard } from "./mobile-keyboard";
 import {
@@ -225,6 +226,10 @@ const feedback = setupFeedback(api, (status) => {
   }
 });
 const crm = setupCRM(api);
+const finance = setupFinance(
+  <T>(path: string, method?: string, body?: unknown) =>
+    api<T>(path, method, body, 60000),
+);
 const facebookTrial =
   new URLSearchParams(window.location.search).get("trial") ===
   "facebook-90-day-feedback";
@@ -376,7 +381,9 @@ function clearSession(): void {
   decisions.clear();
   feedback.clear();
   crm.clear();
+  finance.clear();
   byId("crm-nav").hidden = true;
+  byId("finance-nav").hidden = true;
   byId<HTMLFormElement>("auth-form").reset();
   billing.clear();
   currentView = "explore";
@@ -454,7 +461,9 @@ async function api<T>(
         clearSession();
       if (response.status === 403 && path.startsWith("/api/admin/")) {
         crm.clear();
+        finance.clear();
         byId("crm-nav").hidden = true;
+        byId("finance-nav").hidden = true;
       }
       const detail =
         result && typeof result === "object" && "detail" in result
@@ -654,6 +663,7 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   isOwner = current.is_owner === true;
   byId("coverage-nav").hidden = !isOwner;
   byId("crm-nav").hidden = !isOwner;
+  byId("finance-nav").hidden = !isOwner;
   byId("email-status").textContent = current.email_verified
     ? "Email verified"
     : current.email_delivery_enabled
@@ -698,7 +708,8 @@ async function navigate(
   preset?: Record<string, string>,
 ): Promise<void> {
   dismissMobileKeyboard();
-  if (["sources", "crm"].includes(view) && !isOwner) view = "explore";
+  if (["sources", "crm", "finance"].includes(view) && !isOwner)
+    view = "explore";
   if (view !== "billing" && !feedback.allowed(view)) {
     view = billing.state?.enabled
       ? billingDestination(billing.state)
@@ -711,6 +722,7 @@ async function navigate(
   )
     view = billingDestination(billing.state);
   if (view !== "crm") crm.clear();
+  if (view !== "finance") finance.clear();
   currentView = view;
   assistant.update();
   if (view === "explore" && preset) fillForm(form, preset);
@@ -731,6 +743,8 @@ async function navigate(
   const givingFeedback = view === "feedback";
   const subscribing = view === "billing";
   const managingContacts = view === "crm";
+  const managingFinance = view === "finance";
+  byId("finance-panel").hidden = !managingFinance;
   byId("crm-panel").hidden = !managingContacts;
   byId("billing-panel").hidden = !subscribing;
   byId("feedback-panel").hidden = !givingFeedback;
@@ -749,37 +763,44 @@ async function navigate(
     hunting ||
     givingFeedback ||
     subscribing ||
-    managingContacts;
-  byId("workspace-title").textContent = managingContacts
-    ? "L91 LLC CRM"
-    : subscribing
-      ? "LandWolf membership."
-      : givingFeedback
-        ? "Help shape LandWolf."
-        : sources
-          ? "Know the source. Know the limits."
-          : researching
-            ? "Understand the location."
-            : hunting
-              ? "Find the land that fits."
-              : "Find your next opportunity.";
-  byId("workspace-description").textContent = managingContacts
-    ? "Contacts, follow-ups, and registrations across your projects."
-    : subscribing
-      ? "Secure payments. Clear terms. Your account stays in control."
-      : givingFeedback
-        ? "Your experience, your priorities, and your feedback pilot status."
-        : sources
-          ? "A transparent view of connected data and current gaps."
-          : researching
-            ? "Public records, with their source and uncertainty in view."
-            : hunting
-              ? "Set your criteria once. Review source-backed matches and changes."
-              : "Real listings. Clear sources. A closer look at what matters.";
+    managingContacts ||
+    managingFinance;
+  byId("workspace-title").textContent = managingFinance
+    ? "LandWolf financial management"
+    : managingContacts
+      ? "L91 LLC CRM"
+      : subscribing
+        ? "LandWolf membership."
+        : givingFeedback
+          ? "Help shape LandWolf."
+          : sources
+            ? "Know the source. Know the limits."
+            : researching
+              ? "Understand the location."
+              : hunting
+                ? "Find the land that fits."
+                : "Find your next opportunity.";
+  byId("workspace-description").textContent = managingFinance
+    ? "Private revenue, business expenses, and evidence-based growth planning."
+    : managingContacts
+      ? "Contacts, follow-ups, and registrations across your projects."
+      : subscribing
+        ? "Secure payments. Clear terms. Your account stays in control."
+        : givingFeedback
+          ? "Your experience, your priorities, and your feedback pilot status."
+          : sources
+            ? "A transparent view of connected data and current gaps."
+            : researching
+              ? "Public records, with their source and uncertainty in view."
+              : hunting
+                ? "Set your criteria once. Review source-backed matches and changes."
+                : "Real listings. Clear sources. A closer look at what matters.";
   // A tab switch must expose its destination even from a long Research report.
   byId("workspace-title").focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "instant" });
-  if (managingContacts) {
+  if (managingFinance) {
+    await finance.open();
+  } else if (managingContacts) {
     await crm.open();
   } else if (subscribing) {
     try {

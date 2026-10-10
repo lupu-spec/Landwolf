@@ -28,6 +28,7 @@ from landwolf import (
     crm,
     feedback,
     feedback_export,
+    finance,
     hunt,
     recovery,
     research_workspace,
@@ -83,7 +84,12 @@ class BodyLimit:
                     if message["type"] == "http.disconnect":
                         return
                     body.extend(message.get("body", b""))
-                    limit = 262144 if scope.get("path") == "/api/billing/webhook" else 16384
+                    limit = (
+                        262144
+                        if scope.get("path")
+                        in {"/api/billing/webhook", "/api/admin/finance/import"}
+                        else 16384
+                    )
                     if len(body) > limit:
                         await JSONResponse({"detail": "Request is too large"}, 413)(
                             scope, receive, send
@@ -429,6 +435,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/admin/accounts")
     def admin_accounts(request: Request, session: DB) -> dict[str, Any]:
         return admin.accounts(request, session, settings)
+
+    @app.get("/api/admin/finance")
+    def owner_finance(request: Request, session: DB) -> dict[str, Any]:
+        return finance.dashboard(request, session, settings)
+
+    @app.post("/api/admin/finance/refresh")
+    def finance_refresh(request: Request, session: DB) -> dict[str, Any]:
+        return finance.refresh(request, session, settings)
+
+    @app.post("/api/admin/finance/expenses", status_code=201)
+    def finance_expense(
+        body: finance.ExpenseInput, request: Request, session: DB
+    ) -> dict[str, Any]:
+        return finance.add_expense(request, session, settings, body)
+
+    @app.post("/api/admin/finance/import")
+    def finance_import(body: finance.ImportInput, request: Request, session: DB) -> dict[str, Any]:
+        return finance.import_expenses(request, session, settings, body)
+
+    @app.put("/api/admin/finance/plan")
+    def finance_plan(body: finance.PlanInput, request: Request, session: DB) -> dict[str, Any]:
+        return finance.save_plan(request, session, settings, body)
 
     @app.post("/api/admin/accounts/{account_id}/complimentary-access", status_code=201)
     def grant_complimentary_access(

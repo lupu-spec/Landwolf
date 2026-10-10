@@ -418,7 +418,7 @@ class ResearchGoal(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
 
 
-SCHEMA_VERSION = 12
+SCHEMA_VERSION = 13
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -430,7 +430,8 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add opt-in feedback trial tables in v12; preserve existing accounts and billing."""
+    """Add private finance tables in v13; preserve existing accounts and billing."""
+    from landwolf import finance_models  # noqa: F401 -- register additive tables
     from landwolf.crm_core import Contact, CRMBase, Project
 
     with engine.begin() as connection:
@@ -457,6 +458,7 @@ def initialize(engine: Engine) -> None:
             [9],
             [10],
             [11],
+            [12],
             [SCHEMA_VERSION],
         ):
             raise RuntimeError("Unsupported application schema version; migration required")

@@ -1,5 +1,27 @@
 # LandWolf beta verification
 
+## Owner financial dashboard — v0.13.0 candidate, October 10, 2026
+
+Owner-identity authorization and CSRF protect all private financial routes.
+Read-only live Stripe refresh preserves the last complete snapshot on failure;
+subscription collections, account receipts/refunds/fees and plan run-rate have
+distinct labels. Expenses use explicit business allocations, credits and duplicate
+protection; Amex CSV preview requires confirmation and discards unrelated descriptions.
+There is no direct bank connection, automatic charge, or guessed vendor bill.
+Three-month conservative/base/growth scenarios disclose missing costs and assumptions.
+Existing accounts, billing, CRM, trial policies and research behavior are unchanged;
+schema 13 adds four private tables without replacing existing data.
+
+Local **Passed**: formatting, lint, types, 20 frontend and 561 backend tests;
+browser bundle, wheel/source build and package check; Bandit, pip-audit, npm audit,
+secretlint and diff checks. Targeted finance regression tests passed after validation
+hardening. **Failed, resolved:** finance audit initially targeted the billing-only
+audit table; finance now has its own constrained additive audit table. A new CSV
+audit action mismatch was corrected. **Not run successfully locally:** six browser
+cases (Chromium/WebKit executables unavailable), PostgreSQL/restore and legacy tests.
+Hosted gates and live deployment remain pending. See [feature instructions and
+release evidence](OWNER_FINANCE.md).
+
 ## Mobile research keyboard repair — v0.12.2 live, October 10, 2026
 
 PR #35 merged as `f6cf068809bbc18ec9c8919156967a003e280b93`, with its entire
