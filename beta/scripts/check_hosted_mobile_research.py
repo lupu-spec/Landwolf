@@ -21,7 +21,7 @@ ORIGINS = {
     "staging": "https://landwolf-premium-staging.onrender.com",
     "production": "https://landwolf.ai",
 }
-TAG = "mobile-research-20261010-a867d1"
+TAG = "mobile-research-20261010-a867d2"
 
 
 def require(condition: bool) -> None:
@@ -90,7 +90,7 @@ def main() -> None:
                     while True:
                         state = context.request.get(f"{origin}/api/session").json()
                         require(state["authenticated"] and (not state["is_owner"]))
-                        if not state["payments_enabled"] or state["billing"]["allowed"]:
+                        if state["billing"]["allowed"]:
                             break
                         if time.monotonic() >= deadline:
                             raise RuntimeError("Temporary smoke-account grant was not observed")
