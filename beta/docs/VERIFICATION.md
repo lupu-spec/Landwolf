@@ -2627,3 +2627,88 @@ owner-only coverage and persistent-session/logout behavior. No production
 promotion occurred for v0.11.0. Follow-up v0.11.1 gives a later direct owner pilot
 invitation priority over self-service history in the feedback UI; six browser
 journeys now assert its consent form remains visible.
+
+**Passed** v0.11.1 staging deployment `dep-db4tlglckfvc7387jgq0`, live
+2026-10-10 06:28:14 UTC at `042fad2e1d9c585d9a463bb6568c3b97bfcf827a`.
+Hosted release [run 38030981571](https://github.com/lupu-spec/Landwolf/actions/runs/38030981571)
+passed the exact release, HTTPS/health, four Chromium/WebKit customer journeys,
+mobile/desktop layout, access boundaries and persistent-session/logout checks.
+
+**Failed, corrected test navigation:** [run 38030756958](https://github.com/lupu-spec/Landwolf/actions/runs/38030756958)
+passed 536 backend tests and PostgreSQL/32-table restore, then reported 90 browser
+passes and six failures. Each new trial journey passed consent, feedback and
+cancellation, but the new owner-invitation assertion attempted the nonexistent
+`#feedback-nav` selector. It now clicks the actual accessible `Feedback` button;
+the invitation-consent assertion is retained. The follow-up commit changes only
+that selector, not runtime behavior. Package/security steps skipped after this
+failed browser command are not counted as passes for that run.
+
+## 2026-10-10 — v0.11.1 conditional feedback trial, production verified
+
+Final candidate `b51cdfffb9e26a2894c8dcdd5ce4ef9114d040b0`, tree
+`f7f97aa8b5544e739d233a416d2a471f6f351185`, passed
+[full gates 38031649842](https://github.com/lupu-spec/Landwolf/actions/runs/38031649842).
+Every command below exited 0 in the hosted locked environment after the final
+test-selector correction. Application code is identical to the staged v0.11.1;
+the only later change is that test selector.
+
+| Command (from `beta/` unless noted) | Result |
+| --- | --- |
+| `uv sync --frozen --dev`; `npm ci`; `.venv/bin/playwright install --with-deps chromium webkit` | **Passed** |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | **Passed** |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | **Passed** |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | **Passed** |
+| `npm run test:unit` | **Passed**, 16 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed**, 536 tests |
+| `.venv/bin/python scripts/check_postgres.py` | **Passed**, disposable CI database only |
+| `.venv/bin/python scripts/check_restore.py` | **Passed**, exact row digests across 32 tables, including populated trial/consent/notice rows |
+| `npm run build`; `.venv/bin/pytest -q -m browser` | **Passed**, 96 Chromium/WebKit tests, including all six responsive trial and later-owner-invitation journeys |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | **Passed** |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | **Passed** |
+| `npm audit --audit-level=moderate`; `npm run secrets` | **Passed** |
+| Root `git diff --check`; `git status --short` | **Passed**, reviewed |
+| Root `PYTHONPATH=. pytest -q`, separate legacy environment | **Passed**, 53 tests in [38031649829](https://github.com/lupu-spec/Landwolf/actions/runs/38031649829) |
+| Root `PYTHONPATH=. pytest -q tests/unit/test_deployment_preflight.py` | **Passed**, [38031649839](https://github.com/lupu-spec/Landwolf/actions/runs/38031649839); legacy environment preflight deployment jobs are intentionally skipped for PR events |
+
+PR #33 merged as `a8e66152e753ccdd3fa96821bc32f6c944e8d25f`; its tree matches
+the final tested tree above. A merge-only environment update set
+`LANDWOLF_FEEDBACK_TRIAL_LAUNCH_AT=1791615052` (2026-10-10 06:50:52 UTC).
+That update triggered `dep-db4u0jid0e5s73dgdt7g` automatically; no duplicate deploy
+was requested. Render observed it live at 06:51:38 UTC on the existing production
+service and database.
+
+**Passed** direct production origin checks: `/api/version` returned v0.11.1 and
+the exact merge commit; `/api/health` returned `ok` with live payments enabled;
+anonymous `/api/session` reported email delivery and feedback trial enabled.
+`/trial-terms` returned HTTP 200 with the expected terms version and $29 amount.
+Read-only production shell verification confirmed schema 12, cutoff/enabled flag,
+38 accounts (37 baseline plus one hosted smoke account), two billing customers,
+zero exemptions, two legacy enrollments and zero new trial rows. No account
+identities or secret values were output. The canonical `https://landwolf.ai/trial-terms`
+also returned HTTP 200 with the expected text from the deployed service.
+
+**Passed** `.venv/bin/python scripts/check_hosted_staging.py --environment production`
+in [38032344744](https://github.com/lupu-spec/Landwolf/actions/runs/38032344744):
+exact canonical-domain release identity, HTTPS/health, email/live billing mode,
+four Chromium/WebKit mobile/desktop login-paywall-privacy-logout journeys and
+browser restart/cache/session persistence. Production smoke does not authorize a
+real payment or enroll the synthetic account; consent/due-date/charge-boundary
+tests run in isolated CI with synthetic contracts.
+
+**Passed** Stripe portal update/read-back after verifying the public terms page:
+headline `Your LandWolf membership`, terms URL `https://landwolf.ai/trial-terms`.
+Existing portal features and return URL match their before-update values exactly.
+Product name/description were verified; monthly/annual price IDs remain unchanged.
+The live non-charging invoice check's PaymentIntent was also verified cancelled,
+`amount_received=0`, with `statement_descriptor=LANDWOLF* TRIAL OVER`.
+
+**Failed, stale deployment ledger:** the pre-ledger live smoke run 38032344730
+expected staging v0.11.0 while the observed service was already v0.11.1. This
+documentation update records both actual immutable releases for the subsequent
+ledger smoke; it does not alter either deployed runtime.
+
+**Failed, unrelated:** the isolated live-source sync's Arkansas HTTP 500 remains
+documented above; no source or snapshot changes were made. **Not run:** real card
+entry, settlement/3DS, or a real 30/60/90-day elapsed billing cycle. Live Stripe
+contract checks used the connector's preview API; production retains the pinned
+API version. These limitations do not establish a legal compliance opinion.

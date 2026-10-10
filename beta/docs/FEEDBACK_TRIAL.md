@@ -1,9 +1,9 @@
-# Conditional self-service feedback trial — v0.11.1 candidate
+# Conditional self-service feedback trial — v0.11.1 live
 
-This candidate adds a separate, explicitly consented offer for new self-service
+This release adds a separate, explicitly consented offer for new self-service
 accounts. It does not change accepted non-charging pilots or CRM grants. The
-feature remains off until `LANDWOLF_FEEDBACK_TRIAL_LAUNCH_AT` is set to a deployment
-cutoff (Unix seconds), live billing is enabled, and transactional mail is configured.
+feature requires a deployment cutoff in `LANDWOLF_FEEDBACK_TRIAL_LAUNCH_AT`
+(Unix seconds), enabled live billing, and configured transactional mail.
 Only accounts created at/after that cutoff may enroll. Existing Stripe customer
 records, pilot enrollment/invite history, owner access and all CRM grant history
 exclude automatic enrollment/conversion. Signup alone never authorizes payment.
@@ -68,9 +68,34 @@ schema 11; updated to schema 12 while retaining all original account-data checks
 
 ## Release status
 
-Candidate, not yet deployed. Production enablement is pending required gates,
-isolated PostgreSQL/restore proof, staging and exact release observation. See
-`VERIFICATION.md` for results. Tax registrations/settings are unchanged. The terms
+Operational pause: merge only `LANDWOLF_FEEDBACK_TRIAL_LAUNCH_AT=0` into the
+existing service environment and observe the replacement instance. This disables
+new setup requests and the trial worker without deleting trial, consent, response,
+notice or billing rows. It does not reverse an in-flight payment or stop renewal
+of an already-created Stripe subscription; use the existing billing/cancellation
+tools for those. Keep the original launch cutoff in the release ledger and restore
+that same value when resuming, so eligibility does not silently change. Prefer this
+bounded pause/fix-forward approach over rolling schema 12 back to a schema-11 image.
+An old-image rollback requires coordinated database recovery and reconciliation of
+new writes, never an ad hoc table deletion.
+
+Live in production at `a8e66152e753ccdd3fa96821bc32f6c944e8d25f`, deployment
+`dep-db4u0jid0e5s73dgdt7g`, observed live 2026-10-10 06:51:38 UTC. The eligibility
+cutoff is `1791615052` (2026-10-10 06:50:52 UTC). Production health, email delivery,
+live billing and the trial-enabled flag were verified. Schema 12 has 38 accounts
+(37 baseline plus the hosted smoke account), the original two billing mappings,
+two legacy pilot enrollments, zero exemptions and zero new trial rows at inspection.
+Staging remains disabled for billing, mail and this offer. See `VERIFICATION.md`
+for required gates, isolated PostgreSQL/restore proof and hosted checks.
+
+Stripe product `prod_VFVepZMgPE2lMH` now displays **LandWolf Membership**, with
+plain renewal/cancellation wording and unchanged price IDs. Default live portal
+`bpc_1UMyY3PhxY7l1SSNMMqOiOn3` displays **Your LandWolf membership** and links to
+`https://landwolf.ai/trial-terms`, verified HTTP 200 on the canonical domain before
+the update. Read-back verified existing cancellation, invoice history, payment
+method update, plan-change restrictions and return URL were preserved.
+
+Tax registrations/settings are unchanged. The terms
 implement clear disclosure, consent, reminders and online cancellation; they are
 not an attorney's legal opinion for every jurisdiction.
 
@@ -87,3 +112,9 @@ UI precedence fix: a later owner invitation/legacy pilot form takes precedence
 over historical self-service trial cards. The six responsive trial journeys now
 verify that transition explicitly. The live Stripe product display name is
 LandWolf Membership; existing prices and cancellation configuration are unchanged.
+
+The final commit `b51cdfffb9e26a2894c8dcdd5ce4ef9114d040b0` changes only a browser
+test selector from the staged `042fad2e1d9c585d9a463bb6568c3b97bfcf827a` runtime.
+All final 536 backend / 16 frontend / 96 browser / 53 legacy tests and required
+restore, build and security gates passed before promotion. Production hosted run
+38032344744 passed exact identity, HTTPS, paywall/privacy and session checks.

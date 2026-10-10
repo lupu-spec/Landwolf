@@ -3,6 +3,20 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.11.1 — conditional self-service feedback trial, live in production
+
+New self-service accounts may explicitly choose 90 days with day-30/60/90
+feedback, saved payment method and separate billing consent. Missing feedback
+requires at least seven days' notice before $29/month conversion; feedback or
+online cancellation prevents conversion. All three completed check-ins end with
+no automatic charge. Existing accounts, CRM grants and non-charging pilots retain
+their terms. Signup, Membership, help, private reporting and Stripe wording agree.
+Schema 12 is additive. Eligibility cutoff: `1791615052`, 2026-10-10 06:50:52 UTC.
+536 backend, 16 frontend, 96 browser and 53 legacy tests, PostgreSQL/32-table
+restore, build/security and exact staged/production hosted checks passed. The
+final post-staging change corrects only a browser-test selector. See
+[commands, observed deployment and limits](beta/docs/FEEDBACK_TRIAL.md).
+
 ## v0.10.3 — supplied header logo, live in both environments
 
 The shared header on login and app screens uses the exact supplied JPEG, with
@@ -154,8 +168,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.10.3 | `886906372f809c07277fb35b7f7f2cd2fddf85e9` | 2026-10-10 05:26:16 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.11.0 | `bae62d8bc7c152571c8dff3a31b401d2659dda0f` | 2026-10-10 06:19:36 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.11.1 | `a8e66152e753ccdd3fa96821bc32f6c944e8d25f` | 2026-10-10 06:51:38 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.11.1 | `042fad2e1d9c585d9a463bb6568c3b97bfcf827a` | 2026-10-10 06:28:14 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -299,6 +313,9 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 04:40:48 | Production | v0.10.2 / `255fd1d9b8969e6c1c352188afca8e8d1669dd56` | `dep-db4s35nlot8c73cqeh3g` | PR #29, identical tested staging tree. Separates map inventory from list pagination and fixes hidden-map framing. Full gate and deployment evidence in MAP_FIRST_LOGIN_FIX.md. |
 | 2026-10-10 05:14:29 | Beta | v0.10.3 / `536d83a2e74075aa85dcdd4438b6554e3bdc03d9` | `dep-db4sis5ckfvc7383rs2g` | Exact supplied header logo; fallback unchanged. Full gates and hosted staging verified. |
 | 2026-10-10 05:26:16 | Production | v0.10.3 / `886906372f809c07277fb35b7f7f2cd2fddf85e9` | `dep-db4sogl9fdbs73ap63lg` | PR #30, identical staging-tested tree. Exact logo and fallback verification in LOGO_REFRESH.md. |
+| 2026-10-10 06:19:36 | Beta | v0.11.0 / `bae62d8bc7c152571c8dff3a31b401d2659dda0f` | `dep-db4thcvlk1mc73fvrngg` | Conditional self-service feedback trial; billing/mail stay disabled. Full 536/16/96/53 tests, 32-table restore and hosted exact-release checks passed. Not promoted: follow-up preserves later owner pilot invitation UI when a self-service trial history exists. |
+| 2026-10-10 06:28:14 | Beta | v0.11.1 / `042fad2e1d9c585d9a463bb6568c3b97bfcf827a` | `dep-db4tlglckfvc7387jgq0` | Later owner pilot invitation takes precedence over trial history. Exact staged HTTPS/browser checks passed; billing, mail and trial offer remain disabled. |
+| 2026-10-10 06:51:38 | Production | v0.11.1 / `a8e66152e753ccdd3fa96821bc32f6c944e8d25f` | `dep-db4u0jid0e5s73dgdt7g` | PR #33 after all final gates. Same staged application code plus corrected browser selector. New-account cutoff enabled; schema 12, account/billing/pilot counts, public terms, email and live billing verified. Hosted production privacy/paywall/session checks passed. |
 
 ## Version and promotion rules
 
@@ -447,5 +464,3 @@ Local gates passed 468 backend, 16 frontend and 53 legacy tests, build/package a
 security. Browser launch failed locally; hosted browser/PostgreSQL/restore and
 live checks remain pending. Publication is still awaiting explicit approval; no
 environment row or deployment changed. See [verification](beta/docs/WOLF_ACCOUNT_HELP_RELEASE.md).
-
-| 2026-10-10 06:19:36 | Beta | v0.11.0 / `bae62d8bc7c152571c8dff3a31b401d2659dda0f` | `dep-db4thcvlk1mc73fvrngg` | Conditional self-service feedback trial; billing/mail stay disabled. Full 536/16/96/53 tests, 32-table restore and hosted exact-release checks passed. Not promoted: follow-up preserves later owner pilot invitation UI when a self-service trial history exists. |
