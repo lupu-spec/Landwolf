@@ -49,6 +49,9 @@ County coverage means observed records, not complete jurisdiction coverage.
 
 ## Account email
 
+For the LandWolf support Gmail sender, see [Gmail reset setup](GMAIL_RECOVERY.md).
+Both login-page and Romulus/Remus requests use the same server mailer.
+
 The default is `LANDWOLF_MAIL_PROVIDER=disabled`; the UI states that delivery is
 unavailable. To enable it, configure a verified sender in Resend and add these
 variables securely to the isolated staging service:

@@ -2,7 +2,10 @@
 
 import logging
 import secrets
+import smtplib
+import ssl
 import time
+from email.message import EmailMessage
 from typing import Literal
 
 import httpx
@@ -10,6 +13,7 @@ from fastapi import BackgroundTasks, HTTPException, Request
 from pydantic import EmailStr, Field
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, sessionmaker
+from starlette.concurrency import run_in_threadpool
 
 from landwolf import auth
 from landwolf.config import Settings
@@ -43,16 +47,29 @@ class Mailer:
 
     @property
     def enabled(self) -> bool:
-        return self.settings.mail_provider == "resend"
+        return self.settings.mail_provider in {"resend", "gmail"}
 
     async def send(self, email: str, purpose: Purpose, token: str) -> None:
         settings = self.settings
-        if not self.enabled or not settings.mail_api_key or not settings.mail_from:
+        if not self.enabled or not settings.mail_from:
             raise RuntimeError("Email delivery is not configured")
         action = "Reset your password" if purpose == "reset" else "Verify your email address"
         # Fragments stay out of server access logs and Referrer headers. The client
         # immediately removes the fragment and sends the token only in a JSON body.
         link = f"{settings.public_origin}/#action={purpose}&token={token}"
+        subject = f"LandWolf: {action}"
+        text = (
+            f"{action}:\n\n{link}\n\n"
+            "This link expires in 30 minutes and can be used once. "
+            "If you did not request this, ignore this email.\nLandWolf"
+        )
+        if settings.mail_provider == "gmail":
+            # SMTP is blocking; keep it off the application event loop. No retry:
+            # a lost acknowledgment must not generate duplicate reset messages.
+            await run_in_threadpool(self._send_gmail, email, subject, text)
+            return
+        if not settings.mail_api_key:
+            raise RuntimeError("Email delivery is not configured")
         async with (
             httpx.AsyncClient(timeout=10, follow_redirects=False) as client,
             client.stream(
@@ -65,14 +82,33 @@ class Mailer:
                 json={
                     "from": str(settings.mail_from),
                     "to": [email],
-                    "subject": f"LandWolf: {action}",
-                    "text": f"{action}:\n\n{link}\n\n"
-                    "This link expires in 30 minutes and can be used once. "
-                    "If you did not request this, ignore this email.\nLandWolf",
+                    "subject": subject,
+                    "text": text,
                 },
             ) as response,
         ):
             response.raise_for_status()
+
+    def _send_gmail(self, email: str, subject: str, text: str) -> None:
+        settings = self.settings
+        if not settings.gmail_app_password or not settings.mail_from:
+            raise RuntimeError("Email delivery is not configured")
+        sender = str(settings.mail_from)
+        message = EmailMessage()
+        message["From"] = f"LandWolf Support <{sender}>"
+        message["Reply-To"] = sender
+        message["To"] = email
+        message["Subject"] = subject
+        message.set_content(text)
+        # Fixed Google endpoint, certificate verification and a bounded socket
+        # timeout. Never enable SMTP debug logging: it exposes credentials/tokens.
+        with smtplib.SMTP_SSL(
+            "smtp.gmail.com", 465, timeout=10, context=ssl.create_default_context()
+        ) as smtp:
+            smtp.login(sender, settings.gmail_app_password.get_secret_value())
+            refused = smtp.send_message(message, from_addr=sender, to_addrs=[email])
+            if refused:
+                raise RuntimeError("Email recipient was refused")
 
 
 async def deliver(
@@ -84,7 +120,7 @@ async def deliver(
 ) -> None:
     try:
         await mailer.send(email, purpose, token)
-    except (httpx.HTTPError, RuntimeError):
+    except (httpx.HTTPError, RuntimeError, smtplib.SMTPException, OSError):
         with factory() as session, session.begin():
             session.execute(
                 delete(AccountAction).where(AccountAction.token_hash == auth.digest(token))
