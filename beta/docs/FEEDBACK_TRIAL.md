@@ -1,4 +1,4 @@
-# Conditional self-service feedback trial — v0.11.0 candidate
+# Conditional self-service feedback trial — v0.11.1 candidate
 
 This candidate adds a separate, explicitly consented offer for new self-service
 accounts. It does not change accepted non-charging pilots or CRM grants. The
@@ -77,3 +77,13 @@ not an attorney's legal opinion for every jurisdiction.
 Official references reviewed: Stripe trial compliance and invoice/subscription API
 documentation; FTC negative-option/ROSCA guidance; California Attorney General
 2025 automatic-renewal guidance. The vacated 2024 FTC rule is not treated as current.
+
+
+v0.11.0 candidate `bae62d8bc7c152571c8dff3a31b401d2659dda0f` passed all hosted
+536 backend / 16 frontend / 96 browser / 53 legacy tests and 32-table restore.
+Staging deployment `dep-db4thcvlk1mc73fvrngg` became live 2026-10-10 06:19:36 UTC;
+hosted release run 38030474505 passed. It was not promoted. v0.11.1 adds a narrow
+UI precedence fix: a later owner invitation/legacy pilot form takes precedence
+over historical self-service trial cards. The six responsive trial journeys now
+verify that transition explicitly. The live Stripe product display name is
+LandWolf Membership; existing prices and cancellation configuration are unchanged.

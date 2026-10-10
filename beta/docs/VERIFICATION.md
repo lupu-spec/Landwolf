@@ -2550,3 +2550,80 @@ billing changes were used for testing. See [exact commands, results and limits](
 See [LOGO_REFRESH.md](LOGO_REFRESH.md) for exact asset hashes, commands, hosted
 gates, responsive screenshots and observed deployments. Production and staging
 use the same verified app tree. The no-photo fallback is unchanged.
+
+## 2026-10-10 — v0.11.0 conditional feedback trial candidate
+
+Production baseline was observed read-only at runtime `0.10.3`, commit
+`886906372f809c07277fb35b7f7f2cd2fddf85e9`, schema 11: 37 accounts, two Stripe
+customer mappings, zero billing exemptions and two legacy feedback enrollments.
+Render showed the existing three-day point-in-time recovery window. No credentials
+or private account identities were output. New schema 12 adds only the self-service
+trial, response and notice tables; the existing non-charging pilot is preserved.
+
+Local commands from `beta/` (exit 0 unless stated):
+
+- **Passed** `.venv/bin/ruff format --check landwolf tests scripts`, `npm run format:check`.
+- **Passed** `.venv/bin/ruff check landwolf tests scripts`, `npm run lint`.
+- **Passed** `.venv/bin/mypy landwolf`, `npm run typecheck`.
+- **Passed** `npm run test:unit`: 16 tests.
+- **Passed** `.venv/bin/pytest -q -m 'not browser'`: 528 tests before final campaign/reporting integration.
+- **Passed** `.venv/bin/pytest -q tests/test_feedback_trial.py tests/test_facebook_campaign.py`: 20 combined tests at that checkpoint.
+- **Passed** `.venv/bin/pytest -q tests/test_feedback_trial.py tests/test_feedback.py tests/test_feedback_export.py`: 54 tests after private reporting integration.
+- **Passed** final `.venv/bin/pytest -q tests/test_feedback_trial.py`: 21 tests, including withheld unexpected amounts/descriptors, lost create/payment responses, cancellation and schema-11 upgrade.
+- **Passed** `npm run build`, `.venv/bin/python -m build`, `.venv/bin/python scripts/check_package.py`.
+- **Passed** `.venv/bin/bandit -r landwolf`, `.venv/bin/pip-audit --local --skip-editable`, `npm audit --audit-level=moderate`, `npm run secrets`.
+- **Passed** `uv lock --check` (only project version changed, no dependencies changed).
+- **Passed** root `git diff --check` and `git status --short` reviewed.
+
+Resolved failures: the older migration test asserted schema 11; expectation now
+12 while retaining its original data-preservation checks. Local mypy twice hit an
+internal cache error; moved only the disposable cache aside, then the unchanged
+required command passed. Live Stripe contract verification rejected a removed
+subscription parameter and the account's Managed Payments default for setup;
+removed the obsolete parameter and explicitly disabled Managed Payments only for
+setup sessions. Successful no-charge invoice check was cancelled and voided with
+zero attempts/amount paid. The existing monthly/annual price IDs are unchanged.
+
+**Failed, unrelated provider outage:**
+`LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-feedback-trial-sources.db LANDWOLF_AUTO_SYNC=false .venv/bin/python -m landwolf.cli sync`
+exited 1 because Arkansas COSL returned HTTP 500. Seven other implemented listing
+sources were ready: Minnesota 4, Texas 30, USDA 19, Treasury 21, IRS 1, Alaska 170,
+Michigan 28. This isolated empty-database check did not alter production snapshots.
+
+**Not run locally:** browser suite and disposable PostgreSQL/restore (environment
+capabilities unavailable); hosted CI runs these required gates. Real customer
+charges, card entry and 3DS/settlement were not performed. Final hosted gate and
+deployment results are recorded in the follow-up below once observed.
+
+Implementation and legal/operational boundaries: [FEEDBACK_TRIAL.md](FEEDBACK_TRIAL.md).
+
+Final candidate `bae62d8bc7c152571c8dff3a31b401d2659dda0f`, tree
+`33b72143b78f4458b5af4f0b912a0b512b4fad0a`:
+**Passed** [hosted full gates](https://github.com/lupu-spec/Landwolf/actions/runs/38029806754):
+all configured format/lint/type commands; `npm run test:unit` (16);
+`.venv/bin/pytest -q -m 'not browser'` (536);
+`.venv/bin/python scripts/check_postgres.py`;
+`.venv/bin/python scripts/check_restore.py` (exact digests of 32 tables);
+`npm run build`; `.venv/bin/pytest -q -m browser` (96 Chromium/WebKit tests);
+`.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py`;
+`.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`;
+`npm audit --audit-level=moderate`; `npm run secrets`; `git diff --check` and
+`git status --short`. **Passed** separate legacy `PYTHONPATH=. pytest -q` (53)
+in [Test](https://github.com/lupu-spec/Landwolf/actions/runs/38029806761) and
+[release preflight](https://github.com/lupu-spec/Landwolf/actions/runs/38029806760).
+Earlier candidate 38029637957 also passed all 96 browser journeys. Phone/desktop
+trial screenshots were downloaded and visually reviewed: dates, completion,
+cancellation and terms links are legible and contained. Final runtime UI is identical.
+
+
+**Passed** v0.11.0 staging deployment `dep-db4thcvlk1mc73fvrngg`, live
+2026-10-10 06:19:36 UTC; direct health/session/terms checks returned expected values.
+Initial version read timed out during rollout; a later read returned exact commit
+`bae62d8bc7c152571c8dff3a31b401d2659dda0f`. Hosted
+`.venv/bin/python scripts/check_hosted_staging.py --environment staging` passed in
+[run 38030474505](https://github.com/lupu-spec/Landwolf/actions/runs/38030474505),
+including four responsive customer journeys, research, mapped inventory, CSRF,
+owner-only coverage and persistent-session/logout behavior. No production
+promotion occurred for v0.11.0. Follow-up v0.11.1 gives a later direct owner pilot
+invitation priority over self-service history in the feedback UI; six browser
+journeys now assert its consent form remains visible.

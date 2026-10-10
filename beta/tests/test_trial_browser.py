@@ -45,6 +45,7 @@ def test_trial_consent_feedback_and_cancel(trial_server, engine_name, width):  #
         "feedback_trial": trial,
     }
     requests = []
+    pilot_invited = False
     with sync_playwright() as playwright:
         browser = getattr(playwright, engine_name).launch()
         page = browser.new_page(viewport={"width": width, "height": 1000})
@@ -61,6 +62,8 @@ def test_trial_consent_feedback_and_cancel(trial_server, engine_name, width):  #
             value = response.json()
             value["access_allowed"] = membership["allowed"]
             value["self_service_trial"] = trial
+            if pilot_invited:
+                value["state"] = "invited"
             route.fulfill(response=response, json=value)
 
         def checkout(route):
@@ -129,4 +132,8 @@ def test_trial_consent_feedback_and_cancel(trial_server, engine_name, width):  #
         page.screenshot(path=f"test-results/trial-{engine_name}-{width}.png")
         card.get_by_role("button", name="Cancel feedback trial", exact=True).click()
         expect(card).to_contain_text("has been cancelled")
+        # A later direct owner invitation must remain usable despite trial history.
+        pilot_invited = True
+        page.locator("#feedback-nav").click()
+        expect(page.locator('input[name="accepted_terms"]')).to_be_visible()
         browser.close()

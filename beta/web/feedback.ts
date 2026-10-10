@@ -269,6 +269,7 @@ export function setupFeedback(
     rendered = signature;
     content.replaceChildren(node("h2", feedbackHeadline(current)));
     if (
+      current.state === "none" &&
       current.self_service_trial &&
       current.self_service_trial.state !== "none"
     ) {

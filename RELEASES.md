@@ -155,7 +155,7 @@ coverage, accounts and existing infrastructure are retained. See
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.10.3 | `886906372f809c07277fb35b7f7f2cd2fddf85e9` | 2026-10-10 05:26:16 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.10.3 | `536d83a2e74075aa85dcdd4438b6554e3bdc03d9` | 2026-10-10 05:14:29 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.11.0 | `bae62d8bc7c152571c8dff3a31b401d2659dda0f` | 2026-10-10 06:19:36 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -447,3 +447,5 @@ Local gates passed 468 backend, 16 frontend and 53 legacy tests, build/package a
 security. Browser launch failed locally; hosted browser/PostgreSQL/restore and
 live checks remain pending. Publication is still awaiting explicit approval; no
 environment row or deployment changed. See [verification](beta/docs/WOLF_ACCOUNT_HELP_RELEASE.md).
+
+| 2026-10-10 06:19:36 | Beta | v0.11.0 / `bae62d8bc7c152571c8dff3a31b401d2659dda0f` | `dep-db4thcvlk1mc73fvrngg` | Conditional self-service feedback trial; billing/mail stay disabled. Full 536/16/96/53 tests, 32-table restore and hosted exact-release checks passed. Not promoted: follow-up preserves later owner pilot invitation UI when a self-service trial history exists. |
