@@ -3307,7 +3307,10 @@ select {
     position: fixed;
     z-index: 1100;
     right: 16px;
-    bottom: calc(var(--app-viewport-bottom, 0px) + 12px);
+    bottom: max(
+      env(safe-area-inset-bottom),
+      calc(var(--app-viewport-bottom, 0px) + 12px)
+    );
   }
   html[data-mobile-editing="true"]
     body:has(dialog[open])
@@ -3373,7 +3376,10 @@ select {
 }
 @media (max-width: 639px) {
   html[data-mobile-editing="true"] .navigation-dock {
-    bottom: calc(var(--app-viewport-bottom, 0px) + 8px);
+    bottom: max(
+      env(safe-area-inset-bottom),
+      calc(var(--app-viewport-bottom, 0px) + 8px)
+    );
     max-width: calc(100vw - 16px);
   }
   html[data-mobile-editing="true"] .dock-track {

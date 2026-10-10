@@ -149,8 +149,9 @@ export function setupMobileKeyboard(): void {
   });
   mobile.addEventListener("change", schedule);
   touch.addEventListener("change", schedule);
-  document.addEventListener("pointerdown", (event) => {
-    // Do not shrink or move the tapped control between pointer down and click.
+  document.addEventListener("mousedown", (event) => {
+    // Preserve hit targets until click without cancelling touch activation:
+    // WebKit drops a touch click when its pointerdown default is prevented.
     if (
       root.dataset.mobileEditing === "true" &&
       editor() &&

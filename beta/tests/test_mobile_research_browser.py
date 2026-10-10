@@ -113,7 +113,11 @@ def test_research_keyboard_navigation(browser_server, engine_name, width):
         page.locator("#research-submit").click()
         expect(page.locator(".research-source")).to_have_count(5)
         address.focus()
-        page.locator('#main-nav [data-nav="explore"]').click()
+        explore = page.locator('#main-nav [data-nav="explore"]')
+        if mobile:
+            explore.tap()
+        else:
+            explore.click()
         expect(address).not_to_be_focused()
         page.locator(".property-card").first.get_by_role("button", name="View property").click()
         page.locator("#detail-actions").get_by_role(
