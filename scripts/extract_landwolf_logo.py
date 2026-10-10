@@ -111,6 +111,10 @@ def main():
     out = out.crop(bbox)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     out.save(OUTPUT, optimize=True)
+    preview = Image.new("RGBA", out.size, "white")
+    preview.alpha_composite(out)
+    preview.convert("RGB").save(OUTPUT.with_name("landwolf-wolf-only-preview.png"), optimize=True)
+    print("Alpha extrema:", out.getchannel("A").getextrema(), "Nonzero bbox:", bbox)
     print(f"Extracted {out.width}x{out.height} PNG: {OUTPUT}")
 
 
