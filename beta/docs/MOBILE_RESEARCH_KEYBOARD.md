@@ -43,4 +43,60 @@ cannot show an OS keyboard; the new tests explicitly emulate viewport events.
 Hosted checks additionally exercise the actual deployed focus/layout/Done controls
 and normal real database/calculation/research journeys.
 
-Final command results and observed deployments will be appended after gates.
+## Passed candidate gates; deployment pending
+
+The final code candidate is
+`1a8cdb8f04d31de549ee4e6caefb7337f3cb641a`, tree
+`855b310d07facb275316ddf33d9de75bb72327d9`. All three required PR workflows
+completed successfully. [Full beta gates](https://github.com/lupu-spec/Landwolf/actions/runs/38057738782)
+finished October 10, 2026 at 14:12 UTC. Each command below exited 0 in the
+hosted locked environment after the final code change.
+
+| Command (from beta unless noted) | Result |
+| --- | --- |
+| `uv sync --frozen --dev`; `npm ci`; `.venv/bin/playwright install --with-deps chromium webkit` | **Passed** |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | **Passed** |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | **Passed** |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | **Passed** |
+| `npm run test:unit` | **Passed**, 18 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed**, 536 tests |
+| `.venv/bin/python scripts/check_postgres.py` | **Passed**, disposable database only |
+| `.venv/bin/python scripts/check_restore.py` | **Passed**, exact digests across 32 restored tables |
+| `npm run build` | **Passed** |
+| `.venv/bin/pytest -q -m browser tests/test_mobile_research_browser.py tests/test_dock_browser.py tests/test_wolf_assistant_browser.py` | **Passed**, 18 focused cases |
+| `.venv/bin/pytest -q -m browser` | **Passed**, 108 unique cases |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | **Passed**, wheel and sdist validated |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable` | **Passed**, no findings |
+| `npm audit --audit-level=moderate`; `npm run secrets` | **Passed**, no findings |
+| Root `git diff --check`; `git status --short` | **Passed** |
+| Root `PYTHONPATH=. pytest -q` | **Passed**, 53 legacy tests in run `38057738789` |
+| Root `PYTHONPATH=. pytest -q tests/unit/test_deployment_preflight.py` | **Passed**, release preflight run `38057738787` |
+
+Local format/lint/types, 18 frontend tests, 536 backend tests, build/package and
+security checks also passed during preparation. Format/lint/types, frontend,
+browser build, npm audit/secrets and diff integrity passed again after the final
+focus-control edit. `uv lock --check` passed for version metadata. Local browser
+executables, disposable PostgreSQL and the separate legacy pytest were unavailable;
+the completed hosted checks above cover those environment gaps. Local physical
+OS keyboard testing remains **Not run**.
+
+Earlier candidates **Failed** on CSP-unsafe test wait expressions, overly broad
+closed-chat hiding, fractional scroll bounds, WebKit touch-click cancellation
+and a tablet acknowledgement checkbox moving during focus changes. These were
+corrected without weakening assertions, removing tests or changing CSP. One
+intermediate app.ts transfer was truncated; the tree comparison caught it before
+any deployment. Full-file blob hashes and an exact local/remote tree comparison
+were required for subsequent publication. The final full suite passed all these
+existing and new paths, including login, chat, dock and simple/Advanced tools.
+
+The final WebKit phone/tablet screenshots were visually reviewed: the compact
+dialog header, Close, Done and focused cost field fit the emulated visible area.
+No OS keyboard is drawn in these screenshots.
+
+This candidate remains in [draft PR #35](https://github.com/lupu-spec/Landwolf/pull/35).
+**Not run:** v0.12.1 staging deployment, exact deployed staging journeys and
+production promotion. The subsequent source-maintenance request permits only
+verified source repairs to production; none was confirmed. The mobile change was
+therefore kept separate and not deployed by that maintenance run. Production
+remains v0.12.0 at the baseline commit above. Source check evidence is in
+[SOURCE_MAINTENANCE_2026_10_10.md](SOURCE_MAINTENANCE_2026_10_10.md).
