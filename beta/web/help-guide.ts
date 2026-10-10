@@ -242,6 +242,7 @@ const topics: HelpTopic[] = [
     views: ["explore", "research"],
     steps: [
       "Use the map/list controls in Explore properties to change the results layout.",
+      "The map shows source locations across the filtered search, independently of list pages. Narrow your filters if the 1,000-location limit is reached.",
       "Open a pin or a list card to review a property.",
       "If a record has no validated source coordinates, use its list card and source link.",
     ],

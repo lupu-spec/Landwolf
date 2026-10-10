@@ -255,6 +255,29 @@ def main() -> None:
                         continue
                     page.locator('#main-nav [data-nav="explore"]').click()
                     expect(page.locator(".property-card").first).to_be_visible()
+                    state = context.request.get(f"{origin}/api/session").json()
+                    headers = {
+                        "Origin": origin,
+                        "X-LandWolf-Client": "web",
+                        "X-CSRF-Token": state["csrf"],
+                    }
+                    mapped = context.request.post(
+                        f"{origin}/api/search", headers=headers, data={"page_size": 1}
+                    )
+                    assert mapped.status == 200
+                    inventory = mapped.json()
+                    assert inventory["map_total"] > 0
+                    assert len(inventory["map_results"]) == min(
+                        inventory["map_total"], inventory["map_limit"]
+                    )
+                    expect(page.locator("#map-count")).to_contain_text("mapped locations")
+                    page.get_by_role("button", name="Map", exact=True).click()
+                    page.locator("#property-map").scroll_into_view_if_needed()
+                    expect(page.locator(".leaflet-marker-icon").first).to_be_visible()
+                    page.get_by_role("button", name="Split", exact=True).click()
+                    print(
+                        f"Passed: {engine} {width}px live mapped inventory independent of list page"
+                    )
                     if engine == "chromium" and width == 390:
                         state = context.request.get(f"{origin}/api/session").json()
                         headers = {

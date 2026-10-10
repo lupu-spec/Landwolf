@@ -533,6 +533,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             else (acreage if query.sort == "acres_desc" else price)
         )
         order = key.desc() if query.sort in {"price_desc", "acres_desc"} else key.asc()
+        # Map inventory follows the same filters, independently of list pagination.
+        # Keep the response bounded and never infer missing source coordinates.
+        mapped = stmt.where(
+            Listing.payload["latitude"].as_float().is_not(None),
+            Listing.payload["longitude"].as_float().is_not(None),
+        )
+        map_total = session.scalar(select(func.count()).select_from(mapped.subquery())) or 0
+        map_limit = 1000
+        map_results = [
+            {
+                "id": item.id,
+                **{
+                    field: item.payload.get(field)
+                    for field in ("tract", "asking_price", "latitude", "longitude")
+                },
+            }
+            for item in session.scalars(
+                mapped.order_by(order.nullslast(), Listing.id).limit(map_limit)
+            )
+        ]
         stmt = (
             stmt.order_by(order.nullslast(), Listing.id)
             .offset((query.page - 1) * query.page_size)
@@ -541,6 +561,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         rows = [record_payload(item, session) for item in session.scalars(stmt)]
         return {
             "results": rows,
+            "map_results": map_results,
+            "map_total": map_total,
+            "map_limit": map_limit,
             "total": total,
             "page": query.page,
             "page_size": query.page_size,
