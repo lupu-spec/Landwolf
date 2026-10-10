@@ -291,8 +291,9 @@ const topics: HelpTopic[] = [
     views: ["property"],
     steps: [
       "Open a property and find Build your deal scenario.",
-      "Review purchase/bid, resale ranges and every cost assumption; replace placeholders with your researched inputs.",
-      "Acknowledge the zero-cost warning when applicable, then choose Run 10,000 scenarios.",
+      "Start with purchase/bid, expected sale, repairs/improvements and closing costs. Untouched resale bounds follow expected sale; repair bounds follow your entered repairs budget.",
+      "Expand Advanced for ranges, liens, auction fees, holding time, financing and investment targets. Closing it retains your edits and includes them in the calculation.",
+      "Acknowledge the zero-cost warning when applicable, then choose Calculate deal.",
     ],
     tip: "The bid-based resale defaults and zero costs are assumptions. Results are model outputs, not predictions or a recommendation to buy. Scenario drafts can disappear on reload or sign-out.",
     tour: [

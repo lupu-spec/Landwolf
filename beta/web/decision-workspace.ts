@@ -546,18 +546,42 @@ export function setupDecisionWorkspace(
         }
       }
       hunt.addEventListener("change", () => void loadGoal());
-      const costs = section("Costs and stress test", true);
+      const costs = node("fieldset");
+      costs.append(node("legend", "Budget check"));
       costs.append(
         node(
           "p",
-          "Additional known costs include closing, base holding and financing, but exclude unresolved work. All entries are your assumptions; blank is unknown.",
+          "Start with known additional costs and optional net sale proceeds. Your budget and acquisition basis are included; open Advanced for uncertain work, timing and stress assumptions. Blank means unknown.",
           "input-note",
         ),
       );
       const costGrid = node("div", "", "decision-grid");
       const c = initial.input.costs;
-      const basis = select(
+      const known = input(
         costGrid,
+        "Known additional costs ($)",
+        c.known_costs,
+        "number",
+      );
+      const proceeds = input(
+        costGrid,
+        "Net exit proceeds after selling costs ($, optional)",
+        c.net_proceeds,
+        "number",
+      );
+      proceeds.min = "0.01";
+      costs.append(costGrid);
+      const advanced = section("Advanced — costs and stress test");
+      advanced.append(
+        node(
+          "p",
+          "Saved advanced assumptions remain included when this section is closed. Blank values remain unknown.",
+          "input-note",
+        ),
+      );
+      const advancedGrid = node("div", "", "decision-grid");
+      const basis = select(
+        advancedGrid,
         "Acquisition basis",
         [
           ["published", `Current ${initial.property.price_kind.toLowerCase()}`],
@@ -566,7 +590,7 @@ export function setupDecisionWorkspace(
         c.purchase_basis,
       );
       const purchase = input(
-        costGrid,
+        advancedGrid,
         "Acquisition assumption ($)",
         c.purchase_price,
         "number",
@@ -577,34 +601,20 @@ export function setupDecisionWorkspace(
       };
       basis.addEventListener("change", basisChanged);
       basisChanged();
-      const known = input(
-        costGrid,
-        "Known additional costs ($)",
-        c.known_costs,
-        "number",
-      );
       const low = input(
-        costGrid,
+        advancedGrid,
         "Unresolved work — low ($)",
         c.unresolved_low,
         "number",
       );
       const high = input(
-        costGrid,
+        advancedGrid,
         "Unresolved work — high ($)",
         c.unresolved_high,
         "number",
       );
-      costs.append(costGrid);
-      const stress = section("Investment assumptions and stress controls");
+      advanced.append(advancedGrid);
       const stressGrid = node("div", "", "decision-grid");
-      const proceeds = input(
-        stressGrid,
-        "Net exit proceeds after selling costs ($, optional)",
-        c.net_proceeds,
-        "number",
-      );
-      proceeds.min = "0.01";
       const target = input(
         stressGrid,
         "Target total-period return (%)",
@@ -641,8 +651,8 @@ export function setupDecisionWorkspace(
       );
       delay.max = "120";
       delay.step = "1";
-      stress.append(stressGrid);
-      costs.append(stress);
+      advanced.append(stressGrid);
+      costs.append(advanced);
       form.append(costs);
       const answers = section("Record evidence and answers");
       answers.append(

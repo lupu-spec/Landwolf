@@ -2712,3 +2712,11 @@ documented above; no source or snapshot changes were made. **Not run:** real car
 entry, settlement/3DS, or a real 30/60/90-day elapsed billing cycle. Live Stripe
 contract checks used the connector's preview API; production retains the pinned
 API version. These limitations do not establish a legal compliance opinion.
+
+## v0.12.0 — simple investment tools
+
+The calculator and research budget check use a small basic form with optional
+Advanced controls. The API, math, billing, trial policy and schema are unchanged.
+See [behavior, exact command results and release observations](SIMPLE_INVESTMENT_TOOLS.md).
+Local Chromium/WebKit executables and the legacy pytest environment are unavailable;
+required hosted browser/legacy/PostgreSQL/restore gates must pass before promotion.

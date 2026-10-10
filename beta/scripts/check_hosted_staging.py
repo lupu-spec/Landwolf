@@ -339,10 +339,16 @@ def main() -> None:
                         "button", name="View property"
                     ).click()
                     expect(page.locator("#property-dialog .trust-panel")).to_be_visible()
+                    expect(
+                        page.locator('#analysis-form input[type="number"]:visible')
+                    ).to_have_count(4)
                     research_workspace = page.locator("#decision-workspace")
                     expect(
                         research_workspace.get_by_role("button", name="Record research", exact=True)
                     ).to_be_visible()
+                    research_workspace.get_by_text(
+                        "Advanced — costs and stress test", exact=True
+                    ).click()
                     research_workspace.get_by_label("Acquisition basis", exact=True).select_option(
                         "entered"
                     )
@@ -358,9 +364,6 @@ def main() -> None:
                     research_workspace.get_by_label("Unresolved work — high ($)", exact=True).fill(
                         "18000"
                     )
-                    research_workspace.get_by_text(
-                        "Investment assumptions and stress controls", exact=True
-                    ).click()
                     research_workspace.get_by_label(
                         "Net exit proceeds after selling costs ($, optional)", exact=True
                     ).fill("160000")
@@ -382,13 +385,10 @@ def main() -> None:
                     page.screenshot(
                         path=str(output / f"detail-{engine}-{width}.png"), full_page=True
                     )
-                    for name, value in {
-                        "purchase_price": "100000",
-                        "resale_low": "95000",
-                        "resale_likely": "100000",
-                        "resale_high": "120000",
-                    }.items():
-                        page.locator(f'input[name="{name}"]').fill(value)
+                    page.locator('input[name="purchase_price"]').fill("100000")
+                    page.locator('input[name="resale_likely"]').fill("100000")
+                    expect(page.locator('input[name="resale_low"]')).to_have_value("95000")
+                    expect(page.locator('input[name="resale_high"]')).to_have_value("120000")
                     page.locator("#zero-cost-ack").check()
                     page.locator("#run-analysis").click()
                     expect(page.locator("#analysis-results")).to_be_visible()

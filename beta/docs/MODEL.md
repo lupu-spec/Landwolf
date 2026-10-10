@@ -12,6 +12,12 @@ valuation or calibrated confidence interval. The current purchase/bid input is
 the anchor, initially the source's published price/bid where available. Missing
 prices require an entered bid or explicit resale assumptions. Percentages are
 editable; user-edited dollar fields stop tracking the anchor until explicitly reset.
+The basic form shows purchase/bid, expected sale, repairs/improvements and closing
+costs. Editing expected sale makes that value the anchor for untouched resale
+bounds; explicitly edited Advanced bounds stay fixed. Repair bounds follow the
+entered repair budget until individually edited in Advanced. This introduces no
+inferred valuation or cost estimate. Advanced retains all original model inputs,
+including fees, financing, holding and investment targets, even when collapsed.
 
 Unestimated costs and holding period default to zero by owner request. This excludes
 expenses and may overstate profits and maximum bid. The browser requires an explicit

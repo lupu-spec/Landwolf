@@ -1273,6 +1273,36 @@ input::placeholder {
 .analysis-grid input::placeholder {
   font-size: 0.76rem;
 }
+.analysis-advanced {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 18px 0;
+  background: #fff;
+}
+.analysis-advanced > summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 4px 0;
+}
+.analysis-advanced > summary:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 4px;
+}
+.analysis-grid > label {
+  min-width: 0;
+}
+@media (max-width: 540px) {
+  .analysis-section .analysis-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .analysis-advanced {
+    padding: 12px;
+  }
+  .analysis-actions {
+    flex-wrap: wrap;
+  }
+}
 .analysis-actions {
   display: flex;
   align-items: center;

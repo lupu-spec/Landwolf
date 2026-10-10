@@ -325,9 +325,14 @@ const assistant = setupWolfAssistant({
 });
 const resaleNames = ["resale_low", "resale_likely", "resale_high"];
 let resaleOverrides = new Set<string>();
+let repairOverrides = new Set<string>();
 const scenarioDrafts = new Map<
   string,
-  { values: Record<string, string>; overrides: string[] }
+  {
+    values: Record<string, string>;
+    overrides: string[];
+    repairOverrides: string[];
+  }
 >();
 let researchProperty: PropertyRecord | null = null;
 let researchContextSequence = 0;
@@ -375,6 +380,7 @@ function clearSession(): void {
   currentView = "explore";
   scenarioDrafts.clear();
   resaleOverrides.clear();
+  repairOverrides.clear();
   form.reset();
   byId<HTMLSelectElement>("state").value = "US";
   requestSequence++;
@@ -1572,11 +1578,14 @@ async function openDetail(id: string, preferredHunt?: string): Promise<void> {
     void decisions.property(record.id, preferredHunt);
     const analysisForm = byId<HTMLFormElement>("analysis-form");
     analysisForm.reset();
+    byId<HTMLDetailsElement>("analysis-advanced").open = false;
     resaleOverrides = new Set<string>();
+    repairOverrides = new Set<string>();
     const draft = scenarioDrafts.get(record.id);
     if (draft) {
       fillForm(analysisForm, draft.values);
       resaleOverrides = new Set(draft.overrides);
+      repairOverrides = new Set(draft.repairOverrides);
     } else {
       analysisInput("purchase_price").value =
         record.asking_price === null ? "" : String(record.asking_price);
@@ -1738,7 +1747,12 @@ byId<HTMLFormElement>("analysis-form").addEventListener(
   "submit",
   async (event) => {
     event.preventDefault();
-    const data = new FormData(byId<HTMLFormElement>("analysis-form"));
+    const form = byId<HTMLFormElement>("analysis-form");
+    const invalid = form.querySelector<HTMLInputElement>("input:invalid");
+    if (invalid?.closest("#analysis-advanced"))
+      byId<HTMLDetailsElement>("analysis-advanced").open = true;
+    if (!form.reportValidity()) return;
+    const data = new FormData(form);
     const number = (name: string) => Number(data.get(name));
     const payload = {
       purchase_price: number("purchase_price"),
@@ -1775,6 +1789,13 @@ byId<HTMLFormElement>("analysis-form").addEventListener(
     ) {
       byId("analysis-error").textContent =
         "Each range must be ordered: low ≤ likely ≤ high.";
+      byId<HTMLDetailsElement>("analysis-advanced").open = true;
+      analysisInput(
+        payload.resale.low > payload.resale.likely ||
+          payload.resale.likely > payload.resale.high
+          ? "resale_low"
+          : "repairs_low",
+      ).focus();
       return;
     }
     const sequence = detailSequence;
@@ -1949,6 +1970,7 @@ function rememberScenario(): void {
   scenarioDrafts.set(currentProperty.id, {
     values: formValues(byId<HTMLFormElement>("analysis-form")),
     overrides: [...resaleOverrides],
+    repairOverrides: [...repairOverrides],
   });
   // Bounded session memory, cleared on sign-out. Never use shared local storage.
   if (scenarioDrafts.size > 50) {
@@ -1958,7 +1980,9 @@ function rememberScenario(): void {
 }
 function applyBidRange(): void {
   const range = bidRange(
-    analysisInput("purchase_price").valueAsNumber,
+    analysisInput(
+      resaleOverrides.has("resale_likely") ? "resale_likely" : "purchase_price",
+    ).valueAsNumber,
     analysisInput("downside_pct").valueAsNumber,
     analysisInput("upside_pct").valueAsNumber,
   );
@@ -1974,8 +1998,21 @@ function applyBidRange(): void {
 }
 function renderScenarioBasis(): void {
   byId("scenario-basis").textContent = resaleOverrides.size
-    ? "Custom resale assumptions. Your edited fields will not change when the bid or percentages change; untouched fields still follow the bid. Reapply the range to replace your resale overrides."
-    : "Hypothetical bid-based resale range: low = bid × (1 − downside %); likely = bid; high = bid × (1 + upside %). These are scenario bounds, not statistical confidence limits or an appraisal. A positive bid and valid percentages are required.";
+    ? "Your sale estimate is an assumption. Untouched resale bounds follow expected sale; bounds edited in Advanced stay fixed. Reset the range to return to the bid-based starting assumptions."
+    : "Hypothetical resale defaults follow the bid, not verified market value. Edit expected sale or expand Advanced. These ranges are not statistical confidence limits or an appraisal.";
+  const amount = (name: string) => {
+    const value = analysisInput(name).valueAsNumber;
+    return Number.isFinite(value) ? money(value) : "Needs estimate";
+  };
+  byId("scenario-assumptions").textContent =
+    `Ranges in use: resale ${amount("resale_low")}–${amount("resale_high")}; repairs ${amount("repairs_low")}–${amount("repairs_high")}. Holding: ${analysisInput("holding_months").value || "Needs estimate"} months. Advanced costs, fees and targets remain included when closed.`;
+}
+function applyRepairRange(): void {
+  const likely = analysisInput("repairs_likely").valueAsNumber;
+  for (const name of ["repairs_low", "repairs_high"])
+    if (!repairOverrides.has(name))
+      analysisInput(name).value =
+        Number.isFinite(likely) && likely >= 0 ? String(likely) : "";
 }
 function updateZeroCostWarning(): void {
   const zero = [
@@ -2005,8 +2042,13 @@ byId("analysis-form").addEventListener("input", (event) => {
     return;
   if (resaleNames.includes(event.target.name))
     resaleOverrides.add(event.target.name);
+  if (["repairs_low", "repairs_high"].includes(event.target.name))
+    repairOverrides.add(event.target.name);
+  if (event.target.name === "repairs_likely") applyRepairRange();
   if (
-    ["purchase_price", "downside_pct", "upside_pct"].includes(event.target.name)
+    ["purchase_price", "resale_likely", "downside_pct", "upside_pct"].includes(
+      event.target.name,
+    )
   )
     applyBidRange();
   renderScenarioBasis();

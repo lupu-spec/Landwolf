@@ -119,6 +119,12 @@ See [research decisions release](docs/RESEARCH_DECISIONS_RELEASE.md).
 
 ## Deal model
 
+Start with four figures: purchase/bid, expected sale, repairs/improvements and
+closing costs. Expand **Advanced** for resale/repair ranges, fees, financing,
+holding costs and investment targets. Closing Advanced preserves its values.
+The research budget check likewise shows known costs and optional net exit
+proceeds first, with uncertainty and stress controls under Advanced.
+
 Resale starts at 95% / 100% / 120% of the published price or entered bid, labeled
 as a hypothetical scenario, not market value. Percentages and dollar inputs are
 editable; explicit resale overrides are preserved until the user reapplies the range.
