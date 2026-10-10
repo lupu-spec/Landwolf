@@ -32,11 +32,14 @@ def _owner(client: TestClient) -> None:
         owner = session.scalar(select(Account).where(Account.email == "campaign-owner@example.com"))
         assert owner is not None
         client.app.state.settings.owner_account_id = owner.id
-    assert client.post(
-        "/api/auth/logout",
-        headers={**ORIGIN, "X-CSRF-Token": response.json()["csrf"]},
-        json={},
-    ).status_code == 200
+    assert (
+        client.post(
+            "/api/auth/logout",
+            headers={**ORIGIN, "X-CSRF-Token": response.json()["csrf"]},
+            json={},
+        ).status_code
+        == 200
+    )
 
 
 def test_campaign_verified_email_and_feedback_required_for_access(client: TestClient):
