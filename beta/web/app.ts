@@ -90,6 +90,9 @@ type StateCoverage = {
 };
 type SearchResult = {
   results: PropertyRecord[];
+  map_results: MapRecord[];
+  map_total: number;
+  map_limit: number;
   total: number;
   page: number;
   page_size: number;
@@ -98,6 +101,10 @@ type SearchResult = {
   sources: Source[];
   coverage_note: string;
 };
+type MapRecord = Pick<
+  PropertyRecord,
+  "id" | "tract" | "asking_price" | "latitude" | "longitude"
+>;
 type SessionInfo = {
   billing?: BillingStatus;
   payments_enabled?: boolean;
@@ -268,7 +275,8 @@ let currentProperty: PropertyRecord | null = null;
 let pendingResearchProperty: PropertyRecord | null = null;
 let map: L.Map | null = null;
 let markers: L.LayerGroup | null = null;
-let mapRecords: PropertyRecord[] = [];
+let mapRecords: MapRecord[] = [];
+let mapNeedsFit = false;
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
 let coverageSources: Source[] = [];
 let isOwner = false;
@@ -399,6 +407,7 @@ function clearSession(): void {
   resetHuntForm();
   markers?.clearLayers();
   mapRecords = [];
+  mapNeedsFit = false;
   map?.closePopup();
   byId("workspace").hidden = true;
   byId("auth-view").hidden = false;
@@ -859,6 +868,9 @@ async function search(): Promise<void> {
   byId("property-list").replaceChildren(
     ...Array.from({ length: 4 }, () => element("div", "loading-card")),
   );
+  mapRecords = [];
+  markers?.clearLayers();
+  byId("map-count").textContent = "Loading locations…";
   try {
     const result = await api<SearchResult>("/api/search", "POST", query());
     if (sequence !== requestSequence || !csrf) return;
@@ -946,7 +958,7 @@ function renderResults(result: SearchResult): void {
   byId<HTMLButtonElement>("previous").disabled = page <= 1;
   byId<HTMLButtonElement>("next").disabled = page >= pages;
   byId("page-label").textContent = `Page ${page} of ${pages}`;
-  if (!empty) drawMap(result.results);
+  drawMap(result);
 }
 
 function locationLabel(value: ResearchLocation | null): string {
@@ -1017,7 +1029,7 @@ function propertyCard(record: PropertyRecord): HTMLElement {
   return card;
 }
 
-function drawMap(records: PropertyRecord[]): void {
+function drawMap(result: SearchResult): void {
   if (!map) {
     map = L.map("property-map", { scrollWheelZoom: false }).setView(
       [39, -98],
@@ -1036,20 +1048,34 @@ function drawMap(records: PropertyRecord[]): void {
       .addTo(map);
     markers = L.layerGroup().addTo(map);
     map.on("zoomend", renderMapMarkers);
+    new ResizeObserver(() => updateMapViewport()).observe(byId("property-map"));
   }
-  mapRecords = records;
-  const points: L.LatLngTuple[] = [];
-  for (const record of records) {
-    if (record.latitude === null || record.longitude === null) continue;
-    points.push([record.latitude, record.longitude]);
-  }
+  mapRecords = result.map_results;
+  mapNeedsFit = true;
+  const missing = result.total - result.map_total;
   byId("map-count").textContent =
-    `${points.length} of ${records.length} locations · this page`;
+    result.map_total > result.map_limit
+      ? `First ${mapRecords.length} of ${result.map_total} mapped locations · narrow your filters`
+      : `${result.map_total} mapped locations · ${missing} without coordinates`;
+  renderMapMarkers();
+  requestAnimationFrame(updateMapViewport);
+}
+
+function updateMapViewport(): void {
+  const container = byId("property-map");
+  if (!map || !container.clientWidth || !container.clientHeight) return;
+  map.invalidateSize({ pan: false });
+  if (!mapNeedsFit) return;
+  mapNeedsFit = false;
+  const points: L.LatLngTuple[] = mapRecords.flatMap((record) =>
+    record.latitude === null || record.longitude === null
+      ? []
+      : [[record.latitude, record.longitude] as L.LatLngTuple],
+  );
   if (points.length)
     map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 12 });
   else map.setView([39, -98], 4);
   renderMapMarkers();
-  setTimeout(() => map?.invalidateSize(), 50);
 }
 
 function renderMapMarkers(): void {
@@ -1060,7 +1086,7 @@ function renderMapMarkers(): void {
   const groups: {
     position: L.LatLngTuple;
     pixel: L.Point;
-    records: PropertyRecord[];
+    records: MapRecord[];
   }[] = [];
   for (const record of mapRecords) {
     if (record.latitude === null || record.longitude === null) continue;
@@ -1129,7 +1155,8 @@ document.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((button) =>
         if (other.tagName === "BUTTON")
           other.setAttribute("aria-pressed", String(other === button));
       });
-    setTimeout(() => map?.invalidateSize(), 50);
+    mapNeedsFit = true;
+    requestAnimationFrame(updateMapViewport);
   }),
 );
 

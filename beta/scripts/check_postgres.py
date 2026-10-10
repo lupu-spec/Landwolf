@@ -135,6 +135,8 @@ def main() -> None:
                     category="public_auction",
                     asking_price=price,
                     acres=acres,
+                    latitude=20.0 if label == "other" else None,
+                    longitude=-155.0 if label == "other" else None,
                     bidding_deadline=deadline,
                     retrieved_at="2099-01-01T00:00:00Z",
                 )
@@ -215,6 +217,18 @@ def main() -> None:
             search(sort="price_desc")["results"][-1]["asking_price"] is None, "NULLS LAST failed"
         )
         require(search(page_size=1, page=2)["results"][0]["state"] == "HI", "Pagination failed")
+        map_page = search(page_size=1)
+        require(map_page["results"][0]["latitude"] is None, "Map fixture must start unlocated")
+        require(map_page["map_total"] == 1, "Map count must exclude null coordinates")
+        require(
+            map_page["map_results"][0]["id"] == f"pg-{suffix}-other",
+            "Map omitted a location beyond the list page",
+        )
+        require(
+            map_page["map_results"] == search(page=2, page_size=1)["map_results"],
+            "Map changed with list pagination",
+        )
+        require(search(state="AK")["map_results"] == [], "Map ignored search filters")
         for method, path in [
             ("GET", "/api/saved"),
             ("POST", "/api/saved"),

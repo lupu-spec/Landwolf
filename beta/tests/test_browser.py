@@ -25,6 +25,73 @@ from landwolf.db import Account, Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
+@pytest.mark.parametrize("browser_server", ["map_first_page"], indirect=True)
+@pytest.mark.parametrize("browser_kind", ["chromium", "webkit"])
+@pytest.mark.parametrize("width", [390, 820, 1440])
+def test_first_login_maps_locations_beyond_the_first_page(
+    browser_server: tuple[str, int], browser_kind: str, width: int
+) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = getattr(playwright, browser_kind).launch()
+        page = browser.new_page(viewport={"width": width, "height": 1000})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(origin)
+        page.get_by_role("button", name="Create account", exact=True).click()
+        page.get_by_label("Full name", exact=True).fill("Map regression fixture")
+        page.get_by_label("How will you use LandWolf?", exact=True).select_option("research")
+        page.get_by_label("Email address", exact=True).fill("map-fixture@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        expect(page.locator(".property-card")).to_have_count(12)
+        expect(page.locator("#map-count")).to_have_text(
+            "2 mapped locations · 12 without coordinates"
+        )
+        page.get_by_role("button", name="Map", exact=True).click()
+        page.locator("#property-map").scroll_into_view_if_needed()
+        pin = page.locator(".leaflet-marker-icon").first
+        expect(pin).to_be_visible()
+        # A marker in the DOM is insufficient: it must be inside the visible map.
+        expect(pin).to_be_in_viewport()
+        assert pin.evaluate("""node => {
+            const p = node.getBoundingClientRect();
+            const m = document.querySelector('#property-map').getBoundingClientRect();
+            return p.x >= m.x && p.y >= m.y && p.right <= m.right && p.bottom <= m.bottom;
+        }""")
+        pin.click()
+        expect(page.locator(".map-property-choice")).to_have_count(2)
+        page.locator(".map-property-choice").first.click()
+        expect(page.locator("#property-dialog")).to_be_visible()
+        page.locator("#close-detail").click()
+        page.get_by_role("button", name="List", exact=True).click()
+        page.locator("#next").click()
+        expect(page.locator(".property-card")).to_have_count(2)
+        expect(page.locator("#map-count")).to_have_text(
+            "2 mapped locations · 12 without coordinates"
+        )
+        page.get_by_role("button", name="Sign out", exact=True).click()
+        expect(page.locator("#auth-form")).to_be_visible()
+        page.locator("#login-tab").click()
+        page.get_by_label("Email address", exact=True).fill("map-fixture@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        expect(page.locator(".property-card")).to_have_count(12)
+        page.get_by_role("button", name="Map", exact=True).click()
+        expect(pin).to_be_visible()
+        page.reload()
+        expect(page.locator("#map-count")).to_have_text(
+            "2 mapped locations · 12 without coordinates"
+        )
+        page.get_by_role("button", name="Map", exact=True).click()
+        expect(pin).to_be_visible()
+        output = Path("test-results")
+        output.mkdir(exist_ok=True)
+        page.screenshot(path=str(output / f"map-first-login-{browser_kind}-{width}.png"))
+        assert errors == []
+        browser.close()
+
+
 @pytest.mark.parametrize("browser_kind", ["chromium", "webkit"])
 def test_persistent_login_restart_cache_clear_and_logout(
     browser_server: tuple[str, int], tmp_path: Path, browser_kind: str
@@ -613,6 +680,25 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
         seed_national(factory)
     else:
         seed(factory)
+        if mode == "map_first_page":
+            with factory() as session, session.begin():
+                template = session.get(Listing, "glo-99001")
+                for number in range(12):
+                    identifier = f"map-unlocated-{number}"
+                    session.add(
+                        Listing(
+                            id=identifier,
+                            source=template.source,
+                            active=True,
+                            payload={
+                                **template.payload,
+                                "id": identifier,
+                                "asking_price": 1,
+                                "latitude": None,
+                                "longitude": None,
+                            },
+                        )
+                    )
         if getattr(request, "param", "") == "photos":
             with factory() as session, session.begin():
                 entry = session.get(Listing, "glo-99001")
@@ -776,10 +862,7 @@ def test_complete_free_beta_journey(browser_server: tuple[str, int]) -> None:
         expect(page.locator(".property-card")).to_have_count(min(12, count))
         assert str(count) in page.locator("#results-title").inner_text()
         assert 1 <= page.locator(".leaflet-marker-icon").count() <= min(12, count)
-        assert (
-            f"{min(12, count)} of {min(12, count)} locations"
-            in page.locator("#map-count").inner_text()
-        )
+        assert f"{count} mapped locations" in page.locator("#map-count").inner_text()
         assert not page.locator("#property-map").evaluate("node => node.offsetWidth === 0")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         if os.environ.get("LANDWOLF_E2E_LIVE") == "1":

@@ -1,5 +1,14 @@
 # LandWolf beta verification
 
+## First-login map candidate — v0.10.2, 2026-10-10
+
+Production triage confirmed 92 current listings, 30 source-coordinate locations,
+and zero locations on the default first 12-item page. Search now supplies bounded
+map locations independently of list pagination, with identical filters and access
+controls. Hidden-map sizing is deferred until visible. See
+[cause, changes and verification limits](MAP_FIRST_LOGIN_FIX.md).
+Release gates and staging/production verification are pending.
+
 ## CRM categories and user statistics — v0.10.1 live, 2026-10-10
 
 **Passed:** final full hosted gates — 510 backend, 16 frontend, 78 browser tests,
