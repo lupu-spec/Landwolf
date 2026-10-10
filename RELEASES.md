@@ -3,6 +3,18 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.10.2 — first-login property map repair, live in both environments
+
+The initial map previously used only the first 12 list results. Production's
+default page had no coordinates, although 30 matching locations existed. The map
+now shows source locations across the filtered inventory independently of list
+pagination, capped at 1,000 with an explicit count. Mobile map framing waits for
+a visible container. Unlocated listings remain in the list. PR #29 promotes the
+identical staging-tested tree; 512 backend, 16 frontend, 84 browser and 53 legacy
+tests plus PostgreSQL/restore/build/security gates passed. Schema 11, billing,
+accounts and source protections are unchanged. See
+[cause, commands and verification limits](beta/docs/MAP_FIRST_LOGIN_FIX.md).
+
 ## v0.10.1 — CRM account categories and user statistics, live in both environments
 
 Smoke-test records are automatically separated and hidden from default CRM lists
@@ -134,8 +146,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.10.1 | `a3998b525530a845dedd66b52c401c0cb50b7d51` | 2026-10-10 03:49:25 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.10.1 | `24dee28c3fa2d05de1b1951767b1fa37fcbbc5a2` | 2026-10-10 03:39:02 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.10.2 | `255fd1d9b8969e6c1c352188afca8e8d1669dd56` | 2026-10-10 04:40:48 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.10.2 | `e10111c5c9030bb478c2175923fcede22dcbd640` | 2026-10-10 04:30:22 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -273,6 +285,10 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 03:36:35 | Beta | v0.10.0 / `7e790095fec952c991d9e19c644bb522f65a2d68` | `dep-db4r4vflot8c73cnckeg` | CRM account categories and customer membership statistics. Not promoted: read-only production audit identified 12 older test identities for inclusion in the next revision. |
 | 2026-10-10 03:39:02 | Beta | v0.10.1 / `24dee28c3fa2d05de1b1951767b1fa37fcbbc5a2` | `dep-db4r645ckfvc73fv9qi0` | Adds confirmed legacy verification identities to conservative test classification. All final gates and exact staging customer browser checks passed. |
 | 2026-10-10 03:49:25 | Production | v0.10.1 / `a3998b525530a845dedd66b52c401c0cb50b7d51` | `dep-db4rb4nlot8c73co0940` | PR #28, identical staging-tested tree. Exact hosted browser checks and read-only CRM job passed; 5 users, 29 test records hidden by default. Billing snapshot age is disclosed. See CRM_REPORTING.md for command evidence and limits. |
+| 2026-10-10 04:28:34 | Beta | v0.10.2 / `bc1237f79a335a34dce133c502666f5157ce8540` | `dep-db4rtdflk1mc73fqbuig` | Map inventory independent of list pagination and visible-map sizing. Superseded by test-only verification refinements below. |
+| 2026-10-10 04:29:30 | Beta | v0.10.2 / `df7854b8a3f125c7b4c5e6ed7c8736fbf28ae881` | `dep-db4rttijnfac738ail40` | Identical runtime; browser regression explicitly selects Sign in after registration/logout. |
+| 2026-10-10 04:30:22 | Beta | v0.10.2 / `e10111c5c9030bb478c2175923fcede22dcbd640` | `dep-db4ru71rn11c73d1otp0` | Identical runtime; hosted verification now asserts marker intersection with visible map. Exact HTTPS/browser checks passed on live source inventory, including 30 mapped locations beyond the unlocated first list page. |
+| 2026-10-10 04:40:48 | Production | v0.10.2 / `255fd1d9b8969e6c1c352188afca8e8d1669dd56` | `dep-db4s35nlot8c73cqeh3g` | PR #29, identical tested staging tree. Separates map inventory from list pagination and fixes hidden-map framing. Full gate and deployment evidence in MAP_FIRST_LOGIN_FIX.md. |
 
 ## Version and promotion rules
 

@@ -1,13 +1,25 @@
 # LandWolf beta verification
 
-## First-login map candidate — v0.10.2, 2026-10-10
+## First-login map repair — v0.10.2 live, 2026-10-10
 
 Production triage confirmed 92 current listings, 30 source-coordinate locations,
 and zero locations on the default first 12-item page. Search now supplies bounded
 map locations independently of list pagination, with identical filters and access
 controls. Hidden-map sizing is deferred until visible. See
 [cause, changes and verification limits](MAP_FIRST_LOGIN_FIX.md).
-Release gates and staging/production verification are pending.
+**Passed:** 512 backend, 16 frontend, 84 browser and 53 legacy tests;
+PostgreSQL integration/29-table restore, build/package and security. The six new
+Chromium/WebKit phone/tablet/desktop cases reproduce an unlocated first list page.
+Exact staging HTTPS/browser checks confirmed 30 live map locations independently
+of pagination. Production deployed the identical tested tree as
+`255fd1d9b8969e6c1c352188afca8e8d1669dd56` at 04:40:48 UTC.
+Exact production HTTPS/identity/health, expected billing/mail, hosted browser
+access boundaries and persistent-session checks passed in run 38024845794.
+**Failed, unrelated:** disposable live source sync, Arkansas HTTP 500.
+**Not run locally:** browser and PostgreSQL/restore (hosted gates passed).
+Local browser installation failed on truncated archives; direct custom-domain
+browser access is unavailable in this runner. See the linked record for exact
+commands, observed deployments and final production verification.
 
 ## CRM categories and user statistics — v0.10.1 live, 2026-10-10
 
