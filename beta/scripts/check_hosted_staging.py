@@ -123,7 +123,7 @@ def main() -> None:
         assert session.json()["environment"] == args.environment, (
             "Refusing a mismatched environment"
         )
-        assert session.json()["email_delivery_enabled"] is False
+        assert session.json()["email_delivery_enabled"] is (args.environment == "production")
         assert session.json()["payments_enabled"] is payments_enabled
         root = client.get("/")
         root.raise_for_status()
@@ -148,11 +148,12 @@ def main() -> None:
         assert client.get("/api/saved").status_code == 404
     print(
         "Passed: exact release identity, HTTPS, environment, billing mode, "
-        "disabled mail, authentication"
+        "expected email delivery mode, authentication"
     )
 
     output.mkdir(parents=True, exist_ok=True)
-    # Reserved example.com addresses cannot contact a real customer. Mail must be disabled.
+    # Reserved example.com addresses cannot contact a real customer. These flows
+    # never request email; real delivery is verified separately with an owned inbox.
     email = f"{args.environment}-smoke-{uuid.uuid4().hex}@example.com"
     password = secrets.token_urlsafe(32)
     registered = False
