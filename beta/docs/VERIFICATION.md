@@ -2718,5 +2718,21 @@ API version. These limitations do not establish a legal compliance opinion.
 The calculator and research budget check use a small basic form with optional
 Advanced controls. The API, math, billing, trial policy and schema are unchanged.
 See [behavior, exact command results and release observations](SIMPLE_INVESTMENT_TOOLS.md).
-Local Chromium/WebKit executables and the legacy pytest environment are unavailable;
-required hosted browser/legacy/PostgreSQL/restore gates must pass before promotion.
+**Passed:** final [38050725379](https://github.com/lupu-spec/Landwolf/actions/runs/38050725379),
+536 backend, 16 frontend and 102 browser tests; PostgreSQL/32-table restore,
+build/package, security, format/lint/types. Separate legacy and preflight passed.
+Local browser/legacy tools were unavailable; their gaps are covered by hosted gates.
+Initial six obsolete help-label assertions were corrected without removing coverage.
+
+**Passed:** exact v0.12.0 staging commit `e062b5386d8a9d672af462594c0b29d524a3c638`,
+Render `dep-db52qe2d0e5s73e0hblg`, live 12:20:08 UTC on October 10, and hosted
+[38051509798](https://github.com/lupu-spec/Landwolf/actions/runs/38051509798).
+**Passed:** exact production merge `7b06ded06beca5bb4b54f3dcbaf83158e072c74f`,
+Render `dep-db52sd7avr4c73f8u6l0`, live 12:24:06 UTC, direct version/health/HTML
+and billing/email/trial flag checks, plus canonical-domain hosted
+[38051761573](https://github.com/lupu-spec/Landwolf/actions/runs/38051761573).
+Both environments passed browser privacy and persistence checks; staged model
+and research calculations passed. Production uses a non-entitled smoke account;
+no actual card charge was tested. Physical-device testing was not run.
+The independent disposable source check returned Arkansas COSL HTTP 500; seven
+other feeds were ready. Source code/production snapshots were not altered.

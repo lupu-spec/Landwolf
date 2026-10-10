@@ -3,6 +3,19 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.12.0 — simple investment tools, live in both environments
+
+The deal model starts with purchase/bid, expected sale, repairs/improvements and
+closing costs. Advanced holds ranges, fees, financing, holding and targets while
+retaining all values when collapsed. Research budget checks likewise show costs
+and optional proceeds first. Invalid hidden inputs reveal the controls; guides,
+bounded drafts and required zero-cost warnings agree with the new workflow.
+The calculation API/formulas, schema 12, billing, trial policy, accounts, sources
+and logo are unchanged. PR #34 promotes the identical tested/staged tree.
+536 backend, 16 frontend, 102 browser and 53 legacy tests, PostgreSQL/32-table
+restore, build/package/security and exact hosted staging/production checks passed.
+See [command results, observed deployment and limits](beta/docs/SIMPLE_INVESTMENT_TOOLS.md).
+
 ## v0.11.1 — conditional self-service feedback trial, live in production
 
 New self-service accounts may explicitly choose 90 days with day-30/60/90
@@ -168,8 +181,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.11.1 | `a8e66152e753ccdd3fa96821bc32f6c944e8d25f` | 2026-10-10 06:51:38 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.11.1 | `042fad2e1d9c585d9a463bb6568c3b97bfcf827a` | 2026-10-10 06:28:14 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.12.0 | `7b06ded06beca5bb4b54f3dcbaf83158e072c74f` | 2026-10-10 12:24:06 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.12.0 | `e062b5386d8a9d672af462594c0b29d524a3c638` | 2026-10-10 12:20:08 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -316,6 +329,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 06:19:36 | Beta | v0.11.0 / `bae62d8bc7c152571c8dff3a31b401d2659dda0f` | `dep-db4thcvlk1mc73fvrngg` | Conditional self-service feedback trial; billing/mail stay disabled. Full 536/16/96/53 tests, 32-table restore and hosted exact-release checks passed. Not promoted: follow-up preserves later owner pilot invitation UI when a self-service trial history exists. |
 | 2026-10-10 06:28:14 | Beta | v0.11.1 / `042fad2e1d9c585d9a463bb6568c3b97bfcf827a` | `dep-db4tlglckfvc7387jgq0` | Later owner pilot invitation takes precedence over trial history. Exact staged HTTPS/browser checks passed; billing, mail and trial offer remain disabled. |
 | 2026-10-10 06:51:38 | Production | v0.11.1 / `a8e66152e753ccdd3fa96821bc32f6c944e8d25f` | `dep-db4u0jid0e5s73dgdt7g` | PR #33 after all final gates. Same staged application code plus corrected browser selector. New-account cutoff enabled; schema 12, account/billing/pilot counts, public terms, email and live billing verified. Hosted production privacy/paywall/session checks passed. |
+| 2026-10-10 12:20:08 | Beta | v0.12.0 / `e062b5386d8a9d672af462594c0b29d524a3c638` | `dep-db52qe2d0e5s73e0hblg` | Four basic deal inputs and optional Advanced; research budgets simplified. Full final gates and exact staged HTTPS, real calculation/research, browser/privacy/session checks passed. |
+| 2026-10-10 12:24:06 | Production | v0.12.0 / `7b06ded06beca5bb4b54f3dcbaf83158e072c74f` | `dep-db52sd7avr4c73f8u6l0` | PR #34, identical tested/staged tree. Exact production identity, database health, four basic input HTML, billing/email/trial flags and hosted browser/privacy/session checks passed. Schema 12 and existing architecture retained. See SIMPLE_INVESTMENT_TOOLS.md. |
 
 ## Version and promotion rules
 
