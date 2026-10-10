@@ -115,6 +115,7 @@ type SessionInfo = {
   csrf: string;
   email_verified?: boolean;
   email_delivery_enabled?: boolean;
+  feedback_trial_enabled?: boolean;
   environment?: string;
 };
 type ResearchCatalog = {
@@ -223,6 +224,9 @@ const feedback = setupFeedback(api, (status) => {
   }
 });
 const crm = setupCRM(api);
+const facebookTrial =
+  new URLSearchParams(window.location.search).get("trial") ===
+  "facebook-90-day-feedback";
 let registerMode = false;
 let page = 1;
 let requestSequence = 0;
@@ -578,6 +582,10 @@ function setAuthMode(register: boolean): void {
 }
 byId("login-tab").addEventListener("click", () => setAuthMode(false));
 byId("register-tab").addEventListener("click", () => setAuthMode(true));
+if (facebookTrial) {
+  byId("facebook-trial-offer").hidden = false;
+  setAuthMode(true);
+}
 byId<HTMLFormElement>("auth-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const button = byId<HTMLButtonElement>("auth-submit");
@@ -592,6 +600,7 @@ byId<HTMLFormElement>("auth-form").addEventListener("submit", async (event) => {
         password: byId<HTMLInputElement>("password").value,
         ...(registerMode
           ? {
+              campaign: facebookTrial ? "facebook-90-day-feedback" : undefined,
               profile: {
                 full_name: byId<HTMLInputElement>("signup-name").value,
                 company: byId<HTMLInputElement>("signup-company").value,
@@ -2032,6 +2041,7 @@ const accountLinkOpen = setupAccountActions(api, clearSession);
 void (async () => {
   try {
     const info = await api<SessionInfo>("/api/session");
+    byId("trial-signup-offer").hidden = !info.feedback_trial_enabled;
     if (info.version) {
       byId("release-version").textContent =
         `v${info.version} · ${info.environment === "production" ? "Production" : "Preview"}`;

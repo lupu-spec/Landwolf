@@ -379,7 +379,7 @@ const topics: HelpTopic[] = [
     views: ["billing"],
     steps: [
       "Open Membership while signed in to the correct account.",
-      "Open the billing portal if it is available for your subscription.",
+      "For a self-service feedback trial, choose Cancel feedback trial. For a paid subscription, open Manage billing.",
       "Review and confirm the change in Stripe. If the portal is unavailable, contact support.",
     ],
     tip: "A chat message does not cancel a subscription or issue a refund. Check the billing portal for the effective date and confirmation.",
@@ -395,7 +395,7 @@ const topics: HelpTopic[] = [
       "If invited, review the terms and complete the starting survey to accept.",
       "Submit each due check-in using the feedback form and wait for the saved confirmation.",
     ],
-    tip: "Pilots last three calendar months from acceptance, with check-ins on days 14, 30, 60 and 85. Overdue feedback can pause access. A pilot never automatically starts a paid subscription.",
+    tip: "Invited pilots keep their original no-charge terms. New self-service feedback trials are different: check-ins are due on days 30, 60 and 90. Missing feedback can start $29/month billing only after an emailed seven-day notice. Complete feedback or cancel before that date to avoid conversion; all three completed means no automatic charge.",
   },
   {
     id: "users",

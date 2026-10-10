@@ -1,8 +1,10 @@
+import type { TrialStatus } from "./trial";
 /** Display decisions follow the server's entitlement response, never local dates. */
 export type FeedbackState =
   "none" | "invited" | "active" | "feedback_required" | "expired" | "revoked";
 export type FeedbackStatus = {
   state: FeedbackState;
+  self_service_trial?: TrialStatus;
   enrolled: boolean;
   pilot_reserved?: boolean;
   accepted_at: number | null;

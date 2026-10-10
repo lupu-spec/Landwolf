@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from landwolf import admin
 from landwolf.config import Settings
-from landwolf.db import Account, FeedbackAudit, FeedbackEnrollment, FeedbackResponse
+from landwolf.db import Account, FeedbackAudit, FeedbackEnrollment, FeedbackResponse, TrialResponse
 from landwolf.schemas import Contract
 
 TERMS_VERSION = "investor-pilot-v1"
@@ -367,18 +367,36 @@ def report(request: Request, session: Session, settings: Settings) -> dict[str, 
     events = session.scalars(
         select(FeedbackAudit).order_by(FeedbackAudit.created_at.desc(), FeedbackAudit.id).limit(200)
     ).all()
+    trial_responses = session.execute(
+        select(TrialResponse, Account.email)
+        .join(Account, TrialResponse.account_id == Account.id)
+        .order_by(TrialResponse.submitted_at.desc(), TrialResponse.account_id)
+        .limit(500)
+    ).all()
+    combined: list[dict[str, Any]] = [
+        {
+            "account_id": row.account_id,
+            "email": email,
+            "survey_key": row.survey_key,
+            "survey_version": row.survey_version,
+            "answers": row.answers,
+            "submitted_at": row.submitted_at,
+        }
+        for row, email in responses
+    ] + [
+        {
+            "account_id": row.account_id,
+            "email": email,
+            "survey_key": f"self-service-day{row.day}",
+            "survey_version": 1,
+            "answers": row.answers,
+            "submitted_at": row.submitted_at,
+        }
+        for row, email in trial_responses
+    ]
+    combined.sort(key=lambda value: (-value["submitted_at"], value["account_id"]))
     return {
-        "responses": [
-            {
-                "account_id": row.account_id,
-                "email": email,
-                "survey_key": row.survey_key,
-                "survey_version": row.survey_version,
-                "answers": row.answers,
-                "submitted_at": row.submitted_at,
-            }
-            for row, email in responses
-        ],
+        "responses": combined[:500],
         "events": [
             {
                 "id": row.id,

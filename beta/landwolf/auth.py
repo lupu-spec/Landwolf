@@ -222,6 +222,12 @@ def sign_in(
                 ),
                 source="registration",
             )
+            if credentials.campaign == "facebook-90-day-feedback":
+                # This is only set during creation of a new account, never from login.
+                contact.tags = list(dict.fromkeys([*(contact.tags or []), credentials.campaign]))
+                record_activity(
+                    session, contact.id, account.id, "campaign_registered", credentials.campaign
+                )
             record_activity(
                 session,
                 contact.id,

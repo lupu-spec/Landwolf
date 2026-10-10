@@ -12,17 +12,20 @@ from urllib.parse import urlsplit
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, inspect, select
 
-from landwolf import auth, feedback
+from landwolf import auth, feedback, trials
 from landwolf.config import Settings
 from landwolf.db import (
     SCHEMA_VERSION,
     Account,
     AccountAction,
+    FeedbackTrial,
     Hunt,
     Listing,
     LoginSession,
     SchemaVersion,
     SourceRun,
+    TrialMessage,
+    TrialResponse,
     database,
     initialize,
 )
@@ -529,6 +532,56 @@ def main() -> None:
         )
         require(retained.status_code == 201, "Research restore Hunt failed")
         check_research(client, headers, retained.json()["id"], suffix)
+        # Additive schema-12 financial evidence participates in exact-content restore.
+        with app.state.factory() as session, session.begin():
+            trial_account = Account(
+                id="trial-restore-" + suffix,
+                email="trial-restore-" + suffix + "@example.com",
+                password_hash="synthetic-not-a-login",
+                created_at=int(time.time()),
+            )
+            session.add(trial_account)
+            session.flush()
+            session.add(
+                FeedbackTrial(
+                    account_id=trial_account.id,
+                    state="cancelled",
+                    attempt_id=str(uuid.uuid4()),
+                    terms_version=trials.TERMS_VERSION,
+                    consent_text=trials.TERMS,
+                    consent_at=int(time.time()),
+                    updated_at=int(time.time()),
+                )
+            )
+            session.flush()
+            session.add(
+                TrialResponse(
+                    account_id=trial_account.id,
+                    day=30,
+                    answers=answers,
+                    submitted_at=int(time.time()),
+                )
+            )
+            session.add(
+                TrialMessage(
+                    account_id=trial_account.id,
+                    key="welcome",
+                    subject="Synthetic restore evidence",
+                    body=trials.TERMS,
+                    created_at=int(time.time()),
+                    attempts=1,
+                    sent_at=int(time.time()),
+                )
+            )
+        with app.state.factory() as session:
+            require(
+                session.get(TrialResponse, (trial_account.id, 30)).answers == answers,
+                "PostgreSQL trial answers did not persist",
+            )
+            require(
+                session.get(FeedbackTrial, trial_account.id).consent_text == trials.TERMS,
+                "PostgreSQL billing consent did not persist",
+            )
     print(
         "Passed: PostgreSQL authentication, nationwide JSON filters, "
         "nulls, dates, pagination, permanent Saved deletion, retained accounts/sessions, "

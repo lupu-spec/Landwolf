@@ -3218,3 +3218,22 @@ select {
 .crm-admin-section .crm-facts dd {
   overflow-wrap: anywhere;
 }
+
+.trial-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+  background: white;
+  overflow-wrap: anywhere;
+}
+.trial-card .button {
+  margin: 8px 8px 8px 0;
+}
+.trial-card .feedback-form {
+  max-width: 680px;
+}
+.trial-card a {
+  display: inline-block;
+  margin: 12px 0;
+}

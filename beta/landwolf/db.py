@@ -292,6 +292,64 @@ class BillingCustomer(Base):
     )
 
 
+class FeedbackTrial(Base):
+    """Opt-in self-service terms, separate from every non-charging CRM pilot."""
+
+    __tablename__ = "lw2_feedback_trials"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    state: Mapped[str] = mapped_column(String(24), default="setup", index=True)
+    terms_version: Mapped[str] = mapped_column(String(50))
+    consent_text: Mapped[str] = mapped_column(String(4000))
+    consent_at: Mapped[int] = mapped_column(Integer)
+    attempt_id: Mapped[str] = mapped_column(String(36), unique=True)
+    checkout_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    payment_method_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    started_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    expires_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    notice_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    charge_at: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    conversion_attempt_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    subscription_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    next_check_at: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    cancelled_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    updated_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (
+        CheckConstraint(
+            "state IN ('setup','active','notice','converting','subscribed',"
+            "'cancelled','completed','blocked')",
+            name="ck_lw2_trial_state",
+        ),
+        CheckConstraint("notice_day IS NULL OR notice_day IN (30,60,90)", name="ck_lw2_trial_day"),
+    )
+
+
+class TrialResponse(Base):
+    __tablename__ = "lw2_trial_responses"
+    account_id: Mapped[str] = mapped_column(
+        ForeignKey("lw2_feedback_trials.account_id"), primary_key=True
+    )
+    day: Mapped[int] = mapped_column(Integer, primary_key=True)
+    answers: Mapped[dict[str, Any]] = mapped_column(JSON)
+    submitted_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (CheckConstraint("day IN (30,60,90)", name="ck_lw2_trial_response_day"),)
+
+
+class TrialMessage(Base):
+    """Retain the actual notice/acknowledgment and successful mail acceptance time."""
+
+    __tablename__ = "lw2_trial_messages"
+    account_id: Mapped[str] = mapped_column(
+        ForeignKey("lw2_feedback_trials.account_id"), primary_key=True
+    )
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    subject: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(String(8000))
+    created_at: Mapped[int] = mapped_column(Integer)
+    sent_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[int] = mapped_column(Integer, default=0)
+
+
 class BillingEvent(Base):
     """Idempotency receipt only. Never retain webhook payloads or payment details."""
 
@@ -360,7 +418,7 @@ class ResearchGoal(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
 
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 12
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -372,7 +430,7 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add owner account administration in v11; preserve account and billing history."""
+    """Add opt-in feedback trial tables in v12; preserve existing accounts and billing."""
     from landwolf.crm_core import Contact, CRMBase, Project
 
     with engine.begin() as connection:
@@ -398,6 +456,7 @@ def initialize(engine: Engine) -> None:
             [8],
             [9],
             [10],
+            [11],
             [SCHEMA_VERSION],
         ):
             raise RuntimeError("Unsupported application schema version; migration required")

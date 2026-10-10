@@ -31,6 +31,7 @@ from landwolf import (
     hunt,
     recovery,
     research_workspace,
+    trials,
 )
 from landwolf.analysis import analyze
 from landwolf.catalog import Catalog, current_sale_conditions
@@ -123,9 +124,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 )
             billing.validate_live_setup(settings, session)
         task = asyncio.create_task(provider.run()) if settings.auto_sync else None
+        trial_task = (
+            asyncio.create_task(trials.run(factory, settings)) if trials.enabled(settings) else None
+        )
         try:
             yield
         finally:
+            if trial_task:
+                trial_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await trial_task
             if task:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -224,6 +232,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "version": VERSION,
                 "environment": settings.environment,
                 "email_delivery_enabled": app.state.mailer.enabled,
+                "feedback_trial_enabled": trials.enabled(settings),
             }
         return {
             "authenticated": True,
@@ -232,6 +241,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "csrf": request.state.login.csrf,
             "email_verified": recovery.verified(session, account.id),
             "email_delivery_enabled": app.state.mailer.enabled,
+            "feedback_trial_enabled": trials.enabled(settings),
             "environment": settings.environment,
             "is_owner": settings.owner_account_id == account.id,
             "access_override": admin.entitlement(session, account, settings),
@@ -291,6 +301,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "version": 1,
             "priorities": capabilities(),
             "email_delivery_enabled": app.state.mailer.enabled,
+            "feedback_trial_enabled": trials.enabled(settings),
         }
 
     @app.post("/api/auth/register", status_code=201)
@@ -316,8 +327,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         account = auth.authenticate(request, session, settings, write=True)
         auth.limit(session, f"billing-refresh:{account.id}", 6, 60)
         if settings.payments_enabled:
+            trials.reconcile_setup(session, account, settings)
+            session.commit()
             billing.refresh_customer(session, account, settings, force=True)
         return billing.access(session, account, settings)
+
+    @app.post("/api/trial/checkout")
+    def trial_checkout(body: trials.AcceptInput, request: Request, session: DB) -> dict[str, str]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"trial-checkout:{account.id}", 6, 60)
+        return trials.checkout(session, account, settings, body)
+
+    @app.post("/api/trial/feedback")
+    def trial_feedback(body: trials.ResponseInput, request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        auth.limit(session, f"trial-feedback:{account.id}", 10, 60)
+        return trials.submit(session, account, settings, body)
+
+    @app.post("/api/trial/cancel")
+    def trial_cancel(request: Request, session: DB) -> dict[str, Any]:
+        account = auth.authenticate(request, session, settings, write=True)
+        return trials.cancel(session, account, settings)
 
     @app.post("/api/billing/checkout")
     def create_checkout(
@@ -350,9 +380,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         account = auth.authenticate(request, session, settings, touch=False)
         billing.claim_invitation(session, account, settings)
         result = feedback.status(session, account, settings=settings)
+        result["self_service_trial"] = trials.status(session, account, settings)
         if settings.payments_enabled:
             result["access_allowed"] = billing.access(session, account, settings)["allowed"]
-        result["pilot_reserved"] = account.email.casefold() in settings.pilot_invite_emails
+        result["pilot_reserved"] = billing.pilot_reserved(session, account, settings)
         return result
 
     @app.post("/api/feedback/accept")
@@ -785,6 +816,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     static = Path(__file__).resolve().parent / "static"
     if static.is_dir():
         app.mount("/assets", StaticFiles(directory=static / "assets"), name="assets")
+
+        @app.get("/trial-terms", include_in_schema=False)
+        def trial_terms() -> FileResponse:
+            return FileResponse(static / "assets" / "trial-terms.html")
 
         @app.get("/", include_in_schema=False)
         def index() -> FileResponse:
