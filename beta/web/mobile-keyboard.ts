@@ -156,7 +156,9 @@ export function setupMobileKeyboard(): void {
       root.dataset.mobileEditing === "true" &&
       editor() &&
       event.target instanceof Element &&
-      event.target.closest("button, summary")
+      event.target.closest(
+        'button, summary, input[type="checkbox"], input[type="radio"]',
+      )
     )
       event.preventDefault();
   });
