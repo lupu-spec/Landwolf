@@ -352,7 +352,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         result = feedback.status(session, account, settings=settings)
         if settings.payments_enabled:
             result["access_allowed"] = billing.access(session, account, settings)["allowed"]
-        result["pilot_reserved"] = account.email.casefold() in settings.pilot_invite_emails
+        result["pilot_reserved"] = billing.pilot_reserved(session, account, settings)
         return result
 
     @app.post("/api/feedback/accept")
