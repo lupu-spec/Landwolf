@@ -165,9 +165,9 @@ seed are displayed. See [MODEL.md](docs/MODEL.md) for equations and limitations.
 - Secrets and personal records never belong in Git or log messages. Source HTML is
   parsed into validated fields; the browser uses text nodes and allowlisted URLs.
 - Billing privileges are checked on the server; the owner is pinned by immutable account ID. One-use email verification and
-  password recovery are implemented, but delivery is disabled until a verified
-  sender and provider credential are configured. Gmail support-mailbox delivery
-  is available in the candidate; see [setup and activation](docs/GMAIL_RECOVERY.md).
+  password recovery use the configured server mailer. Production Gmail delivery
+  through the support mailbox is enabled and verified; staging remains disabled.
+  See [setup, verification and rollback](docs/GMAIL_RECOVERY.md).
 - Use one application instance/worker for the initial source scheduler. A future
   multi-instance rollout requires a distributed scheduler lease. Configure trusted
   proxy addresses deliberately; never trust arbitrary client forwarding headers.

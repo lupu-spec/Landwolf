@@ -3,6 +3,19 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.9.3 — support Gmail password recovery, live in production
+
+Login-page and Romulus/Remus reset requests now send through
+`support.landwolf@gmail.com`, with that same Reply-To. Reset links go only to the
+requesting account. Verified two real emails and completed both one-use reset
+flows, including old password/session rejection. PR #27 merged as
+`e7baf8719fa6092013903cf1a53dd1cebcffbd07`, with the identical staging-tested tree.
+Full gates passed 488 backend, 16 frontend, 74 browser and 53 legacy tests,
+PostgreSQL/29-table restore, build/package and security. Both environments passed
+exact-release hosted checks. Staging email remains disabled on its free plan.
+Schema 11, billing, entitlements, source protections and existing accounts remain
+unchanged. See [verification and operational limits](beta/docs/GMAIL_RECOVERY.md).
+
 ## v0.9.2 — CRM contact opening and mobile login chat, live in both environments
 
 Open contact moves focus and the viewport to the contact editor, including loading,
@@ -109,8 +122,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.2 | `356b64ad4a6d6694bd764dd0ec0ff0f6ee942774` | 2026-10-09 04:42:04 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.9.2 | `bb56ad94d19cd56714238c51a701e8c3824ca75e` | 2026-10-09 04:34:05 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.3 | `e7baf8719fa6092013903cf1a53dd1cebcffbd07` | 2026-10-10 03:13:09 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.9.3 | `5fa9f2552ea854292dc15077d2a9417dba022aa2` | 2026-10-10 02:56:09 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -242,6 +255,9 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-06 06:17:43 | Beta | v0.9.1 / `e32b7da81c3215a0b5f47a1fa4b75dac7327cd31` | `dep-db294evlot8c73eb8a30` | Interrupted mobile candidate; late history entry recorded October 9. Full 74-browser CI passed; not promoted. Superseded by combined v0.9.2 after production Treasury repair. |
 | 2026-10-09 04:34:05 | Beta | v0.9.2 / `bb56ad94d19cd56714238c51a701e8c3824ca75e` | `dep-db46ss60tbcc73dbpj2g` | Combined mobile contact/chat fixes and current production Treasury repair. Full gates plus hosted exact-release HTTPS, browser and session checks passed. |
 | 2026-10-09 04:42:04 | Production | v0.9.2 / `356b64ad4a6d6694bd764dd0ec0ff0f6ee942774` | `dep-db470mrbc2fs73arhgh0` | PR #26, identical staging-tested tree; Render live and exact runtime version/health observed. Full gate and live evidence in CRM_MOBILE_FIX_RELEASE.md. |
+| 2026-10-10 02:53:44 | Beta | v0.9.3 / `29386436e5588889c0e37da418050f7e51980a99` | `dep-db4qgqlckfvc73ft49n0` | Gmail-capable runtime; staging email disabled. Superseded only to update the hosted smoke expectation for enabled production delivery. |
+| 2026-10-10 02:56:09 | Beta | v0.9.3 / `5fa9f2552ea854292dc15077d2a9417dba022aa2` | `dep-db4qi4flk1mc73fm0r00` | Identical runtime; hosted smoke now requires production email enabled and staging email disabled. Full final gates and hosted staging journeys passed. |
+| 2026-10-10 03:13:09 | Production | v0.9.3 / `e7baf8719fa6092013903cf1a53dd1cebcffbd07` | `dep-db4qq25ckfvc73fu2fc0` | PR #27, identical verified staging tree. Gmail enabled with the owner-saved credential. Exact health/version, hosted browser checks and both real reset-email flows passed. |
 
 ## Version and promotion rules
 

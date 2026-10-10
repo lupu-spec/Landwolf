@@ -1,7 +1,8 @@
 # Support Gmail password recovery
 
-Status: candidate prepared; not deployed or enabled. Real delivery still requires
-the support mailbox credential and an observed inbox test.
+Status: **live and enabled in production**, v0.9.3, observed 2026-10-10 UTC.
+Both real reset-email paths and link completion passed. Staging runs the same
+runtime with delivery disabled. See the verification record below.
 
 The login page and signed-out Romulus/Remus form use `/api/auth/recovery`.
 Signed-in chat uses `/api/account/password-reset` and the account email stored on
@@ -51,3 +52,84 @@ request was accepted, not proof of inbox delivery. Gmail quotas still apply.
 Set `LANDWOLF_MAIL_PROVIDER=disabled` before rolling back to a runtime without
 Gmail support. Existing passwords and accounts need no migration. Remove/revoke
 the app password if abandoning Gmail delivery. Never reset the database.
+
+## Release and real-delivery verification — 2026-10-10 UTC
+
+Production commit `e7baf8719fa6092013903cf1a53dd1cebcffbd07`, deployment
+`dep-db4qq25ckfvc73fu2fc0`, became live at **03:13:09 UTC**. Its tree matches final
+staging candidate `5fa9f2552ea854292dc15077d2a9417dba022aa2` exactly. Before
+promotion, the signed-in Render Recovery page showed the existing production
+database's three-day point-in-time recovery window and an enabled Restore
+database control. No restore, export, network or database change was performed.
+Schema remains 11; rollback needs the mail-provider change described above.
+
+**Passed:** final [full gates](https://github.com/lupu-spec/Landwolf/actions/runs/38018712379),
+[PR gates](https://github.com/lupu-spec/Landwolf/actions/runs/38018713829),
+[legacy suite](https://github.com/lupu-spec/Landwolf/actions/runs/38018713905),
+[preflight](https://github.com/lupu-spec/Landwolf/actions/runs/38018713915),
+[staging hosted checks](https://github.com/lupu-spec/Landwolf/actions/runs/38018712345)
+and [production hosted checks](https://github.com/lupu-spec/Landwolf/actions/runs/38019710454).
+The hosted check now requires production delivery enabled and staging delivery
+disabled; its synthetic `example.com` accounts never request email.
+
+Each configured command below **Passed** (exit 0) on the final candidate in CI:
+
+| Commands, from `beta/` unless stated | Result |
+| --- | --- |
+| `uv sync --frozen --dev`; `npm ci`; `.venv/bin/playwright install --with-deps chromium webkit` | Passed |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | Passed |
+| `npm run test:unit`; `.venv/bin/pytest -q -m 'not browser'` | Passed: 16 frontend, 488 backend |
+| `.venv/bin/python scripts/check_postgres.py`; `.venv/bin/python scripts/check_restore.py` | Passed: disposable PostgreSQL, exact 29-table restore |
+| `npm run build`; `.venv/bin/pytest -q -m browser` | Passed: 74 browser tests |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate`; `npm run secrets` | Passed |
+| Repository root `git diff --check`; `git status --short` | Passed |
+| Legacy environment `PYTHONPATH=. pytest -q` | Passed: 53 tests |
+| `.venv/bin/python scripts/check_hosted_staging.py --environment staging` | Passed: exact release, HTTPS/health, four browser journeys, persistent sessions and coverage privacy |
+| `.venv/bin/python scripts/check_hosted_staging.py --environment production` | Passed: exact release, custom-domain HTTPS/health, mail/billing enabled, four browser journeys, persistent sessions and coverage privacy |
+
+Local release preparation also passed `uv lock --check`, the Python format/lint
+checks, and `.venv/bin/pytest -q tests/test_version.py tests/test_gmail_recovery.py
+tests/test_recovery.py tests/test_account_profile.py` (55 tests). No dependency
+upgrade or schema migration was introduced. Version metadata agrees in all five
+versioned files. Full command history from candidate development remains in
+[VERIFICATION.md](VERIFICATION.md).
+
+**Passed: real mailbox and reset API checks.** An isolated verification account
+using an owner-controlled support Gmail plus alias received two emails, at
+03:15:17 and 03:15:52 UTC. The first was requested through the signed-out
+login/recovery route; the second through the signed-in Romulus/Remus reset route.
+For each message, From was `LandWolf Support <support.landwolf@gmail.com>`,
+Reply-To was `support.landwolf@gmail.com`, To was solely the verification account,
+and CC/BCC were empty. Each link used the canonical `https://landwolf.ai/` origin.
+Each reset completed (200), token reuse was rejected (400), the old password was
+rejected (401), the previous session was invalidated, and the new password worked.
+The verification account was logged out; temporary credentials were removed.
+No customer or owner password was changed. No token or credential is in evidence.
+The deployment-window mail-failure log query returned no entries.
+
+Only `LANDWOLF_MAIL_FROM` and `LANDWOLF_MAIL_PROVIDER` were merged into production
+configuration, retaining the owner-saved app password and every unrelated value.
+This environment update itself triggered the deployment; no duplicate deploy was
+requested. Payments remained enabled in production health and hosted checks.
+
+**Limits and resolved verification failures:** the local runner cannot retrieve
+custom-domain JSON (returns a Site Unavailable HTML page); hosted custom-domain
+checks passed independently. Initial private API tests incorrectly paired the
+custom-domain Origin with the service host and received 403 before account
+creation. Using the already-allowlisted service origin consistently resolved the
+test setup error; no application security setting changed. Actual mail/reset
+completion used the production API, while browser journeys and UI wiring were
+covered by CI. No physical-device or external-recipient deliverability claim is
+made. Gmail quotas and account restrictions remain applicable.
+
+**Failed, unrelated upstream check:** disposable `.venv/bin/python -m
+landwolf.cli sync` exited 1 because Arkansas COSL returned HTTP 500. Other listing
+adapters returned validated counts (MN 4, TX 30, USDA 19, Treasury 21, IRS 1,
+AK 170, MI 28). This was not an email failure. No source adapter, last-good
+snapshot or quarantine policy was modified. Local browser execution was **Not
+run** on this release because the executables were absent; the complete hosted
+Chromium/WebKit suite passed. Production SQL inspection was unavailable through
+the connector because the external allowlist is empty; that boundary was kept.

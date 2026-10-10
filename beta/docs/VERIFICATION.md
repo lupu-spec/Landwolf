@@ -1,5 +1,24 @@
 # LandWolf beta verification
 
+## Gmail recovery v0.9.3 — deployed and verified, 2026-10-10
+
+**Passed:** final candidate gates (488 backend, 16 frontend, 74 browser, 53 legacy),
+PostgreSQL/29-table restoration, build/package/security and exact-release hosted
+checks in staging and production. Production commit
+`e7baf8719fa6092013903cf1a53dd1cebcffbd07` is live with Gmail and payments enabled.
+Both actual emails arrived from the support mailbox, and both reset links were
+consumed once with old password/session revocation verified. The private test
+account was signed out. Render Recovery availability was observed before promotion.
+
+The runtime changes are configuration and mail transport plus version metadata;
+the hosted smoke check now enforces the expected email mode by environment.
+**Failed, unrelated:** live disposable source sync returned Arkansas HTTP 500.
+Local custom-domain access and initial mismatched-Origin test attempts failed;
+hosted domain checks and corrected same-origin API tests passed. No source,
+billing, entitlement, schema, network or existing-account setting was changed.
+See [exact commands, deployment identities, evidence and limits](GMAIL_RECOVERY.md#release-and-real-delivery-verification--2026-10-10-utc).
+The candidate status below is historical and superseded by this release.
+
 ## Gmail recovery candidate — 2026-10-09
 
 PR [#27](https://github.com/lupu-spec/Landwolf/pull/27) adds an optional Gmail
