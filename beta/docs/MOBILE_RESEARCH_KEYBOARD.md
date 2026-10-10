@@ -1,4 +1,28 @@
-# Mobile research keyboard repair — v0.12.1
+# Mobile research keyboard repair — v0.12.2 candidate
+
+## Hosted acceptance follow-up — October 10, 2026
+
+The original v0.12.1 tree `a2ee4071b305efc0f444b1b38f03706d2b0255f7`
+deployed to isolated staging as `dep-db59irqjnfac739mufp0`, live at
+2026-10-10 20:02:17 UTC. Exact hosted checks passed in run
+`38082045473`, including four Chromium/WebKit research/calculation/navigation
+journeys and both persistent-profile/cache/logout checks.
+
+An additional phone/tablet hosted acceptance check exposed a pre-existing native
+validation problem: after entering an invalid address and choosing Coordinates,
+the hidden address remained subject to minlength validation and blocked submission.
+The reciprocal case also applies to out-of-range coordinates hidden in Address mode.
+The v0.12.2 follow-up disables only inactive inputs, preserving their values when
+switching back. The six mobile research browser cases now cover both switches,
+valid coordinate submission, coordinate boundaries and active-mode invalid values.
+
+The additional acceptance tool lives on `codex/mobile-research-hosted-acceptance`;
+its first run `38082530651` failed on an incorrect authenticated-session field
+assumption, fixed to use `billing.allowed`. Its next run `38082693366` exposed
+the inactive-field validation bug above. Neither failure was weakened or skipped.
+Production has not been promoted. The corrected candidate must complete all
+repository and exact hosted gates before promotion; physical OS keyboard testing
+remains **Not run**. The original v0.12.1 verification record below is historical.
 
 Baseline: production v0.12.0 at `7b06ded06beca5bb4b54f3dcbaf83158e072c74f`,
 Render `dep-db52sd7avr4c73f8u6l0`, observed live 2026-10-10 12:24:06 UTC.

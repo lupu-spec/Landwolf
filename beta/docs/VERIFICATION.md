@@ -1,5 +1,14 @@
 # LandWolf beta verification
 
+## Mobile research hosted acceptance follow-up — v0.12.2 candidate
+
+v0.12.1 reached isolated staging and passed the standard exact hosted journeys.
+An additional hosted phone/tablet check found inactive address/coordinate inputs
+still blocked native validation after mode switching. v0.12.2 disables inactive
+inputs while retaining their values, with regression coverage in both directions.
+New full gates, corrected hosted acceptance and production promotion remain pending.
+See [retained failures and deployment evidence](MOBILE_RESEARCH_KEYBOARD.md).
+
 ## Mobile research keyboard repair — v0.12.1 candidate
 
 Keyboard-aware dock and dialog sizing, compact research actions, explicit Done,

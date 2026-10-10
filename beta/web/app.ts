@@ -1326,10 +1326,17 @@ byId("coverage-category").addEventListener("change", renderCoverage);
 function researchMode(): void {
   const address = byId<HTMLSelectElement>("research-mode").value === "address";
   byId("research-address-field").hidden = !address;
-  byId<HTMLInputElement>("research-address").required = address;
+  const addressInput = byId<HTMLInputElement>("research-address");
+  addressInput.required = address;
+  // Hidden nonempty inputs still participate in native constraint validation.
+  // Disable only the inactive mode; keep its values for switching back.
+  addressInput.disabled = !address;
   byId("research-coordinate-fields").hidden = address;
-  for (const id of ["research-latitude", "research-longitude"])
-    byId<HTMLInputElement>(id).required = !address;
+  for (const id of ["research-latitude", "research-longitude"]) {
+    const field = byId<HTMLInputElement>(id);
+    field.required = !address;
+    field.disabled = address;
+  }
 }
 function invalidateResearch(): void {
   researchSequence++;
