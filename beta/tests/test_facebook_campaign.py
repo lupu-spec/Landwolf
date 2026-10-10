@@ -4,10 +4,10 @@ import time
 
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
+from test_feedback import ACCEPT
 
 from landwolf.crm_core import Contact
 from landwolf.db import Account, AccountEmail, BillingCustomer, FeedbackAudit, FeedbackEnrollment
-from test_feedback import ACCEPT
 
 ORIGIN = {"Origin": "http://testserver", "X-LandWolf-Client": "web"}
 PASSWORD = "Test-only passphrase 847!"
