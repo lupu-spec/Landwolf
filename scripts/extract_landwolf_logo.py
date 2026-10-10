@@ -91,6 +91,16 @@ def main():
         (round(x * sx * AA), round(y * sy * AA))
         for x, y in original_wolf_boundary()
     ]
+    debug = src.copy()
+    draw = ImageDraw.Draw(debug)
+    for x in range(0, width, 200):
+        draw.line((x, 0, x, height), fill=(185, 185, 185), width=2)
+        draw.text((x + 4, 10), str(x), fill=(220, 0, 0))
+    for y in range(0, height, 100):
+        draw.line((0, y, width, y), fill=(185, 185, 185), width=2)
+        draw.text((8, y + 4), str(y), fill=(220, 0, 0))
+    draw.line([(int(x * sx), int(y * sy)) for x, y in original_wolf_boundary()] + [(int(1438 * sx), int(70 * sy))], fill=(255, 0, 0), width=5)
+    debug.save(OUTPUT.with_name("landwolf-mask-debug.png"), optimize=True)
     boundary = Image.new("L", (width * AA, height * AA), 0)
     ImageDraw.Draw(boundary).polygon(pts, fill=255)
     boundary = boundary.resize((width, height), Image.Resampling.LANCZOS)
