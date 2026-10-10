@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Romulus the wolf">
+<title>Romulus</title><circle cx="48" cy="48" r="46" fill="#eaf0f6"/>
+<path d="M18 12 38 23 48 20 58 23 78 12 75 43 84 55 70 59 67 72 57 76 48 88 39 76 29 72 26 59 12 55 21 43Z" fill="#171c24" stroke="#f3f6fb" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="m24 23 10 9-11 7Zm48 0-10 9 11 7Z" fill="#394351"/>
+<path d="m24 46 19 5-8 9-8-5Zm48 0-19 5 8 9 8-5Z" fill="#ffffff"/>
+<path d="m39 49 9-10 9 10-3 11 10 8-16 13-16-13 10-8Z" fill="#394351"/>
+<path d="m39 64 9-3 9 3-9 8Z" fill="#ffffff"/><path d="M48 71v7m-8-4 8 4 8-4" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"/>
+</svg>

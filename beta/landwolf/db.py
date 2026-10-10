@@ -1,0 +1,500 @@
+"""Versioned application migrations; never touches legacy application tables."""
+
+import time
+from collections.abc import Iterator
+from typing import Any
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    create_engine,
+    insert,
+    inspect,
+    literal,
+    select,
+    text,
+    update,
+)
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class SchemaVersion(Base):
+    __tablename__ = "lw2_schema_version"
+    version: Mapped[int] = mapped_column(primary_key=True)
+
+
+class Account(Base):
+    __tablename__ = "lw2_accounts"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(256))
+    created_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
+
+
+class LoginSession(Base):
+    __tablename__ = "lw2_sessions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    csrf: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[int] = mapped_column(Integer, index=True)
+    last_seen: Mapped[int] = mapped_column(Integer)
+
+
+class RateBucket(Base):
+    __tablename__ = "lw2_rate_buckets"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    count: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+class Listing(Base):
+    __tablename__ = "lw2_listings"
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    source: Mapped[str] = mapped_column(String(40), index=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class SourceState(Base):
+    __tablename__ = "lw2_sources"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    last_success: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_attempt: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(32), default="not_synced")
+    message: Mapped[str] = mapped_column(String(300), default="Awaiting first source sync")
+    record_count: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ParcelIdentity(Base):
+    """A publisher's county-scoped parcel identifier, not a surveyed boundary."""
+
+    __tablename__ = "lw2_parcel_identities"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    state: Mapped[str] = mapped_column(String(2), index=True)
+    county: Mapped[str] = mapped_column(String(100))
+    parcel_number: Mapped[str] = mapped_column(String(100))
+
+
+class SaleEvent(Base):
+    __tablename__ = "lw2_sale_events"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    listing_id: Mapped[str] = mapped_column(String(80), index=True)
+    parcel_id: Mapped[str | None] = mapped_column(ForeignKey("lw2_parcel_identities.id"))
+    source: Mapped[str] = mapped_column(String(40), index=True)
+    first_seen: Mapped[int] = mapped_column(Integer)
+    last_seen: Mapped[int] = mapped_column(Integer)
+    active: Mapped[bool] = mapped_column(Boolean)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class SourceRun(Base):
+    """Bounded operational history. No account or raw publisher contact data."""
+
+    __tablename__ = "lw2_source_runs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source: Mapped[str] = mapped_column(String(40), index=True)
+    finished_at: Mapped[int] = mapped_column(Integer, index=True)
+    status: Mapped[str] = mapped_column(String(32))
+    record_count: Mapped[int] = mapped_column(Integer)
+    removed_count: Mapped[int] = mapped_column(Integer, default=0)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    message: Mapped[str] = mapped_column(String(300))
+    approved: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class AccountEmail(Base):
+    __tablename__ = "lw2_account_email"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    verified_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class AccountRestriction(Base):
+    __tablename__ = "lw2_account_restrictions"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    suspended: Mapped[bool] = mapped_column(Boolean, default=False)
+    reason: Mapped[str] = mapped_column(String(500), default="")
+    updated_by: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+class AccountAction(Base):
+    __tablename__ = "lw2_account_actions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    purpose: Mapped[str] = mapped_column(String(16))
+    expires_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+class BillingExemption(Base):
+    __tablename__ = "lw2_billing_exemptions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="active")
+    reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    granted_by_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    granted_at: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    revoked_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    revoked_by_account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("lw2_accounts.id"), nullable=True
+    )
+    revocation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (
+        CheckConstraint("status IN ('active','revoked','expired')", name="ck_lw2_exemption_status"),
+        CheckConstraint(
+            "expires_at IS NULL OR expires_at > granted_at", name="ck_lw2_exemption_expiration"
+        ),
+        Index(
+            "ux_lw2_exemption_active_account",
+            "account_id",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+            sqlite_where=text("status = 'active'"),
+        ),
+        Index("ix_lw2_exemption_expiry", "expires_at"),
+    )
+
+
+class AdminAuditLog(Base):
+    __tablename__ = "lw2_admin_audit_log"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    actor_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    target_account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("lw2_accounts.id"), nullable=True, index=True
+    )
+    action: Mapped[str] = mapped_column(String(80), index=True)
+    resource_type: Mapped[str] = mapped_column(String(50))
+    resource_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    previous_state: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    new_state: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    request_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer, index=True)
+    __table_args__ = (
+        CheckConstraint(
+            "action IN ('billing_exemption_granted','billing_exemption_revoked',"
+            "'billing_exemption_expired')",
+            name="ck_lw2_admin_audit_action",
+        ),
+        Index("ix_lw2_admin_audit_actor_created", "actor_account_id", "created_at"),
+        Index("ix_lw2_admin_audit_target_created", "target_account_id", "created_at"),
+        Index("ix_lw2_admin_audit_action_created", "action", "created_at"),
+    )
+
+
+class AccountAdminAudit(Base):
+    __tablename__ = "lw2_account_admin_audit"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    actor_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    target_account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("lw2_accounts.id"), nullable=True
+    )
+    contact_id: Mapped[str] = mapped_column(String(36), index=True)
+    action: Mapped[str] = mapped_column(String(80))
+    reason: Mapped[str] = mapped_column(String(500))
+    previous_state: Mapped[dict[str, Any]] = mapped_column(JSON)
+    new_state: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+class FeedbackEnrollment(Base):
+    """One lifetime invitation per account; accepting fixes the pilot end date."""
+
+    __tablename__ = "lw2_feedback_enrollments"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    invited_by_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    invited_at: Mapped[int] = mapped_column(Integer)
+    state: Mapped[str] = mapped_column(String(16), default="invited")
+    terms_version: Mapped[str] = mapped_column(String(40))
+    accepted_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    expires_at: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    revoked_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    __table_args__ = (
+        CheckConstraint("state IN ('invited','active','revoked')", name="ck_lw2_feedback_state"),
+        CheckConstraint(
+            "(accepted_at IS NULL AND expires_at IS NULL) OR "
+            "(accepted_at IS NOT NULL AND expires_at > accepted_at)",
+            name="ck_lw2_feedback_dates",
+        ),
+    )
+
+
+class FeedbackResponse(Base):
+    __tablename__ = "lw2_feedback_responses"
+    account_id: Mapped[str] = mapped_column(
+        ForeignKey("lw2_feedback_enrollments.account_id"), primary_key=True
+    )
+    survey_key: Mapped[str] = mapped_column(String(16), primary_key=True)
+    survey_version: Mapped[int] = mapped_column(Integer)
+    answers: Mapped[dict[str, Any]] = mapped_column(JSON)
+    submitted_at: Mapped[int] = mapped_column(Integer, index=True)
+    __table_args__ = (
+        CheckConstraint(
+            "survey_key IN ('baseline','day14','day30','day60','day85')",
+            name="ck_lw2_feedback_survey_key",
+        ),
+        CheckConstraint("survey_version = 1", name="ck_lw2_feedback_survey_version"),
+    )
+
+
+class FeedbackAudit(Base):
+    """Append-only pilot events, separate from the billing audit action contract."""
+
+    __tablename__ = "lw2_feedback_audit"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    actor_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    target_account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    action: Mapped[str] = mapped_column(String(16))
+    survey_key: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer, index=True)
+    __table_args__ = (
+        CheckConstraint(
+            "action IN ('invite','accept','submit','revoke')", name="ck_lw2_feedback_audit"
+        ),
+    )
+
+
+class BillingCustomer(Base):
+    """Only live Stripe IDs; serialized checkout attempts prevent duplicate purchases."""
+
+    __tablename__ = "lw2_billing_customers"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    customer_id: Mapped[str] = mapped_column(String(100), unique=True)
+    paid_until: Mapped[int] = mapped_column(Integer, default=0)
+    synced_at: Mapped[int] = mapped_column(Integer, default=0)
+    subscription_status: Mapped[str] = mapped_column(String(32), default="none")
+    subscription_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False)
+    checkout_attempt: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    checkout_plan: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    checkout_started_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    checkout_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    __table_args__ = (
+        CheckConstraint("paid_until >= 0 AND synced_at >= 0", name="ck_lw2_billing_dates"),
+        CheckConstraint(
+            "checkout_plan IS NULL OR checkout_plan IN ('monthly','annual')",
+            name="ck_lw2_billing_plan",
+        ),
+    )
+
+
+class FeedbackTrial(Base):
+    """Opt-in self-service terms, separate from every non-charging CRM pilot."""
+
+    __tablename__ = "lw2_feedback_trials"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    state: Mapped[str] = mapped_column(String(24), default="setup", index=True)
+    terms_version: Mapped[str] = mapped_column(String(50))
+    consent_text: Mapped[str] = mapped_column(String(4000))
+    consent_at: Mapped[int] = mapped_column(Integer)
+    attempt_id: Mapped[str] = mapped_column(String(36), unique=True)
+    checkout_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    payment_method_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    started_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    expires_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    notice_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    charge_at: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    conversion_attempt_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    subscription_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    next_check_at: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    cancelled_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    updated_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (
+        CheckConstraint(
+            "state IN ('setup','active','notice','converting','subscribed',"
+            "'cancelled','completed','blocked')",
+            name="ck_lw2_trial_state",
+        ),
+        CheckConstraint("notice_day IS NULL OR notice_day IN (30,60,90)", name="ck_lw2_trial_day"),
+    )
+
+
+class TrialResponse(Base):
+    __tablename__ = "lw2_trial_responses"
+    account_id: Mapped[str] = mapped_column(
+        ForeignKey("lw2_feedback_trials.account_id"), primary_key=True
+    )
+    day: Mapped[int] = mapped_column(Integer, primary_key=True)
+    answers: Mapped[dict[str, Any]] = mapped_column(JSON)
+    submitted_at: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (CheckConstraint("day IN (30,60,90)", name="ck_lw2_trial_response_day"),)
+
+
+class TrialMessage(Base):
+    """Retain the actual notice/acknowledgment and successful mail acceptance time."""
+
+    __tablename__ = "lw2_trial_messages"
+    account_id: Mapped[str] = mapped_column(
+        ForeignKey("lw2_feedback_trials.account_id"), primary_key=True
+    )
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    subject: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(String(8000))
+    created_at: Mapped[int] = mapped_column(Integer)
+    sent_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class BillingEvent(Base):
+    """Idempotency receipt only. Never retain webhook payloads or payment details."""
+
+    __tablename__ = "lw2_billing_events"
+    event_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    event_type: Mapped[str] = mapped_column(String(100))
+    processed_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+class Hunt(Base):
+    __tablename__ = "lw2_hunts"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    criteria: Mapped[dict[str, Any]] = mapped_column(JSON)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+class HuntMatch(Base):
+    __tablename__ = "lw2_hunt_matches"
+    hunt_id: Mapped[str] = mapped_column(ForeignKey("lw2_hunts.id"), primary_key=True)
+    listing_id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    score: Mapped[int] = mapped_column(Integer)
+    price_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+class HuntEvent(Base):
+    __tablename__ = "lw2_hunt_events"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    hunt_id: Mapped[str] = mapped_column(ForeignKey("lw2_hunts.id"), index=True)
+    listing_id: Mapped[str] = mapped_column(String(80))
+    revision: Mapped[int] = mapped_column(Integer)
+    kind: Mapped[str] = mapped_column(String(24))
+    message: Mapped[str] = mapped_column(String(240))
+    created_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+class ResearchCase(Base):
+    """Private research attached to a source listing, optionally within a Hunt."""
+
+    __tablename__ = "lw2_research_cases"
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), primary_key=True)
+    listing_id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    hunt_id: Mapped[str | None] = mapped_column(ForeignKey("lw2_hunts.id"), index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    source_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
+    revision: Mapped[int] = mapped_column(Integer)
+    fingerprint: Mapped[str] = mapped_column(String(64), default="")
+    evaluation: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    history: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+class ResearchGoal(Base):
+    __tablename__ = "lw2_research_goals"
+    hunt_id: Mapped[str] = mapped_column(ForeignKey("lw2_hunts.id"), primary_key=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    revision: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[int] = mapped_column(Integer)
+
+
+SCHEMA_VERSION = 12
+
+
+def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
+    kwargs: dict[str, Any] = {"pool_pre_ping": True}
+    if url.startswith("sqlite"):
+        kwargs["connect_args"] = {"check_same_thread": False, "timeout": 15}
+    engine = create_engine(url, **kwargs)
+    return engine, sessionmaker(engine, expire_on_commit=False)
+
+
+def initialize(engine: Engine) -> None:
+    """Add opt-in feedback trial tables in v12; preserve existing accounts and billing."""
+    from landwolf.crm_core import Contact, CRMBase, Project
+
+    with engine.begin() as connection:
+        if engine.dialect.name == "sqlite":
+            # sqlite's legacy driver does not start a transaction for DDL.
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        else:
+            connection.execute(text("SELECT pg_advisory_xact_lock(1947202602)"))
+        versions = (
+            connection.scalars(select(SchemaVersion.version)).all()
+            if inspect(connection).has_table(SchemaVersion.__tablename__)
+            else []
+        )
+        if versions not in (
+            [],
+            [1],
+            [2],
+            [3],
+            [4],
+            [5],
+            [6],
+            [7],
+            [8],
+            [9],
+            [10],
+            [11],
+            [SCHEMA_VERSION],
+        ):
+            raise RuntimeError("Unsupported application schema version; migration required")
+        Base.metadata.create_all(connection)
+        CRMBase.metadata.create_all(connection)
+        if connection.scalar(select(Project.id).where(Project.id == "landwolf")) is None:
+            connection.execute(
+                insert(Project).values(id="landwolf", name="LandWolf", created_at=int(time.time()))
+            )
+        # Retain only facts already held. Legacy users have no inferred profile or consent.
+        connection.execute(
+            insert(Contact).from_select(
+                ["id", "project_id", "external_id", "email", "source", "created_at", "updated_at"],
+                select(
+                    Account.id,
+                    literal("landwolf"),
+                    Account.id,
+                    Account.email,
+                    literal("existing_account"),
+                    Account.created_at,
+                    Account.created_at,
+                ).where(
+                    ~select(Contact.id)
+                    .where(Contact.project_id == "landwolf", Contact.external_id == Account.id)
+                    .exists()
+                ),
+            )
+        )
+        # Intentionally irreversible. Do not archive or copy retired Saved data.
+        # No CASCADE: unexpected dependents must fail the transaction for review.
+        connection.execute(text("DROP TABLE IF EXISTS lw2_saved_records"))
+        connection.execute(text("DROP TABLE IF EXISTS lw2_saved_properties"))
+        if not versions:
+            connection.execute(insert(SchemaVersion).values(version=SCHEMA_VERSION))
+        elif versions != [SCHEMA_VERSION]:
+            connection.execute(update(SchemaVersion).values(version=SCHEMA_VERSION))
+
+
+def session_dependency(factory: sessionmaker[Session]) -> Iterator[Session]:
+    with factory() as session:
+        yield session
