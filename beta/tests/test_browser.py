@@ -25,6 +25,28 @@ from landwolf.db import Account, Listing, SourceState, database, initialize
 pytestmark = pytest.mark.browser
 
 
+@pytest.mark.parametrize("browser_kind", ["chromium", "webkit"])
+@pytest.mark.parametrize("width", [390, 820, 1440])
+def test_supplied_header_logo_is_visible_and_undistorted(
+    browser_server: tuple[str, int], browser_kind: str, width: int
+) -> None:
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = getattr(playwright, browser_kind).launch()
+        page = browser.new_page(viewport={"width": width, "height": 900})
+        page.goto(origin)
+        logo = page.get_by_role("link", name="LandWolf home").locator("img")
+        expect(logo).to_be_visible()
+        expect(logo).to_have_attribute("src", "/assets/landwolf-logo.jpg")
+        expect(logo).to_have_js_property("naturalWidth", 1536)
+        expect(logo).to_have_js_property("naturalHeight", 512)
+        assert logo.evaluate("node => getComputedStyle(node).objectFit === 'contain'")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        Path("test-results").mkdir(exist_ok=True)
+        page.screenshot(path=f"test-results/logo-{browser_kind}-{width}.png")
+        browser.close()
+
+
 @pytest.mark.parametrize("browser_server", ["map_first_page"], indirect=True)
 @pytest.mark.parametrize("browser_kind", ["chromium", "webkit"])
 @pytest.mark.parametrize("width", [390, 820, 1440])
