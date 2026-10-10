@@ -1,5 +1,34 @@
 # LandWolf beta verification
 
+## Mobile research hosted acceptance follow-up — v0.12.2 candidate
+
+v0.12.1 reached isolated staging and passed the standard exact hosted journeys.
+An additional hosted phone/tablet check found inactive address/coordinate inputs
+still blocked native validation after mode switching. v0.12.2 disables inactive
+inputs while retaining their values, with regression coverage in both directions.
+New full gates, corrected hosted acceptance and production promotion remain pending.
+See [retained failures and deployment evidence](MOBILE_RESEARCH_KEYBOARD.md).
+
+## Mobile research keyboard repair — v0.12.1 candidate
+
+Keyboard-aware dock and dialog sizing, compact research actions, explicit Done,
+16px mobile research inputs and deliberate focus handling. See
+[cause, regressions and verification limits](MOBILE_RESEARCH_KEYBOARD.md).
+Candidate `1a8cdb8f04d31de549ee4e6caefb7337f3cb641a` passed 536 backend,
+18 frontend, 108 browser and 53 legacy tests, disposable PostgreSQL/32-table
+restore, packaging and security in the final hosted gates. Physical OS keyboard
+testing, deployed staging journeys and production promotion are **Not run**.
+Draft PR #35 is separate from the source-only maintenance scope; v0.12.0 remains live.
+
+## Production source maintenance — October 10, 2026
+
+Seven listing snapshots ready; Arkansas COSL retry returned HTTP 500 and retained
+last-good data. All applicable public research adapters were ready from production
+at Dallas/Raleigh samples, including FEMA. Independent hosted canonical-domain
+HTTPS/identity/health checks passed. No confirmed URL/parser repair or source
+deployment. See [exact evidence and limits](SOURCE_MAINTENANCE_2026_10_10.md).
+
+
 ## First-login map repair — v0.10.2 live, 2026-10-10
 
 Production triage confirmed 92 current listings, 30 source-coordinate locations,

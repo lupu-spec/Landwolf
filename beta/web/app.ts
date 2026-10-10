@@ -1,5 +1,6 @@
 import { setupCRM } from "./crm";
 import { setupNavigationDock } from "./navigation-dock";
+import { dismissMobileKeyboard, setupMobileKeyboard } from "./mobile-keyboard";
 import {
   setupBilling,
   billingDestination,
@@ -292,6 +293,7 @@ let coverageCounties: {
   record_count: number;
 }[] = [];
 setupNavigationDock();
+setupMobileKeyboard();
 const assistant = setupWolfAssistant({
   api,
   session: () => csrf,
@@ -695,6 +697,7 @@ async function navigate(
   view: string,
   preset?: Record<string, string>,
 ): Promise<void> {
+  dismissMobileKeyboard();
   if (["sources", "crm"].includes(view) && !isOwner) view = "explore";
   if (view !== "billing" && !feedback.allowed(view)) {
     view = billing.state?.enabled
@@ -1323,10 +1326,17 @@ byId("coverage-category").addEventListener("change", renderCoverage);
 function researchMode(): void {
   const address = byId<HTMLSelectElement>("research-mode").value === "address";
   byId("research-address-field").hidden = !address;
-  byId<HTMLInputElement>("research-address").required = address;
+  const addressInput = byId<HTMLInputElement>("research-address");
+  addressInput.required = address;
+  // Hidden nonempty inputs still participate in native constraint validation.
+  // Disable only the inactive mode; keep its values for switching back.
+  addressInput.disabled = !address;
   byId("research-coordinate-fields").hidden = address;
-  for (const id of ["research-latitude", "research-longitude"])
-    byId<HTMLInputElement>(id).required = !address;
+  for (const id of ["research-latitude", "research-longitude"]) {
+    const field = byId<HTMLInputElement>(id);
+    field.required = !address;
+    field.disabled = address;
+  }
 }
 function invalidateResearch(): void {
   researchSequence++;
@@ -1436,7 +1446,12 @@ function newResearchProperty(): void {
   pendingResearchProperty = null;
   resetResearch();
   void navigate("research");
-  byId<HTMLInputElement>("research-address").focus();
+  // Let phone users read the screen before deliberately opening the keyboard.
+  if (
+    matchMedia("(min-width: 1101px) and (any-pointer: fine)").matches &&
+    !matchMedia("(any-pointer: coarse)").matches
+  )
+    byId<HTMLInputElement>("research-address").focus();
 }
 byId("research-new").addEventListener("click", newResearchProperty);
 function renderResearch(report: ResearchReport): void {
@@ -1520,6 +1535,7 @@ function renderResearch(report: ResearchReport): void {
 async function runResearch(): Promise<void> {
   const researchForm = byId<HTMLFormElement>("research-form");
   if (!csrf || !researchForm.reportValidity()) return;
+  dismissMobileKeyboard();
   const sequence = ++researchSequence;
   const sessionToken = csrf;
   const body = researchListingId
