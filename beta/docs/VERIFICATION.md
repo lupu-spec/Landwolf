@@ -12,16 +12,20 @@ Three-month conservative/base/growth scenarios disclose missing costs and assump
 Existing accounts, billing, CRM, trial policies and research behavior are unchanged;
 schema 13 adds four private tables without replacing existing data.
 
-Local **Passed**: formatting, lint, types, 20 frontend and 567 backend tests;
+Local **Passed**: formatting, lint, types, 20 frontend and 571 backend tests;
 browser bundle, wheel/source build and package check; Bandit, pip-audit, npm audit,
 secretlint and diff checks. Targeted finance regression tests passed after validation
 hardening. **Failed, resolved:** finance audit initially targeted the billing-only
 audit table; finance now has its own constrained additive audit table. A new CSV
 audit action mismatch was corrected. **Not run successfully locally:** six browser
 cases (Chromium/WebKit executables unavailable), PostgreSQL/restore and legacy tests.
-Final CSV hardening passed 35 focused tests; its full gate rerun remains pending.
-The initial candidate passed hosted PostgreSQL/restore, legacy and static preflight;
-browser/package/security gates remain running. Live database inspection is blocked
+Final CSV hardening passed 35 focused tests. Final runtime code
+`69872762ddd7690f44663e326e0c7238def18f38` passed hosted run `38087331017`:
+571 backend, 20 frontend, 114 browser, PostgreSQL/exact 36-table restore,
+build/package/security and diff checks. Legacy run `38087330980` passed 53;
+static preflight passed while conditional deployment preflight jobs were skipped.
+Desktop/phone screenshots use synthetic data and were visually reviewed.
+Live database inspection is blocked
 by external-connection restrictions; these were not changed. No staging/production
 deployment occurred; an approved internal preservation-check path is needed.
 See [feature instructions and

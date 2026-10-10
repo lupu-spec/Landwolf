@@ -63,12 +63,12 @@ billing, CRM and trial information must remain intact. Forecast settings use
 optimistic revisions; failed submissions preserve form values. CSV changes invalidate
 the preview, preventing stale confirmations. Logout removes financial DOM content.
 
-Local checks: 20 frontend tests, 567 full backend tests before the final CSV
-hardening, and 35 focused finance tests after it;
+Local checks: 20 frontend tests, 571 full backend tests after final CSV
+hardening, and 35 focused finance tests;
 format/lint/types, browser build, source/wheel/package, Bandit, dependency audits,
 secretlint and diff check passed. Browser launch failed because executables are
 unavailable; that is not a browser pass. Disposable PostgreSQL/restore and legacy
-tests await hosted CI. New tests cover owner/anonymous/nonowner boundaries, CSRF,
+tests passed in hosted CI. New tests cover owner/anonymous/nonowner boundaries, CSRF,
 strict money/allocation validation, future-date rejection, import atomicity/privacy,
 credits/duplicate protection, stale-plan conflict, failed refresh preservation,
 GET-only Stripe reconciliation, annual normalization and forecast year rollover.
@@ -76,14 +76,46 @@ GET-only Stripe reconciliation, annual normalization and forecast year rollover.
 Six browser cases exercise Chromium/WebKit at 390/834/1440 px, synthetic revenue,
 accessible charts, mobile input sizing, failure/retry values, CSV preview/confirmation,
 duplicate recovery and logout cleanup. Their screenshots contain synthetic fixture
-aggregates only, never live owner's finances. Hosted gate/deployment evidence pending.
+aggregates only, never live owner's finances. Both retained screenshots were visually reviewed.
+
+![Desktop dashboard, synthetic test figures](images/owner-finance/finance-synthetic-chromium-1440.png)
+
+[Phone dashboard, synthetic test figures](images/owner-finance/finance-synthetic-webkit-390.png)
 
 The initial candidate `0ddc3b6820aa4d1d963777533aed370e08098d06` passed hosted
-format/lint/types, frontend/backend, PostgreSQL integration and exact restore gates;
-browser/build/security gates are still running. Hosted legacy run `38086909782`
+all hosted format/lint/types, frontend/backend, PostgreSQL/restore, browser,
+build/package/security and diff gates. Hosted legacy run `38086909782`
 passed 53 tests, and static release preflight passed in `38086909795`; conditional
-production/staging preflight jobs were skipped, not passes. Final CSV hardening
-requires another full candidate gate run. Staging/production acceptance is **Not run**.
+production/staging preflight jobs were skipped, not passes.
+
+Final CSV-hardened code `69872762ddd7690f44663e326e0c7238def18f38`, tree
+`7e2b79129a66dc7fce4796bf1a4f730e8e104e4e`, passed the entire hosted gate suite
+in [run 38087331017](https://github.com/lupu-spec/Landwolf/actions/runs/38087331017):
+571 backend, 20 frontend, 114 unique browser tests (including six finance cases),
+disposable PostgreSQL, exact 36-table dump/restore, builds/package, security and diff.
+The additional focused browser invocation passed 18 existing keyboard/dock/assistant
+cases; those are a subset of the full suite, not additional unique coverage.
+Legacy [run 38087330980](https://github.com/lupu-spec/Landwolf/actions/runs/38087330980)
+passed 53 tests; static preflight passed in `38087330970` with conditional deployment
+preflight jobs skipped. Screenshots came from the first fully passing candidate,
+whose UI is byte-identical to the CSV-hardened code; they are not live owner records.
+The original artifact ZIP SHA-256 was
+`ca9b0a38b4ebe3dc048f0e2914b38c10f07bcd24d4f921a633c57088c40b8ca4`.
+
+At final inspection on October 10, staging remained v0.12.2 deployment
+`dep-db59puflot8c73e70rq0`, runtime `deafae9734a589718bf99912cdfab94164bdafa0`;
+production remained v0.12.2 deployment `dep-db59v7lckfvc739fkme0`, runtime
+`f6cf068809bbc18ec9c8919156967a003e280b93`. Neither branch/service/database,
+existing account, customer billing, CRM or trial record was changed by this work.
+New staging/production acceptance and promotion are **Not run**, not passes.
+Do not open database networking or extract credentials to bypass the external
+query blocker. An approved existing internal verification workflow is required
+before releasing the additive migration. PR #36 remains a draft.
+
+Safety bounds: 100 KB/500-row CSV imports, up to 1,000 records per Stripe resource
+per complete refresh, and up to 500 expenses in the current six-month report.
+Overflow fails visibly, never silently truncates financial totals or replaces the
+last complete Stripe snapshot. Higher-volume reporting needs an approved extension.
 
 ## Exact local commands
 
@@ -95,7 +127,7 @@ From `beta/`, unless noted. Successful chained commands preserve failure exit st
 | `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed |
 | `.venv/bin/mypy landwolf`; `npm run typecheck` | Passed |
 | `npm run test:unit` | Passed, 20 |
-| `.venv/bin/pytest -q -m 'not browser' --tb=short` | Passed, 567 before final CSV hardening; final rerun in progress |
+| `.venv/bin/pytest -q -m 'not browser' --tb=short` | Passed, 571 after final CSV hardening |
 | `.venv/bin/pytest -q tests/test_finance.py --tb=short` | Passed, 35 after CSV hardening |
 | `npm run build` | Passed |
 | `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed |
