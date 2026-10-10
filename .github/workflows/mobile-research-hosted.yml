@@ -1,0 +1,39 @@
+name: Mobile research hosted acceptance
+on:
+  push:
+    branches: [codex/mobile-research-hosted-acceptance]
+    paths: [beta/scripts/check_hosted_mobile_research.py, .github/workflows/mobile-research-hosted.yml]
+permissions:
+  contents: read
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: beta
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked browser tools
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          .venv/bin/playwright install --with-deps chromium webkit
+      - name: Validate acceptance tool
+        run: |
+          .venv/bin/ruff format --check scripts/check_hosted_mobile_research.py
+          .venv/bin/ruff check scripts/check_hosted_mobile_research.py
+          .venv/bin/python -m py_compile scripts/check_hosted_mobile_research.py
+          .venv/bin/bandit scripts/check_hosted_mobile_research.py
+      - name: Verify exact hosted research editors
+        run: .venv/bin/python -u scripts/check_hosted_mobile_research.py --environment staging --commit a2ee4071b305efc0f444b1b38f03706d2b0255f7
+      - name: Retain research screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hosted-mobile-research
+          path: beta/test-results/hosted-mobile-research/
+          retention-days: 7
