@@ -1,5 +1,6 @@
 /** Owner-only CRM. Personal records live in the server, never local browser storage. */
 import { addContactForm, renderAccountAdmin } from "./crm-admin";
+import { renderStatistics, type Statistics } from "./crm-reporting";
 
 export type Api = <T>(
   path: string,
@@ -27,12 +28,20 @@ export type Contact = {
   follow_up_on: string;
   revision: number;
   created_at: number;
+  account_category: string;
+  membership: string;
+  billing_synced_at: number | null;
 };
 type Project = { id: string; name: string; connected: boolean };
 export type Catalog = {
   projects: Project[];
   categories: Record<
-    "industries" | "uses" | "stages" | "contact_types",
+    | "industries"
+    | "uses"
+    | "stages"
+    | "contact_types"
+    | "account_categories"
+    | "memberships",
     Record<string, string>
   >;
 };
@@ -84,6 +93,8 @@ export function setupCRM(api: Api) {
     lifecycle: "",
     industry: "",
     primary_use: "",
+    account_category: "people",
+    membership: "",
   };
   const status = node("p");
   status.setAttribute("role", "status");
@@ -92,6 +103,8 @@ export function setupCRM(api: Api) {
   const detail = node("section");
   detail.className = "crm-detail";
   const controls = node("div");
+  const statistics = node("section");
+  statistics.className = "crm-statistics";
   function clear() {
     downloadController?.abort();
     downloadController = undefined;
@@ -101,6 +114,7 @@ export function setupCRM(api: Api) {
     list.replaceChildren();
     detail.replaceChildren();
     controls.replaceChildren();
+    statistics.replaceChildren();
     selected = "";
     contactOpener = undefined;
     page = 1;
@@ -110,6 +124,8 @@ export function setupCRM(api: Api) {
       lifecycle: "",
       industry: "",
       primary_use: "",
+      account_category: "people",
+      membership: "",
     };
   }
   function message(error: unknown) {
@@ -193,6 +209,10 @@ export function setupCRM(api: Api) {
       "Primary use": catalog.categories.uses[c.primary_use] || c.primary_use,
       "Use details": c.use_details,
       Source: c.source,
+      "Account category":
+        catalog.categories.account_categories[c.account_category] ||
+        c.account_category,
+      Membership: catalog.categories.memberships[c.membership] || c.membership,
       "Added to CRM": new Date(c.created_at * 1000).toLocaleDateString(),
       "Email marketing": c.marketing_opt_in ? "Opted in" : "Not opted in",
       "Consent wording": c.consent_version || "Not collected",
@@ -302,12 +322,27 @@ export function setupCRM(api: Api) {
     selected = "";
     detail.replaceChildren();
     list.replaceChildren();
+    statistics.replaceChildren();
     status.textContent = "Loading contacts…";
     const params = new URLSearchParams({ ...filters, page: String(page) });
-    const result = await api<{ contacts: Contact[]; total: number }>(
-      `/api/admin/crm/contacts?${params}`,
-    );
+    const result = await api<{
+      contacts: Contact[];
+      total: number;
+      statistics: Statistics;
+    }>(`/api/admin/crm/contacts?${params}`);
     if (!active || stamp !== sequence) return;
+    renderStatistics(
+      statistics,
+      result.statistics,
+      catalog.categories.memberships,
+      (category, membership) => {
+        filters.account_category = category;
+        filters.membership = membership;
+        page = 1;
+        renderControls();
+        void load().catch(message);
+      },
+    );
     status.textContent = `${result.total} contacts · Page ${page} of ${Math.max(1, Math.ceil(result.total / 50))}`;
     if (!result.contacts.length)
       list.append(node("p", "No contacts match these filters."));
@@ -321,6 +356,10 @@ export function setupCRM(api: Api) {
       card.append(
         node("h3", c.full_name || "Profile not yet provided"),
         node("p", c.email),
+        node(
+          "p",
+          `${catalog.categories.account_categories[c.account_category] || c.account_category} · ${catalog.categories.memberships[c.membership] || c.membership}`,
+        ),
         node("p", [c.company, c.job_title].filter(Boolean).join(" · ")),
         node(
           "p",
@@ -402,6 +441,20 @@ export function setupCRM(api: Api) {
       { "": "All stages", ...catalog.categories.stages },
       filters.lifecycle,
     );
+    const accountCategory = selectField(
+      "Account category",
+      {
+        people: "People (hide smoke tests)",
+        ...catalog.categories.account_categories,
+        all: "All records, including smoke tests",
+      },
+      filters.account_category,
+    );
+    const membership = selectField(
+      "Membership",
+      { "": "All memberships", ...catalog.categories.memberships },
+      filters.membership,
+    );
     const industries = selectField(
       "Industry",
       { "": "All industries", ...catalog.categories.industries },
@@ -418,6 +471,8 @@ export function setupCRM(api: Api) {
     filter.append(
       search.wrap,
       projects.wrap,
+      accountCategory.wrap,
+      membership.wrap,
       stages.wrap,
       industries.wrap,
       uses.wrap,
@@ -431,6 +486,8 @@ export function setupCRM(api: Api) {
         lifecycle: stages.input.value,
         industry: industries.input.value,
         primary_use: uses.input.value,
+        account_category: accountCategory.input.value,
+        membership: membership.input.value,
       };
       page = 1;
       try {
@@ -562,7 +619,7 @@ export function setupCRM(api: Api) {
     clear();
     active = true;
     const stamp = sequence;
-    panel.append(controls, status, list, detail);
+    panel.append(statistics, controls, status, list, detail);
     status.textContent = "Loading CRM…";
     try {
       catalog = await api<Catalog>("/api/admin/crm/projects");

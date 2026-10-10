@@ -4,6 +4,12 @@ L91 LLC CRM is the private customer workspace for L91 LLC projects. Open the
 **L91 CRM** dock icon after signing in as the configured LandWolf owner. The page
 heading and accessible navigation label use the full **L91 LLC CRM** name.
 
+The CRM automatically separates smoke tests from real people. Its **Users**,
+**Trial users** and **Paid users** counters exclude the owner and smoke tests.
+Click a count to see matching accounts, or use the Account category and Membership
+filters. CSV exports follow those filters. See [counting rules and test-account
+handling](CRM_REPORTING.md).
+
 ## Registration and contact categories
 
 | Category | Fields / recommended values |

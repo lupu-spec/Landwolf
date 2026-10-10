@@ -12,7 +12,7 @@ from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
-from landwolf import account_profile, admin, auth, crm_admin
+from landwolf import account_profile, admin, auth, crm_admin, crm_reporting
 from landwolf import crm_core as core
 from landwolf.config import Settings
 from landwolf.feedback_export import spreadsheet_text
@@ -62,6 +62,8 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
                 "uses": core.USES,
                 "stages": core.STAGES,
                 "contact_types": core.CONTACT_TYPES,
+                "account_categories": crm_reporting.CATEGORIES,
+                "memberships": crm_reporting.MEMBERSHIPS,
             },
         }
 
@@ -163,16 +165,30 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         lifecycle: str = Query("", max_length=24),
         industry: str = Query("", max_length=40),
         primary_use: str = Query("", max_length=40),
+        account_category: crm_reporting.Category = "people",
+        membership: crm_reporting.Membership = "",
         page: int = Query(1, ge=1, le=100000),
     ) -> dict[str, Any]:
         owned(request, session)
-        stmt = filtered(project_id, q, lifecycle, industry, primary_use)
+        now = int(time.time())
+        classified = crm_reporting.segments(settings, now)
+        base = filtered(project_id, q, lifecycle, industry, primary_use)
+        matched = (
+            select(classified)
+            .where(
+                classified.c.contact_id.in_(base.with_only_columns(core.Contact.id).order_by(None))
+            )
+            .subquery()
+        )
+        stats = crm_reporting.summary(session, matched, now)
+        stmt = classified_contacts(base, classified, account_category, membership)
         total = (
             session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
         )
-        rows = session.scalars(stmt.limit(50).offset((page - 1) * 50))
+        rows = session.execute(stmt.limit(50).offset((page - 1) * 50))
         return {
-            "contacts": [core.serialize(row) for row in rows],
+            "contacts": [reported(row) for row in rows],
+            "statistics": stats,
             "total": total,
             "page": page,
             "page_size": 50,
@@ -187,10 +203,19 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         lifecycle: str = Query("", max_length=24),
         industry: str = Query("", max_length=40),
         primary_use: str = Query("", max_length=40),
+        account_category: crm_reporting.Category = "people",
+        membership: crm_reporting.Membership = "",
     ) -> Response:
         owned(request, session)
         rows = list(
-            session.scalars(filtered(project_id, q, lifecycle, industry, primary_use).limit(10001))
+            session.execute(
+                classified_contacts(
+                    filtered(project_id, q, lifecycle, industry, primary_use),
+                    crm_reporting.segments(settings, int(time.time())),
+                    account_category,
+                    membership,
+                ).limit(10001)
+            )
         )
         if len(rows) > 10000:
             raise HTTPException(409, "Export exceeds 10,000 contacts. Narrow the filters.")
@@ -198,6 +223,9 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         writer = csv.writer(output)
         keys = [
             "project_id",
+            "account_category",
+            "membership",
+            "billing_synced_at",
             "full_name",
             "email",
             "company",
@@ -218,7 +246,7 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         ]
         writer.writerow(keys)
         for row in rows:
-            values = core.serialize(row)
+            values = reported(row)
             writer.writerow(
                 [
                     spreadsheet_text(
@@ -237,6 +265,33 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
             headers={"Content-Disposition": 'attachment; filename="l91-llc-crm-contacts.csv"'},
         )
 
+    def classified_contacts(base: Any, classified: Any, category: str, membership: str) -> Any:
+        stmt = base.join(classified, classified.c.contact_id == core.Contact.id).add_columns(
+            classified.c.account_category,
+            classified.c.membership,
+            classified.c.billing_synced_at,
+        )
+        if category == "people":
+            stmt = stmt.where(classified.c.account_category != "smoke_test")
+        elif category != "all":
+            stmt = stmt.where(classified.c.account_category == category)
+        if membership:
+            stmt = stmt.where(classified.c.membership == membership)
+        return stmt
+
+    def reported(row: Any) -> dict[str, Any]:
+        return {
+            **core.serialize(row[0]),
+            "account_category": row[1],
+            "membership": row[2],
+            "billing_synced_at": row[3],
+        }
+
+    @app.get("/api/admin/crm/statistics")
+    def statistics(request: Request, session: DB) -> dict[str, Any]:
+        owned(request, session)
+        return crm_reporting.report(session, settings)
+
     @app.get("/api/admin/crm/contacts/{contact_id}")
     def detail(contact_id: str, request: Request, session: DB) -> dict[str, Any]:
         owned(request, session)
@@ -248,7 +303,16 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
             .limit(100)
         )
         return {
-            "contact": core.serialize(row),
+            "contact": reported(
+                session.execute(
+                    classified_contacts(
+                        select(core.Contact).where(core.Contact.id == row.id),
+                        crm_reporting.segments(settings, int(time.time())),
+                        "all",
+                        "",
+                    )
+                ).one()
+            ),
             "activities": [
                 {"kind": a.kind, "text": a.text, "created_at": a.created_at} for a in activities
             ],

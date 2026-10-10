@@ -3098,6 +3098,26 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
+.crm-statistics {
+  margin-bottom: 1.5rem;
+}
+.crm-statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+.crm-statistic.button {
+  display: flex;
+  flex-direction: column;
+  white-space: normal;
+  padding: 0.8rem 0.35rem;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.crm-statistic strong {
+  font-size: 1.8rem;
+}
 .crm-contact {
   padding: 1.2rem;
   border: 1px solid #dce2ea;
