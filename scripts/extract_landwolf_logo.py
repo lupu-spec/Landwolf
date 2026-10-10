@@ -14,8 +14,8 @@ from PIL import Image, ImageChops, ImageDraw, ImageOps
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "beta/web/assets/landwolf-logo.png"
 OUTPUT = ROOT / "beta/web/assets/landwolf-wolf-only.png"
-REF_WIDTH = 2048
-REF_HEIGHT = 683
+REF_WIDTH = 2172
+REF_HEIGHT = 724
 AA = 3
 
 
@@ -44,8 +44,8 @@ def quad(p0, p1, p2, steps=20):
 
 
 def original_wolf_boundary():
-    """Noncreative mask: only select source pixels outside the wordmark."""
-    p = (1438, 70)
+    """Conservatively keep the ORIGINAL face and jaw, excluding wordmark."""
+    p = (1525, 75)
     points = [p]
 
     def line(end):
@@ -63,24 +63,19 @@ def original_wolf_boundary():
         points.extend(quad(p, c, end))
         p = end
 
-    curve((1510, 80), (1637, 124), (1738, 185))
-    curve((1854, 233), (1934, 318), (1948, 381))
-    line((2024, 428))
-    bend((2043, 445), (2004, 470))
-    bend((1970, 486), (1918, 509))
-    curve((1865, 547), (1840, 570), (1801, 597))
-    line((1742, 643))
-    bend((1734, 601), (1737, 570))
-    curve((1733, 548), (1711, 511), (1702, 474))
-    line((1748, 419))
-    line((1760, 343))
-    curve((1720, 335), (1655, 322), (1583, 288))
-    curve((1511, 261), (1429, 242), (1332, 229))
-    line((1320, 171))
-    curve((1376, 171), (1404, 148), (1435, 134))
-    line((1438, 70))
+    curve((1650, 100), (1800, 150), (1900, 225))
+    curve((2000, 285), (2050, 345), (2080, 398))
+    line((2155, 452))
+    bend((2170, 466), (2130, 488))
+    bend((2070, 520), (2020, 540))
+    curve((1965, 575), (1920, 610), (1850, 680))
+    bend((1835, 635), (1840, 603))
+    curve((1810, 555), (1770, 510), (1740, 480))
+    line((1835, 408))
+    line((1850, 369))
+    curve((1780, 360), (1720, 340), (1660, 310))
+    curve((1600, 290), (1560, 230), (1525, 75))
     return points
-
 
 def main():
     src = Image.open(SOURCE).convert("RGB")
@@ -99,7 +94,7 @@ def main():
     for y in range(0, height, 100):
         draw.line((0, y, width, y), fill=(185, 185, 185), width=2)
         draw.text((8, y + 4), str(y), fill=(220, 0, 0))
-    draw.line([(int(x * sx), int(y * sy)) for x, y in original_wolf_boundary()] + [(int(1438 * sx), int(70 * sy))], fill=(255, 0, 0), width=5)
+    draw.line([(int(x * sx), int(y * sy)) for x, y in original_wolf_boundary()] + [(int(1525 * sx), int(75 * sy))], fill=(255, 0, 0), width=5)
     debug.save(OUTPUT.with_name("landwolf-mask-debug.png"), optimize=True)
     boundary = Image.new("L", (width * AA, height * AA), 0)
     ImageDraw.Draw(boundary).polygon(pts, fill=255)
