@@ -51,6 +51,13 @@ TEST_PREFIXES = (
     "hunt-save-qa-",
     "hunt-browser-qa-",
     "smoke-",
+    "deployment-check-",
+    "national-deployment-check-",
+    "free-api-check-",
+    "domain-check-",
+    "qa-saved-",
+    "qa-navigation-",
+    "qa-retirement-",
 )
 TEST_DOMAINS = ("example.com", "example.invalid")
 TEST_EMAILS = ("support.landwolf+recovery-20261010@gmail.com",)

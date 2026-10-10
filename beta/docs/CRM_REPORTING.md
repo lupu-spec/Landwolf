@@ -1,6 +1,6 @@
 # CRM account categories and user statistics
 
-Candidate v0.10.0. Deployment evidence will be recorded after live verification.
+Candidate v0.10.1. Deployment evidence will be recorded after live verification.
 
 Open **L91 LLC CRM** to see Users, Trial users and Paid users. Click any count to
 show the matching accounts. **Account category** separates Users, Owners, Smoke
@@ -49,8 +49,11 @@ merely because access has been reserved for them.
 ## Conservative automatic test detection
 
 The recognized prefixes are `production-smoke-`, `staging-smoke-`, `smoke-`,
-`hunt-save-qa-` and `hunt-browser-qa-`, only on reserved `example.com` or
-`example.invalid` addresses. The exact support Gmail plus alias used for the
+`hunt-save-qa-`, `hunt-browser-qa-`, `deployment-check-`,
+`national-deployment-check-`, `free-api-check-`, `domain-check-`, `qa-saved-`,
+`qa-navigation-` and `qa-retirement-`, only on reserved `example.com` or
+`example.invalid` addresses. The older patterns were confirmed in a read-only
+production audit (12 legacy verification accounts). The exact support Gmail plus alias used for the
 October 10 recovery verification is also recognized. A real email address or
 name containing “test,” “smoke” or “QA” is not enough. Detection is limited to the
 LandWolf project; other projects retain their own account meaning. A previously
