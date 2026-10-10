@@ -1,0 +1,39 @@
+name: Extract original LandWolf wolf emblem
+
+on:
+  push:
+    branches:
+      - assets/wolf-only-original-extraction
+    paths:
+      - .github/workflows/extract-original-wolf.yml
+      - scripts/extract_landwolf_logo.py
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Extract original wolf ink as transparent PNG
+        run: python scripts/extract_landwolf_logo.py
+      - name: Commit generated image to asset-only branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add beta/web/assets/landwolf-wolf-only.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Export extracted wolf head PNG from original artwork"
+            git push
+          fi
