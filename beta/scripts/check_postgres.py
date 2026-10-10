@@ -434,6 +434,33 @@ def main() -> None:
             json={},
         )
         require(invited.status_code == 201, "PostgreSQL cohort invitation failed")
+        report = client.get("/api/admin/crm/statistics")
+        require(report.status_code == 200, "PostgreSQL CRM statistics failed")
+        counts = report.json()
+        require(
+            sum(counts["memberships"].values()) == counts["total_users"],
+            "PostgreSQL customer categories do not partition users",
+        )
+        smoke = client.post(
+            "/api/admin/crm/contacts",
+            headers=owner_headers,
+            json={
+                "email": f"production-smoke-{suffix}@example.com",
+                "full_name": "Synthetic smoke",
+                "primary_use": "research",
+            },
+        )
+        require(smoke.status_code == 201, "PostgreSQL QA contact fixture failed")
+        hidden = client.get("/api/admin/crm/contacts?account_category=smoke_test")
+        require(hidden.status_code == 200, "PostgreSQL smoke filter failed")
+        require(
+            any(c["id"] == smoke.json()["id"] for c in hidden.json()["contacts"]),
+            "PostgreSQL QA contact not classified",
+        )
+        require(
+            client.get("/api/admin/crm/statistics").json()["total_users"] == counts["total_users"],
+            "PostgreSQL QA contact inflated customers",
+        )
         require(
             client.post("/api/auth/logout", headers=owner_headers, json={}).status_code == 200,
             "Feedback owner logout failed",

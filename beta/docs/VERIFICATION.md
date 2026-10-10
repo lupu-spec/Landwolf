@@ -1,5 +1,30 @@
 # LandWolf beta verification
 
+## CRM user classification candidate — v0.10.0, 2026-10-10
+
+Adds read-only automatic account categories, smoke-test exclusion from default
+CRM lists/exports, user/trial/paid counts and membership filters. Owner and QA
+accounts never contribute to customer statistics. Existing access, billing,
+accounts and schema 11 are unchanged. Operational `crm-summary` reports aggregate
+counts without modifying records or requesting Stripe data.
+
+Local **Passed**, exit 0, after final runtime edits: `.venv/bin/ruff format --check
+landwolf tests scripts`, `npm run format:check`, `.venv/bin/ruff check landwolf tests
+scripts`, `npm run lint`, `.venv/bin/mypy landwolf`, `npm run typecheck`,
+`npm run test:unit` (16), `.venv/bin/pytest -q -m 'not browser'` (503),
+`npm run build`, `.venv/bin/python -m build`, `.venv/bin/python scripts/check_package.py`,
+`.venv/bin/bandit -r landwolf`, `.venv/bin/pip-audit --local --skip-editable`,
+`npm audit --audit-level=moderate`, `npm run secrets`, `uv lock --check`, and
+`git diff --check`. Focused CRM/admin regressions: 32 passed; new reporting cases:
+15 passed. Two pre-existing Starlette deprecation warnings remain.
+
+Initial lint/types failures (long explanatory string, CLI name collision, inferred
+tuple element types) were fixed; the final full checks above passed. **Not run
+locally:** browsers (executables absent), disposable PostgreSQL/restore (no local
+service/container). Hosted CI supplies those gates, including four new browser
+journeys and explicit PostgreSQL reporting assertions. Deployment is pending those
+gates and exact staging verification. See [feature and reporting rules](CRM_REPORTING.md).
+
 ## Gmail recovery v0.9.3 — deployed and verified, 2026-10-10
 
 **Passed:** final candidate gates (488 backend, 16 frontend, 74 browser, 53 legacy),

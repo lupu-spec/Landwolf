@@ -18,7 +18,15 @@ from landwolf.research import ResearchQuery, ResearchService
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "command", choices=["init-db", "sync", "check-research", "review-source", "approve-source"]
+        "command",
+        choices=[
+            "init-db",
+            "sync",
+            "check-research",
+            "review-source",
+            "approve-source",
+            "crm-summary",
+        ],
     )
     parser.add_argument("--source")
     parser.add_argument("--fingerprint")
@@ -61,6 +69,11 @@ def main() -> None:
                         }
                     )
                 )
+        elif args.command == "crm-summary":
+            from landwolf.crm_reporting import report as crm_report
+
+            with factory() as session:
+                print(json.dumps(crm_report(session, settings), indent=2))
         elif args.command == "check-research":
             report = asyncio.run(
                 ResearchService().lookup(

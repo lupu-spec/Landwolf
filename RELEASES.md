@@ -123,7 +123,7 @@ coverage, accounts and existing infrastructure are retained. See
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.3 | `e7baf8719fa6092013903cf1a53dd1cebcffbd07` | 2026-10-10 03:13:09 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.9.3 | `5fa9f2552ea854292dc15077d2a9417dba022aa2` | 2026-10-10 02:56:09 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.10.0 | `7e790095fec952c991d9e19c644bb522f65a2d68` | 2026-10-10 03:36:35 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -258,6 +258,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 02:53:44 | Beta | v0.9.3 / `29386436e5588889c0e37da418050f7e51980a99` | `dep-db4qgqlckfvc73ft49n0` | Gmail-capable runtime; staging email disabled. Superseded only to update the hosted smoke expectation for enabled production delivery. |
 | 2026-10-10 02:56:09 | Beta | v0.9.3 / `5fa9f2552ea854292dc15077d2a9417dba022aa2` | `dep-db4qi4flk1mc73fm0r00` | Identical runtime; hosted smoke now requires production email enabled and staging email disabled. Full final gates and hosted staging journeys passed. |
 | 2026-10-10 03:13:09 | Production | v0.9.3 / `e7baf8719fa6092013903cf1a53dd1cebcffbd07` | `dep-db4qq25ckfvc73fu2fc0` | PR #27, identical verified staging tree. Gmail enabled with the owner-saved credential. Exact health/version, hosted browser checks and both real reset-email flows passed. |
+
+| 2026-10-10 03:36:35 | Beta | v0.10.0 / `7e790095fec952c991d9e19c644bb522f65a2d68` | `dep-db4r4vflot8c73cnckeg` | CRM account categories and customer membership statistics. Not promoted: read-only production audit identified 12 older test identities for inclusion in the next revision. |
 
 ## Version and promotion rules
 
