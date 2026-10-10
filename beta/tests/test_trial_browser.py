@@ -134,6 +134,6 @@ def test_trial_consent_feedback_and_cancel(trial_server, engine_name, width):  #
         expect(card).to_contain_text("has been cancelled")
         # A later direct owner invitation must remain usable despite trial history.
         pilot_invited = True
-        page.locator("#feedback-nav").click()
+        page.get_by_role("button", name="Feedback", exact=True).click()
         expect(page.locator('input[name="accepted_terms"]')).to_be_visible()
         browser.close()
