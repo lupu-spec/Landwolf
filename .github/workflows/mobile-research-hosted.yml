@@ -29,7 +29,7 @@ jobs:
           .venv/bin/python -m py_compile scripts/check_hosted_mobile_research.py
           .venv/bin/bandit scripts/check_hosted_mobile_research.py
       - name: Verify exact hosted research editors
-        run: .venv/bin/python -u scripts/check_hosted_mobile_research.py --environment staging --commit deafae9734a589718bf99912cdfab94164bdafa0
+        run: .venv/bin/python -u scripts/check_hosted_mobile_research.py --environment production --commit f6cf068809bbc18ec9c8919156967a003e280b93
       - name: Retain research screenshots
         if: always()
         uses: actions/upload-artifact@v4
