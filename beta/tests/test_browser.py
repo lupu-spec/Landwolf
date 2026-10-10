@@ -72,6 +72,7 @@ def test_first_login_maps_locations_beyond_the_first_page(
         )
         page.get_by_role("button", name="Sign out", exact=True).click()
         expect(page.locator("#auth-form")).to_be_visible()
+        page.locator("#login-tab").click()
         page.get_by_label("Email address", exact=True).fill("map-fixture@example.com")
         page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
         page.locator("#auth-submit").click()
