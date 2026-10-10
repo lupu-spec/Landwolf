@@ -274,6 +274,15 @@ def main() -> None:
                     page.get_by_role("button", name="Map", exact=True).click()
                     page.locator("#property-map").scroll_into_view_if_needed()
                     expect(page.locator(".leaflet-marker-icon").first).to_be_visible()
+                    page.wait_for_function("""() => {
+                        const pin = document.querySelector('.leaflet-marker-icon');
+                        const map = document.querySelector('#property-map');
+                        if (!pin || !map) return false;
+                        const p = pin.getBoundingClientRect();
+                        const m = map.getBoundingClientRect();
+                        return p.right >= m.left && p.left <= m.right &&
+                            p.bottom >= m.top && p.top <= m.bottom;
+                    }""")
                     page.get_by_role("button", name="Split", exact=True).click()
                     print(
                         f"Passed: {engine} {width}px live mapped inventory independent of list page"
