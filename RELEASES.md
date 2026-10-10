@@ -479,3 +479,16 @@ Local gates passed 468 backend, 16 frontend and 53 legacy tests, build/package a
 security. Browser launch failed locally; hosted browser/PostgreSQL/restore and
 live checks remain pending. Publication is still awaiting explicit approval; no
 environment row or deployment changed. See [verification](beta/docs/WOLF_ACCOUNT_HELP_RELEASE.md).
+
+## Source maintenance — October 10, 2026
+
+Production v0.12.0 remained at `7b06ded06beca5bb4b54f3dcbaf83158e072c74f`
+during this source check. Seven listing feeds were ready with 272 raw snapshot
+records; only the failed Arkansas COSL connection was manually retried. Its
+official catalog returned HTTP 500, retaining two last-good records and the
+October 9 success timestamp. All five public research adapters worked from
+production at the applicable Dallas/Raleigh sample points. Local FEMA HTTP 502
+responses did not establish a production outage. No URL/parser change was
+confirmed and no source repair was deployed. Billing, access, accounts, allowlists
+and quarantine protections were preserved. See
+[source check evidence and limits](beta/docs/SOURCE_MAINTENANCE_2026_10_10.md).
