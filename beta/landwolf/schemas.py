@@ -36,6 +36,7 @@ class RegistrationProfile(Profile):
 
 class Registration(Credentials):
     profile: RegistrationProfile
+    campaign: Literal["facebook-90-day-feedback"] | None = None
 
 
 class PropertyRecord(Contract):

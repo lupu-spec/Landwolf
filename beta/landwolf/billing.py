@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 
 from landwolf import admin, feedback, recovery
 from landwolf.config import Settings
+from landwolf.crm_core import Contact
 from landwolf.db import Account, BillingCustomer, BillingEvent, FeedbackAudit, FeedbackEnrollment
 from landwolf.schemas import Contract
 
@@ -229,10 +230,22 @@ def lock_account(session: Session, account_id: str) -> None:
     session.expire_all()
 
 
+def pilot_reserved(session: Session, account: Account, settings: Settings) -> bool:
+    """Public campaign qualification is fixed at registration, not URL visitation."""
+    if account.email.casefold() in settings.pilot_invite_emails:
+        return True
+    tags = session.scalar(
+        select(Contact.tags).where(
+            Contact.project_id == "landwolf", Contact.external_id == account.id
+        )
+    )
+    return isinstance(tags, list) and "facebook-90-day-feedback" in tags
+
+
 def claim_invitation(session: Session, account: Account, settings: Settings) -> None:
-    """A private email reservation is not proof of ownership or a started pilot."""
+    """Create one pilot invitation only after the new account owns its mailbox."""
     if (
-        account.email.casefold() not in settings.pilot_invite_emails
+        not pilot_reserved(session, account, settings)
         or not recovery.verified(session, account.id)
         or not settings.owner_account_id
         or admin.entitlement(session, account, settings)
@@ -261,7 +274,11 @@ def claim_invitation(session: Session, account: Account, settings: Settings) -> 
                 target_account_id=account.id,
                 action="invite",
                 created_at=stamp,
-                reason="Owner-reserved marketing pilot; email ownership verified",
+                reason=(
+                    "Facebook feedback campaign; email ownership verified"
+                    if account.email.casefold() not in settings.pilot_invite_emails
+                    else "Owner-reserved marketing pilot; email ownership verified"
+                ),
             )
         )
     session.commit()
@@ -386,7 +403,7 @@ def access(session: Session, account: Account, settings: Settings) -> dict[str, 
         "subscription_status": "none",
         "cancel_at_period_end": False,
         "has_customer": customer is not None,
-        "pilot_reserved": account.email.casefold() in settings.pilot_invite_emails,
+        "pilot_reserved": pilot_reserved(session, account, settings),
         "pilot_state": pilot["state"],
         "plans": [{"id": key, "currency": "usd", **value} for key, value in PLANS.items()],
     }

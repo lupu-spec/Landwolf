@@ -223,6 +223,9 @@ const feedback = setupFeedback(api, (status) => {
   }
 });
 const crm = setupCRM(api);
+const facebookTrial =
+  new URLSearchParams(window.location.search).get("trial") ===
+  "facebook-90-day-feedback";
 let registerMode = false;
 let page = 1;
 let requestSequence = 0;
@@ -578,6 +581,10 @@ function setAuthMode(register: boolean): void {
 }
 byId("login-tab").addEventListener("click", () => setAuthMode(false));
 byId("register-tab").addEventListener("click", () => setAuthMode(true));
+if (facebookTrial) {
+  byId("facebook-trial-offer").hidden = false;
+  setAuthMode(true);
+}
 byId<HTMLFormElement>("auth-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const button = byId<HTMLButtonElement>("auth-submit");
@@ -592,6 +599,7 @@ byId<HTMLFormElement>("auth-form").addEventListener("submit", async (event) => {
         password: byId<HTMLInputElement>("password").value,
         ...(registerMode
           ? {
+              campaign: facebookTrial ? "facebook-90-day-feedback" : undefined,
               profile: {
                 full_name: byId<HTMLInputElement>("signup-name").value,
                 company: byId<HTMLInputElement>("signup-company").value,
