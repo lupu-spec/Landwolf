@@ -1,6 +1,6 @@
 # CRM account categories and user statistics
 
-Candidate v0.10.1. Deployment evidence will be recorded after live verification.
+Live v0.10.1 in production and staging, October 10, 2026.
 
 Open **L91 LLC CRM** to see Users, Trial users and Paid users. Click any count to
 show the matching accounts. **Account category** separates Users, Owners, Smoke
@@ -75,3 +75,103 @@ is a reporting label, never an authentication role or entitlement. Filtering hap
 before pagination and CSV limits. The 10,000-row CSV bound and formula escaping
 are preserved. Private counters and records are cleared at sign-out or lost owner
 authorization. There is no schema migration, dependency change or billing change.
+
+## Production job result — 2026-10-10 03:54:29 UTC
+
+`python -m landwolf.cli crm-summary` completed successfully in the existing
+production Render service after deployment. It returned these aggregate counts:
+
+| Category | Count |
+| --- | ---: |
+| Users (excluding owner and tests) | 5 |
+| Active trial users | 0 |
+| Paid users | 0 |
+| Trial invited / reserved | 2 |
+| Registered, no active plan | 3 |
+| Complimentary / trial ended / billing attention | 0 each |
+| Owner | 1 |
+| Smoke-test records, hidden by default | 29 |
+| Unregistered / external-project contacts | 1 |
+
+Two customer billing records were over 24 hours old; the oldest sync was
+2026-10-05 03:08:36 UTC. These are stored-record statistics, not a new Stripe
+reconciliation or proof of payment. The UI displays the stale-record warning.
+Known future smoke-test accounts are classified automatically when read. This job
+changed no customer records, credentials, entitlements or billing configuration.
+An earlier report at 03:52:36 UTC counted 28 tests. The final release browser check
+added one known test account; rerunning the report confirmed it was automatically
+hidden while customer totals and memberships remained unchanged.
+
+## Release verification — 2026-10-10 UTC
+
+PR [#28](https://github.com/lupu-spec/Landwolf/pull/28) merged as
+`a3998b525530a845dedd66b52c401c0cb50b7d51`. Its tree
+`0a11856adfa530464ebd6258c7ffc9f7c999be2d` exactly matches the tested staging
+candidate `24dee28c3fa2d05de1b1951767b1fa37fcbbc5a2`.
+
+| Environment | Version / runtime commit | Render deployment | Observed live UTC |
+| --- | --- | --- | --- |
+| Staging | v0.10.1 / `24dee28c3fa2d05de1b1951767b1fa37fcbbc5a2` | `dep-db4r645ckfvc73fv9qi0` | 2026-10-10 03:39:02 |
+| Production | v0.10.1 / `a3998b525530a845dedd66b52c401c0cb50b7d51` | `dep-db4rb4nlot8c73co0940` | 2026-10-10 03:49:25 |
+
+All commands below **Passed**, exit 0, on the final candidate in
+[full gate run 38021241051](https://github.com/lupu-spec/Landwolf/actions/runs/38021241051):
+
+- `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check`.
+- `.venv/bin/ruff check landwolf tests scripts`; `npm run lint`.
+- `.venv/bin/mypy landwolf`; `npm run typecheck`.
+- `npm run test:unit` — 16 tests.
+- `.venv/bin/pytest -q -m 'not browser'` — 510 tests.
+- `.venv/bin/python scripts/check_postgres.py` — disposable PostgreSQL integration,
+  including the new classification and membership queries.
+- `.venv/bin/python scripts/check_restore.py` — exact 29-table dump/restore.
+- `npm run build`; `.venv/bin/pytest -q -m browser` — 78 tests, including four
+  new Chromium/WebKit phone/desktop CRM reporting, filters, CSV and privacy flows.
+- `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py`.
+- `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`;
+  `npm audit --audit-level=moderate`; `npm run secrets`.
+- `git diff --check`; `git status --short`.
+
+Locked CI installation (`uv sync --frozen --dev`, `npm ci`, Playwright Chromium
+and WebKit installation) passed. The independent legacy `PYTHONPATH=. pytest -q`
+passed (53 tests) in [run 38021241045](https://github.com/lupu-spec/Landwolf/actions/runs/38021241045).
+Release preflight also passed. Locally, final formatting/lint/types checks,
+`.venv/bin/pytest -q tests/test_crm_reporting.py tests/test_version.py` (29 tests),
+`uv lock --check`, and diff checks passed. Phone Chromium and desktop WebKit
+CRM evidence images were visually reviewed; no horizontal overflow was observed.
+
+Staging `.venv/bin/python scripts/check_hosted_staging.py --environment staging`
+passed in [run 38021239425](https://github.com/lupu-spec/Landwolf/actions/runs/38021239425).
+It verified the exact deployed identity, HTTPS, health, mail/payment mode, four
+live customer journeys, session persistence, and authorization boundaries.
+Production origin checks observed exact version/commit, healthy state and enabled
+payments; unauthenticated CRM statistics returned 401. Production
+`.venv/bin/python scripts/check_hosted_staging.py --environment production`
+**Passed** on attempt 2 of
+[run 38021861470](https://github.com/lupu-spec/Landwolf/actions/runs/38021861470),
+at 03:53:42 UTC: exact release/HTTPS and expected billing/mail mode, four
+Chromium/WebKit phone/desktop login/paywall/privacy/logout journeys, and persistent
+cookie/cache-clear/browser-restart/logout checks. It retained one disposable test
+account, automatically classified as a hidden smoke test.
+
+Before promotion, Render Recovery showed an enabled Restore database control and
+a three-day recovery window. No backup, network, environment variable or security
+configuration was changed. Schema 11, Gmail recovery, Stripe, trial grants, pilot
+access, source allowlists, snapshots and quarantine protections are preserved.
+
+**Failed, unrelated:** live source verification
+`LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-crm-release-source-check.db LANDWOLF_AUTO_SYNC=false .venv/bin/python -m landwolf.cli sync`
+exited 1 because Arkansas COSL returned HTTP 500 at its official
+`https://cosl.org/Home/Contents` publisher URL. Seven other listing adapters were
+ready. This disposable check did not modify production source data.
+
+**Not run locally:** browser and PostgreSQL/restore gates, because this workspace
+has no installed browser executables or disposable PostgreSQL service. The final
+hosted gates above ran and passed these checks. Local custom-domain access is
+limited by the runner; hosted checks validate the public domain. Two existing
+Starlette deprecation warnings remain. No physical-device test was performed.
+
+The first production hosted attempt overlapped rollout: API identity was new but
+the browser still displayed v0.9.3. It was retried after Render confirmed the
+deployment live. The initial ledger smoke job failed because the ledger still
+described the previous releases; live identities are recorded only after observation.

@@ -1,5 +1,26 @@
 # LandWolf beta verification
 
+## CRM categories and user statistics — v0.10.1 live, 2026-10-10
+
+**Passed:** final full hosted gates — 510 backend, 16 frontend, 78 browser tests,
+PostgreSQL integration and exact 29-table restoration, build/package/security,
+legacy tests and release preflight. The final staged and production runtime trees
+are identical. Production `a3998b525530a845dedd66b52c401c0cb50b7d51` became live
+at 03:49:25 UTC. Exact origin version/health and anonymous CRM rejection passed.
+Both environments passed exact-release hosted checks; production attempt 2
+passed at 03:53:42 UTC, including four browser journeys and persistent sessions.
+The read-only `crm-summary` job at 03:54:29 UTC found 5 users, 29 hidden test records,
+1 owner and 1 other contact. Memberships: 0 active trials, 0 paid, 2 invited and
+3 registered. Two billing records are over 24 hours old, and reporting flags that
+limitation. No account, billing, entitlement, source or schema change was made.
+
+**Failed, unrelated:** disposable live source sync returned Arkansas HTTP 500.
+**Not run locally:** browser/PostgreSQL/restore, covered by passing hosted gates.
+The first production browser attempt saw the old UI during rollout and was retried;
+the pre-update ledger smoke failed its stale-version assertion. See the
+[complete commands, release identities, counts and limits](CRM_REPORTING.md).
+The v0.10.0 candidate record below is historical and superseded by v0.10.1.
+
 ## CRM user classification candidate — v0.10.0, 2026-10-10
 
 Adds read-only automatic account categories, smoke-test exclusion from default

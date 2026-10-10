@@ -3,6 +3,18 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.10.1 — CRM account categories and user statistics, live in both environments
+
+Smoke-test records are automatically separated and hidden from default CRM lists
+and CSV exports. Users excludes the owner and recognized tests; clickable Trial
+users and Paid users counts filter customer membership. Additional categories
+distinguish invitations, complimentary access and inactive plans. Reporting is
+read-only and warns about stale stored billing data. The production aggregate job
+found 5 users and 29 hidden tests on October 10. PR #28 promotes the identical
+staging-tested tree; 510 backend, 16 frontend, 78 browser tests and PostgreSQL
+restore/package/security gates passed. Schema 11, billing, Gmail and accounts are
+preserved. See [rules, commands, live counts and limitations](beta/docs/CRM_REPORTING.md).
+
 ## v0.9.3 — support Gmail password recovery, live in production
 
 Login-page and Romulus/Remus reset requests now send through
@@ -122,8 +134,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.9.3 | `e7baf8719fa6092013903cf1a53dd1cebcffbd07` | 2026-10-10 03:13:09 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.10.0 | `7e790095fec952c991d9e19c644bb522f65a2d68` | 2026-10-10 03:36:35 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.10.1 | `a3998b525530a845dedd66b52c401c0cb50b7d51` | 2026-10-10 03:49:25 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.10.1 | `24dee28c3fa2d05de1b1951767b1fa37fcbbc5a2` | 2026-10-10 03:39:02 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -258,8 +270,9 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 02:53:44 | Beta | v0.9.3 / `29386436e5588889c0e37da418050f7e51980a99` | `dep-db4qgqlckfvc73ft49n0` | Gmail-capable runtime; staging email disabled. Superseded only to update the hosted smoke expectation for enabled production delivery. |
 | 2026-10-10 02:56:09 | Beta | v0.9.3 / `5fa9f2552ea854292dc15077d2a9417dba022aa2` | `dep-db4qi4flk1mc73fm0r00` | Identical runtime; hosted smoke now requires production email enabled and staging email disabled. Full final gates and hosted staging journeys passed. |
 | 2026-10-10 03:13:09 | Production | v0.9.3 / `e7baf8719fa6092013903cf1a53dd1cebcffbd07` | `dep-db4qq25ckfvc73fu2fc0` | PR #27, identical verified staging tree. Gmail enabled with the owner-saved credential. Exact health/version, hosted browser checks and both real reset-email flows passed. |
-
 | 2026-10-10 03:36:35 | Beta | v0.10.0 / `7e790095fec952c991d9e19c644bb522f65a2d68` | `dep-db4r4vflot8c73cnckeg` | CRM account categories and customer membership statistics. Not promoted: read-only production audit identified 12 older test identities for inclusion in the next revision. |
+| 2026-10-10 03:39:02 | Beta | v0.10.1 / `24dee28c3fa2d05de1b1951767b1fa37fcbbc5a2` | `dep-db4r645ckfvc73fv9qi0` | Adds confirmed legacy verification identities to conservative test classification. All final gates and exact staging customer browser checks passed. |
+| 2026-10-10 03:49:25 | Production | v0.10.1 / `a3998b525530a845dedd66b52c401c0cb50b7d51` | `dep-db4rb4nlot8c73co0940` | PR #28, identical staging-tested tree. Exact hosted browser checks and read-only CRM job passed; 5 users, 29 test records hidden by default. Billing snapshot age is disclosed. See CRM_REPORTING.md for command evidence and limits. |
 
 ## Version and promotion rules
 
