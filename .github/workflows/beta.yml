@@ -70,6 +70,7 @@ jobs:
       - name: Browser journey
         run: |
           npm run build
+          .venv/bin/pytest -q -m browser tests/test_mobile_research_browser.py tests/test_dock_browser.py tests/test_wolf_assistant_browser.py
           .venv/bin/pytest -q -m browser
       - name: Production package
         run: |

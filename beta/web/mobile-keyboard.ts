@@ -88,6 +88,13 @@ export function setupMobileKeyboard(): void {
       else root.style.setProperty(property, `${value}px`);
     }
     const field = editor();
+    root.dataset.researchEditing = String(
+      Boolean(
+        field?.closest(
+          "#research-form, .decision-form, #hunt-form, #analysis-form",
+        ),
+      ),
+    );
     const dialog = field?.closest<HTMLDialogElement>(".property-dialog[open]");
     if (
       reveal &&

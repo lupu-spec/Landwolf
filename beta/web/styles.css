@@ -3366,7 +3366,8 @@ select {
     display: block;
     flex-shrink: 0;
   }
-  html[data-mobile-editing="true"] .wolf-assistant:not([data-expanded="true"]) {
+  html[data-mobile-editing="true"][data-research-editing="true"]
+    .wolf-assistant:not([data-expanded="true"]) {
     visibility: hidden;
   }
 }

@@ -55,7 +55,7 @@ def test_research_keyboard_navigation(browser_server, engine_name, width):
                 if scale == 1
                 else "document.documentElement.dataset.viewportFit === 'false'"
             )
-            page.wait_for_function(condition)
+            page.wait_for_function("() => " + condition)
 
         viewport(420, 60)
         if mobile:
@@ -176,7 +176,8 @@ def test_research_keyboard_navigation(browser_server, engine_name, width):
             window.dispatchEvent(new Event('resize'));
         }""")
         page.wait_for_function(
-            "document.documentElement.style.getPropertyValue('--app-viewport-bottom') === '0px'"
+            "() => document.documentElement.style.getPropertyValue('--app-viewport-bottom')"
+            " === '0px'"
         )
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         assert errors == []
