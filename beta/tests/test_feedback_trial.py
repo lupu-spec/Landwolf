@@ -473,5 +473,5 @@ def test_schema_11_upgrade_is_additive_and_repeatable(trial_app):
     initialize(engine)
     assert inspect(engine).has_table("lw2_trial_messages")
     with client.app.state.factory() as session:
-        assert session.scalar(select(SchemaVersion.version)) == 12
+        assert session.scalar(select(SchemaVersion.version)) == 13
         assert session.get(Account, user.id).password_hash == original

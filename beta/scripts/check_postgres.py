@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, inspect, select
 
-from landwolf import auth, feedback, trials
+from landwolf import auth, feedback, finance, trials
 from landwolf.config import Settings
 from landwolf.db import (
     SCHEMA_VERSION,
@@ -29,6 +29,7 @@ from landwolf.db import (
     database,
     initialize,
 )
+from landwolf.finance_models import FinanceSnapshot
 from landwolf.main import create_app
 from landwolf.schemas import PropertyRecord
 from landwolf.trust import publish_snapshot
@@ -382,6 +383,48 @@ def main() -> None:
             )
             settings.owner_account_id = owner.id
             participant_id = participant.id
+        # Populate every additive finance table so the exact-content restore includes
+        # monetary entries, forecast assumptions, owner audit and cached aggregate facts.
+        financial_entry = client.post(
+            "/api/admin/finance/expenses",
+            headers=owner_headers,
+            json={
+                "date": "2026-09-01",
+                "vendor": "render",
+                "amount_cents": 701,
+                "allocation_percent": 50,
+                "reference": "pg-" + suffix,
+            },
+        )
+        require(financial_entry.status_code == 201, "PostgreSQL finance expense failed")
+        require(financial_entry.json()["business_cents"] == 351, "Finance rounding failed")
+        plan = client.get("/api/admin/finance").json()["plan"]
+        require(
+            client.put("/api/admin/finance/plan", headers=owner_headers, json=plan).status_code
+            == 200,
+            "Finance plan persistence failed",
+        )
+        require(
+            client.put("/api/admin/finance/plan", headers=owner_headers, json=plan).status_code
+            == 409,
+            "Finance revision guard failed",
+        )
+        with app.state.factory() as session, session.begin():
+            session.merge(
+                FinanceSnapshot(
+                    id="stripe",
+                    updated_at=int(time.time()),
+                    payload={
+                        "history": {},
+                        "as_of": int(time.time()),
+                        "plan_run_rate_cents": 0,
+                        "active_subscriptions": 0,
+                        "scheduled_cancellations": 0,
+                        "excluded_records": 0,
+                    },
+                )
+            )
+            finance.audit(session, owner, "finance_stripe_snapshot_updated", "stripe")
         crm_rows = client.get("/api/admin/crm/contacts?q=" + credentials["email"])
         require(crm_rows.status_code == 200, "PostgreSQL owner CRM failed")
         require(crm_rows.json()["total"] == 1, "PostgreSQL registration CRM capture failed")
