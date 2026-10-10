@@ -63,7 +63,9 @@ def test_simple_deal_inputs_preserve_advanced_assumptions(browser_server, engine
         assert requests[-1]["closing_costs"] == 3000
 
         Path("test-results").mkdir(exist_ok=True)
-        form.scroll_into_view_if_needed()
+        field("purchase_price").scroll_into_view_if_needed()
+        for name in ("purchase_price", "resale_likely", "repairs_likely", "closing_costs"):
+            expect(field(name)).to_be_in_viewport()
         page.screenshot(path=f"test-results/investment-simple-{engine_name}-{width}.png")
         toggle.click()
         field("resale_low").fill("120000")
