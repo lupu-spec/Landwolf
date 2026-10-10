@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 
 from landwolf import admin, feedback, recovery
 from landwolf.config import Settings
+from landwolf.crm_core import Contact
 from landwolf.db import Account, BillingCustomer, BillingEvent, FeedbackAudit, FeedbackEnrollment
 from landwolf.schemas import Contract
 
@@ -229,10 +230,27 @@ def lock_account(session: Session, account_id: str) -> None:
     session.expire_all()
 
 
-def claim_invitation(session: Session, account: Account, settings: Settings) -> None:
-    """A private email reservation is not proof of ownership or a started pilot."""
+def pilot_reserved(session: Session, account: Account, settings: Settings) -> bool:
+    """Public campaign qualification is fixed at registration, not URL visitation."""
+    if account.email.casefold() in settings.pilot_invite_emails:
+        return True
     if (
-        account.email.casefold() not in settings.pilot_invite_emails
+        settings.feedback_trial_launch_at
+        and account.created_at >= settings.feedback_trial_launch_at
+    ):
+        return False
+    tags = session.scalar(
+        select(Contact.tags).where(
+            Contact.project_id == "landwolf", Contact.external_id == account.id
+        )
+    )
+    return isinstance(tags, list) and "facebook-90-day-feedback" in tags
+
+
+def claim_invitation(session: Session, account: Account, settings: Settings) -> None:
+    """Create one pilot invitation only after the new account owns its mailbox."""
+    if (
+        not pilot_reserved(session, account, settings)
         or not recovery.verified(session, account.id)
         or not settings.owner_account_id
         or admin.entitlement(session, account, settings)
@@ -261,7 +279,11 @@ def claim_invitation(session: Session, account: Account, settings: Settings) -> 
                 target_account_id=account.id,
                 action="invite",
                 created_at=stamp,
-                reason="Owner-reserved marketing pilot; email ownership verified",
+                reason=(
+                    "Facebook feedback campaign; email ownership verified"
+                    if account.email.casefold() not in settings.pilot_invite_emails
+                    else "Owner-reserved marketing pilot; email ownership verified"
+                ),
             )
         )
     session.commit()
@@ -371,6 +393,7 @@ def refresh_customer(
 
 
 def access(session: Session, account: Account, settings: Settings) -> dict[str, Any]:
+    from landwolf import trials
     from landwolf.crm_access import activate_reserved
 
     activate_reserved(session, account, settings)
@@ -386,9 +409,10 @@ def access(session: Session, account: Account, settings: Settings) -> dict[str, 
         "subscription_status": "none",
         "cancel_at_period_end": False,
         "has_customer": customer is not None,
-        "pilot_reserved": account.email.casefold() in settings.pilot_invite_emails,
+        "pilot_reserved": pilot_reserved(session, account, settings),
         "pilot_state": pilot["state"],
         "plans": [{"id": key, "currency": "usd", **value} for key, value in PLANS.items()],
+        "feedback_trial": trials.status(session, account, settings),
     }
     if not settings.payments_enabled:
         result["allowed"] = pilot["access_allowed"]
@@ -398,6 +422,9 @@ def access(session: Session, account: Account, settings: Settings) -> dict[str, 
     # An eligible pilot never depends on Stripe availability and never needs a card.
     if pilot["state"] == "active" and pilot["access_allowed"]:
         result["reason"] = "pilot"
+        return result
+    if result["feedback_trial"]["access_allowed"]:
+        result["reason"] = "feedback_trial"
         return result
     customer = refresh_customer(session, account, settings)
     if customer:
@@ -537,7 +564,13 @@ def checkout(
 ) -> dict[str, str]:
     if not settings.payments_enabled:
         raise HTTPException(404, "Payments are disabled")
+    from landwolf import trials
+
     current = access(session, account, settings)
+    if current["feedback_trial"]["state"] in trials.OPEN_STATES:
+        raise HTTPException(
+            409, "Cancel or finish your feedback trial before starting a separate plan"
+        )
     if current["allowed"]:
         raise HTTPException(409, "You already have access; no payment is required")
     if current["reason"] in {"pilot_invited", "pilot_verification"}:
@@ -669,6 +702,11 @@ def webhook(session: Session, event: dict[str, Any], settings: Settings) -> dict
     if session.get(BillingEvent, event_id):
         session.rollback()
         return {"received": True}
+    from landwolf import trials
+
+    trial_account = session.get(Account, customer.account_id)
+    if trial_account:
+        trials.reconcile_setup(session, trial_account, settings)
     rows = subscriptions(StripeAPI(settings), customer)
     store_subscriptions(customer, rows, settings)
     session.add(

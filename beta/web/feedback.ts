@@ -1,3 +1,4 @@
+import { renderTrial } from "./trial";
 import {
   feedbackHeadline,
   feedbackViewAllowed,
@@ -267,6 +268,23 @@ export function setupFeedback(
     if (signature === rendered) return;
     rendered = signature;
     content.replaceChildren(node("h2", feedbackHeadline(current)));
+    if (
+      current.self_service_trial &&
+      current.self_service_trial.state !== "none"
+    ) {
+      const trialGeneration = generation;
+      renderTrial(
+        content,
+        current.self_service_trial,
+        api,
+        async () => {
+          if (generation === trialGeneration) await refresh();
+        },
+        () => generation === trialGeneration,
+      );
+      return;
+    }
+
     const saved = node("p");
     saved.id = "feedback-save-status";
     saved.setAttribute("role", "status");
@@ -660,6 +678,7 @@ export function setupFeedback(
       rendered = "";
       clearInterval(timer);
       content.replaceChildren();
+
       clearAdmin();
       notice.hidden = true;
     },

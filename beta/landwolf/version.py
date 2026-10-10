@@ -3,7 +3,7 @@
 import os
 import re
 
-VERSION = "0.10.3"
+VERSION = "0.11.0"
 
 
 def release(environment: str) -> dict[str, str | None]:

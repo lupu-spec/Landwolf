@@ -63,6 +63,13 @@ class Mailer:
             "This link expires in 30 minutes and can be used once. "
             "If you did not request this, ignore this email.\nLandWolf"
         )
+        await self.send_text(email, subject, text, auth.digest(token))
+
+    async def send_text(self, email: str, subject: str, text: str, message_id: str) -> None:
+        """Transactional notices share the configured support sender and bounded transport."""
+        settings = self.settings
+        if not self.enabled or not settings.mail_from:
+            raise RuntimeError("Email delivery is not configured")
         if settings.mail_provider == "gmail":
             # SMTP is blocking; keep it off the application event loop. No retry:
             # a lost acknowledgment must not generate duplicate reset messages.
@@ -77,7 +84,7 @@ class Mailer:
                 "https://api.resend.com/emails",
                 headers={
                     "Authorization": "Bearer " + settings.mail_api_key.get_secret_value(),
-                    "Idempotency-Key": auth.digest(token),
+                    "Idempotency-Key": message_id,
                 },
                 json={
                     "from": str(settings.mail_from),

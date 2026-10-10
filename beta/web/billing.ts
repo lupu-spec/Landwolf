@@ -1,5 +1,7 @@
+import { renderTrial, type TrialStatus } from "./trial";
 /** Payment results are always checked on the server, never inferred from the URL. */
 export type BillingStatus = {
+  feedback_trial?: TrialStatus;
   enabled: boolean;
   livemode: boolean;
   allowed: boolean;
@@ -72,6 +74,8 @@ export function setupBilling(
         "Your pilot feedback is overdue. Complete the survey in Feedback to restore the remaining pilot term without paying.",
       payments_disabled: "Subscriptions are not enabled in this environment.",
       subscription: "Your subscription is active.",
+      feedback_trial:
+        "Your feedback trial is active. Your dates and check-ins are below.",
       subscription_required:
         "Subscribe to unlock property searches, research, deal analysis and new Hunt matches. Existing saved Hunts and account support remain available.",
     };
@@ -149,9 +153,30 @@ export function setupBilling(
       });
       return el;
     }
+    const trialGeneration = generation;
+    renderTrial(
+      content,
+      status.feedback_trial,
+      api,
+      async () => {
+        const next = await api<BillingStatus>(
+          "/api/billing/refresh",
+          "POST",
+          {},
+        );
+        if (generation !== trialGeneration) return;
+        status = next;
+        render();
+        await changed(next);
+      },
+      () => generation === trialGeneration,
+    );
     if (
       status.enabled &&
       !status.allowed &&
+      !["setup", "active", "notice", "converting", "blocked"].includes(
+        status.feedback_trial?.state ?? "none",
+      ) &&
       !["pilot_invited", "pilot_verification"].includes(status.reason)
     ) {
       content.append(

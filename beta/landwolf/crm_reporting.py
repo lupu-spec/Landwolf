@@ -13,7 +13,13 @@ from sqlalchemy.sql.selectable import Subquery
 
 from landwolf.config import Settings
 from landwolf.crm_core import Contact, Reservation
-from landwolf.db import Account, BillingCustomer, BillingExemption, FeedbackEnrollment
+from landwolf.db import (
+    Account,
+    BillingCustomer,
+    BillingExemption,
+    FeedbackEnrollment,
+    FeedbackTrial,
+)
 
 Category = Literal["people", "all", "user", "owner", "smoke_test", "contact"]
 Membership = Literal[
@@ -101,7 +107,14 @@ def segments(settings: Settings, now: int) -> Subquery:
             and_(BillingCustomer.subscription_status == "active", BillingCustomer.paid_until > now),
             "paid",
         ),
-        (or_(grant_trial, pilot_trial), "trial"),
+        (
+            or_(
+                grant_trial,
+                pilot_trial,
+                and_(FeedbackTrial.state.in_(("active", "notice")), FeedbackTrial.expires_at > now),
+            ),
+            "trial",
+        ),
         (live_grant, "complimentary"),
         (BillingCustomer.subscription_status == "trialing", "trial"),
         (
@@ -125,6 +138,7 @@ def segments(settings: Settings, now: int) -> Subquery:
             or_(
                 and_(Reservation.kind == "trial", Reservation.state.in_(("activated", "revoked"))),
                 FeedbackEnrollment.accepted_at.is_not(None),
+                FeedbackTrial.started_at.is_not(None),
             ),
             "trial_ended",
         ),
@@ -154,6 +168,7 @@ def segments(settings: Settings, now: int) -> Subquery:
             and_(BillingExemption.account_id == Account.id, BillingExemption.status == "active"),
         )
         .outerjoin(FeedbackEnrollment, FeedbackEnrollment.account_id == Account.id)
+        .outerjoin(FeedbackTrial, FeedbackTrial.account_id == Account.id)
         .outerjoin(Reservation, Reservation.contact_id == Contact.id)
         .subquery()
     )
