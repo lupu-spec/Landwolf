@@ -1,6 +1,6 @@
 # LandWolf beta verification
 
-## Owner financial dashboard — v0.13.0 candidate, October 10, 2026
+## Owner financial dashboard — v0.13.0 live, October 11, 2026
 
 Owner-identity authorization and CSRF protect all private financial routes.
 Read-only live Stripe refresh preserves the last complete snapshot on failure;
@@ -25,9 +25,28 @@ Final CSV hardening passed 35 focused tests. Final runtime code
 build/package/security and diff checks. Legacy run `38087330980` passed 53;
 static preflight passed while conditional deployment preflight jobs were skipped.
 Desktop/phone screenshots use synthetic data and were visually reviewed.
-Live database inspection is blocked
-by external-connection restrictions; these were not changed. No staging/production
-deployment occurred; an approved internal preservation-check path is needed.
+After owner approval, the authenticated Render console supplied the internal
+preservation checks without changing external database restrictions. PR #36 merged
+as `3977a9aeced1dde09fb6d165726535b4ebc5aab1`, with the entire tree equal to
+staging `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3`. Staging became live at
+2026-10-11 00:05:56 UTC (`dep-db5d57vlot8c73ehshd0`); production at 00:17:28
+(`dep-db5dapdckfvc739qeaig`). Full staging gate replay `38097194189` passed.
+Exact standard hosted staging/production session/privacy checks passed in
+`38097194179`/`38097869092`. Six focused staging research journeys passed in
+`38097604721`; initial sixth-sign-in failure is retained in the evidence.
+All 25 nonvolatile customer-table digests matched; schema 13/four additive tables
+were observed. Four public-source operational tables legitimately refreshed under
+the unchanged 40-runs-per-source retention, so they are not called byte-identical.
+Deployed finance report generation, live GET-only Stripe reconciliation and exact
+HTTP identity/equal staged-production JS/CSS passed read-only internal checks.
+**Blocked / not passed:** six focused production research journeys: automatic
+approval review rejected a one-hour disposable-test complimentary access grant as
+not specifically authorized. No grant executed. Explicit approval, subsequent
+acceptance, grant revocation and test-session cleanup remain necessary.
+**Not run:** physical-device OS keyboards and interactive production owner UI
+in this cloud browser (Site Unavailable after one reload; hosted CI passed).
+Ledger smoke initially failed against the stale v0.12.2 rows; the documentation
+update records observed v0.13.0 identities without a new runtime deployment.
 See [feature instructions and
 release evidence](OWNER_FINANCE.md).
 

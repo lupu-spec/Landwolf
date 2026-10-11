@@ -3,19 +3,24 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
-## v0.13.0 — private owner finances, candidate (not deployed)
+## v0.13.0 — private owner finances, live; focused production research acceptance pending
 
 Adds owner-only subscription collections, Stripe cash/fee reporting, business expense
 records and confirmed Amex CSV imports, accessible graphs, three-month editable
 scenarios and an evidence-linked growth playbook. Schema 13 is additive. Existing
 accounts, billing, CRM, research and accepted trial terms are preserved. No bank
-connection or guessed vendor cost is presented as verified. Production remains
-v0.12.2. Candidate runtime `69872762ddd7690f44663e326e0c7238def18f38` passed
+connection or guessed vendor cost is presented as verified. Candidate runtime
+`69872762ddd7690f44663e326e0c7238def18f38` passed
 571 backend, 20 frontend, 114 browser, 53 legacy, PostgreSQL/36-table restore,
-build/package/security and static gates. External live database inspection is
-blocked by existing network restrictions; no networking changes or deployments
-were made. Draft PR #36 awaits an approved internal preservation-check path and
-exact staged acceptance before promotion. See
+build/package/security and static gates. Final head also passed all gates; all six
+focused staging research journeys and standard exact staged/production checks
+passed. PR #36 merged as `3977a9aeced1dde09fb6d165726535b4ebc5aab1`, whose
+complete tree equals staging `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3`.
+Authenticated internal checks matched 25 customer-table digests and verified live
+finance generation/GET-only Stripe reads. Schema 13 adds four tables; public-source
+tables refreshed normally. Six focused production research journeys remain blocked:
+automatic approval review rejected a temporary disposable-test billing-access grant
+as not specifically authorized. No grant executed; physical OS keyboards not run. See
 [feature guide and verification](beta/docs/OWNER_FINANCE.md).
 
 ## v0.12.2 — mobile research navigation and preserved validation, live in both environments
@@ -211,8 +216,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.12.2 | `f6cf068809bbc18ec9c8919156967a003e280b93` | 2026-10-10 20:28:08 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.12.2 | `deafae9734a589718bf99912cdfab94164bdafa0` | 2026-10-10 20:16:52 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.13.0 | `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | 2026-10-11 00:17:28 |
+| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.13.0 | `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | 2026-10-11 00:05:56 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -364,7 +369,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 20:02:17 | Beta | v0.12.1 / `a2ee4071b305efc0f444b1b38f03706d2b0255f7` | `dep-db59irqjnfac739mufp0` | Initial mobile keyboard repair; full candidate gates and exact standard staging research/navigation/session checks passed. Additional acceptance exposed inactive-field native validation; superseded by v0.12.2 before production. |
 | 2026-10-10 20:16:52 | Beta | v0.12.2 / `deafae9734a589718bf99912cdfab94164bdafa0` | `dep-db59puflot8c73e70rq0` | Inactive inputs disabled without losing values. Full final gates, six focused Chromium/WebKit research journeys and standard exact hosted/session checks passed. One rate-limited sign-in rerun passed in the normal window. |
 | 2026-10-10 20:28:08 | Production | v0.12.2 / `f6cf068809bbc18ec9c8919156967a003e280b93` | `dep-db59v7lckfvc739fkme0` | PR #35, entire tree identical to staging. Exact production health/billing/email/auth/privacy/session and six focused both-research-view journeys passed. Existing accounts/billing/CRM digests match; temporary audited test access revoked. Physical OS keyboards not run. See MOBILE_RESEARCH_KEYBOARD.md. |
-
+| 2026-10-11 00:05:56 | Beta | v0.13.0 / `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | `dep-db5d57vlot8c73ehshd0` | Private owner finances, allocated vendor expenses/confirmed CSV, graphs, three-month scenarios and growth actions. Full 571/20/114/53 gates, 36-table restore/security and exact standard/six focused staged research journeys passed. |
+| 2026-10-11 00:17:28 | Production | v0.13.0 / `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | `dep-db5dapdckfvc739qeaig` | PR #36, complete tree identical to tested staging. Standard exact navigation/session/private-route checks, 25 customer-table digests, finance generation and GET-only live Stripe reads passed. Six focused production research journeys blocked on auto-review-rejected temporary test access; no grant executed. See OWNER_FINANCE.md. |
 
 ## Version and promotion rules
 

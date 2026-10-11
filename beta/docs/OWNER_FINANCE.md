@@ -1,9 +1,11 @@
 # Private owner financial management — v0.13.0
 
-Status: draft [PR #36](https://github.com/lupu-spec/Landwolf/pull/36); not deployed.
-Production remains the verified v0.12.2. Both live databases reject external
-inspection due to their empty IP allowlists. Network restrictions were not changed;
-deployment awaits an approved internal data-preservation verification path.
+Status: v0.13.0 live in staging and production; PR #36 merged. Six focused
+production research journeys remain blocked on a specifically approved temporary
+access grant for the disposable test account. They are not reported as passes.
+[PR #36](https://github.com/lupu-spec/Landwolf/pull/36) contains the verified code.
+The owner approved the existing internal Render verification workflow on October 10.
+External database networking and credentials were not changed.
 
 ## Usage
 
@@ -102,15 +104,118 @@ whose UI is byte-identical to the CSV-hardened code; they are not live owner rec
 The original artifact ZIP SHA-256 was
 `ca9b0a38b4ebe3dc048f0e2914b38c10f07bcd24d4f921a633c57088c40b8ca4`.
 
-At final inspection on October 10, staging remained v0.12.2 deployment
+At the initial October 10 release hold, staging remained v0.12.2 deployment
 `dep-db59puflot8c73e70rq0`, runtime `deafae9734a589718bf99912cdfab94164bdafa0`;
 production remained v0.12.2 deployment `dep-db59v7lckfvc739fkme0`, runtime
 `f6cf068809bbc18ec9c8919156967a003e280b93`. Neither branch/service/database,
 existing account, customer billing, CRM or trial record was changed by this work.
-New staging/production acceptance and promotion are **Not run**, not passes.
+At that inspection, new staging/production acceptance and promotion were **Not run**.
 Do not open database networking or extract credentials to bypass the external
 query blocker. An approved existing internal verification workflow is required
-before releasing the additive migration. PR #36 remains a draft.
+before releasing the additive migration. The subsequent owner approval enabled the
+authenticated service-console preservation checks recorded below.
+
+## October 11 deployment and hosted acceptance
+
+Staging Render `dep-db5d57vlot8c73ehshd0` became live at
+2026-10-11 00:05:56 UTC, runtime `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3`,
+v0.13.0. Its complete source tree is `517917a8cb89a126395fc58d101cd11351109598`.
+The same final commit passed beta gates `38088229697`, legacy `38088229668`, and
+static preflight `38088229658`; conditional environment preflight jobs were skipped.
+Standard exact staging acceptance `38097194179` passed at 00:07:44 UTC:
+HTTPS, immutable identity, healthy database, expected billing/email modes, four
+Chromium/WebKit phone/desktop journeys, financial/private-route boundaries, both
+persistent-cookie/cache-clear/browser-restart/logout journeys. A normal staging
+sign-in also correctly withheld Finances from the nonowner account.
+
+The initial focused staging run `38097334110` passed five research journeys and
+failed before the sixth reached the workspace. The failure was at sign-in, before
+research edits. The acceptance-only branch now isolates each run's retained smoke
+account and records HTTP authentication status without recording credentials or
+response bodies. No runtime gate, authentication limit or customer data was changed.
+The rerun `38097604721` passed all six Chromium/WebKit 390/834/1440px journeys
+at 00:14:04 UTC. Each tested both editors, Done, viewport geometry, native
+validation/mode switching, emulated 503 failures, successful real-backend retries,
+preserved values, navigation, owner-route denial and logout. The retained phone and
+tablet screenshots were visually reviewed. The ZIP SHA-256 is
+`9b90f76d22bb5a13a494b95dd518d18c7217762b606b171b4b556b2ae010558e`.
+The first failure coincided with overlapping hosted sign-ins near the end of a
+12-per-10-minute authentication bucket; rate limiting is an inference, since that
+first tool did not retain the response status. The complete independent rerun is
+the staging release evidence, not a combination of partial passes.
+
+An authenticated production service console captured a read-only, repeatable-read
+baseline across 30 nonvolatile pre-existing tables. Accounts, CRM contacts and
+activities use `created_at <= 1791677000` (2026-10-11 00:03:20 UTC), excluding
+subsequent smoke registrations. Baseline counts include 41 accounts, 42 contacts,
+32 activities, two billing customers, one project and one access reservation.
+Sessions and rate buckets are intentionally excluded; schema 12 must become 13.
+Production owner existence and current live Stripe configuration were verified
+without exposing keys, credentials, customer bodies or financial amounts.
+
+Production Render `dep-db5dapdckfvc739qeaig` became live at
+2026-10-11 00:17:28 UTC, v0.13.0, runtime merge
+`3977a9aeced1dde09fb6d165726535b4ebc5aab1`. Its entire tree exactly equals the
+staging-tested tree. Existing service/database IDs, billing/email configuration,
+origins and external database restrictions were retained. Schema 13 and all four
+new finance tables were observed through the authenticated service console.
+
+Standard exact production acceptance `38097869092` passed at 00:18:23 UTC:
+HTTPS/immutable identity, health, live billing/email modes, anonymous financial 401,
+nonowner financial 403 and hidden navigation, four Chromium/WebKit phone/desktop
+login/paywall/logout journeys, and both persistent-session/cache/restart/logout checks.
+Staging's complete repeated beta gates also passed in `38097194189`: 571 backend,
+20 frontend, 114 unique browser, disposable PostgreSQL/exact 36-table restoration,
+build/package/security and diff. The final merge's additional CI replay is separate
+from the identical staged tree's already-completed release gates.
+
+Post-deployment read-only comparison matched all 25 nonvolatile customer tables,
+including pre-existing accounts, billing customers/events/exemptions, CRM, trial,
+feedback, research and Hunt records. The schema-version change was expected.
+Four public-source operational tables changed during ordinary catalog refresh;
+eight new source runs and the existing 40-runs-per-source retention were confirmed
+in live metadata and unchanged `trust.log_run` code. Source history therefore is
+not claimed byte-identical. No migration reset, restore or customer deletion ran.
+
+The deployed `finance.report` generated six historical months, nine scenario rows
+for November/December 2026 and January 2027, and the growth playbook. Its actual
+`stripe_snapshot` completed the existing live-account GET-only reads and validated
+the configured account; no financial amounts or response bodies were published.
+No expense, plan, cached Stripe snapshot or billing write was performed by these
+checks. Live production/staging app.js and styles.css matched byte-for-byte.
+
+Focused production acceptance `38097925640` registered one reserved, hidden
+disposable smoke account and then waited for research entitlement. Automatic
+approval review rejected the proposed one-hour complimentary grant because the
+owner's approval did not specifically authorize this production billing-access
+change. The grant did not execute; no owner role, entitlement or Stripe customer
+was changed. All six production focused research journeys remain **Blocked / not
+passed** pending that explicit approval; the test must be rerun if its wait expires.
+After an approved run, revoke the grant, invalidate only its test sessions, and
+confirm zero active grants/sessions/Stripe customers for that account. Retain its
+account/research records. Physical OS keyboard testing remains **Not run**.
+
+The cloud browser could open staging but displayed Site Unavailable for landwolf.ai
+after one reload, so an interactive production owner sign-in was **Not run**.
+This does not establish an outage: exact production HTTPS/browser CI and the
+service-console HTTP/finance checks passed. The ledger-image smoke run
+`38097869102` initially failed because RELEASES.md still described v0.12.2; the
+deployment-note update corrects both observed runtime rows without changing code.
+The post-deploy error scan found one upstream `ar_cosl` HTTP 500 at 00:17:50 UTC.
+The existing source-refresh failure policy retains cached verified inventory and
+shows the freshness warning. This upstream availability failure was not repaired
+or treated as a finance/session test failure; no parser/URL change was justified.
+
+![Observed live production deployment](images/owner-finance/production-render-v013.jpg)
+
+| Hosted / internal verification | Result |
+| --- | --- |
+| `scripts/check_hosted_staging.py --environment staging --commit 3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | Passed, `38097194179` |
+| `scripts/check_hosted_mobile_research.py --environment staging --commit 3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | Passed, six, `38097604721`; initial run failed at sign-in |
+| `scripts/check_hosted_staging.py --environment production --commit 3977a9aeced1dde09fb6d165726535b4ebc5aab1` | Passed, `38097869092` |
+| Production read-only row-count/SHA-256 comparison; `finance.report`; GET-only `finance.stripe_snapshot`; exact identity and live asset comparison | Passed, authenticated Render service console |
+| `scripts/check_hosted_mobile_research.py --environment production --commit 3977a9aeced1dde09fb6d165726535b4ebc5aab1` | Blocked on rejected temporary test grant; no focused production pass |
+| Acceptance-only tool Ruff format/lint, `py_compile`, Bandit | Passed, local and hosted |
 
 Safety bounds: 100 KB/500-row CSV imports, up to 1,000 records per Stripe resource
 per complete refresh, and up to 500 expenses in the current six-month report.
