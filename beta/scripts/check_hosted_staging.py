@@ -140,6 +140,7 @@ def main() -> None:
             "/api/capabilities",
             "/api/feedback",
             "/api/admin/feedback/users.csv",
+            "/api/admin/finance",
             "/api/decision-cases/unknown",
             "/api/hunts/unknown/research",
         ):
@@ -197,6 +198,8 @@ def main() -> None:
                     ).to_have_count(0)
                     chat.get_by_role("button", name="Collapse Romulus and Remus chat").click()
                     expect(page.locator("#coverage-nav")).to_be_hidden()
+                    expect(page.locator("#finance-nav")).to_be_hidden()
+                    expect(page.locator("#finance-panel")).to_be_empty()
                     for endpoint in (
                         "/api/sources",
                         "/api/capabilities",
@@ -204,6 +207,7 @@ def main() -> None:
                         "/api/admin/feedback",
                         "/api/admin/feedback/responses",
                         "/api/admin/feedback/users.csv",
+                        "/api/admin/finance",
                     ):
                         assert context.request.get(f"{origin}{endpoint}").status == 403
                     page.locator('#main-nav [data-nav="feedback"]').click()

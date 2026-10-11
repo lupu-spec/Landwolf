@@ -3,6 +3,21 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.13.0 — private owner finances, candidate (not deployed)
+
+Adds owner-only subscription collections, Stripe cash/fee reporting, business expense
+records and confirmed Amex CSV imports, accessible graphs, three-month editable
+scenarios and an evidence-linked growth playbook. Schema 13 is additive. Existing
+accounts, billing, CRM, research and accepted trial terms are preserved. No bank
+connection or guessed vendor cost is presented as verified. Production remains
+v0.12.2. Candidate runtime `69872762ddd7690f44663e326e0c7238def18f38` passed
+571 backend, 20 frontend, 114 browser, 53 legacy, PostgreSQL/36-table restore,
+build/package/security and static gates. External live database inspection is
+blocked by existing network restrictions; no networking changes or deployments
+were made. Draft PR #36 awaits an approved internal preservation-check path and
+exact staged acceptance before promotion. See
+[feature guide and verification](beta/docs/OWNER_FINANCE.md).
+
 ## v0.12.2 — mobile research navigation and preserved validation, live in both environments
 
 Both research views fit navigation and dialog controls to the visible viewport,

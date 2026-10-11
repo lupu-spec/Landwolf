@@ -266,7 +266,7 @@ def test_v10_migration_retains_manual_contacts_and_is_repeatable(client, owner_s
     initialize(engine)
     assert row(client, c["id"])["email"] == EMAIL
     with client.app.state.factory() as db:
-        assert db.scalar(select(SchemaVersion.version)) == 12
+        assert db.scalar(select(SchemaVersion.version)) == 13
 
 
 def test_paid_subscription_survives_trial_revoke(client, owner_signed_in, monkeypatch):
