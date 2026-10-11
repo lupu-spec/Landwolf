@@ -3,6 +3,23 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## Repository maintenance — October 11, 2026; no changed runtime deployed
+
+Production source is now `main` / `app/`; isolated staging source is `staging` /
+`app/`. The production service and Blueprint display names are `landwolf-production`.
+Retired code/configuration is under `archive/legacy/`, and dated recovery branches
+preserve every original branch tip. Active package names and build/workflow paths
+use LandWolf production naming. The consolidated staging configuration retains its
+existing paid database plan and storage. Automatic deployments are off and both
+Blueprints are paused; generated sync proposals remain unapplied.
+
+Both images remain v0.13.0 at the immutable commits and deployment IDs below.
+Staging's existing build was restarted to recover its stalled free-instance wake-up;
+no new application source was deployed. Exact HTTPS identity/health/assets checks
+passed afterward. Existing customer accounts, billing and CRM were not edited by
+repository cleanup. The command results, archives, configuration comparison and
+verification limitations are recorded in [the cleanup report](app/docs/REPOSITORY_CLEANUP.md).
+
 ## v0.13.0 — private owner finances, live; hosted acceptance complete
 
 Adds owner-only subscription collections, Stripe cash/fee reporting, business expense

@@ -1,5 +1,10 @@
 # Live billing activation — v0.4.0 candidate
 
+Historical activation guidance: the service/branch/context recorded below refer
+to the v0.4.0 candidate. Current production uses `landwolf-production`, `main` and
+`app/`; see [repository maintenance](REPOSITORY_CLEANUP.md). Preserve existing
+database identifiers, domains, secrets and the live-only billing contract.
+
 This document is configuration guidance, not proof of deployment. The production
 service remains `landwolf-free-beta` / branch `codex/landwolf-beta-rebuild` / Docker
 context `beta`. Keep its existing database and custom domains. Do not deploy the

@@ -1,4 +1,23 @@
-# LandWolf beta verification
+# LandWolf verification
+
+## Repository organization — October 11, 2026
+
+The current application is under `app/`, with `main` and `staging` as canonical
+sources and two verified recovery archives. Render source paths and display names
+were normalized without deploying changed application code. All 70 runtime,
+browser and Dockerfile contents remain identical. The renamed-path candidate
+passed 571 backend, 20 frontend, 114 browser and 53 legacy tests, PostgreSQL and
+36-table restore checks, package/build and security/static gates. Production
+hosted mobile/desktop and persistent-session checks passed. Exact live identity,
+health, logo and fallback images passed in both environments after restarting
+staging's existing build to recover its stalled free-instance wake-up.
+Staging hosted run `38145773380` also passed live research, CSRF rejection,
+mobile/desktop inventory and navigation, and persistent sign-in/logout checks.
+
+See [the cleanup record](REPOSITORY_CLEANUP.md) for exact commands and statuses,
+run IDs, retained deployments, archive recovery, resolved failures and local
+verification limitations. Earlier dated evidence below remains historical;
+directory names in original command transcripts reflect their execution date.
 
 ## Owner financial dashboard — v0.13.0 live, October 11, 2026
 
