@@ -4,6 +4,7 @@ on:
   push:
     branches: [staging, main]
     paths:
+      - RELEASES.md
       - app/scripts/check_hosted_staging.py
       - app/landwolf/version.py
       - .github/workflows/staging-smoke.yml

@@ -1,5 +1,5 @@
-# Isolated review environment. No production domains, database, or secrets are copied.
-# Free resources may sleep and the free database has a limited lifetime.
+# Existing isolated staging resources; no production domains, database or secrets.
+# Preserve the approved paid database and its existing storage configuration.
 services:
   - type: web
     name: landwolf-premium-staging
@@ -29,6 +29,9 @@ databases:
   - name: landwolf-premium-staging-db
     databaseName: landwolf_staging
     user: landwolf_staging
-    plan: free
+    plan: 0.1c-256mb
+    diskSizeGB: 1
+    storageAutoscalingEnabled: false
+    postgresMajorVersion: "18"
     region: oregon
     ipAllowList: []

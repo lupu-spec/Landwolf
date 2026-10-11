@@ -3,7 +3,7 @@ name: LandWolf application gates
 on:
   pull_request:
   push:
-    branches: [main, staging, codex/repository-cleanup-20261011]
+    branches: [main, staging]
 
 permissions:
   contents: read
