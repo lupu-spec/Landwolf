@@ -205,12 +205,17 @@ separate operational gate.
 
 ## Deployment and verification
 
-[render.beta.yaml](../render.beta.yaml) describes the existing rebuilt Render service
-and PostgreSQL database, promoted to production without replacing their data.
-Resource names retain `beta` for continuity; automatic deployment stays disabled.
-The deploy branch is `codex/landwolf-beta-rebuild`, with Blueprint path
-`render.beta.yaml`. The legacy service/main branch remains a rollback reference.
-Do not merge legacy configuration into the new service or create duplicate resources.
+[render.yaml](../render.yaml) describes the current production service and existing
+PostgreSQL database. The production source branch is `main`; `staging` is isolated
+verification. Docker builds use `app/Dockerfile` with `app/` as their context.
+Automatic deployment and Blueprint synchronization remain off. The Blueprint path
+is `render.yaml`. Existing platform URLs and database connection identifiers are
+preserved for continuity; do not replace resources to rename them.
+
+Retired applications, deployment material and inactive workflows are under
+[archive/legacy](../archive/legacy/). Exact old branch tips and unmerged work remain
+reachable from the [recovery archive](../archive/README.md). This maintenance does
+not change the currently running v0.13.0 image or its immutable commit.
 
 The canonical origin is `https://landwolf.ai`; Render redirects `www.landwolf.ai`
 to the apex and provisions HTTPS. The existing `landwolf-free-beta.onrender.com`

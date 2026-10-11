@@ -741,7 +741,7 @@ wheels = [
 ]
 
 [[package]]
-name = "landwolf-beta"
+name = "landwolf"
 version = "0.13.0"
 source = { editable = "." }
 dependencies = [

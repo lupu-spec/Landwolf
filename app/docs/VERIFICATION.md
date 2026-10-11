@@ -421,7 +421,7 @@ truncated file; system dependency installer lacked privileges), live source sync
 and legacy root tests (separate environment). Hosted run 105 passed the browser, PostgreSQL integration, disposable backup/restore, package, and security gates. The isolated beta page visibly reports v0.4.0-beta.1, and no recent Render application errors were found.
 
 The implementation limits and deferred email/scheduler/parcel work are recorded
-in [HUNT_BETA.md](HUNT_BETA.md). Production remains on v0.3.3.
+in [HUNT_BETA.md](HUNT.md). Production remains on v0.3.3.
 
 ## v0.3.3 source refresh reliability — 2026-09-27 (deployed)
 

@@ -1,0 +1,161 @@
+{
+  "archived_at": "2026-10-11",
+  "repository": "lupu-spec/Landwolf",
+  "production_runtime": "3977a9aeced1dde09fb6d165726535b4ebc5aab1",
+  "production_deploy": "dep-db5dapdckfvc739qeaig",
+  "branches": [
+    {
+      "name": "assets/wolf-only-original-extraction",
+      "sha": "34c03939adc5346cefb67093762c6d9c56b23f82"
+    },
+    {
+      "name": "codex/billing-exemptions-admin",
+      "sha": "db65198418e255b3d4c5145269c5267b1c7d0ab3"
+    },
+    {
+      "name": "codex/checkout-live-fix",
+      "sha": "55b27431f7518f5014b33a4f67c700bd8606ea76"
+    },
+    {
+      "name": "codex/crm-account-administration",
+      "sha": "19c2b7cf42216efe1e2c7e0614b9d943dec266b3"
+    },
+    {
+      "name": "codex/crm-mobile-contact-fix",
+      "sha": "bb56ad94d19cd56714238c51a701e8c3824ca75e"
+    },
+    {
+      "name": "codex/crm-user-statistics",
+      "sha": "24dee28c3fa2d05de1b1951767b1fa37fcbbc5a2"
+    },
+    {
+      "name": "codex/facebook-90day-campaign-20261010",
+      "sha": "9a948b2e477a65c7f6d356a4f1418572441d2515"
+    },
+    {
+      "name": "codex/feedback-billing-trial",
+      "sha": "b51cdfffb9e26a2894c8dcdd5ce4ef9114d040b0"
+    },
+    {
+      "name": "codex/feedback-user-export",
+      "sha": "ff2e5e2aaa3456622861b56815563105a6f92e3c"
+    },
+    {
+      "name": "codex/glass-dock-responsive-chat",
+      "sha": "44348c839634fe3fb2d5811c96245edfb4d49305"
+    },
+    {
+      "name": "codex/gmail-password-recovery",
+      "sha": "5fa9f2552ea854292dc15077d2a9417dba022aa2"
+    },
+    {
+      "name": "codex/intuitive-checkout",
+      "sha": "077e3f25d3c572750143a3942b714a6f38e014c3"
+    },
+    {
+      "name": "codex/investor-feedback-pilot",
+      "sha": "4f52057d6499d420f6cfce6a9e97b1baa29d0dfe"
+    },
+    {
+      "name": "codex/investor-feedback-release-record",
+      "sha": "802e1248d2c4d1e248a87f625c377ecfe22b8cf1"
+    },
+    {
+      "name": "codex/landwolf-beta-rebuild",
+      "sha": "9bfdcd1ddba1ba884b53cf8f9577f8cc6227feb8"
+    },
+    {
+      "name": "codex/landwolf-billing-diagnostics",
+      "sha": "cf34432724b9aae2afa32987362a4df67f57eb86"
+    },
+    {
+      "name": "codex/landwolf-hunt-beta",
+      "sha": "8bb14bf20da148edfe87f4340432184ad0e6907d"
+    },
+    {
+      "name": "codex/landwolf-hunt-images",
+      "sha": "8f2d41f20f07d7ac7aca44f05a9cf945692c08fb"
+    },
+    {
+      "name": "codex/landwolf-hunt-save-cta",
+      "sha": "eb344764dd9f8223e20483b04af0a929a53dbf23"
+    },
+    {
+      "name": "codex/landwolf-hunt-save-fix",
+      "sha": "96096d7d7570a1330b67d61d8af622646f35420b"
+    },
+    {
+      "name": "codex/landwolf-hunt-simple",
+      "sha": "befe3b01cf8cfe7ba71fc6eab20b9166d66bca1f"
+    },
+    {
+      "name": "codex/landwolf-live-billing",
+      "sha": "3b53b6d8aff9b2715bbe0c45f1ec71848ebc1b8f"
+    },
+    {
+      "name": "codex/landwolf-premium-staging",
+      "sha": "9bfdcd1ddba1ba884b53cf8f9577f8cc6227feb8"
+    },
+    {
+      "name": "codex/mobile-research-hosted-acceptance",
+      "sha": "282f000743160a16e175de59f0f286aa15d8d474"
+    },
+    {
+      "name": "codex/mobile-research-keyboard",
+      "sha": "deafae9734a589718bf99912cdfab94164bdafa0"
+    },
+    {
+      "name": "codex/owner-data-coverage",
+      "sha": "0e4a27b619889a4fcf6650d2b0d5321f4e4bf3ed"
+    },
+    {
+      "name": "codex/owner-finance-hosted-acceptance",
+      "sha": "c774b1c59a22e82c7ddd11cb8d456341fbbca454"
+    },
+    {
+      "name": "codex/owner-finance-release-notes",
+      "sha": "9bfdcd1ddba1ba884b53cf8f9577f8cc6227feb8"
+    },
+    {
+      "name": "codex/owner-financial-dashboard",
+      "sha": "3a755fd3e1c65a82e1836c67d1cabca12a49f2f3"
+    },
+    {
+      "name": "codex/persistent-sign-in",
+      "sha": "44b4b77d382ec6510b19347a6ee8ab7156c4b3e4"
+    },
+    {
+      "name": "codex/private-seller-ingestion",
+      "sha": "1c18dd702882a9c23180c08a86137fdac199913c"
+    },
+    {
+      "name": "codex/production-source-recovery",
+      "sha": "5cd17ee8d02b4351e0e2adb53bcb90f2a0154694"
+    },
+    {
+      "name": "codex/research-decisions",
+      "sha": "c63c210064338d98ef83ecd77f540aa68f9eefd9"
+    },
+    {
+      "name": "codex/reusable-crm-registration",
+      "sha": "476b683bca5bc56c67984a38c49298a63673f23c"
+    },
+    {
+      "name": "codex/romulus-remus-guide",
+      "sha": "67f3ecef0c94c77c432e399c858702ab6cd12a35"
+    },
+    {
+      "name": "codex/simple-investment-tools",
+      "sha": "e062b5386d8a9d672af462594c0b29d524a3c638"
+    },
+    {
+      "name": "main",
+      "sha": "5307de0a11fd75a7c51bdf5243f3e13179b95d38"
+    },
+    {
+      "name": "work",
+      "sha": "da59d345c26c4195039905cefb6a4886e172c76f"
+    }
+  ],
+  "notes": "Every distinct branch tip is retained as a parent of this archival commit. This branch is historical storage, not a deployment source. Restore branches from their recorded immutable SHA."
+}

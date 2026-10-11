@@ -1,9 +1,9 @@
-name: LandWolf beta gates
+name: LandWolf application gates
 
 on:
   pull_request:
   push:
-    branches: [codex/landwolf-beta-rebuild, codex/landwolf-premium-staging]
+    branches: [main, staging, codex/repository-cleanup-20261011]
 
 permissions:
   contents: read
@@ -25,7 +25,7 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     defaults:
       run:
-        working-directory: beta
+        working-directory: app
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,7 +35,7 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-          cache-dependency-path: beta/package-lock.json
+          cache-dependency-path: app/package-lock.json
       - name: Install locked environments
         run: |
           pip install uv==0.12.11
@@ -90,8 +90,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: beta-browser-evidence
-          path: beta/test-results/
+          name: application-browser-evidence
+          path: app/test-results/
           retention-days: 7
       - name: Mobile fix evidence
         if: always()
@@ -99,6 +99,6 @@ jobs:
         with:
           name: mobile-fix-evidence
           path: |
-            beta/test-results/mobile-contact-*.png
-            beta/test-results/mobile-login-*.png
+            app/test-results/mobile-contact-*.png
+            app/test-results/mobile-login-*.png
           retention-days: 7

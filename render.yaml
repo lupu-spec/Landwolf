@@ -1,38 +1,40 @@
+# Current production service; reuse the existing service and database.
+# Automatic deploys and Blueprint sync remain off. Never create replacement resources.
 services:
   - type: web
-    name: landwolf
-    runtime: python
-    region: ohio
-    plan: free
+    name: landwolf-production
+    runtime: docker
+    plan: starter
+    region: oregon
     branch: main
-    buildCommand: pip install -r requirements.txt
-    preDeployCommand: alembic upgrade head
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    autoDeploy: true
+    dockerfilePath: ./app/Dockerfile
+    dockerContext: ./app
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/health
+    preDeployCommand: python -m landwolf.cli init-db
+    maxShutdownDelaySeconds: 30
+    domains:
+      - landwolf.ai
+      - www.landwolf.ai
     envVars:
-      - key: APP_ENV
+      - key: LANDWOLF_ENVIRONMENT
         value: production
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DATABASE_URL
+      # Preserve the explicitly configured dashboard value across Blueprint syncs.
+      # Set true only after the live-billing activation checklist is complete.
+      - key: LANDWOLF_PAYMENTS_ENABLED
         sync: false
-      - key: CORS_ORIGINS
+      - key: LANDWOLF_PUBLIC_ORIGIN
         value: https://landwolf.ai
-      - key: COOKIE_SECURE
-        value: "true"
-      - key: COOKIE_HTTPONLY
-        value: "true"
-      - key: COOKIE_SAMESITE
-        value: strict
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: STRIPE_MONTHLY_PRICE_ID
-        value: price_1UF0wdPhxY7l1SSNacgAt3xi
-      - key: STRIPE_ANNUAL_PRICE_ID
-        value: price_1UF0wcPhxY7l1SSNtwo6diAI
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
-      - key: STRIPE_SUCCESS_URL
-        value: https://landwolf.ai/?checkout=success
-      - key: STRIPE_CANCEL_URL
-        value: https://landwolf.ai/?checkout=cancel
+      - key: LANDWOLF_ADDITIONAL_ORIGINS
+        value: '["https://www.landwolf.ai","https://landwolf-free-beta.onrender.com"]'
+      - key: LANDWOLF_DATABASE_URL
+        fromDatabase:
+          name: landwolf-beta-db
+          property: connectionString
+databases:
+  - name: landwolf-beta-db
+    databaseName: landwolf_beta
+    user: landwolf_beta
+    plan: basic-256mb
+    region: oregon
+    ipAllowList: []

@@ -6,9 +6,9 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    branch: codex/landwolf-premium-staging
-    dockerfilePath: ./beta/Dockerfile
-    dockerContext: ./beta
+    branch: staging
+    dockerfilePath: ./app/Dockerfile
+    dockerContext: ./app
     autoDeployTrigger: "off"
     healthCheckPath: /api/health
     # Free services do not have pre-deploy commands. Only this isolated staging

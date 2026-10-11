@@ -15,7 +15,7 @@ Production uses `landwolf.ai` with `www.landwolf.ai` redirected at Render. Prese
 the existing rebuilt service/database during promotion; do not reset accounts.
 Configure explicit HTTPS origins; never derive trust from client forwarding headers.
 
-Run commands from `beta/` using Python 3.12+ and Node 24. Install dependencies with
+Run commands from `app/` using Python 3.12+ and Node 24. Install dependencies with
 `uv sync --frozen --dev` and `npm ci`. Browser setup is
 `.venv/bin/playwright install --with-deps chromium webkit`.
 
@@ -39,7 +39,7 @@ Required gates, in order:
 8. `git diff --check` and `git status --short` from the repository root.
 
 `uv lock --check` and `npm ci` must also succeed after dependency edits.
-Run the legacy `pytest -q` separately with the root requirements environment.
+Run the legacy `pytest -q` separately from `archive/legacy/` with its requirements environment.
 Do not combine the two dependency environments or change legacy billing tests.
 Run live source verification explicitly with `.venv/bin/python -m landwolf.cli sync`;
 fixture tests cannot establish current upstream availability. A deployment needs

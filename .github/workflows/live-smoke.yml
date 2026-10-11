@@ -3,7 +3,7 @@ name: LandWolf live smoke
 on:
   workflow_dispatch:
   push:
-    branches: [codex/landwolf-beta-rebuild, codex/landwolf-premium-staging]
+    branches: [main, staging]
     paths: [RELEASES.md]
 
 permissions:
@@ -30,11 +30,11 @@ jobs:
 
           ledger = Path("RELEASES.md").read_text()
           expected_image = hashlib.sha256(
-              Path("beta/web/assets/no-photo-available.png").read_bytes()
+              Path("app/web/assets/no-photo-available.png").read_bytes()
           ).hexdigest()
 
           expected_logo = hashlib.sha256(
-              Path("beta/web/assets/landwolf-logo.jpg").read_bytes()
+              Path("app/web/assets/landwolf-logo.jpg").read_bytes()
           ).hexdigest()
 
           def fetch(url):
@@ -50,7 +50,7 @@ jobs:
 
           for environment, site in (
               ("Production", "https://landwolf.ai"),
-              ("Beta", "https://landwolf-premium-staging.onrender.com"),
+              ("Staging", "https://landwolf-premium-staging.onrender.com"),
           ):
               line = next(
                   line for line in ledger.splitlines()
@@ -64,7 +64,7 @@ jobs:
               health = json.loads(fetch(f"{site}/api/health"))
               assert health["status"] == "ok", (site, health)
               assert health["version"] == version[1:], (site, health)
-              if environment == "Beta":
+              if environment == "Staging":
                   html = fetch(site).decode("utf-8")
                   assert 'id="hunt-budget-label"' in html
                   assert 'id="hunt-cancel"' in html

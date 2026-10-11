@@ -4,7 +4,7 @@ from pathlib import Path
 from tarfile import open as open_tar
 from zipfile import ZipFile
 
-wheels = sorted(Path("dist").glob("landwolf_beta-*.whl"))
+wheels = sorted(Path("dist").glob("landwolf-*.whl"))
 if not wheels:
     raise SystemExit("No LandWolf wheel found; run the production build")
 with ZipFile(wheels[-1]) as wheel:
@@ -28,7 +28,7 @@ with ZipFile(wheels[-1]) as wheel:
     missing = required - names
     if missing:
         raise SystemExit("Wheel missing required assets: " + ", ".join(sorted(missing)))
-sdists = sorted(Path("dist").glob("landwolf_beta-*.tar.gz"))
+sdists = sorted(Path("dist").glob("landwolf-*.tar.gz"))
 if not sdists:
     raise SystemExit("No source archive found; run the production build")
 with open_tar(sdists[-1], "r:gz") as archive:

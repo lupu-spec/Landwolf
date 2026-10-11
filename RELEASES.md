@@ -24,7 +24,7 @@ The grant was revoked within two minutes and its sessions invalidated; zero acti
 grants/sessions/Stripe customers were confirmed. All 25 original customer-table
 digests still matched after the test additions were excluded. The initial approval
 rejection and timeout are retained in the guide. Physical OS keyboards not run. See
-[feature guide and verification](beta/docs/OWNER_FINANCE.md).
+[feature guide and verification](app/docs/OWNER_FINANCE.md).
 
 ## v0.12.2 — mobile research navigation and preserved validation, live in both environments
 
@@ -39,7 +39,7 @@ hosted staging/production session/privacy checks and six focused research journe
 per environment passed. Existing account, billing and CRM snapshots matched.
 Schema 12, services, databases and production billing configuration are preserved.
 Physical OS keyboards were not tested. See
-[commands, observed deployments, failures and screenshots](beta/docs/MOBILE_RESEARCH_KEYBOARD.md).
+[commands, observed deployments, failures and screenshots](app/docs/MOBILE_RESEARCH_KEYBOARD.md).
 
 ## v0.12.0 — simple investment tools, live in both environments
 
@@ -52,7 +52,7 @@ The calculation API/formulas, schema 12, billing, trial policy, accounts, source
 and logo are unchanged. PR #34 promotes the identical tested/staged tree.
 536 backend, 16 frontend, 102 browser and 53 legacy tests, PostgreSQL/32-table
 restore, build/package/security and exact hosted staging/production checks passed.
-See [command results, observed deployment and limits](beta/docs/SIMPLE_INVESTMENT_TOOLS.md).
+See [command results, observed deployment and limits](app/docs/SIMPLE_INVESTMENT_TOOLS.md).
 
 ## v0.11.1 — conditional self-service feedback trial, live in production
 
@@ -66,7 +66,7 @@ Schema 12 is additive. Eligibility cutoff: `1791615052`, 2026-10-10 06:50:52 UTC
 536 backend, 16 frontend, 96 browser and 53 legacy tests, PostgreSQL/32-table
 restore, build/security and exact staged/production hosted checks passed. The
 final post-staging change corrects only a browser-test selector. See
-[commands, observed deployment and limits](beta/docs/FEEDBACK_TRIAL.md).
+[commands, observed deployment and limits](app/docs/FEEDBACK_TRIAL.md).
 
 ## v0.10.3 — supplied header logo, live in both environments
 
@@ -74,7 +74,7 @@ The shared header on login and app screens uses the exact supplied JPEG, with
 responsive contain sizing and a new asset URL. The no-photo fallback is preserved
 byte-for-byte. PR #30 promotes the identical staging-tested tree. All 512 backend,
 16 frontend, 90 browser and 53 legacy tests plus PostgreSQL/restore/build/security
-gates passed. See [commands and evidence](beta/docs/LOGO_REFRESH.md).
+gates passed. See [commands and evidence](app/docs/LOGO_REFRESH.md).
 
 ## v0.10.2 — first-login property map repair, live in both environments
 
@@ -86,7 +86,7 @@ a visible container. Unlocated listings remain in the list. PR #29 promotes the
 identical staging-tested tree; 512 backend, 16 frontend, 84 browser and 53 legacy
 tests plus PostgreSQL/restore/build/security gates passed. Schema 11, billing,
 accounts and source protections are unchanged. See
-[cause, commands and verification limits](beta/docs/MAP_FIRST_LOGIN_FIX.md).
+[cause, commands and verification limits](app/docs/MAP_FIRST_LOGIN_FIX.md).
 
 ## v0.10.1 — CRM account categories and user statistics, live in both environments
 
@@ -98,7 +98,7 @@ read-only and warns about stale stored billing data. The production aggregate jo
 found 5 users and 29 hidden tests on October 10. PR #28 promotes the identical
 staging-tested tree; 510 backend, 16 frontend, 78 browser tests and PostgreSQL
 restore/package/security gates passed. Schema 11, billing, Gmail and accounts are
-preserved. See [rules, commands, live counts and limitations](beta/docs/CRM_REPORTING.md).
+preserved. See [rules, commands, live counts and limitations](app/docs/CRM_REPORTING.md).
 
 ## v0.9.3 — support Gmail password recovery, live in production
 
@@ -111,7 +111,7 @@ Full gates passed 488 backend, 16 frontend, 74 browser and 53 legacy tests,
 PostgreSQL/29-table restore, build/package and security. Both environments passed
 exact-release hosted checks. Staging email remains disabled on its free plan.
 Schema 11, billing, entitlements, source protections and existing accounts remain
-unchanged. See [verification and operational limits](beta/docs/GMAIL_RECOVERY.md).
+unchanged. See [verification and operational limits](app/docs/GMAIL_RECOVERY.md).
 
 ## v0.9.2 — CRM contact opening and mobile login chat, live in both environments
 
@@ -123,7 +123,7 @@ permissions, billing and existing account data are preserved. Email delivery rem
 disabled. Candidate gates passed 472 backend, 16 frontend, 74 browser and 53 legacy
 tests, PostgreSQL/29-table restore, package and security. [PR #26](https://github.com/lupu-spec/Landwolf/pull/26)
 merged as `356b64ad4a6d6694bd764dd0ec0ff0f6ee942774` with the identical tested
-staging tree. See [commands, live evidence and limits](beta/docs/CRM_MOBILE_FIX_RELEASE.md).
+staging tree. See [commands, live evidence and limits](app/docs/CRM_MOBILE_FIX_RELEASE.md).
 
 ## v0.9.1 — Treasury announced-date parser repair, live in production
 
@@ -147,7 +147,7 @@ Candidate gates passed 468 backend, 16 frontend, 68 browser and 53 legacy tests,
 PostgreSQL/29-table restore, package and security. Both environments passed
 exact-release HTTPS/health/browser/session checks. Schema 11 preserves existing
 records. **Email delivery remains disabled; live reset mail is not operational.**
-See [commands, deployment evidence and remaining setup](beta/docs/CRM_ACCOUNT_HELP_DEPLOYMENT.md).
+See [commands, deployment evidence and remaining setup](app/docs/CRM_ACCOUNT_HELP_DEPLOYMENT.md).
 The earlier candidate notes below are historical and superseded by this release.
 
 ## v0.8.0 — L91 LLC CRM and registration profiles, live in both environments
@@ -157,8 +157,8 @@ notes, safe CSV downloads, and write-only project connector keys. Name and inten
 use are required for new registrations; company, phone, job title, industry, role,
 goals and email marketing are optional. Schema 10 adds CRM storage and preserves
 existing account facts. No payment settings or paid dependencies change.
-See [operation, categories, API and migration](beta/docs/L91_LLC_CRM.md) and
-[verification record](beta/docs/L91_CRM_RELEASE.md). [PR #24](https://github.com/lupu-spec/Landwolf/pull/24)
+See [operation, categories, API and migration](app/docs/L91_LLC_CRM.md) and
+[verification record](app/docs/L91_CRM_RELEASE.md). [PR #24](https://github.com/lupu-spec/Landwolf/pull/24)
 merged as `7c3dc29889c1894bce34c55db29d1a591179bd66`, with the identical runtime
 tree tested in staging. Final candidate gates passed: 429 backend, 15 frontend,
 56 browser and 53 legacy tests, disposable PostgreSQL/26-table restore, build,
@@ -177,7 +177,7 @@ package and security. Both environments passed exact identity/HTTPS/health,
 four live customer journeys and persistent-session checks. The first staging
 attempt timed out reopening a desktop property; the unchanged build passed the
 complete second attempt. Schema 9, payments, owner privacy and data sources are
-preserved. See [commands, evidence and limits](beta/docs/DOCK_CHAT_RELEASE.md).
+preserved. See [commands, evidence and limits](app/docs/DOCK_CHAT_RELEASE.md).
 
 ## v0.6.0 — Romulus and Remus app guides, live in both environments
 
@@ -189,7 +189,7 @@ use disclosed, reviewed local guidance without a paid model or message storage.
 411 backend, 13 frontend, 44 browser and 53 legacy tests, PostgreSQL/restore,
 packaging and security. Both deployments passed four live browser journeys,
 chat answers and persistent-session checks. Schema 9, payments and existing
-owner-only data access are preserved. See [commands and limitations](beta/docs/WOLF_ASSISTANT_RELEASE.md).
+owner-only data access are preserved. See [commands and limitations](app/docs/WOLF_ASSISTANT_RELEASE.md).
 
 ## v0.5.1 — private feedback user list and CSV export, live in both environments
 
@@ -201,7 +201,7 @@ are preserved. [PR #21](https://github.com/lupu-spec/Landwolf/pull/21) merged as
 `32b3fcf0ebbe6507e7f7142262cb94930b4439e8`; all candidate gates passed, including
 411 backend, 9 frontend, 40 browser and 53 legacy tests, PostgreSQL/restore,
 packaging and security. The exact staging-tested commit is live in production.
-See [verification commands and limits](beta/docs/FEEDBACK_USERS_RELEASE.md).
+See [verification commands and limits](app/docs/FEEDBACK_USERS_RELEASE.md).
 
 ## v0.5.0 — research decisions, live in staging and production
 
@@ -213,14 +213,14 @@ commit was promoted to production. All required CI passed: 395 backend, 9 fronte
 Each environment also passed four live browser journeys and persistent-session
 checks. Schema 9 additively stores private research; payment gates, owner-only
 coverage, accounts and existing infrastructure are retained. See
-[commands, live evidence and limits](beta/docs/RESEARCH_DECISIONS_RELEASE.md).
+[commands, live evidence and limits](app/docs/RESEARCH_DECISIONS_RELEASE.md).
 
 ## Current environments
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.13.0 | `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | 2026-10-11 00:17:28 |
-| Beta | [Isolated beta](https://landwolf-premium-staging.onrender.com/) | v0.13.0 | `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | 2026-10-11 00:05:56 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.13.0 | `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | 2026-10-11 00:05:56 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -259,7 +259,7 @@ coverage, accounts and existing infrastructure are retained. See
 - Adds authenticated Hunt criteria, deterministic fixed-price/auction fit, review gaps, revisioned edits, in-app change checks, and a schema-v5 additive migration.
 - Nationwide state selection is supported against the existing partial connected catalog; no complete inventory or parcel-boundary claim. Opening a Hunt checks changes. Email and scheduled Hunt alerts are not enabled.
 - Production stays on v0.3.3/schema v4. The isolated beta deployed `57663a20bd148525bd5515ce28c027e90751791a` as `dep-dasuvf0jo6nc73didk8g`; Render marked it live at 2026-09-28 04:41:23 UTC. Hosted browser, PostgreSQL, backup/restore, package, and security gates passed before deployment.
-- See [Hunt beta scope](beta/docs/HUNT_BETA.md) and [verification](beta/docs/VERIFICATION.md).
+- See [Hunt beta scope](app/docs/HUNT_BETA.md) and [verification](app/docs/VERIFICATION.md).
 
 ## v0.3.3 — live in production and beta
 
@@ -309,7 +309,7 @@ Limits: partial public-source coverage; no nationwide MLS feed. IRS automation i
 unavailable. Asking-price scenarios are hypothetical, and unknown costs stay zero
 with warnings. Email delivery/recovery remains disabled pending verified sender setup
 and live delivery tests. Physical-device testing and a complete accessibility audit
-have not been completed. See [verification evidence](beta/docs/VERIFICATION.md).
+have not been completed. See [verification evidence](app/docs/VERIFICATION.md).
 
 ## Deployment history
 
@@ -414,7 +414,7 @@ new deployment. See OWNER_FINANCE.md for the initial rejection/timeout and evide
   [Live diagnostic 36508680217](https://github.com/lupu-spec/Landwolf/actions/runs/36508680217)
   verified HTTPS version/health, all five acreage bands, fresh-login persistence,
   and Chromium/WebKit create, edit and reload persistence against the exact runtime commit.
-- See the [complete command results, retained failures and limits](beta/docs/HUNT_SAVE_VERIFICATION.md).
+- See the [complete command results, retained failures and limits](app/docs/HUNT_SAVE_VERIFICATION.md).
   Browser probes wait for session initialization; early-navigation races and physical-device testing are not covered.
 
 ## v0.4.0-beta.7 — historical candidate status before the rollout below
@@ -434,7 +434,7 @@ new deployment. See OWNER_FINANCE.md for the initial rejection/timeout and evide
 - [Candidate gates](https://github.com/lupu-spec/Landwolf/actions/runs/37228598183) passed: 315 API, 28 browser and 9 frontend tests; PostgreSQL cohort transactions and 19-table restore; package and security checks.
 - The exact commit above passed four live browser journeys in [staging](https://github.com/lupu-spec/Landwolf/actions/runs/37228923125) before production deployment, then four in [production](https://github.com/lupu-spec/Landwolf/actions/runs/37229118822).
 - Invitation-only access lasts three calendar months, with required in-app surveys. Payments and email delivery remain disabled; no real investor was enrolled.
-- [Command results, retained failures and operational limits](beta/docs/INVESTOR_PILOT_RELEASE.md).
+- [Command results, retained failures and operational limits](app/docs/INVESTOR_PILOT_RELEASE.md).
 
 ## v0.4.0 — live-billing candidate, not yet deployed
 
@@ -488,7 +488,7 @@ The staging environment row was reconciled with its existing Render deployment
   customer journeys. No real subscriber/owner account or payment was used.
 - Existing production infrastructure, schema 8 and payment architecture were
   preserved. Staging remains on its previously observed runtime and is not redeployed.
-- [Exact command results, evidence and limits](beta/docs/OWNER_COVERAGE_RELEASE.md).
+- [Exact command results, evidence and limits](app/docs/OWNER_COVERAGE_RELEASE.md).
 
 ## v0.4.4 — persistent sign-in
 
@@ -507,7 +507,7 @@ The staging environment row was reconciled with its existing Render deployment
   passed exact version/commit/health, four customer journeys and actual Chromium/
   WebKit profile restart, cache-clear and logout persistence checks.
 - Payment gates, owner-only coverage, accounts, schema and infrastructure retained.
-  Staging was not redeployed. See [commands, evidence and limits](beta/docs/PERSISTENT_SIGN_IN_RELEASE.md).
+  Staging was not redeployed. See [commands, evidence and limits](app/docs/PERSISTENT_SIGN_IN_RELEASE.md).
 
 ## v0.9.0 — CRM owner administration candidate, not deployed
 
@@ -519,7 +519,7 @@ The staging environment row was reconciled with its existing Render deployment
   locally; hosted browser and disposable PostgreSQL/restore gates remain pending.
 - GitHub publication was blocked by automatic approval review pending explicit
   approval. No staging or production deployment occurred. Current environment
-  records above remain unchanged. See [commands and limitations](beta/docs/CRM_ACCOUNT_ADMIN_RELEASE.md).
+  records above remain unchanged. See [commands and limitations](app/docs/CRM_ACCOUNT_ADMIN_RELEASE.md).
 
 ### v0.9.0 candidate extension — customer account help, not deployed
 
@@ -529,7 +529,7 @@ resets. No deletion route or customer access to owner CRM controls is added.
 Local gates passed 468 backend, 16 frontend and 53 legacy tests, build/package and
 security. Browser launch failed locally; hosted browser/PostgreSQL/restore and
 live checks remain pending. Publication is still awaiting explicit approval; no
-environment row or deployment changed. See [verification](beta/docs/WOLF_ACCOUNT_HELP_RELEASE.md).
+environment row or deployment changed. See [verification](app/docs/WOLF_ACCOUNT_HELP_RELEASE.md).
 
 ## Source maintenance — October 10, 2026
 
@@ -542,4 +542,4 @@ production at the applicable Dallas/Raleigh sample points. Local FEMA HTTP 502
 responses did not establish a production outage. No URL/parser change was
 confirmed and no source repair was deployed. Billing, access, accounts, allowlists
 and quarantine protections were preserved. See
-[source check evidence and limits](beta/docs/SOURCE_MAINTENANCE_2026_10_10.md).
+[source check evidence and limits](app/docs/SOURCE_MAINTENANCE_2026_10_10.md).
