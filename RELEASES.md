@@ -3,7 +3,7 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
-## v0.13.0 — private owner finances, live; focused production research acceptance pending
+## v0.13.0 — private owner finances, live; hosted acceptance complete
 
 Adds owner-only subscription collections, Stripe cash/fee reporting, business expense
 records and confirmed Amex CSV imports, accessible graphs, three-month editable
@@ -18,9 +18,12 @@ passed. PR #36 merged as `3977a9aeced1dde09fb6d165726535b4ebc5aab1`, whose
 complete tree equals staging `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3`.
 Authenticated internal checks matched 25 customer-table digests and verified live
 finance generation/GET-only Stripe reads. Schema 13 adds four tables; public-source
-tables refreshed normally. Six focused production research journeys remain blocked:
-automatic approval review rejected a temporary disposable-test billing-access grant
-as not specifically authorized. No grant executed; physical OS keyboards not run. See
+tables refreshed normally. All six focused production research journeys passed in
+`38097925640` attempt 2 after explicit approval of one disposable one-hour test grant.
+The grant was revoked within two minutes and its sessions invalidated; zero active
+grants/sessions/Stripe customers were confirmed. All 25 original customer-table
+digests still matched after the test additions were excluded. The initial approval
+rejection and timeout are retained in the guide. Physical OS keyboards not run. See
 [feature guide and verification](beta/docs/OWNER_FINANCE.md).
 
 ## v0.12.2 — mobile research navigation and preserved validation, live in both environments
@@ -371,6 +374,14 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 20:28:08 | Production | v0.12.2 / `f6cf068809bbc18ec9c8919156967a003e280b93` | `dep-db59v7lckfvc739fkme0` | PR #35, entire tree identical to staging. Exact production health/billing/email/auth/privacy/session and six focused both-research-view journeys passed. Existing accounts/billing/CRM digests match; temporary audited test access revoked. Physical OS keyboards not run. See MOBILE_RESEARCH_KEYBOARD.md. |
 | 2026-10-11 00:05:56 | Beta | v0.13.0 / `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | `dep-db5d57vlot8c73ehshd0` | Private owner finances, allocated vendor expenses/confirmed CSV, graphs, three-month scenarios and growth actions. Full 571/20/114/53 gates, 36-table restore/security and exact standard/six focused staged research journeys passed. |
 | 2026-10-11 00:17:28 | Production | v0.13.0 / `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | `dep-db5dapdckfvc739qeaig` | PR #36, complete tree identical to tested staging. Standard exact navigation/session/private-route checks, 25 customer-table digests, finance generation and GET-only live Stripe reads passed. Six focused production research journeys blocked on auto-review-rejected temporary test access; no grant executed. See OWNER_FINANCE.md. |
+
+Post-deployment acceptance supplement, 2026-10-11 00:34:25 UTC: all six focused
+production research journeys passed in `38097925640` attempt 2 against the same
+v0.13.0 / `3977a9aeced1dde09fb6d165726535b4ebc5aab1` deployment. The explicitly
+approved one-hour disposable test grant was revoked within two minutes; its sessions
+were invalidated and zero Stripe customers confirmed. Original customer digests
+still matched. This resolves the preceding historical pending status without a
+new deployment. See OWNER_FINANCE.md for the initial rejection/timeout and evidence.
 
 ## Version and promotion rules
 

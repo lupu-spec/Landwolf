@@ -1,8 +1,8 @@
 # Private owner financial management — v0.13.0
 
-Status: v0.13.0 live in staging and production; PR #36 merged. Six focused
-production research journeys remain blocked on a specifically approved temporary
-access grant for the disposable test account. They are not reported as passes.
+Status: v0.13.0 live in staging and production; PR #36 merged. All six focused
+production research journeys passed after explicit owner approval of a one-hour
+disposable test grant. The grant was revoked and its sessions invalidated.
 [PR #36](https://github.com/lupu-spec/Landwolf/pull/36) contains the verified code.
 The owner approved the existing internal Render verification workflow on October 10.
 External database networking and credentials were not changed.
@@ -184,16 +184,30 @@ the configured account; no financial amounts or response bodies were published.
 No expense, plan, cached Stripe snapshot or billing write was performed by these
 checks. Live production/staging app.js and styles.css matched byte-for-byte.
 
-Focused production acceptance `38097925640` registered one reserved, hidden
-disposable smoke account and then waited for research entitlement. Automatic
-approval review rejected the proposed one-hour complimentary grant because the
-owner's approval did not specifically authorize this production billing-access
-change. The grant did not execute; no owner role, entitlement or Stripe customer
-was changed. All six production focused research journeys remain **Blocked / not
-passed** pending that explicit approval; the test must be rerun if its wait expires.
-After an approved run, revoke the grant, invalidate only its test sessions, and
-confirm zero active grants/sessions/Stripe customers for that account. Retain its
-account/research records. Physical OS keyboard testing remains **Not run**.
+Focused production acceptance `38097925640`, attempt 2 / job `114349928546`,
+**Passed** all six journeys at 2026-10-11 00:33:25 UTC against immutable production
+`3977a9aeced1dde09fb6d165726535b4ebc5aab1`: Chromium/WebKit at 390/834/1440 px,
+both research views, Done and emulated keyboard geometry, address/coordinate native
+validation, injected 503 and real-backend retry with retained values, navigation,
+privacy and logout. Screenshot artifact `11686327884` has SHA-256
+`9ae4d284ad9c1c078843eb3826f006aeef5bd9a58c6a1f0f058c52753e52ad6a`;
+phone decision and tablet property screenshots were downloaded and visually reviewed.
+
+**Failed, resolved:** attempt 1 timed out at 00:28:27 UTC waiting for entitlement.
+Automatic approval review had rejected the temporary grant as not specifically
+authorized, and no write executed. The owner then explicitly approved up to one
+hour for one disposable production account, followed by revoke/session cleanup.
+Attempt 2 created a fresh ordinary account; audited access was granted at
+00:32:31 UTC and revoked at 00:34:25 UTC, under two minutes later. No owner role,
+Stripe customer or charge was created. Cleanup verified zero active grants, zero
+sessions and zero Stripe customers for that account. Account, research and grant/
+revocation audit records remain retained. Afterward, all 25 original customer-table
+counts and SHA-256 digests still matched the pre-deployment baseline, excluding
+new disposable account/CRM/research/audit additions using the recorded cutoff.
+The final runtime merge's complete gate replay `38097871759` also **Passed**,
+including 571 backend, 20 frontend, 114 browser and exact 36-table restoration.
+Ledger HTTPS/logo smoke `38098392044` **Passed** after the stale rows were corrected.
+Physical OS keyboard testing remains **Not run**.
 
 The cloud browser could open staging but displayed Site Unavailable for landwolf.ai
 after one reload, so an interactive production owner sign-in was **Not run**.
@@ -206,7 +220,7 @@ The existing source-refresh failure policy retains cached verified inventory and
 shows the freshness warning. This upstream availability failure was not repaired
 or treated as a finance/session test failure; no parser/URL change was justified.
 
-![Observed live production deployment](images/owner-finance/production-render-v013.jpg)
+![Observed live production deployment after acceptance](images/owner-finance/final-render-v013.jpg)
 
 | Hosted / internal verification | Result |
 | --- | --- |
@@ -214,7 +228,7 @@ or treated as a finance/session test failure; no parser/URL change was justified
 | `scripts/check_hosted_mobile_research.py --environment staging --commit 3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | Passed, six, `38097604721`; initial run failed at sign-in |
 | `scripts/check_hosted_staging.py --environment production --commit 3977a9aeced1dde09fb6d165726535b4ebc5aab1` | Passed, `38097869092` |
 | Production read-only row-count/SHA-256 comparison; `finance.report`; GET-only `finance.stripe_snapshot`; exact identity and live asset comparison | Passed, authenticated Render service console |
-| `scripts/check_hosted_mobile_research.py --environment production --commit 3977a9aeced1dde09fb6d165726535b4ebc5aab1` | Blocked on rejected temporary test grant; no focused production pass |
+| `scripts/check_hosted_mobile_research.py --environment production --commit 3977a9aeced1dde09fb6d165726535b4ebc5aab1` | Passed, six, `38097925640` attempt 2; approved test grant revoked and sessions invalidated |
 | Acceptance-only tool Ruff format/lint, `py_compile`, Bandit | Passed, local and hosted |
 
 Safety bounds: 100 KB/500-row CSV imports, up to 1,000 records per Stripe resource

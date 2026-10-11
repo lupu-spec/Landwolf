@@ -39,10 +39,18 @@ were observed. Four public-source operational tables legitimately refreshed unde
 the unchanged 40-runs-per-source retention, so they are not called byte-identical.
 Deployed finance report generation, live GET-only Stripe reconciliation and exact
 HTTP identity/equal staged-production JS/CSS passed read-only internal checks.
-**Blocked / not passed:** six focused production research journeys: automatic
-approval review rejected a one-hour disposable-test complimentary access grant as
-not specifically authorized. No grant executed. Explicit approval, subsequent
-acceptance, grant revocation and test-session cleanup remain necessary.
+**Passed:** all six focused production research journeys in `38097925640`, attempt
+2 / job `114349928546`, at 2026-10-11 00:33:25 UTC: Chromium/WebKit 390/834/1440 px,
+both editors, emulated keyboard/Done, validation, failure/retry preservation,
+navigation, privacy and logout. **Failed, resolved:** attempt 1 timed out waiting
+for a grant after automatic approval review rejected its unspecified access change.
+The owner explicitly approved one disposable test account for up to one hour.
+Audited grant 00:32:31 UTC was revoked at 00:34:25 UTC, and its sessions invalidated;
+zero active grants/sessions/Stripe customers were confirmed. Test account/research/
+audit remain retained. All 25 original customer-table digests matched afterward,
+excluding new disposable-test additions. Merge replay `38097871759` and corrected
+ledger HTTPS/logo smoke `38098392044` passed. Exact commands and artifact digest
+are recorded in OWNER_FINANCE.md. No runtime redeployment accompanies these notes.
 **Not run:** physical-device OS keyboards and interactive production owner UI
 in this cloud browser (Site Unavailable after one reload; hosted CI passed).
 Ledger smoke initially failed against the stale v0.12.2 rows; the documentation
