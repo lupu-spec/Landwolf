@@ -43,7 +43,7 @@ def main() -> None:
             == {"version": VERSION, "environment": args.environment, "commit": args.commit}
         )
         require(client.get("/api/health").json()["status"] == "ok")
-    email = f"{args.environment}-smoke-{TAG}@example.com"
+    email = f"{args.environment}-smoke-{TAG}-{secrets.token_hex(4)}@example.com"
     password = secrets.token_urlsafe(32)
     output = Path("test-results/hosted-mobile-research") / args.environment
     output.mkdir(parents=True, exist_ok=True)
@@ -83,7 +83,16 @@ def main() -> None:
                         )
                     page.get_by_label("Email address", exact=True).fill(email)
                     page.get_by_label("Password", exact=True).fill(password)
-                    page.locator("#auth-submit").click()
+                    endpoint = "/api/auth/login" if registered else "/api/auth/register"
+                    with page.expect_response(
+                        lambda response, endpoint=endpoint: (
+                            response.url == origin + endpoint and response.request.method == "POST"
+                        )
+                    ) as authentication:
+                        page.locator("#auth-submit").click()
+                    response = authentication.value
+                    if response.status not in (200, 201):
+                        raise RuntimeError(f"Hosted sign-in returned HTTP {response.status}")
                     expect(page.locator("#workspace")).to_be_visible()
                     registered = True
                     deadline = time.monotonic() + 600
