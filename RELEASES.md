@@ -5,22 +5,51 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 ## v0.13.1 — transparent feedback-trial signup (October 13, 2026)
 
-**Release candidate; no deployment confirmed at the time of this entry.**
-[PR #37](https://github.com/lupu-spec/Landwolf/pull/37) updates the new-user
-signup explanation of the pre-existing conditional self-service offer:
-up to 90 days without an initial payment; honest surveys on days 30, 60 and 90;
-only missed surveys can trigger a $29/month subscription, after at least seven
-days' advance emailed notice and an opportunity to complete or cancel; no
-retroactive trial-day charges; all surveys completed means no automatic
-subscription. Existing full terms and server-side Stripe setup-mode consent remain
-unchanged. The release also adds a regression test matching home-page disclosures
-against Checkout setup consent. No subscription prices, active customers, owner
-exemptions, invited-pilot rules, or production database schema are changed.
+**Live in staging and production; hosted acceptance complete.**
+[PR #37](https://github.com/lupu-spec/Landwolf/pull/37) updates the public
+signup explanation of the pre-existing self-service feedback offer: up to 90
+days without an initial charge, surveys due on days 30/60/90, and a possible
+$29/month subscription only after missing feedback and an emailed notice at
+least seven days ahead. Feedback or online cancellation prevents conversion,
+and completion of all three check-ins ends with no automatic billing. The
+full terms, recorded consent, Stripe setup-mode Checkout, and existing
+server-side payment guards are unchanged. No price changes, schema changes,
+owner/CRM exemption changes or invited-pilot conversion changes were made.
 
-Package and runtime identity advance together to v0.13.1. Staging and production
-promotion require passing final CI checks, exact source identity verification,
-observable health and clear evidence appended to this ledger. Render automatic
-deploys remain disabled.
+**Verified release identity.** Staging at
+`64df5f89aa01f143c397f74d218006bc32f2bf52` deployed as
+`dep-db7057om7kps73bjcun0`, live October 13 at 10:07:35 UTC.
+Production merged PR #37 at
+`7f240b33d868d44cf717d35458e18d50fd1cff99`, deployed as
+`dep-db70bhrrjlhs739go14g`, live at 10:21:02 UTC.
+GitHub comparison verified **zero changed files** between the staged and
+merged production source trees. Both hosted `/api/version` responses matched
+these exact commits and v0.13.1; both `/api/health` checks returned OK.
+Staging remained payments-disabled; production confirmed payments,
+mail delivery and feedback-trial enrollment enabled. The deployed
+production homepage and `/trial-terms` were checked for the promised
+feedback dates, notice, pricing, cancellation and no automatic billing;
+`www.landwolf.ai` redirected to the apex.
+
+**Verification Passed:** application gates
+[run 38380735522](https://github.com/lupu-spec/Landwolf/actions/runs/38380735522)
+reported 572 backend/API, 18 focused browser, and 114 full browser passes,
+with formatting, lint, types, disposable PostgreSQL integration and
+backup/restore, build, package, security and diff checks all successful.
+Archived legacy [run 38380735540](https://github.com/lupu-spec/Landwolf/actions/runs/38380735540)
+passed 53 tests. Read-only live Stripe checks found active $29/month and
+$299/year prices unchanged, and the same one expired verification
+subscription before and after promotion; no real checkout, subscription or
+payment was created during this release.
+
+**Limits:** no authenticated production purchase, real-card conversion,
+physical mobile keyboard or email-delivery-to-inbox test was performed.
+Production database before/after row digests were not accessible through the
+external Render API because the database's IP allowlist is empty. Its
+network restrictions were preserved; this release has no database-schema
+or billing-runtime code changes. Render automatic deploys remain disabled.
+This subsequent release-ledger entry is documentation only and does not
+trigger another application deployment.
 
 ## Repository maintenance — October 11, 2026; no changed runtime deployed
 

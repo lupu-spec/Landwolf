@@ -1,22 +1,47 @@
 # LandWolf verification
 
-## v0.13.1 conditional trial disclosure candidate — October 13, 2026
+## v0.13.1 conditional trial disclosure — live October 13, 2026
 
-[PR #37](https://github.com/lupu-spec/Landwolf/pull/37) changes the wording
-of the existing public signup trial offer and adds an invariant checking that
-the homepage remains aligned with the saved, explicitly accepted Stripe Checkout
-setup text. Consent and all trial billing logic remain unchanged. The saved-card
-setup is separate from a future paid subscription, and an emailed seven-day
-notice is necessary before any missed-survey conversion.
+**Passed source and CI checks:** [PR #37](https://github.com/lupu-spec/Landwolf/pull/37)
+introduced a focused home-page test asserting that marketing claims match
+the exact Stripe Setup Checkout consent message and terms version.
+All pre-existing notice-failure, missed-survey, cancellation, duplicate
+charge-protection and owner/CRM exclusion tests remained intact.
 
-Existing live Stripe prices were verified read-only at $29/month and $299/year,
-and its active portal allows online cancellation at the end of a paid period.
-The live trial terms page agrees with the existing billing rules.
+Final versioned candidate `64df5f89aa01f143c397f74d218006bc32f2bf52`:
+[application workflow 38380735522](https://github.com/lupu-spec/Landwolf/actions/runs/38380735522)
+**Passed** 572 backend/API, 18 targeted browser, 114 full browser, format,
+lint, types, disposable PostgreSQL integration and backup/restore,
+production package, Bandit, pip-audit, npm audit, secretlint and diff
+integrity; [legacy workflow 38380735540](https://github.com/lupu-spec/Landwolf/actions/runs/38380735540)
+**Passed** 53 archived tests. The staged tree had zero file differences
+from the merged production tree.
 
-**Verification status for the v0.13.1 candidate:** GitHub CI and staged
-deployment must be checked after the final commit. A GitHub branch or successful
-test alone does not prove anything was deployed. Details will be recorded in
-the release ledger when verified.
+**Passed hosted staging:** `dep-db7057om7kps73bjcun0` live 10:07:35 UTC,
+`/api/version` = 0.13.1/staging/exact candidate SHA; `/api/health` = OK,
+payments disabled. The hosted sign-in page contained the required dates,
+notice, cancellation and no-automatic-billing language; full trial terms
+were reachable. Staging initially returned HTTP 503 while its free instance
+woke up, then recovered and passed checks before deployment.
+
+**Passed hosted production:** `dep-db70bhrrjlhs739go14g` live
+10:21:02 UTC, `/api/version` = 0.13.1/production/
+`7f240b33d868d44cf717d35458e18d50fd1cff99`;
+`/api/health` = OK, payments enabled; `/api/session` confirmed
+email delivery and self-service feedback-trial offer enabled.
+HTTPS / and /trial-terms were inspected and matched the conditional
+offer; www redirected to the canonical domain. Read-only live Stripe
+checks confirmed the $29/month and $299/year prices remained active
+and no new subscription appeared in its list after promotion.
+
+**Not run:** a real customer registration, saved-card checkout and
+fee-collecting conversion; physical-device keyboard or delivered-email
+inbox acceptance; production database row-digest comparison (external
+Render query blocked by existing empty IP allowlist). Do not weaken the
+database network controls to make this check pass. The rollout modified
+no production billing policy, secret, live Stripe object, existing user,
+or database schema; the normal pre-deploy schema check and hosted health
+succeeded. These notes are post-deploy documentation only.
 
 ## Repository organization — October 11, 2026
 
