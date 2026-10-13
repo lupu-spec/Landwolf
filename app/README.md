@@ -214,8 +214,9 @@ preserved for continuity; do not replace resources to rename them.
 
 Retired applications, deployment material and inactive workflows are under
 [archive/legacy](../archive/legacy/). Exact old branch tips and unmerged work remain
-reachable from the [recovery archive](../archive/README.md). This maintenance does
-not change the currently running v0.13.0 image or its immutable commit.
+reachable from the [recovery archive](../archive/README.md). The October 11, 2026 maintenance did not change the then-running v0.13.0
+image. Check the release ledger and each service's /api/version for its current
+image.
 
 The canonical origin is `https://landwolf.ai`; Render redirects `www.landwolf.ai`
 to the apex and provisions HTTPS. The existing `landwolf-free-beta.onrender.com`
