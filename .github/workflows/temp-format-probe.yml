@@ -1,5 +1,8 @@
 name: Temporary format diagnosis
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - codex/transparent-feedback-trial-20261013
