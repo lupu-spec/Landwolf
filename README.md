@@ -27,11 +27,13 @@ Work on short-lived `feature/` or `fix/` branches, open a pull request, and remo
 those branches after merging. Preserve historical work in the dated recovery archive
 rather than leaving dozens of completed engineering branches active.
 
-A source branch head is not evidence of a running deployment. The live production
-image remains v0.13.0 at `3977a9aeced1dde09fb6d165726535b4ebc5aab1`; staging remains
-v0.13.0 at `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3`. Repository organization does
-not redeploy either image. Automatic deployments and Blueprint synchronization are
-off. Use the release ledger and exact hosted checks before any future promotion.
+A source branch head is not evidence of a running deployment. The October 11,
+2026 maintenance baseline was v0.13.0 in production
+(`3977a9aeced1dde09fb6d165726535b4ebc5aab1`) and staging
+(`3a755fd3e1c65a82e1836c67d1cabca12a49f2f3`).
+Automatic deployments and Blueprint synchronization are off. Consult
+[RELEASES.md](RELEASES.md) and the live `/api/version` endpoint for the latest
+confirmed production identity.
 
 ## Development
 
