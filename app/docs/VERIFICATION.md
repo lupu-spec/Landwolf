@@ -1,5 +1,23 @@
 # LandWolf verification
 
+## v0.13.1 conditional trial disclosure candidate — October 13, 2026
+
+[PR #37](https://github.com/lupu-spec/Landwolf/pull/37) changes the wording
+of the existing public signup trial offer and adds an invariant checking that
+the homepage remains aligned with the saved, explicitly accepted Stripe Checkout
+setup text. Consent and all trial billing logic remain unchanged. The saved-card
+setup is separate from a future paid subscription, and an emailed seven-day
+notice is necessary before any missed-survey conversion.
+
+Existing live Stripe prices were verified read-only at $29/month and $299/year,
+and its active portal allows online cancellation at the end of a paid period.
+The live trial terms page agrees with the existing billing rules.
+
+**Verification status for the v0.13.1 candidate:** GitHub CI and staged
+deployment must be checked after the final commit. A GitHub branch or successful
+test alone does not prove anything was deployed. Details will be recorded in
+the release ledger when verified.
+
 ## Repository organization — October 11, 2026
 
 The current application is under `app/`, with `main` and `staging` as canonical
