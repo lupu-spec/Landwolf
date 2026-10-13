@@ -456,6 +456,35 @@ def test_unverified_statement_descriptor_withholds_payment(trial_app, monkeypatc
     assert row(trial_app).state == "converting"
 
 
+def test_homepage_offer_matches_stripe_trial_consent(trial_app):
+    """Marketing copy and Stripe setup cannot omit conditional-billing safeguards."""
+    from pathlib import Path
+
+    enroll(trial_app)
+    stripe_calls = trial_app[4].calls
+    setup = next(
+        fields
+        for method, path, fields, _ in stripe_calls
+        if method == "POST" and path == "/checkout/sessions" and fields.get("mode") == "setup"
+    )
+    assert setup["custom_text[submit][message]"] == trials.TERMS
+    assert setup["metadata[terms_version]"] == trials.TERMS_VERSION
+    assert "at least seven days" in trials.TERMS
+    assert "$29 USD monthly subscription" in trials.TERMS
+    assert "without an automatic charge" in trials.TERMS
+
+    homepage = (Path(__file__).resolve().parents[1] / "web" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    copy = " ".join(homepage.split())
+    assert 'id="trial-signup-offer"' in copy
+    assert "30, 60 and 90" in copy
+    assert "at least seven days" in copy
+    assert "$29/month" in copy
+    assert "without automatic billing" in copy
+    assert 'href="/trial-terms"' in copy
+
+
 def test_schema_11_upgrade_is_additive_and_repeatable(trial_app):
     from sqlalchemy import inspect, select, update
 

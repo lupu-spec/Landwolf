@@ -3,6 +3,25 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.13.1 — transparent feedback-trial signup (October 13, 2026)
+
+**Release candidate; no deployment confirmed at the time of this entry.**
+[PR #37](https://github.com/lupu-spec/Landwolf/pull/37) updates the new-user
+signup explanation of the pre-existing conditional self-service offer:
+up to 90 days without an initial payment; honest surveys on days 30, 60 and 90;
+only missed surveys can trigger a $29/month subscription, after at least seven
+days' advance emailed notice and an opportunity to complete or cancel; no
+retroactive trial-day charges; all surveys completed means no automatic
+subscription. Existing full terms and server-side Stripe setup-mode consent remain
+unchanged. The release also adds a regression test matching home-page disclosures
+against Checkout setup consent. No subscription prices, active customers, owner
+exemptions, invited-pilot rules, or production database schema are changed.
+
+Package and runtime identity advance together to v0.13.1. Staging and production
+promotion require passing final CI checks, exact source identity verification,
+observable health and clear evidence appended to this ledger. Render automatic
+deploys remain disabled.
+
 ## Repository maintenance — October 11, 2026; no changed runtime deployed
 
 Production source is now `main` / `app/`; isolated staging source is `staging` /
