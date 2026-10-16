@@ -318,8 +318,8 @@
     },
     {
       "path": "app/scripts/check_hosted_staging.py",
-      "sha256": "7712c284e6d0b2dcb5f88986a153676c3b4402811a84fd38ed04d752d28c14be",
-      "lines": 468,
+      "sha256": "b9e9ca99bc6c96011afda5d0c3949dd34d2b0b7206fd8701cdcdaf2523b0c65d",
+      "lines": 483,
       "area": "verification_and_configuration",
       "functions": 3
     },
@@ -1531,7 +1531,7 @@
     {
       "path": "app/scripts/check_hosted_staging.py",
       "function": "main",
-      "lines": 382
+      "lines": 396
     },
     {
       "path": "app/scripts/check_hunt_save.py",

@@ -3,10 +3,61 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.14.0 — graphite source diagnostics live (October 16, 2026)
+
+**Live in staging and production; final production hosted checks in progress at this checkpoint.**
+[PR #38](https://github.com/lupu-spec/Landwolf/pull/38) adds a compact expandable
+source-name / health / last-updated list, exact 24/36-hour age boundaries,
+graphite/silver styling and focused frontend module extractions. Source data,
+accounts, schema, payment/trial runtime and research behavior are retained.
+
+- Staging: `612b737fa28cef71ad3c16d379fb33fe03f3fa1b`, Render
+  `dep-db931eeq1p3s739sq6bg`, live 2026-10-16 14:13:26 UTC.
+- Production: squash merge `3679070c575591873d556bab8504c7d55b5635d7`, Render
+  `dep-db935gajnfac739mv6s0`, live 2026-10-16 14:21:53 UTC.
+- GitHub Git-tree verification proved both runtime source trees are exactly
+  `f4fadb9a2467f0009200fffba4e45bad39509212`.
+- [Candidate CI](https://github.com/lupu-spec/Landwolf/actions/runs/38911250054)
+  passed 24 frontend, 572 backend/API, 4 focused source-view, 18 existing focused
+  browser, 118 full browser, disposable PostgreSQL/36-table restore, build/package,
+  format/lint/types and security. Separate archived CI passed 53 tests.
+- [Staging acceptance](https://github.com/lupu-spec/Landwolf/actions/runs/38914439829)
+  passed exact release/health, stylesheet hash and computed theme, four Chromium/
+  WebKit journeys, actual research response, source-access restrictions and
+  persistent sign-in/cache-clear/restart/logout. One disposable non-cohort staging
+  verification account is retained under existing smoke-test categorization.
+- [Live smoke](https://github.com/lupu-spec/Landwolf/actions/runs/38914439897)
+  verified both then-current environment identities, HTTPS, supplied logo and
+  fallback image. This ledger update triggers final checks against the new
+  production identity above. Production owner controls are tested in isolated CI;
+  hosted customer checks do not impersonate the owner or create a payment.
+
+Automatic deploys remain off. This ledger/verification-script update is not a
+new application deployment. The existing source tree and database remain in use.
+Physical iOS keyboards, real payment conversion and email inbox delivery are
+outside this release's live acceptance checks. See
+[full command results](app/docs/VERIFICATION.md),
+[repository review](app/docs/CODE_REVIEW_2026_10_16.md) and
+[AI change guide](app/docs/AI_CHANGE_GUIDE.md).
+
+## v0.14.0 — staging rollout (October 16, 2026)
+
+**Staging live; production promotion pending at this checkpoint.** Existing staging
+service deployed `612b737fa28cef71ad3c16d379fb33fe03f3fa1b` as
+`dep-db931eeq1p3s739sq6bg`, live at 2026-10-16 14:13:26 UTC.
+[Candidate application gates](https://github.com/lupu-spec/Landwolf/actions/runs/38911250054)
+passed 24 frontend, 572 backend/API, 4 focused source-list, 18 existing focused
+browser and 118 full browser tests, disposable PostgreSQL and 36-table restore,
+format/lint/types, build/package and security checks.
+[Archived regressions](https://github.com/lupu-spec/Landwolf/actions/runs/38911250076)
+passed separately. Hosted acceptance is triggered by this observed staging ledger
+update. No production deploy, account grant, price change, database reset or
+billing-runtime change is made at this checkpoint.
+
 ## v0.14.0 — graphite interface and compact source diagnostics (candidate)
 
 Prepared October 16, 2026 from main `34649586357702f12ed0d183392faff896658476`.
-Not yet deployed. Adds expandable source/health/last-updated rows, exact 24/36-hour
+Preparation record: not deployed at preparation time. Adds expandable source/health/last-updated rows, exact 24/36-hour
 import-age colors, a graphite/silver appearance and focused frontend module
 extractions. Preserves original source links, owner authorization, billing,
 accounts, schema, research and source-refresh behavior. Includes a repository-wide
@@ -298,8 +349,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.13.0 | `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | 2026-10-11 00:17:28 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.13.0 | `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | 2026-10-11 00:05:56 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.14.0 | `3679070c575591873d556bab8504c7d55b5635d7` | 2026-10-16 14:21:53 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.14.0 | `612b737fa28cef71ad3c16d379fb33fe03f3fa1b` | 2026-10-16 14:13:26 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 

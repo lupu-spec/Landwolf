@@ -1,14 +1,14 @@
 # LandWolf repository review — October 16, 2026
 
 Baseline: `34649586357702f12ed0d183392faff896658476` (main, v0.13.1).
-Candidate: v0.14.0. This is a repository-wide structural/static review plus
+Release: v0.14.0 (staging and production images live; see RELEASES.md). This is a repository-wide structural/static review plus
 risk-focused manual inspection and regression testing; it is not a security
 certification or a claim that every execution path was manually verified.
 
 ## Scope and evidence
 
 [The inventory](CODE_REVIEW_INVENTORY.json) records 222 code/configuration files,
-42,284 lines: 69 active production files, 75 verification/configuration files,
+42,299 lines: 69 active production files, 75 verification/configuration files,
 and 78 archived files. It includes every tracked/candidate Python, TypeScript,
 JavaScript, HTML, CSS, shell, YAML and Dockerfile, with SHA-256 hashes. Dependency
 contents, generated bundles and binary assets are excluded. Python files were
@@ -27,6 +27,7 @@ backend application factory remain the largest integration points.
 | Priority | Finding and evidence | Action / recommendation |
 | --- | --- | --- |
 | High maintenance | `web/app.ts` mixed navigation, shared DOM/link utilities, source contracts, filter state and coverage rendering across 2,570 lines. | Extracted `coverage.ts`, `source-list.ts`, `source-health.ts`, `source-links.ts` and `dom.ts`. Main composition file is now 2,316 lines. Coverage state is private and cleared at sign-out; original link restrictions are preserved. Continue with one tested feature extraction per change. |
+| High operations | The Current environments table still listed v0.13.0 although the v0.13.1 narrative and native Render records identified newer releases. | Reconcile the table against observed runtime identities during rollout; keep staging and production evidence separate. Never use stale documentation as deployment proof. |
 | Medium maintenance | TypeScript compilation included only `web/app.ts`, relying on reachable imports to bring other files into scope. | Changed the include to `web/*.ts`, so standalone helpers are checked too. Strict flags remain enabled. |
 | Medium release | New stylesheet could be left out of a distributable without a packaging failure. | Build copies `graphite.css`; package validation now requires it and the new source/test modules. No dependency added. |
 | Medium usability | Source status required reading expanded cards; date rendering lacked year/time-zone context. | Three-column disclosure list; pure tested age rules; explicit directory/missing states; date/year/time-zone labels; accessible status names and keyboard expansion. |
@@ -80,3 +81,20 @@ not launch a missing executable. Disposable PostgreSQL/Docker are unavailable.
 These are unresolved gates until hosted CI supplies the required evidence.
 Staging/production promotion must not precede those gates. Current live v0.13.1
 remains authoritative until an observed v0.14.0 deployment is entered in RELEASES.md.
+
+### Staging verification checkpoint
+
+Candidate application/legacy CI runs 38911250054 / 38911250076 passed completely.
+Staging is live on the exact candidate commit; hosted acceptance and production
+promotion follow separately. The release ledger current table was reconciled
+with actual environment records; the former v0.13.0 rows were stale and were
+not treated as evidence of the current image. See RELEASES.md for exact identities.
+
+### Production image and staged acceptance
+
+The production squash-merge tree exactly matches the tested candidate tree.
+Native Render reports the production image live at 14:21:53 UTC on October 16.
+Hosted staging acceptance passed exact release identity, deployed stylesheet
+hash/computed theme, customer research and login-persistence journeys; production
+hosted checks follow this ledger update. Runtime business logic and schema were
+not changed by these subsequent documentation/verification-script commits.

@@ -53,9 +53,14 @@ No migration or database reset is required for this interface release.
 6. Publish a PR and require successful hosted CI. Promote the verified source to
    the existing staging service, check it, then deploy the production commit.
 7. Observe `/api/version` and `/api/health`, check hosted journeys and deployment
-   logs, and append actual version/commit/deploy/time evidence to `RELEASES.md`.
+   logs, append actual version/commit/deploy/time evidence to `RELEASES.md`, and
+   update its Current environments table to the same observed identities.
 
 Report **Passed**, **Failed** and **Not run** precisely. An unavailable browser or
 database is a verification gap. Never disable a check to ship a refactor. Prefer
 small, tested module extractions over a framework rewrite or generic abstraction
 that changes authentication, payment ordering or database transaction behavior.
+
+Clock units matter in regression tests: Python Playwright numeric clock times
+are seconds (or use an explicit UTC datetime), while JavaScript Date.now() is
+milliseconds. Assert clock alignment before checking freshness boundaries.

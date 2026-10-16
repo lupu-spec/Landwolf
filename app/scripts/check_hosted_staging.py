@@ -5,6 +5,7 @@ No traces, cookies, passwords or account response bodies are written to artifact
 """
 
 import argparse
+import hashlib
 import os
 import re
 import secrets
@@ -127,6 +128,14 @@ def main() -> None:
         assert session.json()["payments_enabled"] is payments_enabled
         root = client.get("/")
         root.raise_for_status()
+        assert "/assets/graphite.css" in root.text
+        theme = client.get("/assets/graphite.css")
+        theme.raise_for_status()
+        assert theme.headers["content-type"].startswith("text/css")
+        assert (
+            hashlib.sha256(theme.content).digest()
+            == hashlib.sha256(Path("web/graphite.css").read_bytes()).digest()
+        )
         if args.environment == "staging":
             assert "noindex" in root.headers["x-robots-tag"]
         else:
@@ -170,6 +179,12 @@ def main() -> None:
                 try:
                     page.goto(origin, wait_until="domcontentloaded", timeout=90000)
                     expect(page.locator("#release-version")).to_contain_text(f"v{VERSION}")
+                    assert (
+                        page.evaluate(
+                            "getComputedStyle(document.documentElement).getPropertyValue('--navy').trim()"
+                        )
+                        == "#25272c"
+                    )
                     page.get_by_role(
                         "button", name="Sign in" if registered else "Create account", exact=True
                     ).click()

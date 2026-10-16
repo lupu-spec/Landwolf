@@ -2990,3 +2990,42 @@ including focused and full suites. Together with units/build/security this makes
 the former 20-minute job budget insufficient for a cold runner. The job budget
 is now bounded at 30 minutes; all format/type/unit/database/browser/package/
 security checks remain required, with no removed cases, assertions or suites.
+
+### Verified candidate and staging image
+
+[Run 38911250054](https://github.com/lupu-spec/Landwolf/actions/runs/38911250054)
+completed successfully at candidate `612b737fa28cef71ad3c16d379fb33fe03f3fa1b`.
+All configured gate commands passed: format, lint, mypy, full frontend types,
+24 frontend, 572 backend/API, 4 focused source-list, 18 existing focused browser,
+118 full browser, disposable PostgreSQL, exact 36-table pg_dump/pg_restore row
+digests, browser build, wheel/sdist, required package contents, Bandit, pip-audit,
+npm audit, secretlint and diff checks. Archived run 38911250076 passed 53 tests.
+The earlier clock-harness failure and the 20-minute cold-runner timeout remain
+recorded above; neither was counted as a pass.
+
+Staging Render deployment `dep-db931eeq1p3s739sq6bg` reports live at 14:13:26 UTC
+on October 16 with exact candidate commit 612b737. The new release-check script
+adds public stylesheet hash and computed-theme verification; it changes only
+release verification, not Docker application code. Ruff format/check passed in
+the release checkout (94 Python files). Hosted staging acceptance remains pending
+until its workflow finishes; production remains on the previous v0.13.1 image.
+
+### Production image and hosted staging acceptance
+
+Staging hosted run 38914439829 completed **Passed**. It checked exact v0.14.0/
+612b737, health, public stylesheet SHA-256, computed graphite theme, Chromium/
+WebKit at 390/1440px, live mapped inventory, successful actual public research,
+CSRF rejection, property/research handoffs, owner-only coverage boundaries,
+persistent cookies, cache clear, real browser restart and logout. It retained
+one disposable non-cohort staging verification account; it performed no payment.
+Live smoke 38914439897 passed then-current identities, HTTPS/logo/fallback and
+www redirection. The former Current environments table's v0.13.0 entries were
+stale; they were corrected using observed releases, not inferred branch heads.
+
+PR #38 squash-merged as 3679070c575591873d556bab8504c7d55b5635d7. Native GitHub
+Git-tree fetch verified its entire tree equals the candidate/staged runtime tree
+f4fadb9a2467f0009200fffba4e45bad39509212. Production deployment
+dep-db935gajnfac739mv6s0 is **live** at 2026-10-16 14:21:53 UTC. Final hosted
+production acceptance is triggered by this observed ledger update and remains
+pending until that workflow completes. Auto-deploys remain off; no database
+reset, account grant, Stripe configuration edit, subscription or payment was made.
