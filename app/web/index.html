@@ -14,6 +14,7 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/assets/leaflet.css" />
     <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/graphite.css" />
     <script type="module" src="/assets/app.js"></script>
   </head>
   <body>
@@ -548,7 +549,7 @@
           aria-labelledby="coverage-title"
         >
           <p class="eyebrow">KNOW WHAT YOU'RE SEARCHING</p>
-          <h2 id="coverage-title">Coverage you can inspect.</h2>
+          <h2 id="coverage-title">Data sources</h2>
           <p>
             Connected means LandWolf can retrieve listings from that source. A
             successful retrieval does not verify title, liens, market value, or
@@ -576,7 +577,12 @@
               </select>
             </div>
           </div>
-          <div id="source-cards"></div>
+          <p class="source-health-legend">
+            Green: ≤24 hours · Yellow: &gt;24 to &lt;36 hours · Red: ≥36 hours
+            or no successful update. Gray: directory only. Times use your
+            device’s time zone. Select a source for details.
+          </p>
+          <div id="source-cards" aria-label="Source freshness"></div>
           <details class="feature-roadmap">
             <summary>Development roadmap</summary>
             <div id="feature-roadmap"></div>

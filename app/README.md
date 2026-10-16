@@ -1,6 +1,6 @@
 # LandWolf application
 
-A separate rebuild of LandWolf with the original wordmark, wolf logo, white/navy
+A separate rebuild of LandWolf with the original wordmark, wolf logo, graphite/silver
 palette, and rural photography. Fresh email/password accounts unlock source-backed
 property search, map/list browsing, public-record research, and reproducible deal analysis.
 Paid production access uses live Stripe subscriptions at $29/month or $299/year.
@@ -50,13 +50,16 @@ read these official inventories:
 This is **partial inventory coverage**, not every listing in every state or county.
 A federal program may have no current records in a state. HUD and GSA are directory
 links only. Nationwide pre-foreclosure and tax-lien certificate feeds are not
-connected. The authenticated Data coverage page distinguishes feed snapshots,
-directory links, current record counts, and gaps for every state and sale category.
+connected. The owner-only Data coverage page shows a compact source/health/last-updated list.
+Select a source to expand refresh history, inventory counts, publisher links and
+coverage limits. Green is ≤24 hours since the last successful import, yellow is
+>24 to <36 hours, and red is ≥36 hours or no valid successful import. Gray means
+directory only. [Source status guide](docs/DATA_SOURCE_VIEW.md) explains the limits.
 See [SOURCES.md](docs/SOURCES.md) for the original sources and parsing rules.
 
 Each provider replaces only its own inventory after a complete successful retrieval.
-A failure preserves that provider's last snapshot and displays its status. At most
-two providers refresh concurrently; new adapters allow 240 requests per refresh
+A failure preserves that provider's last snapshot and displays its status. One
+provider refreshes at a time; new adapters allow 240 requests per refresh
 including one bounded retry for transient failures, 30-second request timeouts,
 an 8 MB response limit and a 300-second overall deadline. The original GLO adapter
 keeps its stricter 180-second deadline. Inventories are bounded, URLs are explicitly

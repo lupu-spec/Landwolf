@@ -2,7 +2,8 @@
 
 The root engineering policy applies. This is the rebuilt application. Keep its
 runtime, accounts, database, and dependency environment separate from the legacy
-application. Preserve the supplied LandWolf logo and navy/white visual identity.
+application. Preserve the supplied LandWolf logo and graphite/silver visual identity.
+See `docs/AI_CHANGE_GUIDE.md` for module ownership, protected behavior and change scope.
 Every property search, source, detail, analysis, and research route requires server
 authentication and the configured billing entitlement. Production payments must use live
 Stripe only; never enable the gate before its live account, prices, owner and webhook

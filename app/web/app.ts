@@ -1,3 +1,7 @@
+import { sourceLink } from "./source-links";
+import { setupCoverage, type CoverageReport } from "./coverage";
+import type { Source } from "./source-list";
+import { byId, element } from "./dom";
 import { setupCRM } from "./crm";
 import { setupFinance } from "./finance";
 import { setupNavigationDock } from "./navigation-dock";
@@ -61,35 +65,6 @@ type PropertyRecord = {
   active: boolean;
   research_location: ResearchLocation | null;
 };
-type Source = {
-  last_attempt?: number | null;
-  reuse_note?: string;
-  history?: {
-    finished_at: number;
-    status: string;
-    record_count: number;
-    message: string;
-  }[];
-  id: string;
-  name: string;
-  url: string;
-  status: string;
-  last_success: number | null;
-  record_count: number;
-  message: string;
-  stale: boolean;
-  coverage_note: string;
-  states: string[];
-  categories: string[];
-  automated: boolean;
-};
-type StateCoverage = {
-  state: string;
-  name: string;
-  record_count: number;
-  directory_url: string;
-  feed_ids: string[];
-};
 type SearchResult = {
   results: PropertyRecord[];
   map_results: MapRecord[];
@@ -119,12 +94,6 @@ type SessionInfo = {
   email_delivery_enabled?: boolean;
   feedback_trial_enabled?: boolean;
   environment?: string;
-};
-type ResearchCatalog = {
-  id: string;
-  name: string;
-  url: string;
-  coverage: string;
 };
 type ResearchReport = {
   status: string;
@@ -164,21 +133,6 @@ type AnalysisResult = {
   limitations: string[];
 };
 
-function byId<T extends HTMLElement = HTMLElement>(id: string): T {
-  const result = document.getElementById(id);
-  if (!result) throw new Error(`Required interface element missing: ${id}`);
-  return result as T;
-}
-function element<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  css = "",
-  text?: string,
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  node.className = css;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
 const money = (value: number | null | undefined) =>
   value == null
     ? "Not available"
@@ -288,15 +242,16 @@ let markers: L.LayerGroup | null = null;
 let mapRecords: MapRecord[] = [];
 let mapNeedsFit = false;
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
-let coverageSources: Source[] = [];
 let isOwner = false;
-let coverageStates: StateCoverage[] = [];
-let coverageCounties: {
-  state: string;
-  county: string;
-  source: string;
-  record_count: number;
-}[] = [];
+const coverage = setupCoverage(
+  sourceLink,
+  (state) => {
+    form.reset();
+    byId<HTMLSelectElement>("state").value = state;
+    void navigate("explore");
+  },
+  () => Boolean(csrf && isOwner && currentView === "sources"),
+);
 setupNavigationDock();
 setupMobileKeyboard();
 const assistant = setupWolfAssistant({
@@ -405,16 +360,10 @@ function clearSession(): void {
   byId<HTMLFormElement>("analysis-form").reset();
   byId("property-list").replaceChildren();
   byId("source-summary").textContent = "Loading listings…";
-  byId("source-cards").replaceChildren();
-  byId("state-coverage").replaceChildren();
-  byId("research-catalog").replaceChildren();
-  coverageSources = [];
+  coverage.clear();
   isOwner = false;
   byId("coverage-nav").hidden = true;
   byId("source-panel").hidden = true;
-  coverageStates = [];
-  coverageCounties = [];
-  byId("county-coverage").replaceChildren();
   byId("account-email").textContent = "";
   byId("email-status").textContent = "";
   byId("feature-roadmap").replaceChildren();
@@ -517,46 +466,7 @@ function safeImage(url: string | null): string | null {
     return null;
   }
 }
-function sourceLink(url: string, label: string): HTMLAnchorElement {
-  const a = element("a", "", label);
-  try {
-    const parsed = new URL(url);
-    if (
-      parsed.protocol === "https:" &&
-      !parsed.username &&
-      !parsed.password &&
-      !parsed.port &&
-      [
-        "www.glo.texas.gov",
-        "www.resales.usda.gov",
-        "www.irsauctions.gov",
-        "www.treasury.gov",
-        "dnr.alaska.gov",
-        "www.dnr.state.mi.us",
-        "www.michigan.gov",
-        "www.hudhomestore.gov",
-        "disposal.gsa.gov",
-        "www.usa.gov",
-        "cosl.org",
-        "geocoding.geo.census.gov",
-        "www.fema.gov",
-        "epqs.nationalmap.gov",
-        "sdmdataaccess.nrcs.usda.gov",
-        "www.nconemap.gov",
-        "www.dot.state.mn.us",
-        "edocs-public.dot.state.mn.us",
-        "www.dnr.state.mn.us",
-        "land.az.gov",
-      ].includes(parsed.hostname)
-    )
-      a.href = url;
-  } catch {
-    /* A malformed source is displayed without an actionable URL. */
-  }
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  return a;
-}
+
 function photo(
   record: Pick<PropertyRecord, "image_url" | "tract">,
   css: string,
@@ -812,29 +722,10 @@ async function navigate(
     await feedback.open();
   } else if (sources) {
     try {
-      const result = await api<{
-        sources: Source[];
-        states: StateCoverage[];
-        research_sources: ResearchCatalog[];
-        counties: typeof coverageCounties;
-      }>("/api/sources");
+      const result = await api<CoverageReport>("/api/sources");
       if (!csrf || csrf !== sessionToken || navigation !== navigationSequence)
         return;
-      coverageSources = result.sources;
-      coverageStates = result.states;
-      coverageCounties = result.counties;
-      renderCoverage();
-      byId("research-catalog").replaceChildren(
-        ...result.research_sources.map((source) => {
-          const card = element("article", "source-card");
-          card.append(
-            element("h4", "", source.name),
-            element("p", "", source.coverage),
-            sourceLink(source.url, "View public source ↗"),
-          );
-          return card;
-        }),
-      );
+      coverage.render(result);
       const framework = await api<{
         priorities: {
           priority: number;
@@ -1198,151 +1089,6 @@ document.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((button) =>
     requestAnimationFrame(updateMapViewport);
   }),
 );
-
-function renderSources(sources: Source[]): void {
-  byId("source-cards").replaceChildren(
-    ...sources.map((source) => {
-      const card = element("article", "source-card");
-      card.append(
-        element(
-          "span",
-          `source-state ${source.stale || source.status !== "ready" ? "warn" : ""}`,
-          !source.automated
-            ? "Official source link · not imported"
-            : source.status === "ready" && !source.stale
-              ? "Retrieval current"
-              : source.status,
-        ),
-      );
-      card.append(
-        element("h3", "", source.name),
-        element("p", "", source.coverage_note),
-        element(
-          "p",
-          "",
-          source.automated
-            ? `${source.record_count} source records at last successful sync · ${date(source.last_success)}`
-            : "Directory entry; excluded from property counts",
-        ),
-        element("p", "", source.message),
-        sourceLink(source.url, "Inspect the original inventory ↗"),
-      );
-      if (source.automated) {
-        card.append(
-          element(
-            "p",
-            "input-note",
-            `Last attempted: ${date(source.last_attempt ?? null)} · Scheduled every 6 hours. Retrieval does not establish publisher freshness.`,
-          ),
-        );
-        const history = element("details", "source-history");
-        history.append(
-          element("summary", "", "Recent refreshes and reuse limits"),
-        );
-        history.append(
-          element(
-            "p",
-            "",
-            source.reuse_note ?? "Review source terms before redistribution.",
-          ),
-        );
-        for (const run of source.history ?? [])
-          history.append(
-            element(
-              "p",
-              "",
-              `${date(run.finished_at)} · ${run.status} · ${run.record_count} candidate records. ${run.message}`,
-            ),
-          );
-        if (!source.history?.length)
-          history.append(
-            element(
-              "p",
-              "",
-              "No refresh history recorded for this source yet.",
-            ),
-          );
-        card.append(history);
-      }
-      return card;
-    }),
-  );
-}
-
-function renderCoverage(): void {
-  const state = byId<HTMLSelectElement>("coverage-state").value;
-  const category = byId<HTMLSelectElement>("coverage-category").value;
-  renderSources(
-    coverageSources.filter(
-      (source) =>
-        (state === "US" || source.states.includes(state)) &&
-        (category === "all" || source.categories.includes(category)),
-    ),
-  );
-  const rows = coverageStates.filter(
-    (item) => state === "US" || item.state === state,
-  );
-  const table = element("table", "coverage-table");
-  const head = element("thead");
-  const header = element("tr");
-  for (const label of [
-    "State",
-    "Current records · all categories",
-    "Official state agencies",
-  ])
-    header.append(element("th", "", label));
-  head.append(header);
-  const body = element("tbody");
-  for (const item of rows) {
-    const row = element("tr");
-    const stateCell = element("td");
-    const button = element("button", "text-button", item.name);
-    button.addEventListener("click", () => {
-      form.reset();
-      byId<HTMLSelectElement>("state").value = item.state;
-      void navigate("explore");
-    });
-    stateCell.append(button);
-    const link = element("td");
-    link.append(
-      sourceLink(item.directory_url, "Find state / local agencies ↗"),
-    );
-    row.append(stateCell, element("td", "", String(item.record_count)), link);
-    body.append(row);
-  }
-  table.append(head, body);
-  byId("state-coverage").replaceChildren(table);
-  const countyList = element("ul", "county-list");
-  const counties = coverageCounties.filter(
-    (item) =>
-      (state === "US" || item.state === state) &&
-      coverageSources.some(
-        (source) =>
-          source.id === item.source &&
-          (category === "all" || source.categories.includes(category)),
-      ),
-  );
-  for (const item of counties.slice(0, 40))
-    countyList.append(
-      element(
-        "li",
-        "",
-        `${item.county}, ${item.state}: ${item.record_count} records · ${coverageSources.find((source) => source.id === item.source)?.name ?? item.source} · partial coverage`,
-      ),
-    );
-  byId("county-coverage").replaceChildren(
-    element(
-      "p",
-      "",
-      counties.length
-        ? `Observed county coverage (${Math.min(40, counties.length)} of ${counties.length} source/county groups). Select a state to narrow the view.`
-        : "No county records available for this selection. This does not establish that no properties are for sale.",
-    ),
-    countyList,
-  );
-}
-byId("coverage-state").addEventListener("change", renderCoverage);
-byId("coverage-category").addEventListener("change", renderCoverage);
 
 function researchMode(): void {
   const address = byId<HTMLSelectElement>("research-mode").value === "address";

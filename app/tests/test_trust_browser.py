@@ -79,6 +79,7 @@ def test_trust_summary_evidence_and_responsive_navigation(browser_server, engine
         expect(page.locator("#source-cards")).to_contain_text(
             "Minnesota Department of Transportation"
         )
+        page.locator("#source-cards .source-row-summary").first.click()
         page.locator("#source-cards .source-history summary").first.click()
         expect(page.locator("#source-cards")).to_contain_text("No refresh history")
         page.locator(".county-coverage summary").click()

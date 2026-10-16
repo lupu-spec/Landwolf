@@ -3,6 +3,20 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.14.0 — graphite interface and compact source diagnostics (candidate)
+
+Prepared October 16, 2026 from main `34649586357702f12ed0d183392faff896658476`.
+Not yet deployed. Adds expandable source/health/last-updated rows, exact 24/36-hour
+import-age colors, a graphite/silver appearance and focused frontend module
+extractions. Preserves original source links, owner authorization, billing,
+accounts, schema, research and source-refresh behavior. Includes a repository-wide
+review inventory and [AI change guidance](app/docs/AI_CHANGE_GUIDE.md).
+
+Local command results and unresolved hosted gates are in
+[VERIFICATION.md](app/docs/VERIFICATION.md) and
+[the review](app/docs/CODE_REVIEW_2026_10_16.md). The live environment rows below
+remain unchanged until staging and production are observed at the new release.
+
 ## v0.13.1 — transparent feedback-trial signup (October 13, 2026)
 
 **Live in staging and production; hosted acceptance complete.**

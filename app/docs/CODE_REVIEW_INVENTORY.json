@@ -1,0 +1,1597 @@
+{
+  "baseline_commit": "34649586357702f12ed0d183392faff896658476",
+  "scope": "All tracked and candidate code/configuration files; SHA-256 inventory and Python syntax/structure inspection. Generated assets, dependencies and binaries excluded. Manual review is risk-focused, not a claim of line-by-line verification.",
+  "files": [
+    {
+      "path": ".github/workflows/application.yml",
+      "sha256": "bb4bcf9534ef7cafd85df854333495622d1944b5cf53309cc614a1931a529913",
+      "lines": 105,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": ".github/workflows/legacy-tests.yml",
+      "sha256": "b6de17b00a5a7427cde452c084bc633eb6e8cdb97863961c301d7f7c4897f72c",
+      "lines": 20,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": ".github/workflows/live-smoke.yml",
+      "sha256": "350e9611f234b5dd30934b9bcd14c3b8d3fc86475d071e2a1c577fb174f97ff7",
+      "lines": 85,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": ".github/workflows/staging-smoke.yml",
+      "sha256": "232b5952361b41b5181f65e9e31c772b88a117db9b0fced336d36a82e95d4e85",
+      "lines": 56,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/Dockerfile",
+      "sha256": "e442613cb2dd29b58f2d04ef2213a83fbae6c9266e195735dcf03288e793f4a1",
+      "lines": 19,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/eslint.config.js",
+      "sha256": "bd15b296753f91792f3e6760d860a9ddc25b170a0d6441a31e4e7cbe001dce7c",
+      "lines": 16,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/landwolf/__init__.py",
+      "sha256": "2e9834d42525e3188a3e86e50c080b159ba8d639b99be1123796b2487d535830",
+      "lines": 1,
+      "area": "production",
+      "functions": 0
+    },
+    {
+      "path": "app/landwolf/account_profile.py",
+      "sha256": "6c38e95d1b76942a287eef1da2848121025de3e16646e872f367b162da3a69e9",
+      "lines": 119,
+      "area": "production",
+      "functions": 7
+    },
+    {
+      "path": "app/landwolf/admin.py",
+      "sha256": "9a79b977fcdc51cd552b217992672858e0db0afdad1320d43f6487862a970d43",
+      "lines": 209,
+      "area": "production",
+      "functions": 8
+    },
+    {
+      "path": "app/landwolf/analysis.py",
+      "sha256": "10d6e96c86a348d4b719b875e0b0f5970bc16524b65450f5f41be0b3b95ef102",
+      "lines": 145,
+      "area": "production",
+      "functions": 5
+    },
+    {
+      "path": "app/landwolf/auth.py",
+      "sha256": "414765ad61a3ba4bb11bcb07a8e150193e20931715c6003ae91c2c04da9eb7a8",
+      "lines": 259,
+      "area": "production",
+      "functions": 8
+    },
+    {
+      "path": "app/landwolf/billing.py",
+      "sha256": "86313c1af895cf891f8dc1f5ee90997f966b15c97a7cd49572d1f9b23df1601e",
+      "lines": 721,
+      "area": "production",
+      "functions": 23
+    },
+    {
+      "path": "app/landwolf/billing_diagnostics.py",
+      "sha256": "89fad7a7ca998d335f31ad75b20d7316ddec0a14736f0187baca449a2106b72c",
+      "lines": 70,
+      "area": "production",
+      "functions": 2
+    },
+    {
+      "path": "app/landwolf/catalog.py",
+      "sha256": "ce8f2df122012c62adb6004b3d46f0571747665a4e66006cffb86ce66c8ae54a",
+      "lines": 233,
+      "area": "production",
+      "functions": 12
+    },
+    {
+      "path": "app/landwolf/cli.py",
+      "sha256": "a981ed1faf45f44087b23e135a76ea3da7c4afb2876a9680adefe607e18179a4",
+      "lines": 104,
+      "area": "production",
+      "functions": 1
+    },
+    {
+      "path": "app/landwolf/config.py",
+      "sha256": "5344aaf3858a4246232a4d51d527a4d2bf32942c562cc9948a4f73e3994212aa",
+      "lines": 159,
+      "area": "production",
+      "functions": 7
+    },
+    {
+      "path": "app/landwolf/crm.py",
+      "sha256": "dfea37aaf3c9a3c1f2d04ff690cef2c634f0de5f8355d095c381316c4fd6f23e",
+      "lines": 369,
+      "area": "production",
+      "functions": 19
+    },
+    {
+      "path": "app/landwolf/crm_access.py",
+      "sha256": "6dfa259cb7384b871a259bbd05a4fdc50adafbabc23a57bb4ed03ade04672560",
+      "lines": 203,
+      "area": "production",
+      "functions": 7
+    },
+    {
+      "path": "app/landwolf/crm_admin.py",
+      "sha256": "3d96a51008c076b44d1e15c951684f35152dac9afcaf9cfdb0fa7de1cad4a6ed",
+      "lines": 388,
+      "area": "production",
+      "functions": 14
+    },
+    {
+      "path": "app/landwolf/crm_core.py",
+      "sha256": "e699b2fb8fa0d573de381a0dc5ef606b7281122e8e78e432fb0c0316520b47e5",
+      "lines": 340,
+      "area": "production",
+      "functions": 10
+    },
+    {
+      "path": "app/landwolf/crm_reporting.py",
+      "sha256": "c2e9435a3440b83ef7d589b33134f3097e0385617bb64932ae493020d68e6d60",
+      "lines": 221,
+      "area": "production",
+      "functions": 3
+    },
+    {
+      "path": "app/landwolf/db.py",
+      "sha256": "f866bcce40ad52667ae6fedfd1ec288289c249799a17ad08c8e6975fcf042612",
+      "lines": 502,
+      "area": "production",
+      "functions": 3
+    },
+    {
+      "path": "app/landwolf/decisions.py",
+      "sha256": "f9087f1f6694123b0c79c351c413fdd903dd0a6eef904c9357e55a945b8b5e27",
+      "lines": 360,
+      "area": "production",
+      "functions": 11
+    },
+    {
+      "path": "app/landwolf/feedback.py",
+      "sha256": "cc7b3e9093059e71b976679baff8c7f5e6ea5bd0bce9367c78410c84a320f88f",
+      "lines": 412,
+      "area": "production",
+      "functions": 19
+    },
+    {
+      "path": "app/landwolf/feedback_export.py",
+      "sha256": "1696cbda78b3f3333bb820db3243d65b6c2fb085b42fad9b44cf66ea3ae652e0",
+      "lines": 80,
+      "area": "production",
+      "functions": 3
+    },
+    {
+      "path": "app/landwolf/finance.py",
+      "sha256": "e4df8d41c4b0b99885fd965ee7c4803c26d8088099f14f29f47c7dbcd64df161",
+      "lines": 655,
+      "area": "production",
+      "functions": 22
+    },
+    {
+      "path": "app/landwolf/finance_models.py",
+      "sha256": "b9c88d6daff5aa884f11c70a529658e94d9e07ef53bdbe34be24ac4fe261e212",
+      "lines": 53,
+      "area": "production",
+      "functions": 0
+    },
+    {
+      "path": "app/landwolf/framework.py",
+      "sha256": "23b4b0e58037cabfabf9bf07d05e87f57eeb79cd0f4f2f8f39e64bbd70d74ddf",
+      "lines": 121,
+      "area": "production",
+      "functions": 6
+    },
+    {
+      "path": "app/landwolf/hunt.py",
+      "sha256": "209d7eac45f6ea7075ab7d595a032c4c2bd588bad0acc181966ae8bb65f0d5ca",
+      "lines": 303,
+      "area": "production",
+      "functions": 5
+    },
+    {
+      "path": "app/landwolf/locations.py",
+      "sha256": "528eef72c1358ac9e5aec626d621e115225252a105ab3f343112434a33ec79c5",
+      "lines": 44,
+      "area": "production",
+      "functions": 2
+    },
+    {
+      "path": "app/landwolf/main.py",
+      "sha256": "ff311fd501fc152074d2eb00eb6d83ca5a630a974467bd2bd185c37588caaf39",
+      "lines": 860,
+      "area": "production",
+      "functions": 62
+    },
+    {
+      "path": "app/landwolf/minnesota.py",
+      "sha256": "9faf827347efdd5f0aa91917654f79735f05bfca4aec44437b7639ef7085e0a2",
+      "lines": 130,
+      "area": "production",
+      "functions": 1
+    },
+    {
+      "path": "app/landwolf/national.py",
+      "sha256": "65f4ba84031d8fda013341bc8fe15ceea46efa0ccca0989629976b2ee2a7797e",
+      "lines": 680,
+      "area": "production",
+      "functions": 20
+    },
+    {
+      "path": "app/landwolf/provider.py",
+      "sha256": "e90845e5436bd11d8ff5af39d57f24e86250f85e85420c4fe45bd980addf4d08",
+      "lines": 284,
+      "area": "production",
+      "functions": 9
+    },
+    {
+      "path": "app/landwolf/recovery.py",
+      "sha256": "dccd34c3bd1bd32579f57099e11f994f6da6f2b328feabc9c48147f24a32e787",
+      "lines": 219,
+      "area": "production",
+      "functions": 9
+    },
+    {
+      "path": "app/landwolf/research.py",
+      "sha256": "f10ffb773afaa2196ac904f926f2e83cee378ebf768bdd889a17f028f1f8756c",
+      "lines": 688,
+      "area": "production",
+      "functions": 21
+    },
+    {
+      "path": "app/landwolf/research_workspace.py",
+      "sha256": "87db1217bdb4e78f9cb1c52561d5f7c8187af1f7e05003ae2b4d1482541adc99",
+      "lines": 428,
+      "area": "production",
+      "functions": 17
+    },
+    {
+      "path": "app/landwolf/schemas.py",
+      "sha256": "58b4b110794a077a1af5e464532e79fac6267a4be8bfa287432e7ab6e29c08c5",
+      "lines": 182,
+      "area": "production",
+      "functions": 6
+    },
+    {
+      "path": "app/landwolf/serve.py",
+      "sha256": "dcb5f28b3cc9b3b7dbb124c4c527c4411a3a5d29986cbcb0ec7272fcd09d4674",
+      "lines": 22,
+      "area": "production",
+      "functions": 0
+    },
+    {
+      "path": "app/landwolf/sources.py",
+      "sha256": "1dce568a7f78ffe2b98c5e8f800fec97bb0a56de34276c92067c2a21e301ea23",
+      "lines": 186,
+      "area": "production",
+      "functions": 2
+    },
+    {
+      "path": "app/landwolf/start_staging.sh",
+      "sha256": "1d843dfe3ad4eb686ce77e379fd33458f7652c77d9f6c1193bd6e7153260ffc0",
+      "lines": 9,
+      "area": "production"
+    },
+    {
+      "path": "app/landwolf/states.py",
+      "sha256": "9d69dd367b7f919fce9513fe11ee4eb2324a7db647ecea2c3f45eb054a63bd21",
+      "lines": 66,
+      "area": "production",
+      "functions": 1
+    },
+    {
+      "path": "app/landwolf/trials.py",
+      "sha256": "495d83ccc5610c903b372394807043f8457c499f39ab08e4975b25a64970482c",
+      "lines": 766,
+      "area": "production",
+      "functions": 19
+    },
+    {
+      "path": "app/landwolf/trust.py",
+      "sha256": "9c60798cc5267611842563598ea3c0853c4cd17bb07fa663e96eba48b63f06fd",
+      "lines": 275,
+      "area": "production",
+      "functions": 6
+    },
+    {
+      "path": "app/landwolf/version.py",
+      "sha256": "2b85624be6cdb6514775b2729ba45c881d2955e9ebc09cc43144bc4e7aa80d74",
+      "lines": 15,
+      "area": "production",
+      "functions": 1
+    },
+    {
+      "path": "app/scripts/build.mjs",
+      "sha256": "6bbf1bb49e6a1da5b25cfffeb9991b0572acaa65c36872f28ea13bf43357a625",
+      "lines": 22,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/scripts/check_hosted_staging.py",
+      "sha256": "7712c284e6d0b2dcb5f88986a153676c3b4402811a84fd38ed04d752d28c14be",
+      "lines": 468,
+      "area": "verification_and_configuration",
+      "functions": 3
+    },
+    {
+      "path": "app/scripts/check_hunt_save.py",
+      "sha256": "ef58c31a2da1ee479e5740bea623628b89adbd39263129f83247c84db6b2680c",
+      "lines": 179,
+      "area": "verification_and_configuration",
+      "functions": 2
+    },
+    {
+      "path": "app/scripts/check_hunt_save_browser.py",
+      "sha256": "37761624616870ddec4177238f792cc8fe03f692282fa1849e11872a2bbd94b5",
+      "lines": 130,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/scripts/check_package.py",
+      "sha256": "f821333e279165945f03a541818b952a6bbe47b480235a4594e4a2ad07792c1c",
+      "lines": 49,
+      "area": "verification_and_configuration",
+      "functions": 0
+    },
+    {
+      "path": "app/scripts/check_postgres.py",
+      "sha256": "7383539fc8036fae413a8509708e3abdb4e251154174119e419599defec5edd7",
+      "lines": 638,
+      "area": "verification_and_configuration",
+      "functions": 4
+    },
+    {
+      "path": "app/scripts/check_restore.py",
+      "sha256": "a7cc8e73b634e9ef9d0ccf445e73421d23b40a57a5c187e062530a816f830645",
+      "lines": 82,
+      "area": "verification_and_configuration",
+      "functions": 3
+    },
+    {
+      "path": "app/tests/conftest.py",
+      "sha256": "f4212e8964138154986aed56be86be689df900a3a327a61989b9abf6f1bca2d7",
+      "lines": 159,
+      "area": "verification_and_configuration",
+      "functions": 8
+    },
+    {
+      "path": "app/tests/dock-motion.test.mjs",
+      "sha256": "648a48ddc674ba9468d614a693177dabf8a5ddb87a106a76b9311bf36203b050",
+      "lines": 34,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/feedback-policy.test.mjs",
+      "sha256": "4363468a76f204d73391402962afb7671eddff090cd847c8b19f101188e12825",
+      "lines": 30,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/finance-chart.test.mjs",
+      "sha256": "2d3425ed00964a1075d109a0e9059940da8a1267902dc5bf613a4da3f1698b31",
+      "lines": 16,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/fixtures/detail.html",
+      "sha256": "77724a4af66debf3e96ecc7c4d8b8bdacc4f2c2ac41dd77c3edcef9d1ec2db0d",
+      "lines": 5,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/fixtures/inventory.html",
+      "sha256": "d85d7e0e894cf0f7e36941bae0d1d187c323ff1da4a36f78dde510825ecfd95d",
+      "lines": 3,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/help-guide.test.mjs",
+      "sha256": "83b8d1f9a2a61603f77e2336ed7887bd817a9c5fa56b6cba2c1826656a14bc45",
+      "lines": 173,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/hunt-form.test.mjs",
+      "sha256": "217032fe3dd1d749f8eb836176f33e6a4dde37cca6431db5432b3797deae8de9",
+      "lines": 43,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/migration_fixture.py",
+      "sha256": "0bd68a10045137383fbb4ee26131d1d05eebb339096d6d403217074df2587c69",
+      "lines": 93,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/mobile-keyboard.test.mjs",
+      "sha256": "c1db701b1e369ea1d966eb1f90937d51e6cb3178265c44e3fd6c5b70c96d9855",
+      "lines": 34,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/property-context.test.mjs",
+      "sha256": "2b5f469989bb09cadd95554bb75ffc2b9ce774062526e95cef7b169d1d4d5082",
+      "lines": 69,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/research_fixture.py",
+      "sha256": "67b682ec57e7806a3ecd4f091fca577a489cc7ce18fd92b4abdd4c8337172f54",
+      "lines": 122,
+      "area": "verification_and_configuration",
+      "functions": 3
+    },
+    {
+      "path": "app/tests/source-health.test.mjs",
+      "sha256": "1b1334ecca9b7da0d4625e887ad75031cad252d069d04ccc6312866d4af65d45",
+      "lines": 34,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "app/tests/test_account_profile.py",
+      "sha256": "0545d03382a6593cf7eb7af309aa3eb14185c68b1585759b4c9a4171c533f35a",
+      "lines": 238,
+      "area": "verification_and_configuration",
+      "functions": 12
+    },
+    {
+      "path": "app/tests/test_admin_billing.py",
+      "sha256": "949068047742b83963abea930d6a38718eb5da040aa2c87e888a692a5e71cdfe",
+      "lines": 144,
+      "area": "verification_and_configuration",
+      "functions": 5
+    },
+    {
+      "path": "app/tests/test_analysis.py",
+      "sha256": "5537f65e76c491448a8757c3717aefe800ee0af5dccd4438b461ad00704f8326",
+      "lines": 130,
+      "area": "verification_and_configuration",
+      "functions": 8
+    },
+    {
+      "path": "app/tests/test_billing_diagnostics.py",
+      "sha256": "c69ea035573241591dab3e3f6efd865d3db327be33f6c15826c97884ef972953",
+      "lines": 86,
+      "area": "verification_and_configuration",
+      "functions": 6
+    },
+    {
+      "path": "app/tests/test_browser.py",
+      "sha256": "13837a0568e365ce139d17c8c839a40bcb9cbdafd873af3c703ea61945275b08",
+      "lines": 1332,
+      "area": "verification_and_configuration",
+      "functions": 24
+    },
+    {
+      "path": "app/tests/test_config.py",
+      "sha256": "00c904f85e2a8f0109122b5dee21f06e4385ddae3f5f0074d2eac1567abdcc92",
+      "lines": 149,
+      "area": "verification_and_configuration",
+      "functions": 9
+    },
+    {
+      "path": "app/tests/test_coverage_access.py",
+      "sha256": "a8081df195db47fb5dc6c848f07556db1fcdd1e865f208a2d6f74b88c99a3eee",
+      "lines": 73,
+      "area": "verification_and_configuration",
+      "functions": 3
+    },
+    {
+      "path": "app/tests/test_crm.py",
+      "sha256": "97b92931b8935edb8b94159c5860b1017fb421fe666cbcfb1a3912d072547052",
+      "lines": 254,
+      "area": "verification_and_configuration",
+      "functions": 11
+    },
+    {
+      "path": "app/tests/test_crm_admin.py",
+      "sha256": "f0c16ccf7c5f988157a4b7c7727d6b658012976b1b0f5aee0fb6384f8b9a16e7",
+      "lines": 296,
+      "area": "verification_and_configuration",
+      "functions": 15
+    },
+    {
+      "path": "app/tests/test_crm_admin_browser.py",
+      "sha256": "df23079ba11648c5a2d99a798e1835ef2a9e394691374125bf03d4208ee63ef7",
+      "lines": 90,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/test_crm_browser.py",
+      "sha256": "0603952f558a6da51c2d005f5e047c0e3d607e1292da21381c1530b0183c36e8",
+      "lines": 93,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/test_crm_mobile_browser.py",
+      "sha256": "487127089da7f5953ba86304d7c73fd5d887cbd899701fa5f831a185e55e0a6b",
+      "lines": 70,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/test_crm_reporting.py",
+      "sha256": "df18f3564636b5a7583c85c5c1faf4d78a8bd5043e101394b6eeff1d4576fc3a",
+      "lines": 292,
+      "area": "verification_and_configuration",
+      "functions": 10
+    },
+    {
+      "path": "app/tests/test_crm_reporting_browser.py",
+      "sha256": "8bf4fb895021aa775c0bdb87bf9755691b61a6db64372a0906f4d6a48d94b5f7",
+      "lines": 91,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/test_decision_browser.py",
+      "sha256": "f827ee851d1bc9c67e24ddac72b3f923f50767a6983958897317d8f11be28909",
+      "lines": 159,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/test_decisions.py",
+      "sha256": "b8726a15edb5dd30ab873efad84b840d18aa65a9b8c898e52060b462e292ac03",
+      "lines": 364,
+      "area": "verification_and_configuration",
+      "functions": 16
+    },
+    {
+      "path": "app/tests/test_dock_browser.py",
+      "sha256": "c16a10df15f340a76512d585373eae6750728f4067ae51bc29e94898724cc188",
+      "lines": 143,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/test_domains.py",
+      "sha256": "fef76dbc348f1bfacee41f9e45b207464fd4dfdc8d46ce5addf4f871c7dee40e",
+      "lines": 220,
+      "area": "verification_and_configuration",
+      "functions": 9
+    },
+    {
+      "path": "app/tests/test_facebook_campaign.py",
+      "sha256": "da54c3016c3b642d57282a09b69a0dcc1aa5b5407c69f8ff1e7cc2081052cebb",
+      "lines": 137,
+      "area": "verification_and_configuration",
+      "functions": 5
+    },
+    {
+      "path": "app/tests/test_feedback.py",
+      "sha256": "f5265a0abe6d9de640736983869be09de5fb157516ab502329229e35ebe900c6",
+      "lines": 251,
+      "area": "verification_and_configuration",
+      "functions": 12
+    },
+    {
+      "path": "app/tests/test_feedback_export.py",
+      "sha256": "b4806fdc5faa911073af02051cb0068babf4a08eda9e6d7c22f5d51395a9983f",
+      "lines": 180,
+      "area": "verification_and_configuration",
+      "functions": 10
+    },
+    {
+      "path": "app/tests/test_feedback_export_browser.py",
+      "sha256": "21e87743b764d8f947b70eb37cba0434025a22b6ae0e3db6c1317ab4124bc60f",
+      "lines": 123,
+      "area": "verification_and_configuration",
+      "functions": 3
+    },
+    {
+      "path": "app/tests/test_feedback_trial.py",
+      "sha256": "67f74f91c5af789ac565af4c5c7aad9882a0b0590ee0e5ce6ceb36072ea2eba9",
+      "lines": 506,
+      "area": "verification_and_configuration",
+      "functions": 28
+    },
+    {
+      "path": "app/tests/test_finance.py",
+      "sha256": "5edcdf6f5efac5ff5e872dfd8bfdd528c1f756cce17f65c1adbbce5fe793065f",
+      "lines": 362,
+      "area": "verification_and_configuration",
+      "functions": 21
+    },
+    {
+      "path": "app/tests/test_finance_browser.py",
+      "sha256": "8d4e84a1449383f8bfecba3857c2729161103de25b206a50c2455cefc405a566",
+      "lines": 95,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/test_gmail_recovery.py",
+      "sha256": "7839c9674aa592edb804a392e84820ad69fd62a21d6807f47fca7158ffec5ebc",
+      "lines": 146,
+      "area": "verification_and_configuration",
+      "functions": 13
+    },
+    {
+      "path": "app/tests/test_hunt.py",
+      "sha256": "e6165b2b59724a38afbe199013c934ab8ca100b3a7cf72d911eebd2f1c03c57c",
+      "lines": 180,
+      "area": "verification_and_configuration",
+      "functions": 8
+    },
+    {
+      "path": "app/tests/test_hunt_save.py",
+      "sha256": "0151dbee22821cc6f208d56627eb51ed982e7cd36a81079152663b9aea6147cf",
+      "lines": 152,
+      "area": "verification_and_configuration",
+      "functions": 6
+    },
+    {
+      "path": "app/tests/test_investment_browser.py",
+      "sha256": "7f7bb1c233fee511106d47b4999a4b9afef4570d57d839bd12af50db866ed245",
+      "lines": 126,
+      "area": "verification_and_configuration",
+      "functions": 2
+    },
+    {
+      "path": "app/tests/test_live_billing.py",
+      "sha256": "e2965785c068f5b82cb9e9525e960c46d6230705aa3ee60af8e52f2eec407e0b",
+      "lines": 433,
+      "area": "verification_and_configuration",
+      "functions": 24
+    },
+    {
+      "path": "app/tests/test_minnesota.py",
+      "sha256": "787512e1dbe5befe3c6a755b84b278609901190cda73ff15b3b60e031218b1f2",
+      "lines": 88,
+      "area": "verification_and_configuration",
+      "functions": 8
+    },
+    {
+      "path": "app/tests/test_mobile_research_browser.py",
+      "sha256": "6202f01d23562b8968339f01f6cd88cda4c61e7813e9a1646ad20786986144ae",
+      "lines": 215,
+      "area": "verification_and_configuration",
+      "functions": 2
+    },
+    {
+      "path": "app/tests/test_national.py",
+      "sha256": "6ae6cb4412ad33959715be0b55a8c06ed74378fba6c8c0beaf326ff29c1fa4e6",
+      "lines": 398,
+      "area": "verification_and_configuration",
+      "functions": 24
+    },
+    {
+      "path": "app/tests/test_provider.py",
+      "sha256": "5b45a2367ad04706181e43bddd0ba883c299c71856ec4c83d2213344515ff906",
+      "lines": 139,
+      "area": "verification_and_configuration",
+      "functions": 14
+    },
+    {
+      "path": "app/tests/test_recovery.py",
+      "sha256": "c3ea66bb70e19d130f48e8708ff73740537c57ec5d06cbf190d17491ca337ae3",
+      "lines": 154,
+      "area": "verification_and_configuration",
+      "functions": 12
+    },
+    {
+      "path": "app/tests/test_research.py",
+      "sha256": "38a9b0ba3497c24a7e39b1514ea8102f8f46996568b0c0c7cd0e755068654830",
+      "lines": 366,
+      "area": "verification_and_configuration",
+      "functions": 28
+    },
+    {
+      "path": "app/tests/test_saved_removal.py",
+      "sha256": "943707d6831b428dabe04da089b3f26b9b20b8c7866b17ec1e877ca600ead6b6",
+      "lines": 139,
+      "area": "verification_and_configuration",
+      "functions": 8
+    },
+    {
+      "path": "app/tests/test_search.py",
+      "sha256": "f2d03e6ae4aabae94115108344fff6f09e9f0207ca92524aabae30cdba403b91",
+      "lines": 124,
+      "area": "verification_and_configuration",
+      "functions": 7
+    },
+    {
+      "path": "app/tests/test_security.py",
+      "sha256": "b1bc1abbc4d0e8a4be080eb07559c89a08967f48adc461020fd096661473e6d2",
+      "lines": 299,
+      "area": "verification_and_configuration",
+      "functions": 20
+    },
+    {
+      "path": "app/tests/test_source_list_browser.py",
+      "sha256": "efe94199b651e1b653140a62252eb2fa0c3a37bffd8e3c78976b174694d828bd",
+      "lines": 96,
+      "area": "verification_and_configuration",
+      "functions": 2
+    },
+    {
+      "path": "app/tests/test_staging_startup.py",
+      "sha256": "b0e6cf530cf4a8d2f73dcd376ea89dbda33e495aee49025919b424050cf7edd7",
+      "lines": 48,
+      "area": "verification_and_configuration",
+      "functions": 1
+    },
+    {
+      "path": "app/tests/test_trial_browser.py",
+      "sha256": "a668aa733483fa2b1b244df2bc32c6a520515ebbfcba30ca6513f33d2637805a",
+      "lines": 139,
+      "area": "verification_and_configuration",
+      "functions": 6
+    },
+    {
+      "path": "app/tests/test_trust.py",
+      "sha256": "7e4f6d5078f10e5c6440bada9552d25ac0775b4e89be4576e49c3221e99d69e5",
+      "lines": 147,
+      "area": "verification_and_configuration",
+      "functions": 11
+    },
+    {
+      "path": "app/tests/test_trust_browser.py",
+      "sha256": "b6dddb9fd8a4e006bcb2d229ca467549a55e443a1ec1dd6d06a802a73c6b4138",
+      "lines": 181,
+      "area": "verification_and_configuration",
+      "functions": 3
+    },
+    {
+      "path": "app/tests/test_version.py",
+      "sha256": "af7ca5fca1b48da317d0e591213e562714bd55130770eb0b427bb83451f08457",
+      "lines": 47,
+      "area": "verification_and_configuration",
+      "functions": 3
+    },
+    {
+      "path": "app/tests/test_wolf_account_browser.py",
+      "sha256": "d27a50bfd075b56220bd672c5e70521ecb0898cfed63f42b989e48655a4ba399",
+      "lines": 97,
+      "area": "verification_and_configuration",
+      "functions": 3
+    },
+    {
+      "path": "app/tests/test_wolf_assistant_browser.py",
+      "sha256": "607dbcb61ae5920bea08ccad903c2f43622f0c57439ad2040b60c546c7309e48",
+      "lines": 214,
+      "area": "verification_and_configuration",
+      "functions": 6
+    },
+    {
+      "path": "app/web/account-actions.ts",
+      "sha256": "593d86bc38efe18aa8869848e9b74e9ff3758e6deb94c9935400a710a8a1127a",
+      "lines": 112,
+      "area": "production"
+    },
+    {
+      "path": "app/web/app.ts",
+      "sha256": "aa416cd4b70c394cbd656eaf0bd1ef2471e75d387401610dd610e3af045790cc",
+      "lines": 2316,
+      "area": "production"
+    },
+    {
+      "path": "app/web/assets/trial-terms.html",
+      "sha256": "cbed662c8766128f257165e97aba6d1b17878563a286460814a841f0a093c11f",
+      "lines": 99,
+      "area": "production"
+    },
+    {
+      "path": "app/web/billing.ts",
+      "sha256": "f313b7acbe5108ba707d8989aa3bb1d9b620d6b39cfbb576d23be95bf281c3c0",
+      "lines": 324,
+      "area": "production"
+    },
+    {
+      "path": "app/web/coverage.ts",
+      "sha256": "d6ddfc9313ae3bca7585df308ec380b953aba5bc1f8ae2060dd856801369f1cf",
+      "lines": 154,
+      "area": "production"
+    },
+    {
+      "path": "app/web/crm-admin.ts",
+      "sha256": "d6bdddf429c090c712a8e72c2f04bbf92c3bb678789eb82a6842cbc4a9893fc5",
+      "lines": 436,
+      "area": "production"
+    },
+    {
+      "path": "app/web/crm-reporting.ts",
+      "sha256": "fff4b0a72e99c55f2f532c08fe8c1a2c70a533fd10ecdbe19947680b33423d38",
+      "lines": 82,
+      "area": "production"
+    },
+    {
+      "path": "app/web/crm.ts",
+      "sha256": "2a1ffd3d144eba028142846d557251d347e82b105a416a4a5e14c9cdc306064d",
+      "lines": 634,
+      "area": "production"
+    },
+    {
+      "path": "app/web/decision-workspace.ts",
+      "sha256": "e24cec900bbba80cdcee5c2ebc67a344192ba32d194469e1034f004ef23e6c86",
+      "lines": 1071,
+      "area": "production"
+    },
+    {
+      "path": "app/web/dock-motion.ts",
+      "sha256": "dda3c635e942ac35310fc03a7aeeb837e79e6da45eb257b8c34b1a339fa1278f",
+      "lines": 24,
+      "area": "production"
+    },
+    {
+      "path": "app/web/dom.ts",
+      "sha256": "668a4e3aafea84b8451a120ed3c44226f945c15c940abc89253237271174fbf8",
+      "lines": 16,
+      "area": "production"
+    },
+    {
+      "path": "app/web/feedback-policy.ts",
+      "sha256": "4cb9bd055a8f0a38ee92b47c22336ae5406964809edf3004031b5fbbca3143e5",
+      "lines": 52,
+      "area": "production"
+    },
+    {
+      "path": "app/web/feedback.ts",
+      "sha256": "b657b1be99310d1b800bdcd47da73b1cccc59a7963cef0a06cd79f0d5d02559d",
+      "lines": 698,
+      "area": "production"
+    },
+    {
+      "path": "app/web/finance-chart.ts",
+      "sha256": "02981395667f65a90db5eab0b6d09d5b582e912f7e09aff75add499f7b884a3e",
+      "lines": 109,
+      "area": "production"
+    },
+    {
+      "path": "app/web/finance.ts",
+      "sha256": "c3ecceff0890c940143ef9834fdeae96cf26d94ee0c75d2facdafeb4bb8ed8f9",
+      "lines": 654,
+      "area": "production"
+    },
+    {
+      "path": "app/web/graphite.css",
+      "sha256": "e0c73cc6ff83d19c7be7231ffd19c3c6f3571ba02fde673a7f6feefa5adbcd80",
+      "lines": 225,
+      "area": "production"
+    },
+    {
+      "path": "app/web/help-guide.ts",
+      "sha256": "515912a30cea49ded1749e0d550755a3ad77648d619af833da52678a8f1d8e40",
+      "lines": 575,
+      "area": "production"
+    },
+    {
+      "path": "app/web/hunt-form.ts",
+      "sha256": "74f417ff462a8daad7145c4124bcbaedb722426428d2fbab750b6c801d3789fa",
+      "lines": 46,
+      "area": "production"
+    },
+    {
+      "path": "app/web/index.html",
+      "sha256": "52f73a7e18b942b93732d3b3ac2b845839565421ec6bacd1d8d3e1633eb11e48",
+      "lines": 1473,
+      "area": "production"
+    },
+    {
+      "path": "app/web/mobile-keyboard.ts",
+      "sha256": "74927696a78a229a1bbd976bd961fdc40f5c3f950717ffc5846ba20fbb3b7d9a",
+      "lines": 180,
+      "area": "production"
+    },
+    {
+      "path": "app/web/navigation-dock.ts",
+      "sha256": "f091bd9b1d8899ee8a9ba849289fed3967ae3f5a0f9e5bb039e657a7fd3c8902",
+      "lines": 192,
+      "area": "production"
+    },
+    {
+      "path": "app/web/property-context.ts",
+      "sha256": "a3f6ed6abfe6e8fd2de41ed22fcb78bb547cbf083c052731050d74528573a3ed",
+      "lines": 35,
+      "area": "production"
+    },
+    {
+      "path": "app/web/source-health.ts",
+      "sha256": "66f9ba9dac81a0ea88f149c953c2fe982981db0a6b089afe5d812a9a237b1691",
+      "lines": 49,
+      "area": "production"
+    },
+    {
+      "path": "app/web/source-links.ts",
+      "sha256": "936b012024e6553b21a337af5f39a65a6aac4b4f851ebbf7c6c1afab9bb28bd3",
+      "lines": 43,
+      "area": "production"
+    },
+    {
+      "path": "app/web/source-list.ts",
+      "sha256": "9a7660b8734a0d0457786bd0798a27fa9f86a5162121e8b58f2453689e0d913b",
+      "lines": 139,
+      "area": "production"
+    },
+    {
+      "path": "app/web/styles.css",
+      "sha256": "cd11361b2f1f947caad93e7603ba561e435a22db0d8a663d4dcddc67e499b6e8",
+      "lines": 3546,
+      "area": "production"
+    },
+    {
+      "path": "app/web/trial.ts",
+      "sha256": "1040681a4a4fb7433e277874d5695c98e36c6f16ebbd1c914d634b4de128c84d",
+      "lines": 271,
+      "area": "production"
+    },
+    {
+      "path": "app/web/trust-ui.ts",
+      "sha256": "3ba26179f74551debe944a2a22b79fa9fa41f4d564b5d318eeee321a0a5a32ab",
+      "lines": 133,
+      "area": "production"
+    },
+    {
+      "path": "app/web/wolf-account.ts",
+      "sha256": "c5a885959f0825372d2f10405d075969f02018db81789874072145f71754dae3",
+      "lines": 297,
+      "area": "production"
+    },
+    {
+      "path": "app/web/wolf-assistant.ts",
+      "sha256": "264ce260d9f2950bd44e80fd17b376c24e8f259e7c99fbe7fd55983770c7786d",
+      "lines": 615,
+      "area": "production"
+    },
+    {
+      "path": "archive/legacy/.github/workflows/billing-candidate.yml",
+      "sha256": "565176d6a98510ad796f55b4cdbbe97f21a3154c57941027ee8ce71e07a85f3b",
+      "lines": 149,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/.github/workflows/hunt-save-diagnostic.yml",
+      "sha256": "41eef9ead706d2ef7cc2089331452830e270db098ebd649960738eb6828bf2e4",
+      "lines": 47,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/.github/workflows/post-deploy-smoke.yml",
+      "sha256": "ceecd02f922cb6ef30a772e855b33b3d53ab7803f59775215316d0343d101132",
+      "lines": 120,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/.github/workflows/release-preflight.yml",
+      "sha256": "3ba3fe15e87f7159f67b9822e41a906781f42579c1a15cda8cb9fd85430589e6",
+      "lines": 75,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/.github/workflows/release.yml",
+      "sha256": "4d1d0e28d5c88a55027c315888881e64f0987c030bb555be0df63a7910710ca7",
+      "lines": 79,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/.github/workflows/test.yml",
+      "sha256": "b3139fbadbda808300ec5d2bdce24930f881af8f82abad2c8dc46b836da0cdcd",
+      "lines": 17,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/Dockerfile",
+      "sha256": "5089c031275206cd9aecce4e2487f79dcf83a6f384552958746c354e2bfc08a6",
+      "lines": 12,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/alembic/env.py",
+      "sha256": "5e652352978a8d0315ba4e6b6c69ed196f13d9a1de7aef75d5914dc965e20df8",
+      "lines": 54,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/alembic/versions/0001_landwolf_initial.py",
+      "sha256": "a303d5b5b30282b127ce0defc4a9f929dfb64c40646a045709e7e95bdd1d53a4",
+      "lines": 30,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/app/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lines": 0,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/app/api/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lines": 0,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/app/api/auth.py",
+      "sha256": "521fce8b84e7c91201d187de0e5d07d7c8eb76891dffe5495484ac28bee4e440",
+      "lines": 60,
+      "area": "archive",
+      "functions": 5
+    },
+    {
+      "path": "archive/legacy/app/api/billing.py",
+      "sha256": "dbcdd735c81219edd43ea699ad4a9ba062ac23c2ba223c37f2185d37684c4061",
+      "lines": 30,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/app/api/search.py",
+      "sha256": "774974c563de49e7f8dbc53f5ee33922dde533450f931b22303c19972109f0b0",
+      "lines": 58,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/app/core/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lines": 0,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/app/core/config.py",
+      "sha256": "ef2fd4607fa59abafa0c0e80fe49234ab6f65b09ad4e13163e09b46ef2656b2d",
+      "lines": 130,
+      "area": "archive",
+      "functions": 9
+    },
+    {
+      "path": "archive/legacy/app/core/security.py",
+      "sha256": "2d96da371af67bada1eae96ace3231d8cb8e6d76a26a8393fd156f381eeffe84",
+      "lines": 30,
+      "area": "archive",
+      "functions": 4
+    },
+    {
+      "path": "archive/legacy/app/db/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lines": 0,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/app/db/session.py",
+      "sha256": "9130d8622d165359c3558c3fd72734401101dc3395987b746fad7ec8d4431539",
+      "lines": 19,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/app/main.py",
+      "sha256": "a874449f82792990165ed8a2efa731d3eebab9364a09e20db9a0fecbe14d70e0",
+      "lines": 45,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/app/models/__init__.py",
+      "sha256": "2cbc6c5d468e901f029db086e4c09bd06294f9d6543e271a430ca63e25386c27",
+      "lines": 1,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/app/models/entities.py",
+      "sha256": "024d2c14741a71b7afe3970e04963e529026cf8629ce6e98c847c72f48087d7b",
+      "lines": 68,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/app/schemas.py",
+      "sha256": "b31bce75a93d1bdd736f25cce900480232e4466a7d3a334760df6df8ee0b8d47",
+      "lines": 76,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/app/services/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lines": 0,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/app/services/auth.py",
+      "sha256": "ef9e3cd32023a1d013307b757f97ba6066205d48ea48cf021994431cbb69fdfd",
+      "lines": 50,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/app/services/billing.py",
+      "sha256": "ba9617677ef10f777a8189d54e54841ead9ca8b0ec527d0db71533850f58717a",
+      "lines": 218,
+      "area": "archive",
+      "functions": 8
+    },
+    {
+      "path": "archive/legacy/app/services/ingestion.py",
+      "sha256": "5b4212b15df001b27a92e1ed9197ad85dac80eb3cd6a11ebb61cad87c963f015",
+      "lines": 22,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/app/services/provider_registry.py",
+      "sha256": "8b880ddcd8ac4d38704c61baf47c55b04908b02a61c8a86cc3fc879348619cff",
+      "lines": 18,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/app/services/quota.py",
+      "sha256": "57e68d541ce62c4f980820d02169522a9f89d8a6afe9a94ce9c2513a5d2c6560",
+      "lines": 18,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/app/services/scoring.py",
+      "sha256": "0719003ac0648a2f08e15413efd4a00fcd2b8f26a5767cb13f8a34336ee7b2e5",
+      "lines": 25,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/app/services/search.py",
+      "sha256": "3ae7dc523cb6b739322e35bd179572eba509011cf64855edffb2915e7e630355",
+      "lines": 34,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/app/static/app.js",
+      "sha256": "66b2632e69beb8863914095d4ea56242b708104456fe9def0d548cb3689a4450",
+      "lines": 161,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/app/static/index.html",
+      "sha256": "024ade3cce1cf3a27d5ea5cf1878d88ebd594181b09adc67fc03d5e5c2c8b45e",
+      "lines": 111,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/app/static/styles.css",
+      "sha256": "19441cae16952aeccf0f6533e8c1fc1d982d5dd432bf89c85418d417c762fc65",
+      "lines": 60,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/config/investment_model.yaml",
+      "sha256": "1d58d0c324325c6cac99c9e2115712cf11b1f40963f1ed60087c5f592f878012",
+      "lines": 27,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/docker-compose.yml",
+      "sha256": "7875ec7690af163d37b9496a17b1c0dffb3b6b731e4578b287d2fd22af859357",
+      "lines": 27,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/investment_engine/__init__.py",
+      "sha256": "3b5aade07d336c4a3cd5253f66d581109729ebe7fda79a9ca524966dfd07259f",
+      "lines": 4,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/investment_engine/correlation.py",
+      "sha256": "3a0a8677007e5e4e3ff436b06e2e6f8ef3e92693eccdbc1b69b326087a56ba58",
+      "lines": 29,
+      "area": "archive",
+      "functions": 4
+    },
+    {
+      "path": "archive/legacy/investment_engine/distributions.py",
+      "sha256": "8ffd5a933889556cee655dbbc7d597625397173914b571e6111a5150a5749884",
+      "lines": 30,
+      "area": "archive",
+      "functions": 4
+    },
+    {
+      "path": "archive/legacy/investment_engine/financials.py",
+      "sha256": "54715bcec72a072e1472feb106c3cac8d0c7b4e8b8915275e8e8d9e50e48045e",
+      "lines": 19,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/investment_engine/fixtures.py",
+      "sha256": "808aabc717eec44d79871a6560f06b5f2681570bfdfe5013ebc6f59d34d8ec7f",
+      "lines": 33,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/investment_engine/liens.py",
+      "sha256": "27e26260b9631c8d67c47122308854f636b0219875ee73db3c395444e726f95f",
+      "lines": 27,
+      "area": "archive",
+      "functions": 4
+    },
+    {
+      "path": "archive/legacy/investment_engine/max_bid.py",
+      "sha256": "ef98457fab6593e7bda48b159e52aa002aeb387907bdf228410539a9fe909037",
+      "lines": 22,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/investment_engine/models.py",
+      "sha256": "1dbfb6009814e18599849cef31f4ee28a4366e0bf5f667fb018d823148aa1346",
+      "lines": 22,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/investment_engine/monte_carlo.py",
+      "sha256": "6b08cadbce8c36421b5ffe6a69825e5ce27aabe1bf407179fdf308da6777f781",
+      "lines": 105,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/investment_engine/repairs.py",
+      "sha256": "4cf31c830f37d7b3fb7345da91cf0bb84e749226f51a5600351f8d99b9c36da5",
+      "lines": 23,
+      "area": "archive",
+      "functions": 4
+    },
+    {
+      "path": "archive/legacy/investment_engine/validation.py",
+      "sha256": "efd105fa10aa5a351aa45a5e98fe2bd7be5fdf91c5c2641c785f8ade2828f61e",
+      "lines": 13,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/render.staging.paid.yaml",
+      "sha256": "1b92c379bd817a7146099c7bd423f6c8a4dd1fa07993786e1fa65324a1ed5ff3",
+      "lines": 36,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/render.yaml",
+      "sha256": "f0bfe2eb639a1fad210a1537f77472378c7ce1c23511e4fcd5c9bef0b8ffdb2c",
+      "lines": 38,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/scripts/deployment_preflight.py",
+      "sha256": "2953438836afd99b30347add709ed325158a11a60b4a43fbbcd9f001d226a897",
+      "lines": 246,
+      "area": "archive",
+      "functions": 9
+    },
+    {
+      "path": "archive/legacy/scripts/post_deploy_smoke.py",
+      "sha256": "a83a6662133222db1b6c49d9dd56d2d30b9b69b5f08354947efaa995069efe7d",
+      "lines": 143,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/scripts/post_deploy_subscription_smoke.py",
+      "sha256": "25da3fffce4eb3fe71984f4bf4cb5c889c9c4b87e3888a343180b75be7542607",
+      "lines": 244,
+      "area": "archive",
+      "functions": 5
+    },
+    {
+      "path": "archive/legacy/scripts/post_deploy_webhook_persistence_smoke.py",
+      "sha256": "589e681bb0bccffbd807583f421a1f0ea83be0acb2df3115c0e82fd0d43cefae",
+      "lines": 232,
+      "area": "archive",
+      "functions": 9
+    },
+    {
+      "path": "archive/legacy/scripts/post_deploy_webhook_replay_smoke.py",
+      "sha256": "c3de6df4b292fb14c93f716cad23915c4068fe8d662ad4fe22560a74f9ef9b5f",
+      "lines": 250,
+      "area": "archive",
+      "functions": 6
+    },
+    {
+      "path": "archive/legacy/scripts/post_deploy_webhook_rollback_smoke.py",
+      "sha256": "15bc784c7abc2b4902e6600ae06eba60b8a5da53f621332529ceba3df091d337",
+      "lines": 70,
+      "area": "archive",
+      "functions": 7
+    },
+    {
+      "path": "archive/legacy/scripts/register_landwolf_ai_live_webhook.py",
+      "sha256": "7fa6c3acc9f185cb0cc5a5c163fc2677efe39c795fbb05060d7d5a973555977b",
+      "lines": 30,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/scripts/register_landwolf_ai_webhook.py",
+      "sha256": "f5bd399b64c2ee55f1fa88ecfd65339ba7eed5c33c4268e7c20d9214fca102f9",
+      "lines": 31,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/scripts/register_stripe_webhook.py",
+      "sha256": "b3f75c0f735bc1a6b0d993fae7bcd4eeb24fbc51311e8521b5b3087983217915",
+      "lines": 39,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/scripts/release.sh",
+      "sha256": "e41eaf35dbebbd44618c67d908d77b66bc18dad1885a1f542f3532c50fe7a64a",
+      "lines": 14,
+      "area": "archive"
+    },
+    {
+      "path": "archive/legacy/scripts/seed_demo.py",
+      "sha256": "abfbdd9a43b6dd30d65b0ee31eeda1ce243810034c1e912cfcdcfb231d445477",
+      "lines": 24,
+      "area": "archive",
+      "functions": 0
+    },
+    {
+      "path": "archive/legacy/tests/conftest.py",
+      "sha256": "ef3bba308dcee4a0d61c2a9920c68d668df1229ff00fcf380d52b3ed5b08ab13",
+      "lines": 224,
+      "area": "archive",
+      "functions": 35
+    },
+    {
+      "path": "archive/legacy/tests/smoke/test_post_deploy_smoke_contract.py",
+      "sha256": "a19db4ff669826510e1188ea8c777297417515679ce6a6cefb5cf0d0cf79de67",
+      "lines": 11,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/tests/smoke/test_subscription_smoke_contract.py",
+      "sha256": "fecc684ed4192189cb2a811749ae1f384c0d1c286a992b4777a64b3ebfe04e79",
+      "lines": 30,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/tests/smoke/test_webhook_persistence_smoke_contract.py",
+      "sha256": "d645e6e998560ac174b266385168fd3ba1dd2f44aab7cb1f3e1e9e5193d68255",
+      "lines": 30,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/tests/smoke/test_webhook_replay_smoke_contract.py",
+      "sha256": "9a0076195f0dce51dff11b48defc16557c87df21b1a08a6d7b96af42a5371d04",
+      "lines": 24,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/tests/smoke/test_webhook_rollback_smoke_contract.py",
+      "sha256": "bdefa7a5714664e80ff9c7caf61a81eb6f2935fdc0d66934aa57d51b080d53a1",
+      "lines": 9,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/tests/test_app_quota.py",
+      "sha256": "d945f36f39fc86c12f34d7778e35f45e54c8babe25265b326eb3152e3559b3e7",
+      "lines": 16,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/tests/test_billing_finalization.py",
+      "sha256": "f2a3224006344f2f1b4bca36b8fe151a98f9d5e60d6fadccab960713bbfafaf9",
+      "lines": 14,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/tests/test_config_security.py",
+      "sha256": "1e13d9050bfbfb92bcf5671a616c559aee94df1f82d076be6135055214bb3cbf",
+      "lines": 82,
+      "area": "archive",
+      "functions": 11
+    },
+    {
+      "path": "archive/legacy/tests/test_dynamic_copyright.py",
+      "sha256": "f240142b356182d751f7a9a86c5e998c552da547fa63820811c7df052415b726",
+      "lines": 8,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/tests/test_landwolf_domain_billing.py",
+      "sha256": "bf21b65e047a80e34c70d85445b1b25ccc202d8788e9b3d23e760ad313d98aed",
+      "lines": 12,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/tests/test_live_stripe_connected_ids.py",
+      "sha256": "07626ac715c6736b203ae8ee5c505cf9057f9848d69b257649f45340ebeee8cf",
+      "lines": 14,
+      "area": "archive",
+      "functions": 2
+    },
+    {
+      "path": "archive/legacy/tests/test_live_stripe_deployment_kit.py",
+      "sha256": "3a3abffc4c6eb3906fe09721dfc4452ed9030a54ceac6d3b5238eebe269da860",
+      "lines": 21,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/tests/test_search_preview_policy.py",
+      "sha256": "7dc08ae4102c739b69f8cccdb7920cbcba705eb051efa7927dc27039c08021db",
+      "lines": 19,
+      "area": "archive",
+      "functions": 3
+    },
+    {
+      "path": "archive/legacy/tests/test_stripe_plan_checkout.py",
+      "sha256": "db990cc71a487bac28bcfd859b915d22e0bc95cc5daeb6453752f223cb08ffd3",
+      "lines": 39,
+      "area": "archive",
+      "functions": 4
+    },
+    {
+      "path": "archive/legacy/tests/test_subscription_value_copy.py",
+      "sha256": "41eb72df864ec8ca9c1cd39c227229134ccdca4fd8afe4c9247e339b7c627a89",
+      "lines": 10,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/tests/test_support_contact.py",
+      "sha256": "0818d38add9e3d580aa86ed8ab6990477e228adb62a33bdd53b6516962627ae0",
+      "lines": 7,
+      "area": "archive",
+      "functions": 1
+    },
+    {
+      "path": "archive/legacy/tests/unit/test_deployment_preflight.py",
+      "sha256": "f75f45e6daf93f26e27550c0067d5ed5ea5771f23f816faacfc693cad56096d9",
+      "lines": 71,
+      "area": "archive",
+      "functions": 12
+    },
+    {
+      "path": "render.staging.yaml",
+      "sha256": "b745476236527af15cc31ecb13b2df188937ef32aca572cf5a13fb9a7b9e5711",
+      "lines": 37,
+      "area": "verification_and_configuration"
+    },
+    {
+      "path": "render.yaml",
+      "sha256": "79ee40c6a4c01fb0d25d7883cab092b97277681417652a287dde9f13d09bf788",
+      "lines": 40,
+      "area": "verification_and_configuration"
+    }
+  ],
+  "large_python_functions": [
+    {
+      "path": "app/landwolf/analysis.py",
+      "function": "analyze",
+      "lines": 128
+    },
+    {
+      "path": "app/landwolf/crm.py",
+      "function": "register",
+      "lines": 349
+    },
+    {
+      "path": "app/landwolf/crm_admin.py",
+      "function": "register",
+      "lines": 316
+    },
+    {
+      "path": "app/landwolf/finance.py",
+      "function": "report",
+      "lines": 129
+    },
+    {
+      "path": "app/landwolf/main.py",
+      "function": "create_app",
+      "lines": 746
+    },
+    {
+      "path": "app/landwolf/research_workspace.py",
+      "function": "register",
+      "lines": 219
+    },
+    {
+      "path": "app/landwolf/trials.py",
+      "function": "process_one",
+      "lines": 195
+    },
+    {
+      "path": "app/scripts/check_hosted_staging.py",
+      "function": "main",
+      "lines": 382
+    },
+    {
+      "path": "app/scripts/check_hunt_save.py",
+      "function": "main",
+      "lines": 158
+    },
+    {
+      "path": "app/scripts/check_postgres.py",
+      "function": "main",
+      "lines": 547
+    },
+    {
+      "path": "app/tests/test_browser.py",
+      "function": "browser_server",
+      "lines": 196
+    },
+    {
+      "path": "app/tests/test_browser.py",
+      "function": "test_complete_free_beta_journey",
+      "lines": 163
+    },
+    {
+      "path": "app/tests/test_decision_browser.py",
+      "function": "test_complete_decision_workflow",
+      "lines": 146
+    },
+    {
+      "path": "app/tests/test_dock_browser.py",
+      "function": "test_glass_dock_navigation",
+      "lines": 129
+    },
+    {
+      "path": "app/tests/test_mobile_research_browser.py",
+      "function": "test_research_keyboard_navigation",
+      "lines": 201
+    },
+    {
+      "path": "app/tests/test_trial_browser.py",
+      "function": "test_trial_consent_feedback_and_cancel",
+      "lines": 123
+    },
+    {
+      "path": "app/tests/test_wolf_assistant_browser.py",
+      "function": "test_twin_wolves_help_on_every_screen",
+      "lines": 199
+    },
+    {
+      "path": "archive/legacy/scripts/post_deploy_subscription_smoke.py",
+      "function": "main",
+      "lines": 176
+    },
+    {
+      "path": "archive/legacy/scripts/post_deploy_webhook_persistence_smoke.py",
+      "function": "main",
+      "lines": 127
+    },
+    {
+      "path": "archive/legacy/scripts/post_deploy_webhook_replay_smoke.py",
+      "function": "main",
+      "lines": 173
+    }
+  ]
+}
