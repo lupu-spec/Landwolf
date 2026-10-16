@@ -489,6 +489,12 @@ summary:focus-visible {
     --amber: #674316;
     --danger: #a32738;
     --control: #fff;
+    --control-line: #999;
+    --hover: #eee;
+    --header: #fff;
+    --warning-surface: #fff7e8;
+    --success-surface: #eff7f1;
+    --green: #186345;
     --shadow: none;
   }
   body {

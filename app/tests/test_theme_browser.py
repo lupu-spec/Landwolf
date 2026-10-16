@@ -66,6 +66,19 @@ def test_appearance_across_feature_surfaces(browser_server, engine, width):
                 page.locator("#location").evaluate("el => getComputedStyle(el).backgroundColor")
                 == expected_control
             )
+            # Input text must meet WCAG's normal-text contrast in each palette.
+            assert page.locator("#location").evaluate(r"""el => {
+                const css = getComputedStyle(el);
+                const lum = color => {
+                    const rgb = color.match(/[\d.]+/g).slice(0, 3).map(Number);
+                    const v = rgb.map(n => { n /= 255;
+                        return n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4;
+                    });
+                    return .2126 * v[0] + .7152 * v[1] + .0722 * v[2];
+                };
+                const values = [lum(css.color), lum(css.backgroundColor)].sort((a,b) => b-a);
+                return (values[0] + .05) / (values[1] + .05) >= 4.5;
+            }""")
             page.screenshot(path=str(output / f"theme-explore-{mode}-{engine}-{width}.png"))
             page.locator(".card-detail").first.click()
             assert_surface(page, "#property-dialog", mode)

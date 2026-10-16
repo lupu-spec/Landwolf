@@ -3098,3 +3098,11 @@ new focused appearance suite runs before all existing browser suites, followed
 by the full browser suite. Nothing is deployed until those gates and staging
 acceptance succeed. Early command path errors were corrected; they made no code
 or dependency changes. Later release evidence will record actual outcomes.
+
+Local API run completed with 571 passed and one release-metadata mismatch:
+`test_distribution_versions_match_runtime` found the pre-existing editable install
+still at v0.14.0. `uv sync --frozen --dev` reinstalled only LandWolf v0.15.0 from
+this checkout; `pytest -q tests/test_version.py` then passed all 7 tests. No
+dependency version or test assertion was changed. Hosted CI installs the same
+frozen environment from scratch. Print semantic colors were also reviewed for
+dark-mode printing, and appearance tests require normal-text input contrast.
