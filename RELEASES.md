@@ -5,13 +5,28 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 ## v0.15.0 — complete silver/glass appearance and light/dark modes
 
-**Candidate; not yet deployed.** This corrects the mixed white-card/dark-background
+**Live in staging; production remains v0.14.0. Hosted staging acceptance pending.**
+This corrects the mixed white-card/dark-background
 presentation in v0.14.0. Every main feature consumes shared light/dark surface,
 border, control and text tokens. Appearance in the header offers Auto, Light and
 Dark, with browser persistence, first-paint setup, live system changes and cross-tab
 updates. Account/billing/research/data behavior, logo and source-age rules remain.
-See [Appearance](app/docs/APPEARANCE.md). Existing environment rows below continue
-to describe observed v0.14.0 images until the next deployment is verified.
+See [Appearance](app/docs/APPEARANCE.md). Current environment rows describe the
+observed immutable images, separately from branch heads.
+
+- [Required CI](https://github.com/lupu-spec/Landwolf/actions/runs/38963112491)
+  passed 26 frontend, 572 backend/API, 126 full browser, 8 appearance, 4 source-list
+  and 18 mobile/dock/chat cases, PostgreSQL/36-table exact restore, package and
+  security gates. Separate archived regression CI passed 53 tests.
+- Staging: `29d4d465498feb60972c26b6f570aed5dce40105`, Render
+  `dep-db98ukmq1p3s739krerg`, live 2026-10-16 20:56:57 UTC. Its full source tree is
+  `770b1ae8c75c7488d6641dc6b017558413378b0c`.
+- The hosted staging checker validates exact identity/health, stylesheet hash,
+  both appearance modes and persistence, customer journeys, private boundaries,
+  research and persistent browser sessions. Its completed outcome follows.
+
+Automatic deploys remain off. No database reset, billing/provider configuration
+change, account grant or payment is part of this presentation release.
 
 ## v0.14.0 — graphite source diagnostics live (October 16, 2026)
 
@@ -371,7 +386,7 @@ coverage, accounts and existing infrastructure are retained. See
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.14.0 | `3679070c575591873d556bab8504c7d55b5635d7` | 2026-10-16 14:21:53 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.14.0 | `612b737fa28cef71ad3c16d379fb33fe03f3fa1b` | 2026-10-16 14:13:26 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.15.0 | `29d4d465498feb60972c26b6f570aed5dce40105` | 2026-10-16 20:56:57 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
