@@ -15,6 +15,7 @@ export function setupNavigationDock(): void {
   ];
   const visible = () => items.filter((item) => !item.closest("[hidden]"));
   let frame = 0;
+  let resizeFrame = 0;
   let pointerX = 0;
   let wheelUntil = 0;
   let suppressClickUntil = 0;
@@ -186,7 +187,15 @@ export function setupNavigationDock(): void {
     attributes: true,
     attributeFilter: ["hidden"],
   });
-  new ResizeObserver(sync).observe(track);
+  // Arrow visibility changes track geometry. Write after resize delivery so
+  // WebKit can finish the current layout without a ResizeObserver loop.
+  new ResizeObserver(() => {
+    if (resizeFrame) return;
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = 0;
+      sync();
+    });
+  }).observe(track);
   reduced.addEventListener("change", resetScale);
   sync();
 }

@@ -3143,3 +3143,12 @@ Four mobile Research cases caught a real regression: the shared appearance
 its label's 14.4px size. Removed only that cosmetic font reset; the original
 layout/mobile font rules and their 16px assertions are retained. Full browser,
 package/security and deployment gates remain pending for the corrected source.
+
+Full candidate run 38961099914 passed 125 of 126 browser cases but failed the
+834px WebKit twin-guide journey on an unhandled `ResizeObserver loop completed
+with undelivered notifications` error. Existing dock resize callbacks wrote
+arrow visibility/layout during resize delivery; map invalidation also mutated
+layout from a resize callback. Both updates now coalesce into the next animation
+frame. Added real repeated phone/tablet/desktop boundary resizing to the dock
+journey and retained the zero-page-error assertions. No errors are suppressed or
+filtered. Required gates are being rerun on the corrected source before release.

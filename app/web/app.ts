@@ -242,6 +242,7 @@ let map: L.Map | null = null;
 let markers: L.LayerGroup | null = null;
 let mapRecords: MapRecord[] = [];
 let mapNeedsFit = false;
+let mapViewportFrame = 0;
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
 let isOwner = false;
 const coverage = setupCoverage(
@@ -980,7 +981,7 @@ function drawMap(result: SearchResult): void {
       .addTo(map);
     markers = L.layerGroup().addTo(map);
     map.on("zoomend", renderMapMarkers);
-    new ResizeObserver(() => updateMapViewport()).observe(byId("property-map"));
+    new ResizeObserver(scheduleMapViewport).observe(byId("property-map"));
   }
   mapRecords = result.map_results;
   mapNeedsFit = true;
@@ -990,7 +991,15 @@ function drawMap(result: SearchResult): void {
       ? `First ${mapRecords.length} of ${result.map_total} mapped locations · narrow your filters`
       : `${result.map_total} mapped locations · ${missing} without coordinates`;
   renderMapMarkers();
-  requestAnimationFrame(updateMapViewport);
+  scheduleMapViewport();
+}
+
+function scheduleMapViewport(): void {
+  if (mapViewportFrame) return;
+  mapViewportFrame = requestAnimationFrame(() => {
+    mapViewportFrame = 0;
+    updateMapViewport();
+  });
 }
 
 function updateMapViewport(): void {
@@ -1088,7 +1097,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((button) =>
           other.setAttribute("aria-pressed", String(other === button));
       });
     mapNeedsFit = true;
-    requestAnimationFrame(updateMapViewport);
+    scheduleMapViewport();
   }),
 );
 
