@@ -3129,3 +3129,9 @@ original mixed white cards have been replaced by graphite feature surfaces.
 The mobile header may wrap at large text sizes so the new Appearance selector
 and Sign out remain reachable at 200% font zoom. This preserves the existing
 source-list zoom/no-horizontal-overflow regression rather than hiding controls.
+
+The corrected navigation journey in run 38959025903 reached Membership and found
+its outer section had no shared surface class (its inner plans were themed).
+Applied the same `source-panel` container used by Research/Hunt/Feedback, keeping
+the all-feature glass-surface assertion intact. This is a presentation change
+only; payment controls and runtime decisions are unchanged.
