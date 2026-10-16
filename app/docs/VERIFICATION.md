@@ -3214,3 +3214,78 @@ Git tree equals the tested/staging tree above. This corrected ledger triggers
 production hosted checks using that exact immutable identity. Both service
 branches retain auto-deploy off; publishing this evidence does not deploy a new
 image. Existing databases, accounts and billing configuration remain in place.
+
+### Final v0.15.0 production acceptance — Passed
+
+[Production hosted run 38966641513](https://github.com/lupu-spec/Landwolf/actions/runs/38966641513),
+job 117194632178, completed successfully against exact v0.15.0 production commit
+55a35648140ffb3d3dead8c2e09a54d55dfc0e63. It checked identity/health, production
+billing and email modes, deployed stylesheet SHA-256, both Light/Dark appearances
+and reload persistence, Chromium/WebKit 390/1440px login/paywall/logout, private
+coverage/finance boundaries, secure persistent cookies, cache-only clearing and
+actual persistent-browser-profile restart/logout. The existing owner/account/
+billing gates remain enforced server-side. One disposable standard non-cohort
+production verification account is retained under existing smoke filtering; no
+payment, subscription or owner grant was created.
+
+Live smoke 38966641453 passed both current runtime identities, HTTPS, logo and
+fallback-image hashes, and www redirection. Final candidate screenshots were
+visually inspected in dark/light phone Explore, dark desktop Sources and light
+tablet chat after the last styling changes. They are internal synthetic-account
+QA evidence, not user-facing screenshots or copies of production customer data.
+
+The immutable staging and production images have the exact full Git tree that
+passed all gates. Later commits update evidence/guidance only; auto-deploy stays
+off. Redundant push-triggered CI on those docs is separate from the verified
+runtime release. Physical iOS keyboards, real payment conversion and email inbox
+delivery were not run. Owner diagnostics were tested in isolated CI; live customer
+checks establish their access boundary without impersonating an owner. No data-
+source parser/provider, database schema or payment/trial runtime was changed.
+
+### Current guides and final command record — Passed
+
+The three current PDF manuals (9/16/30 pages) and two current HTML manuals were
+replaced successfully in their existing identities/version histories. All five
+ordered save results reported `succeeded` and local metadata applied. Current
+update pages cover Auto/Light/Dark, browser/system behavior, source disclosures,
+account/trial notes and mobile controls; historical reference pictures are labeled
+as such. Every original PDF reference page's text and HTML image/script list was
+checked retained. The final release-note page was rendered and visually checked
+with embedded fonts after changing its status to verified staging/production.
+In-app help, README, Appearance and AI change guidance are current.
+
+The exact configured commands and their final verified results are below.
+Commands are from `app/` unless stated; PostgreSQL commands used only disposable
+CI PostgreSQL, never production. Earlier local failures and their resolution remain
+above; unavailable local browser installation was resolved by actual hosted runs.
+
+| Command | Final result |
+| --- | --- |
+| `uv sync --frozen --dev`; `npm ci`; `.venv/bin/playwright install --with-deps chromium webkit` | Passed in CI |
+| `.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts`; `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf`; `npm run typecheck` | Passed |
+| `npm run test:unit` | Passed: 26 |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed: 572 |
+| `.venv/bin/python scripts/check_postgres.py` | Passed |
+| `.venv/bin/python scripts/check_restore.py` | Passed: exact digests, 36 tables |
+| `npm run build` | Passed |
+| `.venv/bin/pytest -q -m browser tests/test_theme_browser.py` | Passed: 8 |
+| `.venv/bin/pytest -q -m browser tests/test_source_list_browser.py` | Passed: 4 |
+| `.venv/bin/pytest -q -m browser tests/test_mobile_research_browser.py tests/test_dock_browser.py tests/test_wolf_assistant_browser.py` | Passed: 18 |
+| `.venv/bin/pytest -q -m browser` | Passed: 126 |
+| `.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py` | Passed |
+| `.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`; `npm audit --audit-level=moderate` | Passed: no active Bandit findings or known dependency vulnerabilities |
+| `npm run secrets` | Passed, masked findings |
+| `uv lock --check` | Passed locally, no dependency versions changed |
+| `.venv/bin/pytest -q tests/test_version.py` after frozen editable reinstall | Passed locally: 7 |
+| `git diff --check`; `git status --short` | Passed, intended changes only |
+| `PYTHONPATH=. pytest -q` from the separate `archive/legacy/` environment | Passed: 53 |
+| `.venv/bin/python scripts/check_hosted_staging.py --environment staging --commit 29d4d465498feb60972c26b6f570aed5dce40105` | Passed |
+| `.venv/bin/python scripts/check_hosted_staging.py --environment production --commit 55a35648140ffb3d3dead8c2e09a54d55dfc0e63` | Passed |
+| Live-smoke workflow 38966641453 embedded Python HTTPS/version/asset checks | Passed |
+
+No application deployment follows these documentation-only sign-off commits.
+Runtime identities remain staging 29d4d46 / production 55a3564. Larger route/contract
+and base-layout consolidation from the repository review remains follow-up work;
+this release completed the requested appearance and its necessary regressions.

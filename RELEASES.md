@@ -5,7 +5,7 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 ## v0.15.0 — complete silver/glass appearance and light/dark modes
 
-**Live in staging and production; final production hosted acceptance pending.**
+**Live in staging and production; hosted acceptance complete.**
 [PR #39](https://github.com/lupu-spec/Landwolf/pull/39) applies shared silver/glass
 surfaces, rounded outlines, inset fields and readable text throughout the app.
 Appearance offers Auto, Light and Dark, with browser persistence, first-paint
@@ -30,12 +30,21 @@ See [Appearance](app/docs/APPEARANCE.md).
 - [Staging release live smoke](https://github.com/lupu-spec/Landwolf/actions/runs/38965980738)
   passed both then-current environments, HTTPS and supplied branding assets.
 
-This observed production ledger update triggers acceptance against the new exact
-production image. Initial source-push checks with the previous ledger are not
-v0.15.0 acceptance. Automatic deploys remain off; subsequent evidence/doc changes
+[Production hosted acceptance](https://github.com/lupu-spec/Landwolf/actions/runs/38966641513)
+passed exact v0.15.0/55a3564 identity, health, deployed stylesheet hash, both
+appearance modes and reload persistence, Chromium/WebKit phone/desktop
+login/paywall/logout and actual persistent-profile/cache-clear/restart/logout.
+[Final live smoke](https://github.com/lupu-spec/Landwolf/actions/runs/38966641453)
+passed both current environments, HTTPS, supplied branding assets and www.
+Initial source-push checks with the previous ledger are not v0.15.0 acceptance. Automatic deploys remain off; subsequent evidence/doc changes
 do not redeploy the app. No database reset, billing/provider configuration change,
 account grant or payment is part of this presentation release. One disposable
-standard non-cohort staging account is retained under existing smoke filtering.
+standard non-cohort smoke account is retained in each environment under existing
+smoke filtering.
+All three PDF guides and both HTML guides were updated in place with the current
+appearance controls and verified release notes. Earlier screenshots remain
+explicitly labeled reference illustrations. In-app help and the technical change
+guide are updated too.
 Physical iOS keyboard behavior, real payment conversion and email inbox delivery
 are not established by these automated checks.
 
