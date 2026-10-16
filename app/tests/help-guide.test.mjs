@@ -90,6 +90,10 @@ test("role and authentication determine every topic and follow-up", () => {
         );
       }
   assert.equal(answerHelp("export users csv", owner).topics[0].id, "users");
+  assert.equal(
+    answerHelp("source freshness green yellow red", owner).topics[0].id,
+    "coverage",
+  );
   assert.equal(answerHelp("next", customer, "hunt").topics[0].id, "hunt");
 });
 

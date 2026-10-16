@@ -416,7 +416,7 @@ const topics: HelpTopic[] = [
     id: "coverage",
     title: "Inspect data coverage",
     keywords:
-      "coverage sources diagnostics connected feeds refresh status inventory counts source failed connection",
+      "coverage sources diagnostics connected feeds refresh status inventory counts source failed connection health freshness green yellow red last updated timestamp",
     views: ["sources"],
     owner: true,
     steps: [

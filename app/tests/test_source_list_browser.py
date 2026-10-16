@@ -1,6 +1,7 @@
 """Owner-only source disclosures, age boundaries, keyboard use and preserved details."""
 
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -19,7 +20,8 @@ def test_source_list_disclosure_and_live_age(browser_server, engine, width):
         browser = getattr(playwright, engine).launch()
         page = browser.new_page(viewport={"width": width, "height": 950})
         now = int(time.time())
-        page.clock.install(time=now * 1000)
+        page.clock.install(time=datetime.fromtimestamp(now, UTC))
+        assert abs(page.evaluate("Date.now()") / 1000 - now) < 5
 
         def source_response(route):
             response = route.fetch()
@@ -83,6 +85,11 @@ def test_source_list_disclosure_and_live_age(browser_server, engine, width):
         page.screenshot(path=f"test-results/source-list-{engine}-{width}.png", full_page=True)
         page.keyboard.press("Enter")
         expect(rows.nth(0).locator(".source-row-detail")).to_be_hidden()
+        page.add_style_tag(content="html { font-size: 200% !important; }")
+        name_box = rows.nth(0).locator(".source-row-name").bounding_box()
+        assert name_box is not None and name_box["width"] > 40
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.screenshot(path=f"test-results/source-list-zoom-{engine}-{width}.png", full_page=True)
         page.get_by_label("Coverage state", exact=True).select_option("HI")
         # These synthetic sources retain the first real fixture source's state coverage.
         expect(page.locator("#source-cards")).to_contain_text("No sources match these filters.")

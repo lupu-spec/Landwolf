@@ -2959,3 +2959,27 @@ Current guides updated in the repository: README, source docs, owner coverage
 guide, DATA_SOURCE_VIEW, AI_CHANGE_GUIDE, and Romulus/Remus owner coverage help.
 The stored PDF/HTML manual refresh is separate and must not claim this candidate
 is deployed before a live version/commit check.
+
+### Initial hosted candidate: 5551b5e
+
+[Run 38907172062](https://github.com/lupu-spec/Landwolf/actions/runs/38907172062)
+passed static checks, 24 frontend, 572 backend/API, disposable PostgreSQL and
+restore, 18 focused existing browser journeys and 114 existing full browser
+journeys. The four new source-list scenarios failed. Root cause: the Python
+Playwright clock API accepts numeric **seconds** and converts them to milliseconds;
+the test passed milliseconds and moved the browser thousands of years ahead.
+The production source-age implementation correctly rendered the synthetic
+records red. The test now passes an explicit UTC datetime and asserts browser
+clock alignment before checking unchanged green/yellow/red expectations.
+No production threshold or failure assertion was weakened. Packaging/security
+were skipped in that hosted job following the failure; their local passes above
+remain separate evidence. Production and staging were not deployed.
+
+Screenshot review also found that rem-sized columns could starve the source-name
+column at 200% font zoom on narrow phones without causing page-level overflow.
+Mobile columns now reserve 28px for the circle and 40% for the timestamp, leaving
+a usable source-name column; the timestamp is 12px at default scale. A browser
+assertion checks usable name width and overflow at 200% and records a zoom image.
+Owner help keywords now include freshness/colors. The four source-list journeys
+run first in hosted browser validation so a regression is reported promptly;
+all original focused and full suites remain mandatory and unchanged.

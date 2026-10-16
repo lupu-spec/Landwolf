@@ -8,7 +8,7 @@ certification or a claim that every execution path was manually verified.
 ## Scope and evidence
 
 [The inventory](CODE_REVIEW_INVENTORY.json) records 222 code/configuration files,
-42,269 lines: 69 active production files, 75 verification/configuration files,
+42,284 lines: 69 active production files, 75 verification/configuration files,
 and 78 archived files. It includes every tracked/candidate Python, TypeScript,
 JavaScript, HTML, CSS, shell, YAML and Dockerfile, with SHA-256 hashes. Dependency
 contents, generated bundles and binary assets are excluded. Python files were

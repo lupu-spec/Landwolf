@@ -4,8 +4,8 @@
   "files": [
     {
       "path": ".github/workflows/application.yml",
-      "sha256": "642073df52f389b06a592b214b9e704c1e19ceceee6e8acb42a16bdb8637eac1",
-      "lines": 104,
+      "sha256": "ed07e2a7387c6b05af168f84aab1b00743c764eba30621e20d38c5c393c83668",
+      "lines": 105,
       "area": "verification_and_configuration"
     },
     {
@@ -397,8 +397,8 @@
     },
     {
       "path": "app/tests/help-guide.test.mjs",
-      "sha256": "2a3e3ceddc092c795c157a1848253bf3ee7f10a24fce534d86c0e92f167a2d94",
-      "lines": 169,
+      "sha256": "83b8d1f9a2a61603f77e2336ed7887bd817a9c5fa56b6cba2c1826656a14bc45",
+      "lines": 173,
       "area": "verification_and_configuration"
     },
     {
@@ -714,8 +714,8 @@
     },
     {
       "path": "app/tests/test_source_list_browser.py",
-      "sha256": "e01f449816b9e6071bcac65e93bc9b9aacc1eef379f41ad19d789567ed867114",
-      "lines": 89,
+      "sha256": "efe94199b651e1b653140a62252eb2fa0c3a37bffd8e3c78976b174694d828bd",
+      "lines": 96,
       "area": "verification_and_configuration",
       "functions": 2
     },
@@ -860,13 +860,13 @@
     },
     {
       "path": "app/web/graphite.css",
-      "sha256": "e65818149cd3b83758ace2911d16ef87e103045672cc4be273ad026d6b6b32ea",
-      "lines": 222,
+      "sha256": "e0c73cc6ff83d19c7be7231ffd19c3c6f3571ba02fde673a7f6feefa5adbcd80",
+      "lines": 225,
       "area": "production"
     },
     {
       "path": "app/web/help-guide.ts",
-      "sha256": "b647184977987063368ae987bffdb1b17dfb57974e5ab8cb64b85c583162a842",
+      "sha256": "515912a30cea49ded1749e0d550755a3ad77648d619af833da52678a8f1d8e40",
       "lines": 575,
       "area": "production"
     },
