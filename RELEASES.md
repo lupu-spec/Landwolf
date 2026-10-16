@@ -5,7 +5,7 @@ Check each site's `/api/version` for the running version and immutable commit.
 
 ## v0.14.0 — graphite source diagnostics live (October 16, 2026)
 
-**Live in staging and production; final production hosted checks in progress at this checkpoint.**
+**Live in staging and production; hosted acceptance complete.**
 [PR #38](https://github.com/lupu-spec/Landwolf/pull/38) adds a compact expandable
 source-name / health / last-updated list, exact 24/36-hour age boundaries,
 graphite/silver styling and focused frontend module extractions. Source data,
@@ -31,6 +31,17 @@ accounts, schema, payment/trial runtime and research behavior are retained.
   fallback image. This ledger update triggers final checks against the new
   production identity above. Production owner controls are tested in isolated CI;
   hosted customer checks do not impersonate the owner or create a payment.
+
+[Production acceptance](https://github.com/lupu-spec/Landwolf/actions/runs/38915826912)
+passed exact v0.14.0/3679070 identity, health, deployed stylesheet hash/computed
+theme, production billing/email configuration, Chromium/WebKit phone/desktop
+login/paywall/logout and actual browser-profile persistence/cache-clear checks.
+[Final live smoke](https://github.com/lupu-spec/Landwolf/actions/runs/38915826834)
+passed both current environments, HTTPS, branding assets and www redirect.
+The three current PDF guides and two HTML guides were updated in place with
+verified release notes; earlier screenshots remain labeled reference illustrations.
+One disposable non-cohort production smoke account is retained; no checkout,
+subscription, charge, owner grant or billing configuration change was created.
 
 Automatic deploys remain off. This ledger/verification-script update is not a
 new application deployment. The existing source tree and database remain in use.

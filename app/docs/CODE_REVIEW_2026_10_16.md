@@ -1,7 +1,7 @@
 # LandWolf repository review — October 16, 2026
 
 Baseline: `34649586357702f12ed0d183392faff896658476` (main, v0.13.1).
-Release: v0.14.0 (staging and production images live; see RELEASES.md). This is a repository-wide structural/static review plus
+Release: v0.14.0, verified in staging and production (see RELEASES.md). This is a repository-wide structural/static review plus
 risk-focused manual inspection and regression testing; it is not a security
 certification or a claim that every execution path was manually verified.
 
@@ -98,3 +98,12 @@ Hosted staging acceptance passed exact release identity, deployed stylesheet
 hash/computed theme, customer research and login-persistence journeys; production
 hosted checks follow this ledger update. Runtime business logic and schema were
 not changed by these subsequent documentation/verification-script commits.
+
+### Final sign-off
+
+Hosted production acceptance 38915826912 and live smoke 38915826834 passed.
+The corrected environment ledger identifies the observed immutable images.
+All current PDF/HTML guides were updated in place and visually/textually checked.
+The code review and bounded feature extractions are complete; the larger route,
+contract and CSS consolidation opportunities in the findings remain recommended
+follow-up work. This review makes no claim of a line-by-line manual security audit.

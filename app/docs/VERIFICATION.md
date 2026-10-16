@@ -3029,3 +3029,39 @@ dep-db935gajnfac739mv6s0 is **live** at 2026-10-16 14:21:53 UTC. Final hosted
 production acceptance is triggered by this observed ledger update and remains
 pending until that workflow completes. Auto-deploys remain off; no database
 reset, account grant, Stripe configuration edit, subscription or payment was made.
+
+### Final production acceptance and documentation - Passed
+
+[Hosted production run 38915826912](https://github.com/lupu-spec/Landwolf/actions/runs/38915826912),
+job 117022905156, completed successfully. The current `scripts/check_hosted_staging.py`
+with `--environment production --commit 3679070c575591873d556bab8504c7d55b5635d7`
+verified exact version/commit/health, production billing and email modes, deployed
+graphite stylesheet SHA-256 and computed CSS, anonymous API protection, four real
+Chromium/WebKit 390/1440px login/paywall/logout journeys, private source/finance
+boundaries, secure persistent cookies, cache-only clearing, actual browser-profile
+restart and logout. It made no payment or account grant. One disposable standard
+production smoke account is retained and follows existing smoke-account filtering.
+
+Live smoke run 38915826834 passed exact identities in staging and production,
+HTTPS, supplied-logo and fallback-image digests, and www redirection. Subsequent
+release-log commits are documentation/verification evidence; automatic deployment
+is off and runtime commits remain staging 612b737 / production 3679070.
+
+Three current PDF manuals and two current HTML manuals were replaced successfully
+while preserving their identities/version histories. PDF updates were rendered
+and visually reviewed with embedded fonts; all original reference-page text was
+checked unchanged behind the two current update pages. HTML image sources and
+original scripts were checked unchanged. Current instructions cover the graphite
+interface, source disclosures, exact age boundaries, local timestamps, loaded-
+status refresh behavior, owner restriction and current self-service trial terms.
+In-app help and repository guides are updated too.
+
+Remaining limits: physical OS keyboards and real payment conversion/email-inbox
+delivery were not exercised. Owner diagnostic interactions ran in isolated CI;
+production customer checks verify the owner boundary without impersonating an
+owner. No production data-source refresh or provider parser change was requested
+or performed. The independent local cloud browser could not reach LandWolf;
+GitHub-hosted HTTPS/browser checks supplied the successful live verification.
+The configured runtime/security gates passed on the candidate whose full Git tree
+exactly equals the production application image. Later documentation-only pushes
+can start redundant automatic CI checks; they do not constitute new deployments.
