@@ -3135,3 +3135,11 @@ its outer section had no shared surface class (its inner plans were themed).
 Applied the same `source-panel` container used by Research/Hunt/Feedback, keeping
 the all-feature glass-surface assertion intact. This is a presentation change
 only; payment controls and runtime decisions are unchanged.
+
+Run 38959882690 passed all eight appearance journeys (81.60s), four source-list
+journeys including 200% text zoom (19.57s), and 14 of 18 existing focused journeys.
+Four mobile Research cases caught a real regression: the shared appearance
+`font: inherit` rule overrode the established 16px decision-input safeguard with
+its label's 14.4px size. Removed only that cosmetic font reset; the original
+layout/mobile font rules and their 16px assertions are retained. Full browser,
+package/security and deployment gates remain pending for the corrected source.
