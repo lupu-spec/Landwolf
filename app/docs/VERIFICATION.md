@@ -3152,3 +3152,65 @@ layout from a resize callback. Both updates now coalesce into the next animation
 frame. Added real repeated phone/tablet/desktop boundary resizing to the dock
 journey and retained the zero-page-error assertions. No errors are suppressed or
 filtered. Required gates are being rerun on the corrected source before release.
+
+On corrected source 29d4d465498feb60972c26b6f570aed5dce40105, the local production
+package build/check, Bandit, pip-audit, npm audit, masked secret scan and diff/status
+checks all completed successfully again. No known dependency vulnerabilities or
+active Bandit findings were reported. Hosted focused results observed in the
+current run: 8 appearance cases (95.96s), 4 source-list cases (24.45s), and all 18
+mobile/dock/chat cases including repeated boundary resizing (138.17s) passed.
+Full 126-case browser and final hosted release gates remain pending at this note.
+
+### Corrected v0.15.0 candidate — Passed
+
+[CI run 38963112491](https://github.com/lupu-spec/Landwolf/actions/runs/38963112491),
+job 117182843740, completed successfully on immutable source
+`29d4d465498feb60972c26b6f570aed5dce40105`, Git tree
+`770b1ae8c75c7488d6641dc6b017558413378b0c`. Every configured gate completed:
+format/lint/types, 26 frontend unit cases, 572 backend/API cases, PostgreSQL
+integration and exact pg_dump/restore digests over 36 tables, 8 focused appearance
+cases, 4 source-list cases, 18 existing mobile/dock/chat cases, and the full 126
+browser cases (819.19s). Wheel/sdist validation, Bandit, pip-audit, npm audit,
+masked secret scanning and diff integrity passed too. Legacy run 38963112547
+passed 53 tests separately. No test, assertion, suite or error filter was removed
+to obtain the pass. The root command table above applies to these exact gates;
+the hosted CI installs the frozen environments and real Chromium/WebKit engines.
+
+Staging deployment dep-db98ukmq1p3s739krerg was triggered for that exact commit;
+only an observed live deployment and its subsequent hosted checks establish
+release acceptance. The earlier failures are retained as resolved evidence.
+
+### Observed v0.15.0 staging deployment — Live, acceptance pending
+
+Render `dep-db98ukmq1p3s739krerg` finished live at 2026-10-16 20:56:57 UTC with
+exact commit 29d4d465498feb60972c26b6f570aed5dce40105. This evidence update records
+that immutable runtime in the Current environments table and triggers the hosted
+acceptance checker against it. The initial source push carried the previous
+runtime ledger; only the corrected ledger's acceptance run establishes v0.15.0.
+Production is still the existing v0.14.0 image at this checkpoint.
+
+### Hosted v0.15.0 staging acceptance — Passed
+
+[Hosted staging run 38965980741](https://github.com/lupu-spec/Landwolf/actions/runs/38965980741),
+job 117192446069, passed exact version/commit/health, deployed stylesheet hash,
+Light/Dark selection and reload persistence, Chromium/WebKit 390/1440px customer
+journeys, actual mapped inventory independent of list pagination, live public
+research, CSRF rejection, private owner boundaries and real browser-profile
+persistence/cache-clear/restart/logout. Live smoke 38965980738 passed current
+staging/production identities, HTTPS and branding assets. One disposable standard
+non-cohort staging account is retained under existing smoke-account filtering.
+
+PR #39 was squash-merged as 55a35648140ffb3d3dead8c2e09a54d55dfc0e63. Native Git
+object lookup proved its complete source tree exactly equals tested candidate
+29d4d46: 770b1ae8c75c7488d6641dc6b017558413378b0c. Production deployment
+`dep-db990vrbc2fs73eqpo2g` was triggered with that exact merge commit. An observed
+live result and production hosted acceptance are still required at this checkpoint.
+
+### Observed v0.15.0 production deployment — Live, acceptance pending
+
+Render `dep-db990vrbc2fs73eqpo2g` finished **live** at 2026-10-16 21:02:02 UTC
+with exact squash commit `55a35648140ffb3d3dead8c2e09a54d55dfc0e63`. Its full
+Git tree equals the tested/staging tree above. This corrected ledger triggers
+production hosted checks using that exact immutable identity. Both service
+branches retain auto-deploy off; publishing this evidence does not deploy a new
+image. Existing databases, accounts and billing configuration remain in place.

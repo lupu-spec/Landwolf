@@ -36,3 +36,15 @@ The appearance journeys exercise both modes across all primary workspaces in
 Chromium/WebKit at phone, tablet and desktop widths, first paint before app
 startup, persistence, device changes, cross-tab clearing, print, and unavailable
 or malformed storage. Review their screenshots as well as assertions.
+
+Keep these compatibility constraints when changing the finish:
+
+- Preserve the established 16px mobile Research/decision inputs. Do not apply a
+  shared `font: inherit` reset over their mobile font rules.
+- The fixed phone dock lives inside the header: a filter, backdrop filter or
+  transform on that ancestor can change its containing block. Keep the glass
+  effect on the dock itself and allow account/appearance controls to wrap at
+  large text sizes.
+- Resize observers must schedule dock/map layout writes in an animation frame,
+  coalescing repeated notifications. Keep the zero-browser-error, rotation,
+  keyboard and 200% text-size checks; do not filter resize-loop errors.
