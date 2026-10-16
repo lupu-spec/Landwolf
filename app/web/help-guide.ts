@@ -36,6 +36,29 @@ export const MAX_QUESTION = 600;
 export const SUPPORT_EMAIL = "support.landwolf@gmail.com";
 const topics: HelpTopic[] = [
   {
+    id: "appearance",
+    title: "Light and dark appearance",
+    keywords:
+      "appearance theme dark light mode auto system silver glass colors contrast",
+    views: [
+      "auth",
+      "explore",
+      "research",
+      "hunt",
+      "sources",
+      "account",
+      "billing",
+      "feedback",
+      "property",
+    ],
+    steps: [
+      "Use Appearance in the header to choose Light, Dark or Auto.",
+      "Auto follows your device’s light or dark setting, including changes while LandWolf is open.",
+      "Your choice is saved in this browser and applies to forms, cards, research, the dock and chat.",
+    ],
+    tip: "Appearance does not change your account or research. If browser storage is blocked, your choice lasts for the current page. Print packets use a light background.",
+  },
+  {
     id: "start",
     title: "Get started",
     keywords:

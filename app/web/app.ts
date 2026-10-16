@@ -1,4 +1,5 @@
 import { sourceLink } from "./source-links";
+import { setupAppearance } from "./theme";
 import { setupCoverage, type CoverageReport } from "./coverage";
 import type { Source } from "./source-list";
 import { byId, element } from "./dom";
@@ -252,6 +253,7 @@ const coverage = setupCoverage(
   },
   () => Boolean(csrf && isOwner && currentView === "sources"),
 );
+setupAppearance();
 setupNavigationDock();
 setupMobileKeyboard();
 const assistant = setupWolfAssistant({

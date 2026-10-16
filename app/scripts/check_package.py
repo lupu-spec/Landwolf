@@ -20,6 +20,7 @@ with ZipFile(wheels[-1]) as wheel:
         "landwolf/static/assets/app.js",
         "landwolf/static/assets/styles.css",
         "landwolf/static/assets/graphite.css",
+        "landwolf/static/assets/theme-init.js",
         "landwolf/static/assets/leaflet.css",
         "landwolf/static/assets/landwolf-logo.jpg",
         "landwolf/static/assets/romulus.svg",
@@ -42,6 +43,11 @@ with open_tar(sdists[-1], "r:gz") as archive:
         "web/coverage.ts",
         "web/dom.ts",
         "web/graphite.css",
+        "web/theme.ts",
+        "web/theme-init.ts",
+        "web/theme-preference.ts",
+        "tests/theme-preference.test.mjs",
+        "tests/test_theme_browser.py",
         "tests/source-health.test.mjs",
     }
     if required_sources - sources:

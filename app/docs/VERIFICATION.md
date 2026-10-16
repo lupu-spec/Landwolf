@@ -3065,3 +3065,36 @@ GitHub-hosted HTTPS/browser checks supplied the successful live verification.
 The configured runtime/security gates passed on the candidate whose full Git tree
 exactly equals the production application image. Later documentation-only pushes
 can start redundant automatic CI checks; they do not constitute new deployments.
+
+## v0.15.0 complete appearance — candidate verification
+
+Changes: shared light/dark silver/glass tokens across feature surfaces and inputs,
+header Auto/Light/Dark selection, browser persistence, pre-paint external bundle,
+system/cross-tab updates, print colors, in-app help and appearance documentation.
+No provider, account, billing, research calculation or schema runtime was changed.
+
+Commands run from `app/` in the existing locked Python/Node environments:
+
+| Command | Result |
+| --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts` | Passed: 95 files |
+| `npm run format` then `npm run format:check` | Passed; formatter diff reviewed |
+| `.venv/bin/ruff check landwolf tests scripts` and `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf` and `npm run typecheck` | Passed |
+| `npm run test:unit` | Passed: 26 tests |
+| `uv lock --check` | Passed; only own release metadata changed, no dependencies added |
+| `npm run build` | Passed, including the new blocking theme bundle |
+| `.venv/bin/python -m build` and `.venv/bin/python scripts/check_package.py` | Passed: wheel/sdist and required appearance assets/tests |
+| `.venv/bin/bandit -r landwolf` | Passed: no active-runtime findings |
+| `.venv/bin/pip-audit --local --skip-editable` and `npm audit --audit-level=moderate` | Passed: no known vulnerabilities |
+| `npm run secrets` | Passed: masked scan |
+| `git diff --check` and `git status --short` | Passed; intended changes only |
+| `.venv/bin/pytest -q -m browser tests/test_theme_browser.py -x` | Failed locally: missing Chromium executable, before any UI assertion |
+| `.venv/bin/playwright install chromium webkit` | Failed: browser archive download/extraction failure |
+
+Full API tests are running. Required real-browser, PostgreSQL and restore gates
+remain pending in hosted CI; local browser unavailability is not a pass. The
+new focused appearance suite runs before all existing browser suites, followed
+by the full browser suite. Nothing is deployed until those gates and staging
+acceptance succeed. Early command path errors were corrected; they made no code
+or dependency changes. Later release evidence will record actual outcomes.
