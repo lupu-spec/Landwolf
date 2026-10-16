@@ -19,6 +19,7 @@ with ZipFile(wheels[-1]) as wheel:
         "landwolf/static/index.html",
         "landwolf/static/assets/app.js",
         "landwolf/static/assets/styles.css",
+        "landwolf/static/assets/graphite.css",
         "landwolf/static/assets/leaflet.css",
         "landwolf/static/assets/landwolf-logo.jpg",
         "landwolf/static/assets/romulus.svg",
@@ -33,7 +34,16 @@ if not sdists:
     raise SystemExit("No source archive found; run the production build")
 with open_tar(sdists[-1], "r:gz") as archive:
     sources = {name.partition("/")[2] for name in archive.getnames()}
-    required_sources = {"web/property-context.ts", "tests/property-context.test.mjs"}
+    required_sources = {
+        "web/property-context.ts",
+        "tests/property-context.test.mjs",
+        "web/source-health.ts",
+        "web/source-list.ts",
+        "web/coverage.ts",
+        "web/dom.ts",
+        "web/graphite.css",
+        "tests/source-health.test.mjs",
+    }
     if required_sources - sources:
         raise SystemExit("Source archive missing scenario helpers or frontend tests")
 print("Passed: wheel contains runtime/branding assets; source archive contains frontend tests")

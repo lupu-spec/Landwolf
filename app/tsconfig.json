@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["web/app.ts"]
+  "include": ["web/*.ts"]
 }

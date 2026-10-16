@@ -70,3 +70,10 @@ on October 1. Those auction entries must not be promoted as currently open sales
 The generic listing JSON schema remains in existing `lw2_` tables; no account reset,
 schema replacement, legacy database edit, billing integration or paid resource
 addition is required for this expansion.
+
+## Inspect freshness in the app
+
+The owner-only Data coverage tab uses a compact three-column disclosure list.
+See [Data source view](DATA_SOURCE_VIEW.md) for colors, timestamps and expanded
+refresh details. Import freshness is separate from publisher freshness and from
+the existing six-hour backend stale/availability diagnostics.

@@ -2902,3 +2902,60 @@ and research calculations passed. Production uses a non-entitled smoke account;
 no actual card charge was tested. Physical-device testing was not run.
 The independent disposable source check returned Arkansas COSL HTTP 500; seven
 other feeds were ready. Source code/production snapshots were not altered.
+
+## v0.14.0 candidate - October 16, 2026
+
+Current working tree based on main `34649586357702f12ed0d183392faff896658476`.
+No new staging/production deployment is claimed.
+
+| Command (from app/) | Result | Evidence / limitation |
+| --- | --- | --- |
+| `uv lock --check` | **Passed** | Exit 0 |
+| `uv sync --frozen --dev` | **Passed** | Exit 0 |
+| `npm ci` | **Passed** | Exit 0 |
+| `.venv/bin/ruff format --check landwolf tests scripts` | **Passed** | Exit 0 |
+| `npm run format:check` | **Passed** | Exit 0 |
+| `.venv/bin/ruff check landwolf tests scripts` | **Passed** | Exit 0 |
+| `npm run lint` | **Passed** | Exit 0 |
+| `.venv/bin/mypy landwolf` | **Passed** | Exit 0 |
+| `npm run typecheck` | **Passed** | Exit 0 |
+| `npm run test:unit` | **Passed** | Exit 0; 24 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | **Passed** | Exit 0; 572 passed, 118 browser cases deselected |
+| `.venv/bin/python scripts/check_postgres.py` | **Failed** | Exit 1; disposable landwolf_ci database is not configured locally |
+| `.venv/bin/python scripts/check_restore.py` | **Failed** | Exit 1; disposable GitHub PostgreSQL container unavailable |
+| `npm run build` | **Passed** | Exit 0 |
+| `.venv/bin/pytest -q -m browser tests/test_source_list_browser.py --maxfail=1` | **Failed** | Exit 1; Chromium executable absent after failed browser download; no UI behavior assertion ran |
+| `.venv/bin/python -m build` | **Passed** | Exit 0 |
+| `.venv/bin/python scripts/check_package.py` | **Passed** | Exit 0 |
+| `.venv/bin/bandit -r landwolf` | **Passed** | Exit 0 |
+| `.venv/bin/pip-audit --local --skip-editable` | **Passed** | Exit 0 |
+| `npm audit --audit-level=moderate` | **Passed** | Exit 0 |
+| `npm run secrets` | **Passed** | Exit 0 |
+| `git diff --check` | **Passed** | Exit 0 |
+| `git status --short` | **Passed** | Exit 0 |
+
+Additional verification: `PYTHONPATH=. /tmp/landwolf-legacy-venv/bin/pytest -q`
+from `archive/legacy/`: **Passed**, 53 tests, isolated requirements environment.
+`.venv/bin/python -m compileall -q landwolf ../archive/legacy/app ../archive/legacy/scripts`:
+**Passed**. Active Bandit JSON scan: **Passed**, zero issues. Archived Bandit scan:
+**Failed** with one low-severity B105 result; reviewed as a placeholder-rejection
+comparison, not a deployed credential. `git push -u origin codex/source-health-redesign`:
+**Failed**, local Git has no GitHub credential; connector publication is used instead.
+
+`.venv/bin/playwright install chromium webkit`: **Failed**, browser archive was
+invalid/truncated. The focused source-list browser command failed at launch.
+Full browser suite, disposable PostgreSQL and restore: **Not run to completion**
+locally; hosted CI must pass them before any deployment. No tests were skipped or
+weakened to ship this change. The first `npm run format` from repository root
+failed because package.json is in app/; rerun there passed.
+
+After the final code refactor: formatting, ESLint, Ruff, mypy, all frontend
+TypeScript files, frontend/backend unit suites, browser build, wheel/sdist and
+package-content checks completed as listed. Runtime/dependency version is 0.14.0.
+Python/npm audits and the configured masked secret scan returned zero findings.
+Known test-tool warnings concern deprecated Starlette/httpx test-client APIs.
+
+Current guides updated in the repository: README, source docs, owner coverage
+guide, DATA_SOURCE_VIEW, AI_CHANGE_GUIDE, and Romulus/Remus owner coverage help.
+The stored PDF/HTML manual refresh is separate and must not claim this candidate
+is deployed before a live version/commit check.

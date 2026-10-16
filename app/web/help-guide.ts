@@ -421,10 +421,10 @@ const topics: HelpTopic[] = [
     owner: true,
     steps: [
       "Open Data coverage with the configured owner account.",
-      "Inspect source status, last successful refresh and the available state/category information.",
+      "Read the source name, health circle and last updated time; select a source to expand its details.",
       "Use the original publisher links to confirm availability and sale terms.",
     ],
-    tip: "Diagnostics are owner-only. Customer searches and Hunts still use connected inventory. A healthy source is not proof of complete nationwide inventory or verified property facts.",
+    tip: "Diagnostics are owner-only. Green means a successful import within 24 hours; yellow means over 24 but under 36 hours; red means 36 hours or more, or no successful import. Gray means directory only. Expand a row for failures, history and coverage. These colors do not verify publisher freshness or property facts.",
   },
   {
     id: "support",

@@ -12,6 +12,7 @@ await build({
 });
 await copyFile("web/index.html", `${output}/index.html`);
 await copyFile("web/styles.css", `${output}/assets/styles.css`);
+await copyFile("web/graphite.css", `${output}/assets/graphite.css`);
 await copyFile("web/favicon.svg", `${output}/favicon.svg`);
 await copyFile(
   "node_modules/leaflet/dist/leaflet.css",
