@@ -3106,3 +3106,13 @@ this checkout; `pytest -q tests/test_version.py` then passed all 7 tests. No
 dependency version or test assertion was changed. Hosted CI installs the same
 frozen environment from scratch. Print semantic colors were also reviewed for
 dark-mode printing, and appearance tests require normal-text input contrast.
+
+Hosted run 38958375508 passed static/types, all 26/572 unit/API tests,
+PostgreSQL and exact restore checks. Its first appearance suite stopped at an
+ambiguous test locator: both the dock Feedback button and a hidden pilot button
+share `data-nav="feedback"`. Scoped the new test to `#main-nav`; no runtime
+change or assertion was removed. Both invalid/blocked-storage cases passed.
+The identical locator in the concurrent follow-up run is superseded by this fix.
+The final local full API run passed 572 tests; the legacy suite passed 53 with
+its required `PYTHONPATH=.` from `archive/legacy/`. Earlier legacy invocations
+from the wrong working directory/import path failed and are not counted as passes.

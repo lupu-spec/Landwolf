@@ -93,10 +93,10 @@ def test_appearance_across_feature_surfaces(browser_server, engine, width):
                 ("crm", "#crm-panel"),
                 ("finance", ".finance-card"),
             ):
-                page.locator(f'[data-nav="{route}"]').click()
+                page.locator(f'#main-nav [data-nav="{route}"]').click()
                 assert_surface(page, panel, mode)
                 page.screenshot(path=str(output / f"theme-{route}-{mode}-{engine}-{width}.png"))
-            page.locator('[data-nav="explore"]').click()
+            page.locator('#main-nav [data-nav="explore"]').click()
             page.locator("#wolf-chat-launcher").click()
             assert_surface(page, "#wolf-chat-panel", mode)
             page.screenshot(path=str(output / f"theme-chat-{mode}-{engine}-{width}.png"))
