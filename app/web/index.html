@@ -11,6 +11,8 @@
       content="LandWolf property intelligence across all 50 states, official sale inventories, and transparent deal scenarios."
     />
     <title>LandWolf — Property Intelligence</title>
+    <meta name="theme-color" content="#e8e9ee" />
+    <script src="/assets/theme-init.js"></script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/assets/leaflet.css" />
     <link rel="stylesheet" href="/assets/styles.css" />
@@ -238,6 +240,22 @@
         </button>
       </div>
       <div class="account-tools">
+        <label class="theme-control">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="8" />
+            <path
+              d="M12 4v16a8 8 0 0 0 0-16Z"
+              fill="currentColor"
+              stroke="none"
+            />
+          </svg>
+          <span class="sr-only">Appearance</span>
+          <select id="appearance" aria-label="Appearance">
+            <option value="system">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
         <button id="signout" class="button quiet small" hidden>Sign out</button>
       </div>
     </header>
@@ -526,7 +544,12 @@
             Review feedback pilot
           </button>
         </aside>
-        <section id="billing-panel" hidden aria-label="Membership and billing">
+        <section
+          id="billing-panel"
+          class="source-panel"
+          hidden
+          aria-label="Membership and billing"
+        >
           <div id="billing-content"></div>
         </section>
         <section

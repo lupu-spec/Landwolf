@@ -3,6 +3,16 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.15.0 — complete silver/glass appearance and light/dark modes
+
+**Candidate; not yet deployed.** This corrects the mixed white-card/dark-background
+presentation in v0.14.0. Every main feature consumes shared light/dark surface,
+border, control and text tokens. Appearance in the header offers Auto, Light and
+Dark, with browser persistence, first-paint setup, live system changes and cross-tab
+updates. Account/billing/research/data behavior, logo and source-age rules remain.
+See [Appearance](app/docs/APPEARANCE.md). Existing environment rows below continue
+to describe observed v0.14.0 images until the next deployment is verified.
+
 ## v0.14.0 — graphite source diagnostics live (October 16, 2026)
 
 **Live in staging and production; hosted acceptance complete.**

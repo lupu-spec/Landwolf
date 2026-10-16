@@ -3,6 +3,14 @@ import { copyFile, cp, mkdir } from "node:fs/promises";
 const output = "landwolf/static";
 await mkdir(`${output}/assets`, { recursive: true });
 await build({
+  entryPoints: ["web/theme-init.ts"],
+  bundle: true,
+  format: "iife",
+  target: "es2022",
+  outfile: `${output}/assets/theme-init.js`,
+  minify: true,
+});
+await build({
   entryPoints: ["web/app.ts"],
   bundle: true,
   format: "esm",

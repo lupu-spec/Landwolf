@@ -1,7 +1,9 @@
 # LandWolf application
 
 A separate rebuild of LandWolf with the original wordmark, wolf logo, graphite/silver
-palette, and rural photography. Fresh email/password accounts unlock source-backed
+palette, and rural photography. Choose Auto, Light or Dark from Appearance in the
+header. Frosted cards, controls, dock and chat follow the same mode; the choice
+is saved on this browser. See [Appearance](docs/APPEARANCE.md). Fresh email/password accounts unlock source-backed
 property search, map/list browsing, public-record research, and reproducible deal analysis.
 Paid production access uses live Stripe subscriptions at $29/month or $299/year.
 The owner, explicit complimentary grants, and accepted eligible investor pilots

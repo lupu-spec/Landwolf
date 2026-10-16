@@ -27,6 +27,7 @@ test("natural-language app questions retrieve the reviewed task, without fabrica
     ["Why are there no results?", "empty"],
     ["How can I run a deal scenario?", "scenario"],
     ["How do I stay signed in?", "session"],
+    ["How do I change dark mode?", "appearance"],
   ];
   for (const [question, id] of cases) {
     const result = answerHelp(question, customer);

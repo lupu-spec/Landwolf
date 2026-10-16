@@ -13,7 +13,7 @@ service/database and `staging` branch. A branch push alone is not deployment.
 | Source disclosures and timestamps | `web/source-list.ts` | `tests/test_source_list_browser.py` |
 | Coverage filters/state/county view | `web/coverage.ts` | Source-list, trust and nationwide browser journeys |
 | DOM and displayed source links | `web/dom.ts`, `web/source-links.ts` | UI types, source-list and existing browser suites |
-| Shared graphite appearance | `web/graphite.css` | Phone/tablet/desktop Chromium and WebKit, zoom, print |
+| Shared light/dark appearance | `web/graphite.css`, `web/theme*.ts`; see `APPEARANCE.md` | Phone/tablet/desktop Chromium and WebKit, zoom, print |
 | Base layouts and feature-specific UI | `web/styles.css`, individual feature modules | Existing corresponding browser tests |
 | Sessions and recovery | `landwolf/auth.py`, `recovery.py`, `crm_access.py` | Security, session and recovery API/browser tests |
 | Payments and trials | `landwolf/billing.py`, `trials.py`, `feedback.py` | Live/test isolation, consent, notice, cancellation and idempotency tests |

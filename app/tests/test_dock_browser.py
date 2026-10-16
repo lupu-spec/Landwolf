@@ -50,6 +50,14 @@ def test_glass_dock_navigation(browser_server, engine_name, width):
         shell = page.locator(".navigation-dock")
         expect(shell).to_have_attribute("data-overflow", "true")
         expect(page.locator("#coverage-nav")).to_be_visible()
+        if width == 834:
+            # Rotation, split-screen and header wrapping must not write layout
+            # inside ResizeObserver delivery or leave the dock in a resize loop.
+            for resized_width in (640, 834, 1000, 1194, 639, 834) * 2:
+                page.set_viewport_size({"width": resized_width, "height": 950})
+                page.evaluate("""() => new Promise(resolve => {
+                    requestAnimationFrame(() => requestAnimationFrame(resolve));
+                })""")
         for item in page.locator("#main-nav button").all():
             assert item.get_attribute("aria-label")
             assert item.locator("svg[aria-hidden='true']").count() == 1

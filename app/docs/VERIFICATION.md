@@ -3065,3 +3065,90 @@ GitHub-hosted HTTPS/browser checks supplied the successful live verification.
 The configured runtime/security gates passed on the candidate whose full Git tree
 exactly equals the production application image. Later documentation-only pushes
 can start redundant automatic CI checks; they do not constitute new deployments.
+
+## v0.15.0 complete appearance — candidate verification
+
+Changes: shared light/dark silver/glass tokens across feature surfaces and inputs,
+header Auto/Light/Dark selection, browser persistence, pre-paint external bundle,
+system/cross-tab updates, print colors, in-app help and appearance documentation.
+No provider, account, billing, research calculation or schema runtime was changed.
+
+Commands run from `app/` in the existing locked Python/Node environments:
+
+| Command | Result |
+| --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts` | Passed: 95 files |
+| `npm run format` then `npm run format:check` | Passed; formatter diff reviewed |
+| `.venv/bin/ruff check landwolf tests scripts` and `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf` and `npm run typecheck` | Passed |
+| `npm run test:unit` | Passed: 26 tests |
+| `uv lock --check` | Passed; only own release metadata changed, no dependencies added |
+| `npm run build` | Passed, including the new blocking theme bundle |
+| `.venv/bin/python -m build` and `.venv/bin/python scripts/check_package.py` | Passed: wheel/sdist and required appearance assets/tests |
+| `.venv/bin/bandit -r landwolf` | Passed: no active-runtime findings |
+| `.venv/bin/pip-audit --local --skip-editable` and `npm audit --audit-level=moderate` | Passed: no known vulnerabilities |
+| `npm run secrets` | Passed: masked scan |
+| `git diff --check` and `git status --short` | Passed; intended changes only |
+| `.venv/bin/pytest -q -m browser tests/test_theme_browser.py -x` | Failed locally: missing Chromium executable, before any UI assertion |
+| `.venv/bin/playwright install chromium webkit` | Failed: browser archive download/extraction failure |
+
+Full API tests are running. Required real-browser, PostgreSQL and restore gates
+remain pending in hosted CI; local browser unavailability is not a pass. The
+new focused appearance suite runs before all existing browser suites, followed
+by the full browser suite. Nothing is deployed until those gates and staging
+acceptance succeed. Early command path errors were corrected; they made no code
+or dependency changes. Later release evidence will record actual outcomes.
+
+Local API run completed with 571 passed and one release-metadata mismatch:
+`test_distribution_versions_match_runtime` found the pre-existing editable install
+still at v0.14.0. `uv sync --frozen --dev` reinstalled only LandWolf v0.15.0 from
+this checkout; `pytest -q tests/test_version.py` then passed all 7 tests. No
+dependency version or test assertion was changed. Hosted CI installs the same
+frozen environment from scratch. Print semantic colors were also reviewed for
+dark-mode printing, and appearance tests require normal-text input contrast.
+
+Hosted run 38958375508 passed static/types, all 26/572 unit/API tests,
+PostgreSQL and exact restore checks. Its first appearance suite stopped at an
+ambiguous test locator: both the dock Feedback button and a hidden pilot button
+share `data-nav="feedback"`. Scoped the new test to `#main-nav`; no runtime
+change or assertion was removed. Both invalid/blocked-storage cases passed.
+The identical locator in the concurrent follow-up run is superseded by this fix.
+The final local full API run passed 572 tests; the legacy suite passed 53 with
+its required `PYTHONPATH=.` from `archive/legacy/`. Earlier legacy invocations
+from the wrong working directory/import path failed and are not counted as passes.
+
+Visual review of the first hosted artifacts caught a real CSS regression: the new
+header `backdrop-filter` created a containing block for the fixed mobile dock,
+placing it at the header instead of the viewport bottom. Removed that header
+filter (the dock and cards retain their own glass surfaces), added an explicit
+mobile dock position assertion, and normalized native select painting/chevrons
+for WebKit. The focused heading keeps programmatic focus for screen readers
+without a decorative ring around the heading. Current screenshots also show the
+original mixed white cards have been replaced by graphite feature surfaces.
+
+The mobile header may wrap at large text sizes so the new Appearance selector
+and Sign out remain reachable at 200% font zoom. This preserves the existing
+source-list zoom/no-horizontal-overflow regression rather than hiding controls.
+
+The corrected navigation journey in run 38959025903 reached Membership and found
+its outer section had no shared surface class (its inner plans were themed).
+Applied the same `source-panel` container used by Research/Hunt/Feedback, keeping
+the all-feature glass-surface assertion intact. This is a presentation change
+only; payment controls and runtime decisions are unchanged.
+
+Run 38959882690 passed all eight appearance journeys (81.60s), four source-list
+journeys including 200% text zoom (19.57s), and 14 of 18 existing focused journeys.
+Four mobile Research cases caught a real regression: the shared appearance
+`font: inherit` rule overrode the established 16px decision-input safeguard with
+its label's 14.4px size. Removed only that cosmetic font reset; the original
+layout/mobile font rules and their 16px assertions are retained. Full browser,
+package/security and deployment gates remain pending for the corrected source.
+
+Full candidate run 38961099914 passed 125 of 126 browser cases but failed the
+834px WebKit twin-guide journey on an unhandled `ResizeObserver loop completed
+with undelivered notifications` error. Existing dock resize callbacks wrote
+arrow visibility/layout during resize delivery; map invalidation also mutated
+layout from a resize callback. Both updates now coalesce into the next animation
+frame. Added real repeated phone/tablet/desktop boundary resizing to the dock
+journey and retained the zero-page-error assertions. No errors are suppressed or
+filtered. Required gates are being rerun on the corrected source before release.

@@ -238,7 +238,7 @@ svg {
   background: #154a74;
 }
 .button.secondary {
-  background: white;
+  background: var(--surface);
   border-color: var(--line);
   color: var(--ink);
 }
@@ -272,7 +272,7 @@ svg {
   border: 1px solid var(--line);
   border-radius: 50%;
   font-size: 1.4rem;
-  background: white;
+  background: var(--surface);
   display: grid;
   place-items: center;
 }
@@ -291,7 +291,7 @@ svg {
   top: -60px;
   left: 15px;
   z-index: 1000;
-  background: #fff;
+  background: var(--surface);
   padding: 12px;
 }
 .skip-link:focus {
@@ -306,7 +306,7 @@ svg {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  background: white;
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 .brand {
@@ -338,7 +338,7 @@ svg {
   color: var(--ink);
 }
 .nav-link.active {
-  color: var(--navy);
+  color: var(--ink);
   border-bottom-color: var(--blue);
 }
 .account-tools {
@@ -350,9 +350,9 @@ svg {
   font-size: 0.68rem;
   font-weight: 750;
   letter-spacing: 0.11em;
-  color: var(--navy);
-  background: #edf3f8;
-  border: 1px solid #d8e4ef;
+  color: var(--ink);
+  background: var(--soft);
+  border: 1px solid var(--line);
   padding: 7px 10px;
   border-radius: 4px;
   white-space: nowrap;
@@ -424,7 +424,7 @@ svg {
   font-size: 0.7rem;
 }
 .auth-panel {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 0 12px 12px 0;
   display: flex;
@@ -447,7 +447,7 @@ svg {
   border: 1px solid var(--line);
   padding: 4px;
   border-radius: 7px;
-  background: #f0f4f7;
+  background: var(--soft);
   gap: 3px;
 }
 .segmented button {
@@ -460,8 +460,8 @@ svg {
   border-radius: 4px;
 }
 .segmented button[aria-pressed="true"] {
-  background: white;
-  color: var(--navy);
+  background: var(--surface);
+  color: var(--ink);
   box-shadow: 0 1px 4px #17394e13;
 }
 .auth-tabs {
@@ -483,14 +483,14 @@ select {
   width: 100%;
   min-width: 0;
   height: 45px;
-  border: 1px solid #ced9e2;
+  border: 1px solid var(--line);
   border-radius: 6px;
   padding: 0 12px;
   color: var(--ink);
-  background: #fff;
+  background: var(--surface);
 }
 input::placeholder {
-  color: #748797;
+  color: var(--muted);
   opacity: 1;
   font-size: 0.86rem;
 }
@@ -502,7 +502,7 @@ input::placeholder {
 }
 .form-message {
   font-size: 0.87rem;
-  color: #a12c2c;
+  color: var(--danger);
   margin-top: 12px;
   min-height: 0;
 }
@@ -571,7 +571,7 @@ input::placeholder {
   min-width: 0;
 }
 .account-avatar {
-  background: #e0eaf0;
+  background: var(--soft);
   border-radius: 50%;
   width: 42px;
   height: 42px;
@@ -599,7 +599,7 @@ input::placeholder {
   text-overflow: ellipsis;
 }
 .search-bar {
-  background: white;
+  background: var(--surface);
   padding: 22px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -685,7 +685,7 @@ input::placeholder {
   gap: 18px;
 }
 .property-card {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 9px;
   overflow: hidden;
@@ -694,7 +694,7 @@ input::placeholder {
     box-shadow 0.15s;
 }
 .property-card:hover {
-  border-color: #9eb9cb;
+  border-color: var(--line);
   box-shadow: 0 7px 18px #102a400a;
 }
 .property-image {
@@ -718,7 +718,7 @@ input::placeholder {
   font-weight: 700;
   letter-spacing: 0.035em;
   border-radius: 4px;
-  color: var(--navy);
+  color: var(--ink);
 }
 .property-actions {
   display: flex;
@@ -752,7 +752,7 @@ input::placeholder {
 }
 .research-property-context:not(:empty),
 .zero-cost-warning {
-  background: #fff5df;
+  background: var(--warning-surface);
   border: 1px solid #b87924;
   border-radius: 8px;
   padding: 16px;
@@ -770,7 +770,7 @@ input::placeholder {
 }
 .image-missing {
   object-fit: contain !important;
-  background: #dce4eb;
+  background: var(--soft);
 }
 .card-body {
   padding: 16px;
@@ -841,10 +841,10 @@ input::placeholder {
 .coverage-filters select {
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: white;
+  background: var(--surface);
   padding: 8px;
   max-width: 100%;
-  color: var(--navy);
+  color: var(--ink);
 }
 .source-filter-row span {
   flex: 1 1 250px;
@@ -884,7 +884,7 @@ input::placeholder {
   position: sticky;
   top: 18px;
   border: 1px solid var(--line);
-  background: white;
+  background: var(--surface);
   border-radius: 9px;
   overflow: hidden;
 }
@@ -903,7 +903,7 @@ input::placeholder {
 }
 #property-map {
   height: 520px;
-  background: #e9eef1;
+  background: var(--soft);
   isolation: isolate;
 }
 .map-footer {
@@ -914,7 +914,7 @@ input::placeholder {
 }
 .map-warning {
   font-size: 0.75rem;
-  background: #fbf5e9;
+  background: var(--warning-surface);
   padding: 12px;
   color: var(--amber);
 }
@@ -944,16 +944,16 @@ input::placeholder {
   min-width: 190px;
 }
 .map-property-choice {
-  border: 1px solid #d5e0e9;
+  border: 1px solid var(--line);
   border-radius: 5px;
   padding: 10px;
-  background: #f5f8fa;
-  color: #103454;
+  background: var(--soft);
+  color: var(--ink);
   text-align: left;
   cursor: pointer;
 }
 .map-property-choice:hover {
-  background: #e4edf4;
+  background: var(--hover);
 }
 .leaflet-container {
   font-family: inherit;
@@ -1007,7 +1007,7 @@ input::placeholder {
 }
 .empty-mark {
   font-size: 3rem;
-  color: #7d98ad;
+  color: var(--muted);
 }
 .loading-card {
   height: 330px;
@@ -1018,7 +1018,7 @@ input::placeholder {
 }
 .source-panel {
   max-width: 920px;
-  background: white;
+  background: var(--surface);
   padding: 34px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1044,7 +1044,7 @@ input::placeholder {
 }
 .source-state {
   display: inline-block;
-  background: #e9f3ed;
+  background: var(--success-surface);
   color: var(--green);
   font-size: 0.76rem;
   padding: 5px 9px;
@@ -1053,7 +1053,7 @@ input::placeholder {
 }
 .source-state.warn {
   color: var(--amber);
-  background: #fbf0df;
+  background: var(--warning-surface);
 }
 .coverage-next {
   margin-top: 28px;
@@ -1134,7 +1134,7 @@ input::placeholder {
   position: sticky;
   top: 0;
   z-index: 5;
-  background: white;
+  background: var(--surface);
   padding: 12px 27px;
   border-bottom: 1px solid var(--line);
   display: flex;
@@ -1208,8 +1208,8 @@ input::placeholder {
   color: var(--muted);
 }
 .risk-box {
-  border: 1px solid #eee0c8;
-  background: #fffaf0;
+  border: 1px solid var(--line);
+  background: var(--warning-surface);
   border-radius: 8px;
   padding: 18px;
 }
@@ -1221,7 +1221,7 @@ input::placeholder {
   padding-left: 17px;
   font-size: 0.81rem;
   line-height: 1.7;
-  color: #71522c;
+  color: var(--amber);
   margin-bottom: 0;
 }
 .risk-box li + li {
@@ -1232,7 +1232,7 @@ input::placeholder {
   font-size: 0.72rem !important;
 }
 .analysis-section {
-  background: #f4f7fa;
+  background: var(--soft);
   border-top: 1px solid var(--line);
   padding: 30px 28px;
 }
@@ -1278,7 +1278,7 @@ input::placeholder {
   border-radius: 12px;
   padding: 16px;
   margin: 18px 0;
-  background: #fff;
+  background: var(--surface);
 }
 .analysis-advanced > summary {
   cursor: pointer;
@@ -1331,13 +1331,13 @@ input::placeholder {
   font-size: 0.72rem;
   font-weight: 650;
   color: var(--green);
-  background: #e1eee6;
+  background: var(--success-surface);
   padding: 8px;
   border-radius: 5px;
 }
 .target-badge.miss {
   color: var(--amber);
-  background: #f7ead4;
+  background: var(--warning-surface);
 }
 .metrics {
   display: grid;
@@ -1345,7 +1345,7 @@ input::placeholder {
   gap: 13px;
 }
 .metric {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 18px 15px;
@@ -1366,7 +1366,7 @@ input::placeholder {
   color: var(--muted);
 }
 .histogram-panel {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 7px;
   margin-top: 17px;
@@ -1450,7 +1450,7 @@ input::placeholder {
   align-items: center;
   padding: 25px 3.2%;
   border-top: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   font-size: 0.73rem;
   color: var(--muted);
 }
@@ -1911,17 +1911,17 @@ select {
 .hunt-form select {
   width: 100%;
   padding: 0.7rem;
-  border: 1px solid #b5c4d4;
+  border: 1px solid var(--line);
   border-radius: 0.45rem;
-  background: white;
-  color: #142d4a;
+  background: var(--surface);
+  color: var(--ink);
 }
 .hunt-form button {
   align-self: end;
 }
 .hunt-advanced {
   grid-column: 1 / -1;
-  border: 1px solid #b5c4d4;
+  border: 1px solid var(--line);
   border-radius: 0.45rem;
   padding: 0.8rem 1rem;
 }
@@ -1971,7 +1971,7 @@ select {
   height: 105px;
   border-radius: 6px;
   object-fit: cover;
-  background: #edf2f6;
+  background: var(--soft);
 }
 .hunt-result-details {
   min-width: 0;
@@ -1993,9 +1993,9 @@ select {
   gap: 1rem;
   padding: 1rem;
   margin: 1rem 0;
-  border: 1px solid #bdcbd9;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: #edf3f8;
+  background: var(--soft);
 }
 .feedback-form {
   display: grid;
@@ -2013,16 +2013,16 @@ select {
 .feedback-form select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #9caec0;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  background: white;
-  color: #14283f;
+  background: var(--surface);
+  color: var(--ink);
   font: inherit;
 }
 .feedback-form input[type="checkbox"] {
   width: 22px;
   height: 22px;
-  accent-color: #14283f;
+  accent-color: var(--ink);
 }
 .feedback-form textarea:disabled,
 .feedback-form select:disabled {
@@ -2033,7 +2033,7 @@ select {
 }
 #feedback-admin {
   margin-top: 2rem;
-  border-top: 1px solid #bdcbd9;
+  border-top: 1px solid var(--line);
   padding-top: 1.5rem;
 }
 .feedback-table-wrap {
@@ -2048,7 +2048,7 @@ select {
 .feedback-table th,
 .feedback-table td {
   padding: 0.75rem;
-  border-bottom: 1px solid #dbe3eb;
+  border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
 .feedback-table td button {
@@ -2056,7 +2056,7 @@ select {
 }
 .feedback-response {
   padding: 1rem;
-  border: 1px solid #dbe3eb;
+  border: 1px solid var(--line);
   border-radius: 8px;
   margin: 0.75rem 0;
   overflow-wrap: anywhere;
@@ -2156,19 +2156,19 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-/* Research controls inherit LandWolf's navy/white identity and stay readable on phones. */
+/* Research layouts share the active appearance tokens. */
 .decision-workspace {
   padding: 24px;
   margin: 20px 0;
-  border: 1px solid #d6dfea;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: #fff;
-  color: #172b48;
+  background: var(--surface);
+  color: var(--ink);
 }
 .decision-section {
   margin: 14px 0;
   padding: 14px;
-  border: 1px solid #d6dfea;
+  border: 1px solid var(--line);
   border-radius: 10px;
 }
 .decision-section > summary {
@@ -2188,10 +2188,10 @@ select {
   width: 100%;
   min-width: 0;
   padding: 10px;
-  border: 1px solid #bdcbdc;
+  border: 1px solid var(--line);
   border-radius: 7px;
-  background: #fff;
-  color: #172b48;
+  background: var(--surface);
+  color: var(--ink);
 }
 .decision-form .decision-check {
   flex-direction: row;
@@ -2210,7 +2210,7 @@ select {
 }
 .decision-goal {
   padding: 16px;
-  border: 1px solid #d6dfea;
+  border: 1px solid var(--line);
   border-radius: 10px;
 }
 .decision-goal:disabled {
@@ -2288,7 +2288,7 @@ select {
   }
   #decision-print {
     color: #000;
-    background: #fff;
+    background: var(--surface);
     font-size: 11pt;
   }
   #decision-print h2,
@@ -2341,7 +2341,7 @@ select {
   padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: white;
+  background: var(--surface);
   color: var(--blue);
   font: inherit;
   font-size: 0.875rem;
@@ -2386,7 +2386,7 @@ select {
   border: 0;
   border-radius: 14px;
   background: transparent;
-  color: #526277;
+  color: var(--muted);
   font-size: 0.875rem;
   overflow-wrap: normal;
   cursor: pointer;
@@ -2462,7 +2462,7 @@ select {
   letter-spacing: -0.015em;
 }
 .dock-item.active {
-  color: #0c355d;
+  color: var(--blue);
 }
 .dock-item.active::after {
   content: "";
@@ -2496,7 +2496,7 @@ select {
   border-radius: 12px;
   padding: 0;
   background: transparent;
-  color: #5d7390;
+  color: var(--muted);
 }
 .dock-arrow svg {
   width: 16px;
@@ -2504,7 +2504,7 @@ select {
   stroke-width: 1.8;
 }
 .dock-arrow:hover {
-  color: #123d6a;
+  color: var(--blue);
   background: #ffffffb3;
 }
 .navigation-dock[data-overflow="false"] .dock-arrow {
@@ -2604,7 +2604,7 @@ select {
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
-  color: #172c43;
+  color: var(--ink);
   font-size: 15px;
   line-height: 1.5;
 }
@@ -2644,7 +2644,7 @@ select {
   border: 1px solid #52718f;
   border-radius: 999px;
   box-shadow: 0 6px 24px #0b213033;
-  background: #112b44;
+  background: var(--surface);
   color: white;
   font-weight: 650;
   font-size: 0.82rem;
@@ -2656,10 +2656,10 @@ select {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #bdcada;
+  border: 1px solid var(--line);
   border-radius: 24px;
   box-shadow: 0 18px 64px #0b213044;
-  background: #fff;
+  background: var(--surface);
 }
 .wolf-chat-heading {
   flex-shrink: 0;
@@ -2710,8 +2710,8 @@ select {
 .wolf-info {
   flex-shrink: 0;
   font-size: 0.72rem;
-  color: #566a80;
-  border-bottom: 1px solid #e3eaf1;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
 }
 .wolf-info summary {
   padding: 9px 16px;
@@ -2730,12 +2730,12 @@ select {
 .wolf-support {
   display: block;
   padding: 4px 16px 12px;
-  color: #285783;
+  color: var(--blue);
 }
 .wolf-context {
   flex-shrink: 0;
   padding: 10px 16px 0;
-  color: #60748a;
+  color: var(--muted);
   font-size: 0.66rem;
   font-weight: 650;
   letter-spacing: 0.04em;
@@ -2756,10 +2756,10 @@ select {
   padding-bottom: 12px;
 }
 .wolf-chip {
-  border: 1px solid #cfdbeb;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  color: #244b73;
-  background: #f1f6fc;
+  color: var(--blue);
+  background: var(--soft);
   padding: 9px 12px;
   min-height: 44px;
   font-size: 0.77rem;
@@ -2770,7 +2770,7 @@ select {
   white-space: nowrap;
 }
 .wolf-chip:hover {
-  background: #e3edf8;
+  background: var(--hover);
 }
 .wolf-chat-log {
   flex: 1 1 0;
@@ -2778,7 +2778,7 @@ select {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 16px;
-  background: #f5f8fc;
+  background: var(--soft);
   -webkit-overflow-scrolling: touch;
 }
 .wolf-turn + .wolf-turn {
@@ -2787,9 +2787,9 @@ select {
 .wolf-message {
   padding: 12px 14px;
   margin: 0 0 10px;
-  border: 1px solid #dbe4ee;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: white;
+  background: var(--surface);
   overflow-wrap: anywhere;
 }
 .wolf-message p,
@@ -2818,19 +2818,19 @@ select {
 }
 .wolf-message-user {
   margin-left: 28px;
-  background: #e8f1fc;
-  border-color: #ccddf0;
+  background: var(--hover);
+  border-color: var(--line);
 }
 .wolf-chat-form {
   flex-shrink: 0;
-  border-top: 1px solid #dce5ef;
+  border-top: 1px solid var(--line);
   padding: 12px 12px 10px;
-  background: #fff;
+  background: var(--surface);
 }
 .wolf-account-card {
-  border: 1px solid #ccddf0;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   padding: 14px;
   margin-top: 12px;
   overflow-wrap: anywhere;
@@ -2895,14 +2895,14 @@ select {
   min-height: 48px;
   max-height: 112px;
   resize: none;
-  border: 1px solid #b9cce1;
+  border: 1px solid var(--line);
   border-radius: 15px;
   padding: 12px;
   font: inherit;
   font-size: 16px;
   line-height: 22px;
-  color: #142638;
-  background: #f7fafe;
+  color: var(--ink);
+  background: var(--control);
 }
 .wolf-send {
   width: 48px;
@@ -2911,16 +2911,16 @@ select {
   min-height: 48px;
   border: 0;
   border-radius: 15px;
-  background: #173e63;
+  background: var(--navy);
   color: white;
   font-size: 1.6rem;
 }
 .wolf-send:hover {
-  background: #255780;
+  background: var(--hover);
 }
 .wolf-chat-status {
   font-size: 0.75rem;
-  color: #9a2e22;
+  color: var(--danger);
   padding-top: 6px;
 }
 .wolf-chat-status:empty {
@@ -2930,15 +2930,15 @@ select {
   padding-top: 6px;
   text-align: center;
   font-size: 0.64rem;
-  color: #687b90;
+  color: var(--muted);
 }
 .wolf-coach {
   width: 100%;
   padding: 15px;
-  border: 1px solid #9eb7d3;
+  border: 1px solid var(--line);
   border-radius: 18px;
   box-shadow: 0 8px 32px #0b213033;
-  background: #fff;
+  background: var(--surface);
   max-height: 42dvh;
   overflow-y: auto;
 }
@@ -2962,7 +2962,7 @@ select {
 }
 .wolf-tour-status:not(:empty) {
   padding-top: 8px;
-  color: #8a3e20;
+  color: var(--amber);
 }
 .wolf-guide-highlight {
   outline: 3px solid #2c77d1 !important;
@@ -3132,8 +3132,8 @@ select {
 }
 #crm-panel {
   padding: 1.5rem;
-  background: #fff;
-  border: 1px solid #dce2ea;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 18px;
   margin-bottom: 1.5rem;
 }
@@ -3182,7 +3182,7 @@ select {
 }
 .crm-contact {
   padding: 1.2rem;
-  border: 1px solid #dce2ea;
+  border: 1px solid var(--line);
   border-radius: 12px;
   overflow-wrap: anywhere;
 }
@@ -3192,7 +3192,7 @@ select {
 .crm-detail:not(:empty) {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 2px solid #183652;
+  border-top: 2px solid var(--line);
   overflow-wrap: anywhere;
 }
 .crm-detail h3 {
@@ -3226,7 +3226,7 @@ select {
 }
 .crm-key:not(:empty) {
   padding: 1rem;
-  background: #edf3f9;
+  background: var(--soft);
   overflow-wrap: anywhere;
 }
 @media (max-width: 800px) {
@@ -3286,7 +3286,7 @@ select {
   border-radius: 16px;
   padding: 20px;
   margin: 20px 0;
-  background: white;
+  background: var(--surface);
   overflow-wrap: anywhere;
 }
 .trial-card .button {
@@ -3432,21 +3432,21 @@ select {
 .finance-card,
 .finance-section,
 .finance-chart {
-  border: 1px solid #dbe3eb;
-  background: #fff;
+  border: 1px solid var(--line);
+  background: var(--surface);
   border-radius: 16px;
   padding: 1.25rem;
   min-width: 0;
 }
 .finance-card span {
   display: block;
-  color: #526578;
+  color: var(--muted);
   font-size: 0.85rem;
 }
 .finance-card strong {
   display: block;
   font-size: 1.7rem;
-  color: #112e48;
+  color: var(--ink);
   margin-top: 0.5rem;
 }
 .finance-section h2 {
@@ -3457,21 +3457,21 @@ select {
   flex-direction: column;
   gap: 0.4rem;
   margin: 0.6rem 0;
-  color: #30475c;
+  color: var(--ink);
 }
 #finance-panel input,
 #finance-panel select {
   min-width: 0;
   width: 100%;
   padding: 0.7rem;
-  border: 1px solid #b8c7d4;
+  border: 1px solid var(--line);
   border-radius: 8px;
   font-size: 16px;
-  background: #fff;
+  background: var(--surface);
 }
 #finance-panel fieldset {
   min-width: 0;
-  border: 1px solid #dbe3eb;
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 0.8rem;
 }
@@ -3481,14 +3481,14 @@ select {
   padding: 0.5rem 0;
 }
 .finance-warning {
-  background: #fff5e8;
+  background: var(--warning-surface);
   border-left: 3px solid #bd6519;
   padding: 0.9rem;
-  color: #674316;
+  color: var(--amber);
 }
 .finance-status:not(:empty) {
   padding: 0.8rem;
-  border: 1px solid #b8c7d4;
+  border: 1px solid var(--line);
   border-radius: 8px;
 }
 .finance-chart {
@@ -3501,7 +3501,7 @@ select {
 }
 .finance-chart figcaption {
   font-weight: 600;
-  color: #112e48;
+  color: var(--ink);
 }
 .finance-chart text {
   font: 11px system-ui;
@@ -3532,11 +3532,11 @@ select {
 .finance-chart td {
   text-align: left;
   padding: 0.45rem;
-  border-bottom: 1px solid #e4ebf1;
+  border-bottom: 1px solid var(--line);
   white-space: nowrap;
 }
 .finance-recommendation {
-  border-top: 1px solid #dbe3eb;
+  border-top: 1px solid var(--line);
   padding: 0.7rem 0;
 }
 @media (min-width: 1100px) {

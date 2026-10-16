@@ -179,12 +179,17 @@ def main() -> None:
                 try:
                     page.goto(origin, wait_until="domcontentloaded", timeout=90000)
                     expect(page.locator("#release-version")).to_contain_text(f"v{VERSION}")
-                    assert (
-                        page.evaluate(
-                            "getComputedStyle(document.documentElement).getPropertyValue('--navy').trim()"
+                    appearance = page.get_by_role("combobox", name="Appearance", exact=True)
+                    for mode in ("dark", "light"):
+                        appearance.select_option(mode)
+                        expect(page.locator("html")).to_have_attribute("data-theme", mode)
+                        expected = "rgb(241, 242, 246)" if mode == "dark" else "rgb(32, 35, 43)"
+                        assert (
+                            page.locator(".auth-panel").evaluate("el => getComputedStyle(el).color")
+                            == expected
                         )
-                        == "#25272c"
-                    )
+                    page.reload()
+                    expect(appearance).to_have_value("light")
                     page.get_by_role(
                         "button", name="Sign in" if registered else "Create account", exact=True
                     ).click()
