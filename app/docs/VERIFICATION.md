@@ -3116,3 +3116,12 @@ The identical locator in the concurrent follow-up run is superseded by this fix.
 The final local full API run passed 572 tests; the legacy suite passed 53 with
 its required `PYTHONPATH=.` from `archive/legacy/`. Earlier legacy invocations
 from the wrong working directory/import path failed and are not counted as passes.
+
+Visual review of the first hosted artifacts caught a real CSS regression: the new
+header `backdrop-filter` created a containing block for the fixed mobile dock,
+placing it at the header instead of the viewport bottom. Removed that header
+filter (the dock and cards retain their own glass surfaces), added an explicit
+mobile dock position assertion, and normalized native select painting/chevrons
+for WebKit. The focused heading keeps programmatic focus for screen readers
+without a decorative ring around the heading. Current screenshots also show the
+original mixed white cards have been replaced by graphite feature surfaces.

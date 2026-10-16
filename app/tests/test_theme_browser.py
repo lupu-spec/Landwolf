@@ -61,6 +61,9 @@ def test_appearance_across_feature_surfaces(browser_server, engine, width):
             expect(page.locator("html")).to_have_attribute("data-theme", mode)
             assert_surface(page, ".search-bar", mode)
             assert_surface(page, ".property-card", mode)
+            if width < 640:
+                dock = page.locator(".navigation-dock").bounding_box()
+                assert dock and dock["y"] > 750 and dock["y"] + dock["height"] <= 950
             expected_control = "rgb(28, 31, 38)" if mode == "dark" else "rgb(243, 244, 248)"
             assert (
                 page.locator("#location").evaluate("el => getComputedStyle(el).backgroundColor")
