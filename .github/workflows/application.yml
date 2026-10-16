@@ -28,6 +28,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch immutable approved CSS baseline
+        run: git fetch --no-tags --depth=1 origin 55a35648140ffb3d3dead8c2e09a54d55dfc0e63
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

@@ -3289,3 +3289,49 @@ No application deployment follows these documentation-only sign-off commits.
 Runtime identities remain staging 29d4d46 / production 55a3564. Larger route/contract
 and base-layout consolidation from the repository review remains follow-up work;
 this release completed the requested appearance and its necessary regressions.
+
+
+## v0.15.1 bounded header CSS consolidation — candidate
+
+Scope: `styles.css` header layout declarations reduced from seven rules to three
+(base, tablet and phone); superseded navigation font sizes and repeated 800px
+layout declarations removed. Theme tokens/appearance CSS, HTML, TypeScript and
+backend business logic are unchanged. Runtime/package identity advances to 0.15.1;
+only root package versions change in lockfiles, with no dependency upgrade.
+
+Regression coverage: `tests/test_header_css_browser.py` uses the immutable approved
+v0.15.0 stylesheets from Git object `55a35648140ffb3d3dead8c2e09a54d55dfc0e63`.
+CI explicitly fetches that object. Every computed property, pseudo-element and
+rectangle in the header tree is compared at 17 widths (including both sides of
+all affected breakpoints), in both engines, guest and isolated fixture owner,
+Light/Dark/Auto, 200% text, short viewport and print. Phone/tablet/desktop images
+must match byte-for-byte within the same browser run and are uploaded as evidence.
+Existing behavioral browser tests remain required. Package validation requires
+the new regression test in the source distribution.
+
+Local commands from `app/` (exit 0 unless stated):
+- `uv sync --frozen --dev`, `npm ci`, `uv lock --check`.
+- `.venv/bin/ruff format --check landwolf tests scripts`, `npm run format:check`.
+- `.venv/bin/ruff check landwolf tests scripts`, `npm run lint`.
+- `.venv/bin/mypy landwolf`, `npm run typecheck`.
+- `npm run test:unit`: 26 passed. Full backend/API results follow separately.
+- `npm run build`, `.venv/bin/python -m build`,
+  `.venv/bin/python scripts/check_package.py`: passed.
+- `.venv/bin/bandit -r landwolf`: no findings;
+  `.venv/bin/pip-audit --local --skip-editable`: no known vulnerabilities;
+  `npm audit --audit-level=moderate`: zero vulnerabilities; `npm run secrets`: passed.
+- Repository-root `git diff --check`: passed.
+
+Resolved preparation failures: an initial test-file path was corrected; Ruff found
+one overlong embedded-JavaScript line, which was wrapped. An overbroad preliminary
+version replacement touched a dependency version; both lockfiles were corrected
+to change only LandWolf's own version before publication and frozen installs
+rechecked. No dependency update is included.
+
+Local browser setup **failed**: `.venv/bin/playwright install --with-deps chromium webkit`
+could not install OS packages (setgroups permissions); browser-only installation
+returned truncated ZIPs. `.venv/bin/pytest -q -m browser tests/test_header_css_browser.py -x`
+failed at launch because Chromium is absent, before any comparison. Local browser,
+disposable PostgreSQL/restore and archived-suite results are not established here;
+hosted CI must pass them before deployment. No staging or production deployment
+is claimed by this candidate entry.
