@@ -2990,3 +2990,22 @@ including focused and full suites. Together with units/build/security this makes
 the former 20-minute job budget insufficient for a cold runner. The job budget
 is now bounded at 30 minutes; all format/type/unit/database/browser/package/
 security checks remain required, with no removed cases, assertions or suites.
+
+### Verified candidate and staging image
+
+[Run 38911250054](https://github.com/lupu-spec/Landwolf/actions/runs/38911250054)
+completed successfully at candidate `612b737fa28cef71ad3c16d379fb33fe03f3fa1b`.
+All configured gate commands passed: format, lint, mypy, full frontend types,
+24 frontend, 572 backend/API, 4 focused source-list, 18 existing focused browser,
+118 full browser, disposable PostgreSQL, exact 36-table pg_dump/pg_restore row
+digests, browser build, wheel/sdist, required package contents, Bandit, pip-audit,
+npm audit, secretlint and diff checks. Archived run 38911250076 passed 53 tests.
+The earlier clock-harness failure and the 20-minute cold-runner timeout remain
+recorded above; neither was counted as a pass.
+
+Staging Render deployment `dep-db931eeq1p3s739sq6bg` reports live at 14:13:26 UTC
+on October 16 with exact candidate commit 612b737. The new release-check script
+adds public stylesheet hash and computed-theme verification; it changes only
+release verification, not Docker application code. Ruff format/check passed in
+the release checkout (94 Python files). Hosted staging acceptance remains pending
+until its workflow finishes; production remains on the previous v0.13.1 image.

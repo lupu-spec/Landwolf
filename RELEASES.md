@@ -3,10 +3,24 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.14.0 — staging rollout (October 16, 2026)
+
+**Staging live; production promotion pending at this checkpoint.** Existing staging
+service deployed `612b737fa28cef71ad3c16d379fb33fe03f3fa1b` as
+`dep-db931eeq1p3s739sq6bg`, live at 2026-10-16 14:13:26 UTC.
+[Candidate application gates](https://github.com/lupu-spec/Landwolf/actions/runs/38911250054)
+passed 24 frontend, 572 backend/API, 4 focused source-list, 18 existing focused
+browser and 118 full browser tests, disposable PostgreSQL and 36-table restore,
+format/lint/types, build/package and security checks.
+[Archived regressions](https://github.com/lupu-spec/Landwolf/actions/runs/38911250076)
+passed separately. Hosted acceptance is triggered by this observed staging ledger
+update. No production deploy, account grant, price change, database reset or
+billing-runtime change is made at this checkpoint.
+
 ## v0.14.0 — graphite interface and compact source diagnostics (candidate)
 
 Prepared October 16, 2026 from main `34649586357702f12ed0d183392faff896658476`.
-Not yet deployed. Adds expandable source/health/last-updated rows, exact 24/36-hour
+Preparation record: not deployed at preparation time. Adds expandable source/health/last-updated rows, exact 24/36-hour
 import-age colors, a graphite/silver appearance and focused frontend module
 extractions. Preserves original source links, owner authorization, billing,
 accounts, schema, research and source-refresh behavior. Includes a repository-wide
@@ -298,8 +312,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.13.0 | `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | 2026-10-11 00:17:28 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.13.0 | `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | 2026-10-11 00:05:56 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.13.1 | `7f240b33d868d44cf717d35458e18d50fd1cff99` | 2026-10-13 10:21:02 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.14.0 | `612b737fa28cef71ad3c16d379fb33fe03f3fa1b` | 2026-10-16 14:13:26 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 

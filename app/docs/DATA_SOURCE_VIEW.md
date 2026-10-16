@@ -20,6 +20,8 @@ year, time and the device's time-zone abbreviation. Status uses the device clock
 Colors update once a minute while this view is visible, and when the browser tab
 becomes visible again, without closing open rows or requesting another import.
 An open page may therefore take up to one minute to cross a color boundary.
+The timer ages the loaded status; reopen Data coverage or reload the page to
+fetch newer server timestamps and history. This does not force an import.
 
 **Health here measures import age.** A failed latest attempt does not change the
 last successful update or reset its age. A source can have a green circle and a
