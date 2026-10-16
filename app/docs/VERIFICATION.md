@@ -3125,3 +3125,7 @@ mobile dock position assertion, and normalized native select painting/chevrons
 for WebKit. The focused heading keeps programmatic focus for screen readers
 without a decorative ring around the heading. Current screenshots also show the
 original mixed white cards have been replaced by graphite feature surfaces.
+
+The mobile header may wrap at large text sizes so the new Appearance selector
+and Sign out remain reachable at 200% font zoom. This preserves the existing
+source-list zoom/no-horizontal-overflow regression rather than hiding controls.

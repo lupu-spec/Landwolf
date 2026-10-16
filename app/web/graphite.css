@@ -472,6 +472,7 @@ summary:focus-visible {
   .site-header {
     padding: 0 16px;
     gap: 8px;
+    flex-wrap: wrap;
   }
   .site-header .brand img {
     width: 132px;
