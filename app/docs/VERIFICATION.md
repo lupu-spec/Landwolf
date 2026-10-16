@@ -2983,3 +2983,10 @@ assertion checks usable name width and overflow at 200% and records a zoom image
 Owner help keywords now include freshness/colors. The four source-list journeys
 run first in hosted browser validation so a regression is reported promptly;
 all original focused and full suites remain mandatory and unchanged.
+
+The corrected candidate's second hosted run spent 7m32s on cold environment setup
+(compared with about 68s initially). The existing browser step took about 13m15s
+including focused and full suites. Together with units/build/security this makes
+the former 20-minute job budget insufficient for a cold runner. The job budget
+is now bounded at 30 minutes; all format/type/unit/database/browser/package/
+security checks remain required, with no removed cases, assertions or suites.

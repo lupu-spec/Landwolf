@@ -4,7 +4,7 @@
   "files": [
     {
       "path": ".github/workflows/application.yml",
-      "sha256": "ed07e2a7387c6b05af168f84aab1b00743c764eba30621e20d38c5c393c83668",
+      "sha256": "bb4bcf9534ef7cafd85df854333495622d1944b5cf53309cc614a1931a529913",
       "lines": 105,
       "area": "verification_and_configuration"
     },
