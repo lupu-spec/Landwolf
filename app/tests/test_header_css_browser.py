@@ -5,7 +5,6 @@ Screenshots compare within one browser run, avoiding cross-platform font goldens
 """
 
 import hashlib
-import json
 import subprocess
 from pathlib import Path
 
@@ -70,10 +69,11 @@ def stable_screenshot(node, path=None):
     raise AssertionError("Header screenshot did not stabilize within six captures")
 
 
-def computed_header(page):
-    return page.locator(".site-header").evaluate("""header => {
+def computed_header(page, details=False):
+    return page.locator(".site-header").evaluate(
+        """async (header, details) => {
         const nodes = [header, ...header.querySelectorAll('*')];
-        return nodes.map(el => {
+        const values = nodes.map(el => {
             const styles = pseudo => {
                 const css = getComputedStyle(el, pseudo);
                 return Object.fromEntries(
@@ -84,7 +84,14 @@ def computed_header(page):
                 css: styles(null), before: styles('::before'), after: styles('::after'),
                 rect: [r.x, r.y, r.width, r.height]};
         });
-    }""")
+        const json = JSON.stringify(values);
+        if (details) return json;
+        // Keep every property while avoiding huge browser-to-Python transfers.
+        const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(json));
+        return Array.from(new Uint8Array(digest), n => n.toString(16).padStart(2, '0')).join('');
+    }""",
+        details,
+    )
 
 
 @pytest.mark.parametrize("browser_server", ["nationwide_owner"], indirect=True)
@@ -134,9 +141,10 @@ def test_header_cascade_matches_approved_release(browser_server, engine):
             apply(candidate)
             actual = computed_header(page)
             if actual != expected:
-                for name, values in (("approved", expected), ("candidate", actual)):
+                for name, css in (("approved", baseline), ("candidate", candidate)):
+                    apply(css)
                     (output / f"{engine}-{label}-{name}-styles.json").write_text(
-                        json.dumps(values, indent=2)
+                        computed_header(page, details=True)
                     )
                 raise AssertionError(f"Computed header changed: {engine}/{label}")
             for selector, image in images.items():
