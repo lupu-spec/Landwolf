@@ -108,6 +108,7 @@ def test_header_cascade_matches_approved_release(browser_server, engine):
             browser.new_context(viewport={"width": 1440, "height": 950}, reduced_motion="reduce")
             for _ in range(2)
         ]
+
         # Independent page loads keep CSS replacement and prior paint history
         # out of the comparison. Both renders use normal external stylesheets.
         def serve_approved(route):
