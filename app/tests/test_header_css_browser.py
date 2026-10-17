@@ -12,6 +12,8 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 from test_browser import browser_server as browser_server
 
+from landwolf.version import VERSION
+
 pytestmark = pytest.mark.browser
 BASELINE_COMMIT = "55a35648140ffb3d3dead8c2e09a54d55dfc0e63"
 ROOT = Path(__file__).resolve().parents[2]
@@ -137,6 +139,19 @@ def test_header_cascade_matches_approved_release(browser_server, engine):
             page.goto(origin)
             expect(page.locator(".brand img")).to_have_js_property("naturalWidth", 1536)
 
+        def load_at_size(width, height, signed_in):
+            # A hidden WebKit subtree can retain viewport-unit values after a
+            # resize. Fresh loads compare each target viewport without stale CSS.
+            for page in pages:
+                page.set_viewport_size({"width": width, "height": height})
+                page.reload()
+                expect(page.locator("#release-version")).to_contain_text(f"v{VERSION}")
+                expect(page.locator(".brand img")).to_have_js_property("naturalWidth", 1536)
+                if signed_in:
+                    expect(page.locator(".property-card").first).to_be_visible()
+                else:
+                    expect(page.locator(".auth-panel")).to_be_visible()
+
         def compare(label, screenshots=True):
             snapshots = []
             for page in pages:
@@ -189,17 +204,19 @@ def test_header_cascade_matches_approved_release(browser_server, engine):
                         "data-theme", device if mode == "system" else mode
                     )
                 for width in WIDTHS:
+                    load_at_size(width, 950, signed_in)
                     for page in pages:
-                        page.set_viewport_size({"width": width, "height": 950})
+                        expect(page.locator("html")).to_have_attribute(
+                            "data-theme", device if mode == "system" else mode
+                        )
                     compare(
                         f"{'owner' if signed_in else 'guest'}-{mode}-{device}-{width}",
                         screenshots=width in (390, 834, 1440) and mode != "system",
                     )
-            for page in pages:
-                page.set_viewport_size({"width": 390, "height": 450})
+            load_at_size(390, 450, signed_in)
             compare(f"{'owner' if signed_in else 'guest'}-short")
+            load_at_size(834, 950, signed_in)
             for page in pages:
-                page.set_viewport_size({"width": 834, "height": 950})
                 page.evaluate("document.documentElement.style.fontSize = '200%'")
             compare(f"{'owner' if signed_in else 'guest'}-large-text")
             for page in pages:
