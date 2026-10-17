@@ -95,6 +95,18 @@ def computed_header(page, details=False):
     )
 
 
+def stable_computed_header(page):
+    """Wait for two identical complete snapshots after dock resize scheduling."""
+    previous = None
+    for _ in range(6):
+        settle_header(page)
+        current = computed_header(page)
+        if current == previous:
+            return current
+        previous = current
+    raise AssertionError("Computed header did not stabilize within six snapshots")
+
+
 @pytest.mark.parametrize("browser_server", ["nationwide_owner"], indirect=True)
 @pytest.mark.parametrize("engine", ["chromium", "webkit"])
 def test_header_cascade_matches_approved_release(browser_server, engine):
@@ -127,8 +139,7 @@ def test_header_cascade_matches_approved_release(browser_server, engine):
         def compare(label, screenshots=True):
             snapshots = []
             for page in pages:
-                settle_header(page)
-                snapshots.append(computed_header(page))
+                snapshots.append(stable_computed_header(page))
             expected, actual = snapshots
             if actual != expected:
                 for name, page in zip(("approved", "candidate"), pages, strict=True):
