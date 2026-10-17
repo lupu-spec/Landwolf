@@ -106,3 +106,39 @@ jobs:
             app/test-results/mobile-contact-*.png
             app/test-results/mobile-login-*.png
           retention-days: 7
+
+  header-cascade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch immutable approved CSS baseline
+        run: git fetch --no-tags --depth=1 origin 55a35648140ffb3d3dead8c2e09a54d55dfc0e63
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install locked browser tools
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          npm ci
+          .venv/bin/playwright install --with-deps chromium webkit
+      - name: Compare approved header cascade and screenshots
+        run: |
+          npm run build
+          .venv/bin/pytest -q -x -m browser tests/test_header_css_browser.py
+      - name: Header comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: header-cascade-evidence
+          path: app/test-results/header-css/
+          retention-days: 7

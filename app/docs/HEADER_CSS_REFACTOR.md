@@ -24,8 +24,8 @@ application/package release identity advances to 0.15.1.
 ## Regression contract
 
 The immutable v0.15.0 production CSS is fetched by exact Git commit, not a mutable
-branch or network image reference. Both actual stylesheets are applied in their
-original order to the same fixture-backed app. Computed properties, before/after
+branch or network image reference. Both actual stylesheets load in their
+original order on independent fixture-backed pages and browser contexts. Computed properties, before/after
 pseudo-elements and geometry are compared across 17 widths, guest/owner states,
 Light/Dark/Auto, print, 200% text and a shortened viewport. Screenshots cover the
 phone, tablet and desktop header/dock; exact byte equality is required. No masks,
@@ -55,14 +55,27 @@ passed separately. This application run is **not a pass**.
 
 Inspection of its retained approved/candidate PNGs found identical 390×76 image
 sizes, identical computed properties, and six changed pixels around the logo's
-lower rounded edge, with maximum channel difference 2/255. The capture-stability
-and bounded-diagnostics correction retains the exact image gate. Corrected hosted
-results must establish whether that resolves the mismatch.
+lower rounded edge, with maximum channel difference 2/255. Stable recapture alone did not resolve the exact Chromium mismatch: run
+38992401562 again reported 127 browser passes and that same one failure. It is not
+a release pass. The comparison now loads baseline and candidate independently,
+activating each page before measuring/capturing, so CSS replacement and previous
+paint history cannot affect the result. Both computed styles and screenshots
+remain exact; no masking or tolerance is introduced. A separate focused CI job
+provides early feedback; the required full browser suite still runs all cases.
+New hosted results must establish whether independent rendering resolves it.
 
-## Deployment constraint
+## Deployment target and verification
 
-No deployment has occurred. The connected Render account lists only `My Workspace`
-associated with support.landwolf@gmail.com. The user selected a different workspace
-but has not supplied its name/account. Do not select or deploy to the rejected
-workspace. Obtain the correct workspace identity before service access; do not
-change infrastructure, account access or billing to work around this gap.
+The user confirmed the default Render workspace `My Workspace`
+(support.landwolf@gmail.com) on October 17 UTC. Existing services are
+`landwolf-premium-staging` and `landwolf-production`, retaining their current
+branches, databases, payment configuration and manual deployments. No deployment
+has occurred. Required corrected CI and then hosted staging acceptance precede
+production promotion.
+
+Hosted acceptance now checks exact hashes of both `styles.css` and `graphite.css`,
+Auto device changes, and light/dark guest/customer header and dock screenshots in
+Chromium/WebKit at phone and desktop widths. Existing authentication, CSRF,
+owner/private routes, paywall, session restart/cache/logout and research checks
+remain in place. No owner grants, charges, email sends or customer deletion are
+part of these checks.

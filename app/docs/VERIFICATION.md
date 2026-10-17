@@ -3362,3 +3362,28 @@ acceptance or deploy before successful required CI. See
 The user rejected the sole workspace visible through the Render connector and
 has not identified another. No service was selected, no branch promoted, and no
 staging/production deploy or runtime ledger update occurred.
+
+
+### v0.15.1 independent render comparison — candidate, not deployed
+
+Run 38992401562 failed the same exact Chromium screenshot comparison despite
+stable recapture; 127 other browser cases passed. Do not treat matching computed
+styles or a six-pixel image difference as a passing image gate. The comparison
+now uses separately loaded baseline/candidate pages and contexts, with each page
+activated and settled before measurement. This removes stylesheet replacement
+and previous paint history from the test setup while retaining every computed
+property, pseudo-element, geometry comparison and exact screenshot assertion.
+A focused `header-cascade` CI job runs in addition to the unchanged full suite;
+no existing case is skipped or excluded.
+
+The user confirmed the default Render workspace. Both intended existing services
+were identified, with automatic deployments off. No deploy or branch promotion
+has occurred. The prior workspace blocker is resolved. The prepared hosted
+acceptance enhancement checks both deployed CSS hashes, Auto device switching,
+and light/dark phone/desktop headers/docks, retaining the existing customer,
+private-route, research, paywall and persistent-session checks.
+
+After the verification-only edits, all local repository format/lint/type commands,
+26 frontend and 572 non-browser tests, `npm run build`, Python build/package,
+Bandit, pip-audit, npm audit, secretlint and `git diff --check` passed. Browser
+launch remains unavailable locally; the corrected hosted gates are mandatory.

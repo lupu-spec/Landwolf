@@ -65,7 +65,7 @@ and bounding rectangle of the header tree against immutable approved v0.15.0
 commit `55a35648140ffb3d3dead8c2e09a54d55dfc0e63`. It covers both browser engines,
 guest/owner state, Light/Dark/Auto, breakpoint edges, large text, print and short
 viewports. Phone/tablet/desktop header and dock screenshots must match byte for
-byte within the same browser run. These are comparative screenshots, avoiding
+byte within the same browser run on independently loaded pages. These are comparative screenshots, avoiding
 platform-dependent golden fonts; both images are retained for review. Existing
 mobile/dock/theme journeys remain the behavioral checks for keyboard/focus,
 rotation, viewport handling, persistence and accessibility.

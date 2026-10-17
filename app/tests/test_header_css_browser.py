@@ -49,6 +49,7 @@ def approved_css(name):
 
 
 def settle_header(page):
+    page.bring_to_front()
     page.evaluate("window.scrollTo(0, 0)")
     page.mouse.move(0, 940)
     page.locator("#dock-track").evaluate("el => { el.scrollLeft = 0; }")
@@ -99,97 +100,101 @@ def computed_header(page, details=False):
 def test_header_cascade_matches_approved_release(browser_server, engine):
     origin, _ = browser_server
     baseline = {name: approved_css(name) for name in ("styles.css", "graphite.css")}
-    candidate = {name: (ROOT / "app/web" / name).read_text() for name in baseline}
     output = Path("test-results/header-css")
     output.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as playwright:
         browser = getattr(playwright, engine).launch()
-        page = browser.new_page(viewport={"width": 1440, "height": 950}, reduced_motion="reduce")
-        errors = []
-        page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(origin)
-        expect(page.locator(".brand img")).to_have_js_property("naturalWidth", 1536)
-        # Replace links in place, retaining leaflet/theme/source order.
-        page.evaluate("""() => {
-            for (const name of ['styles.css', 'graphite.css']) {
-                const link = document.querySelector(`link[href='/assets/${name}']`);
-                const style = document.createElement('style');
-                style.id = `comparison-${name}`;
-                link.replaceWith(style);
-            }
-        }""")
-
-        def apply(css):
-            page.evaluate(
-                """css => {
-                for (const [name, text] of Object.entries(css)) {
-                    document.getElementById(`comparison-${name}`).textContent = text;
-                }
-            }""",
-                css,
+        contexts = [
+            browser.new_context(viewport={"width": 1440, "height": 950}, reduced_motion="reduce")
+            for _ in range(2)
+        ]
+        # Independent page loads keep CSS replacement and prior paint history
+        # out of the comparison. Both renders use normal external stylesheets.
+        for name, css in baseline.items():
+            contexts[0].route(
+                f"**/assets/{name}",
+                lambda route, css=css: route.fulfill(body=css, content_type="text/css"),
             )
-            settle_header(page)
+        pages = [context.new_page() for context in contexts]
+        errors = []
+        for page in pages:
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.goto(origin)
+            expect(page.locator(".brand img")).to_have_js_property("naturalWidth", 1536)
 
         def compare(label, screenshots=True):
-            apply(baseline)
-            expected = computed_header(page)
-            images = {}
-            for selector in (".site-header", ".navigation-dock"):
-                node = page.locator(selector)
-                if screenshots and node.is_visible():
-                    images[selector] = stable_screenshot(node)
-            apply(candidate)
-            actual = computed_header(page)
+            snapshots = []
+            for page in pages:
+                settle_header(page)
+                snapshots.append(computed_header(page))
+            expected, actual = snapshots
             if actual != expected:
-                for name, css in (("approved", baseline), ("candidate", candidate)):
-                    apply(css)
+                for name, page in zip(("approved", "candidate"), pages, strict=True):
                     (output / f"{engine}-{label}-{name}-styles.json").write_text(
                         computed_header(page, details=True)
                     )
                 raise AssertionError(f"Computed header changed: {engine}/{label}")
-            for selector, image in images.items():
+            if not screenshots:
+                return
+            for selector in (".site-header", ".navigation-dock"):
+                nodes = [page.locator(selector) for page in pages]
+                assert nodes[0].is_visible() == nodes[1].is_visible()
+                if not nodes[0].is_visible():
+                    continue
                 name = "header" if selector == ".site-header" else "dock"
-                (output / f"{engine}-{label}-{name}-approved.png").write_bytes(image)
-                current = stable_screenshot(
-                    page.locator(selector), output / f"{engine}-{label}-{name}-candidate.png"
-                )
-                # Compare exact bytes via digests to avoid dumping entire PNGs on failure.
-                assert hashlib.sha256(current).hexdigest() == hashlib.sha256(image).hexdigest(), (
-                    f"Screenshot changed: {engine}/{label}/{name}"
-                )
+                images = []
+                for version, page, node in zip(
+                    ("approved", "candidate"), pages, nodes, strict=True
+                ):
+                    settle_header(page)
+                    images.append(
+                        stable_screenshot(node, output / f"{engine}-{label}-{name}-{version}.png")
+                    )
+                # Exact equality, with bounded failure output rather than PNG dumps.
+                assert (
+                    hashlib.sha256(images[0]).hexdigest() == hashlib.sha256(images[1]).hexdigest()
+                ), f"Screenshot changed: {engine}/{label}/{name}"
 
-        apply(candidate)
         for signed_in in (False, True):
             if signed_in:
-                page.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
-                page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
-                page.locator("#auth-submit").click()
-                expect(page.locator(".property-card").first).to_be_visible()
+                for page in pages:
+                    page.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
+                    page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+                    page.locator("#auth-submit").click()
+                    expect(page.locator(".property-card").first).to_be_visible()
             for mode, device in (
                 ("light", "dark"),
                 ("dark", "light"),
                 ("system", "light"),
                 ("system", "dark"),
             ):
-                page.emulate_media(color_scheme=device)
-                page.locator("#appearance").select_option(mode)
-                expect(page.locator("html")).to_have_attribute(
-                    "data-theme", device if mode == "system" else mode
-                )
+                for page in pages:
+                    page.emulate_media(color_scheme=device)
+                    page.locator("#appearance").select_option(mode)
+                    expect(page.locator("html")).to_have_attribute(
+                        "data-theme", device if mode == "system" else mode
+                    )
                 for width in WIDTHS:
-                    page.set_viewport_size({"width": width, "height": 950})
+                    for page in pages:
+                        page.set_viewport_size({"width": width, "height": 950})
                     compare(
                         f"{'owner' if signed_in else 'guest'}-{mode}-{device}-{width}",
                         screenshots=width in (390, 834, 1440) and mode != "system",
                     )
-            page.set_viewport_size({"width": 390, "height": 450})
+            for page in pages:
+                page.set_viewport_size({"width": 390, "height": 450})
             compare(f"{'owner' if signed_in else 'guest'}-short")
-            page.set_viewport_size({"width": 834, "height": 950})
-            page.evaluate("document.documentElement.style.fontSize = '200%'")
+            for page in pages:
+                page.set_viewport_size({"width": 834, "height": 950})
+                page.evaluate("document.documentElement.style.fontSize = '200%'")
             compare(f"{'owner' if signed_in else 'guest'}-large-text")
-            page.evaluate("document.documentElement.style.fontSize = ''")
-            page.emulate_media(media="print")
+            for page in pages:
+                page.evaluate("document.documentElement.style.fontSize = ''")
+                page.emulate_media(media="print")
             compare(f"{'owner' if signed_in else 'guest'}-print")
-            page.emulate_media(media="screen")
+            for page in pages:
+                page.emulate_media(media="screen")
         assert errors == []
+        for context in contexts:
+            context.close()
         browser.close()
