@@ -76,3 +76,5 @@ Then from `app/`, run
 `.venv/bin/pytest -q -m browser tests/test_header_css_browser.py`.
 Missing baseline objects fail the test. Do not move the baseline or accept an
 image difference without reviewing and documenting a separately approved design.
+
+[Header refactor scope, verification evidence and retained failures](HEADER_CSS_REFACTOR.md).

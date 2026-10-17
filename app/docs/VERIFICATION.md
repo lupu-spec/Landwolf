@@ -3335,3 +3335,30 @@ failed at launch because Chromium is absent, before any comparison. Local browse
 disposable PostgreSQL/restore and archived-suite results are not established here;
 hosted CI must pass them before deployment. No staging or production deployment
 is claimed by this candidate entry.
+
+
+### v0.15.1 hosted verification checkpoint — release paused
+
+Initial application run 38975787680 passed formatting, lint, types, frontend/API,
+disposable PostgreSQL and restore. Full browser results were 127 passed and one
+Chromium header screenshot mismatch; the job reached its 30-minute limit in the
+browser step and subsequent package/security gates were skipped. This is not a
+passing application run. Archived regression run 38975787790 passed separately.
+
+Retained PNG analysis found six differing logo-edge pixels (maximum channel delta
+2/255), identical geometry and computed properties. Test corrections require two
+consecutive identical captures before exact image comparison; digests prevent
+binary-output floods. Complete computed-style snapshots are now hashed inside
+the browser to reduce transfer cost; no property is excluded and no tolerance,
+mask, baseline change or skipped case is introduced. Local formatting, lint, types,
+26 frontend tests, build/package, Bandit, pip-audit, npm audit, secret scan and
+`git diff --check` passed again after these test-only edits. The earlier 572 backend
+passes remain applicable to unchanged runtime behavior.
+
+Corrected application run 38992401562 (ff7a9fbad6ea2fd2b4360d9fc1b69911f5477374)
+is pending; its archived run 38992401554 passed. Do not claim corrected browser
+acceptance or deploy before successful required CI. See
+[bounded change, screenshots and retained limitations](HEADER_CSS_REFACTOR.md).
+The user rejected the sole workspace visible through the Render connector and
+has not identified another. No service was selected, no branch promoted, and no
+staging/production deploy or runtime ledger update occurred.
