@@ -110,11 +110,12 @@ def test_header_cascade_matches_approved_release(browser_server, engine):
         ]
         # Independent page loads keep CSS replacement and prior paint history
         # out of the comparison. Both renders use normal external stylesheets.
-        for name, css in baseline.items():
-            contexts[0].route(
-                f"**/assets/{name}",
-                lambda route, css=css: route.fulfill(body=css, content_type="text/css"),
-            )
+        def serve_approved(route):
+            name = route.request.url.rsplit("/", 1)[-1]
+            route.fulfill(body=baseline[name], content_type="text/css")
+
+        for name in baseline:
+            contexts[0].route(f"**/assets/{name}", serve_approved)
         pages = [context.new_page() for context in contexts]
         errors = []
         for page in pages:
