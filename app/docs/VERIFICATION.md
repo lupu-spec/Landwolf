@@ -3289,3 +3289,101 @@ No application deployment follows these documentation-only sign-off commits.
 Runtime identities remain staging 29d4d46 / production 55a3564. Larger route/contract
 and base-layout consolidation from the repository review remains follow-up work;
 this release completed the requested appearance and its necessary regressions.
+
+
+## v0.15.1 bounded header CSS consolidation — candidate
+
+Scope: `styles.css` header layout declarations reduced from seven rules to three
+(base, tablet and phone); superseded navigation font sizes and repeated 800px
+layout declarations removed. Theme tokens/appearance CSS, HTML, TypeScript and
+backend business logic are unchanged. Runtime/package identity advances to 0.15.1;
+only root package versions change in lockfiles, with no dependency upgrade.
+
+Regression coverage: `tests/test_header_css_browser.py` uses the immutable approved
+v0.15.0 stylesheets from Git object `55a35648140ffb3d3dead8c2e09a54d55dfc0e63`.
+CI explicitly fetches that object. Every computed property, pseudo-element and
+rectangle in the header tree is compared at 17 widths (including both sides of
+all affected breakpoints), in both engines, guest and isolated fixture owner,
+Light/Dark/Auto, 200% text, short viewport and print. Phone/tablet/desktop images
+must match byte-for-byte within the same browser run and are uploaded as evidence.
+Existing behavioral browser tests remain required. Package validation requires
+the new regression test in the source distribution.
+
+Local commands from `app/` (exit 0 unless stated):
+- `uv sync --frozen --dev`, `npm ci`, `uv lock --check`.
+- `.venv/bin/ruff format --check landwolf tests scripts`, `npm run format:check`.
+- `.venv/bin/ruff check landwolf tests scripts`, `npm run lint`.
+- `.venv/bin/mypy landwolf`, `npm run typecheck`.
+- `npm run test:unit`: 26 passed. Full backend/API results follow separately.
+- `npm run build`, `.venv/bin/python -m build`,
+  `.venv/bin/python scripts/check_package.py`: passed.
+- `.venv/bin/bandit -r landwolf`: no findings;
+  `.venv/bin/pip-audit --local --skip-editable`: no known vulnerabilities;
+  `npm audit --audit-level=moderate`: zero vulnerabilities; `npm run secrets`: passed.
+- Repository-root `git diff --check`: passed.
+
+Resolved preparation failures: an initial test-file path was corrected; Ruff found
+one overlong embedded-JavaScript line, which was wrapped. An overbroad preliminary
+version replacement touched a dependency version; both lockfiles were corrected
+to change only LandWolf's own version before publication and frozen installs
+rechecked. No dependency update is included.
+
+Local browser setup **failed**: `.venv/bin/playwright install --with-deps chromium webkit`
+could not install OS packages (setgroups permissions); browser-only installation
+returned truncated ZIPs. `.venv/bin/pytest -q -m browser tests/test_header_css_browser.py -x`
+failed at launch because Chromium is absent, before any comparison. Local browser,
+disposable PostgreSQL/restore and archived-suite results are not established here;
+hosted CI must pass them before deployment. No staging or production deployment
+is claimed by this candidate entry.
+
+
+### v0.15.1 hosted verification checkpoint — release paused
+
+Initial application run 38975787680 passed formatting, lint, types, frontend/API,
+disposable PostgreSQL and restore. Full browser results were 127 passed and one
+Chromium header screenshot mismatch; the job reached its 30-minute limit in the
+browser step and subsequent package/security gates were skipped. This is not a
+passing application run. Archived regression run 38975787790 passed separately.
+
+Retained PNG analysis found six differing logo-edge pixels (maximum channel delta
+2/255), identical geometry and computed properties. Test corrections require two
+consecutive identical captures before exact image comparison; digests prevent
+binary-output floods. Complete computed-style snapshots are now hashed inside
+the browser to reduce transfer cost; no property is excluded and no tolerance,
+mask, baseline change or skipped case is introduced. Local formatting, lint, types,
+26 frontend tests, build/package, Bandit, pip-audit, npm audit, secret scan and
+`git diff --check` passed again after these test-only edits. The earlier 572 backend
+passes remain applicable to unchanged runtime behavior.
+
+Corrected application run 38992401562 (ff7a9fbad6ea2fd2b4360d9fc1b69911f5477374)
+is pending; its archived run 38992401554 passed. Do not claim corrected browser
+acceptance or deploy before successful required CI. See
+[bounded change, screenshots and retained limitations](HEADER_CSS_REFACTOR.md).
+The user rejected the sole workspace visible through the Render connector and
+has not identified another. No service was selected, no branch promoted, and no
+staging/production deploy or runtime ledger update occurred.
+
+
+### v0.15.1 independent render comparison — candidate, not deployed
+
+Run 38992401562 failed the same exact Chromium screenshot comparison despite
+stable recapture; 127 other browser cases passed. Do not treat matching computed
+styles or a six-pixel image difference as a passing image gate. The comparison
+now uses separately loaded baseline/candidate pages and contexts, with each page
+activated and settled before measurement. This removes stylesheet replacement
+and previous paint history from the test setup while retaining every computed
+property, pseudo-element, geometry comparison and exact screenshot assertion.
+A focused `header-cascade` CI job runs in addition to the unchanged full suite;
+no existing case is skipped or excluded.
+
+The user confirmed the default Render workspace. Both intended existing services
+were identified, with automatic deployments off. No deploy or branch promotion
+has occurred. The prior workspace blocker is resolved. The prepared hosted
+acceptance enhancement checks both deployed CSS hashes, Auto device switching,
+and light/dark phone/desktop headers/docks, retaining the existing customer,
+private-route, research, paywall and persistent-session checks.
+
+After the verification-only edits, all local repository format/lint/type commands,
+26 frontend and 572 non-browser tests, `npm run build`, Python build/package,
+Bandit, pip-audit, npm audit, secretlint and `git diff --check` passed. Browser
+launch remains unavailable locally; the corrected hosted gates are mandatory.

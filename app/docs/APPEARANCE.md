@@ -48,3 +48,33 @@ Keep these compatibility constraints when changing the finish:
 - Resize observers must schedule dock/map layout writes in an animation frame,
   coalescing repeated notifications. Keep the zero-browser-error, rotation,
   keyboard and 200% text-size checks; do not filter resize-loop errors.
+
+
+## Shared header cascade (v0.15.1)
+
+Header layout lives beside the glass dock in `styles.css`: one base rule plus
+only tablet (640–1000px) and phone (≤639px) deltas. The previous 1150/1050/800px
+header declarations were superseded by the dock base rule. Navigation retains
+its effective responsive rules; earlier overridden font sizes and redundant
+800px order/width/alignment/grid declarations were removed. `graphite.css`
+continues to own the palette and narrow-screen appearance/wrapping overrides.
+Do not collapse these intentional theme, breakpoint, print or keyboard rules.
+
+`tests/test_header_css_browser.py` compares every computed property, pseudo-element
+and bounding rectangle of the header tree against immutable approved v0.15.0
+commit `55a35648140ffb3d3dead8c2e09a54d55dfc0e63`. It covers both browser engines,
+guest/owner state, Light/Dark/Auto, breakpoint edges, large text, print and short
+viewports. Phone/tablet/desktop header and dock screenshots must match byte for
+byte within the same browser run on independently loaded pages. These are comparative screenshots, avoiding
+platform-dependent golden fonts; both images are retained for review. Existing
+mobile/dock/theme journeys remain the behavioral checks for keyboard/focus,
+rotation, viewport handling, persistence and accessibility.
+
+For shallow clones, first run from the repository root:
+`git fetch --no-tags --depth=1 origin 55a35648140ffb3d3dead8c2e09a54d55dfc0e63`.
+Then from `app/`, run
+`.venv/bin/pytest -q -m browser tests/test_header_css_browser.py`.
+Missing baseline objects fail the test. Do not move the baseline or accept an
+image difference without reviewing and documenting a separately approved design.
+
+[Header refactor scope, verification evidence and retained failures](HEADER_CSS_REFACTOR.md).
