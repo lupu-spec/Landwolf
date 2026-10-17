@@ -77,8 +77,9 @@ def computed_header(page, details=False):
         const values = nodes.map(el => {
             const styles = pseudo => {
                 const css = getComputedStyle(el, pseudo);
+                // Custom-property enumeration order differs across documents.
                 return Object.fromEntries(
-                    Array.from(css).map(key => [key, css.getPropertyValue(key)]));
+                    Array.from(css).sort().map(key => [key, css.getPropertyValue(key)]));
             };
             const r = el.getBoundingClientRect();
             return {tag: el.tagName, id: el.id, classes: el.getAttribute('class'),
