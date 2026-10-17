@@ -4,6 +4,8 @@ CI fetches BASELINE_COMMIT explicitly; no customer data or network baseline is u
 Screenshots compare within one browser run, avoiding cross-platform font goldens.
 """
 
+import hashlib
+import json
 import subprocess
 from pathlib import Path
 
@@ -53,6 +55,19 @@ def settle_header(page):
     page.locator("#dock-track").evaluate("el => { el.scrollLeft = 0; }")
     page.evaluate("""() => new Promise(resolve => requestAnimationFrame(() =>
         requestAnimationFrame(resolve)))""")
+
+
+def stable_screenshot(node, path=None):
+    """Require two identical paints; rounded image edges can repaint after resize."""
+    previous = None
+    for _ in range(6):
+        current = node.screenshot(animations="disabled", scale="css")
+        if current == previous:
+            if path is not None:
+                path.write_bytes(current)
+            return current
+        previous = current
+    raise AssertionError("Header screenshot did not stabilize within six captures")
 
 
 def computed_header(page):
@@ -115,18 +130,25 @@ def test_header_cascade_matches_approved_release(browser_server, engine):
             for selector in (".site-header", ".navigation-dock"):
                 node = page.locator(selector)
                 if screenshots and node.is_visible():
-                    images[selector] = node.screenshot(animations="disabled")
+                    images[selector] = stable_screenshot(node)
             apply(candidate)
             actual = computed_header(page)
-            assert actual == expected, f"Computed header changed: {engine}/{label}"
+            if actual != expected:
+                for name, values in (("approved", expected), ("candidate", actual)):
+                    (output / f"{engine}-{label}-{name}-styles.json").write_text(
+                        json.dumps(values, indent=2)
+                    )
+                raise AssertionError(f"Computed header changed: {engine}/{label}")
             for selector, image in images.items():
                 name = "header" if selector == ".site-header" else "dock"
                 (output / f"{engine}-{label}-{name}-approved.png").write_bytes(image)
-                current = page.locator(selector).screenshot(
-                    path=str(output / f"{engine}-{label}-{name}-candidate.png"),
-                    animations="disabled",
+                current = stable_screenshot(
+                    page.locator(selector), output / f"{engine}-{label}-{name}-candidate.png"
                 )
-                assert current == image, f"Screenshot changed: {engine}/{label}/{name}"
+                # Compare exact bytes via digests to avoid dumping entire PNGs on failure.
+                assert hashlib.sha256(current).hexdigest() == hashlib.sha256(image).hexdigest(), (
+                    f"Screenshot changed: {engine}/{label}/{name}"
+                )
 
         apply(candidate)
         for signed_in in (False, True):
