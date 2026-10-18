@@ -41,3 +41,68 @@ jobs:
               except Exception as e:
                   print(json.dumps({"url": url, "error": str(e)}))
           PY
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked browser tools
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+          .venv/bin/playwright install --with-deps chromium
+      - name: Measure anonymous production home
+        run: |
+          .venv/bin/python - <<'PY'
+          import json
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright, expect
+          output = Path("test-results/public-baseline")
+          output.mkdir(parents=True, exist_ok=True)
+          rows = []
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              for width in (390, 1440):
+                  context = browser.new_context(viewport={"width": width, "height": 950})
+                  page = context.new_page()
+                  page.add_init_script("""window.baselineCLS = 0;
+                      new PerformanceObserver(list => {
+                          for (const e of list.getEntries()) {
+                              if (!e.hadRecentInput) window.baselineCLS += e.value;
+                          }
+                      }).observe({type: 'layout-shift', buffered: true});""")
+                  response = page.goto("https://landwolf.ai/", timeout=90000)
+                  assert response.status == 200
+                  session = context.request.get("https://landwolf.ai/api/session").json()
+                  assert session["authenticated"] is False
+                  expect(page.locator("#release-version")).to_contain_text("v0.15.0")
+                  if session["feedback_trial_enabled"]:
+                      expect(page.locator("#trial-signup-offer")).to_be_visible()
+                  page.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
+                  page.screenshot(path=str(output / f"home-{width}.png"), full_page=True)
+                  metrics = page.evaluate("""() => ({
+                      cls: window.baselineCLS,
+                      load: performance.getEntriesByType('navigation')[0].loadEventEnd,
+                      response: performance.getEntriesByType('navigation')[0].responseStart
+                  })""")
+                  metrics.update(width=width, trial_enabled=session["feedback_trial_enabled"])
+                  rows.append(metrics)
+                  context.close()
+              browser.close()
+          (output / "metrics.json").write_text(json.dumps(rows, indent=2))
+          print(json.dumps(rows))
+          PY
+      - name: Public baseline evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-home-baseline
+          path: app/test-results/public-baseline/
+          retention-days: 7
