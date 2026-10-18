@@ -61,7 +61,7 @@ jobs:
       - name: Measure anonymous production home
         run: |
           .venv/bin/python - <<'PY'
-          import json
+          import json, time
           from pathlib import Path
           from playwright.sync_api import sync_playwright, expect
           output = Path("test-results/public-baseline")
@@ -78,11 +78,23 @@ jobs:
                               if (!e.hadRecentInput) window.baselineCLS += e.value;
                           }
                       }).observe({type: 'layout-shift', buffered: true});""")
+                  expected = {"version": "0.16.0", "environment": "production", "commit": "168eb749ae4a2396b98b7b1e48a9862fc915ebb3"}
+                  deadline = time.monotonic() + 180
+                  while True:
+                      identity = context.request.get("https://landwolf.ai/api/version").json()
+                      if identity == expected:
+                          break
+                      if time.monotonic() > deadline:
+                          raise RuntimeError("Expected production runtime not observed")
+                      time.sleep(2)
+                  health = context.request.get("https://landwolf.ai/api/health").json()
+                  assert health == {"status": "ok", "version": "0.16.0", "payments_enabled": True}
+                  print(json.dumps({"observed_identity": identity, "health": health}))
                   response = page.goto("https://landwolf.ai/", timeout=90000)
                   assert response.status == 200
                   session = context.request.get("https://landwolf.ai/api/session").json()
                   assert session["authenticated"] is False
-                  expect(page.locator("#release-version")).to_contain_text("v0.15.0")
+                  expect(page.locator("#release-version")).to_contain_text("v0.16.0")
                   if session["feedback_trial_enabled"]:
                       expect(page.locator("#trial-signup-offer")).to_be_visible()
                   page.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
