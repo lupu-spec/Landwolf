@@ -40,9 +40,23 @@ def test_public_pages(browser_server: tuple[str, int], engine: str, width: int) 
                 expect(page.locator("html")).to_have_attribute(
                     "data-theme", "light" if mode == "light" else "dark"
                 )
-                assert page.locator("body").evaluate("el => getComputedStyle(el).color") == (
-                    "rgb(32, 35, 43)" if mode == "light" else "rgb(241, 242, 246)"
-                )
+                expected_color = "rgb(32, 35, 43)" if mode == "light" else "rgb(241, 242, 246)"
+                try:
+                    expect(page.locator("body")).to_have_css("color", expected_color)
+                except AssertionError:
+                    diagnostics = page.evaluate("""() => ({
+                        color: getComputedStyle(document.body).color,
+                        theme: document.documentElement.dataset.theme,
+                        styles: [...document.styleSheets].map(s => ({
+                            href: s.href, disabled: s.disabled,
+                            rules: [...s.cssRules].map(r => r.cssText)
+                        }))
+                    })""")
+                    (output / f"failure-{engine}-{width}.json").write_text(
+                        json.dumps(diagnostics, indent=2)
+                    )
+                    page.screenshot(path=str(output / f"failure-{engine}-{width}.png"))
+                    raise
                 if mode == "system":
                     page.emulate_media(color_scheme="light")
                     expect(page.locator("html")).to_have_attribute("data-theme", "light")
