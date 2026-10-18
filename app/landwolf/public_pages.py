@@ -5,7 +5,7 @@ from collections.abc import Callable
 from html import escape
 
 from fastapi import FastAPI, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from landwolf.config import Settings
 
@@ -89,6 +89,14 @@ PAGES = {
 }
 
 
+def render_home(source: str, *, trial_enabled: bool) -> str:
+    """Render only the already-public availability flag, never account/session data."""
+    marker = 'id="trial-signup-offer" hidden'
+    if source.count(marker) != 1:
+        raise ValueError("Home template must contain one trial-offer visibility marker")
+    return source.replace(marker, 'id="trial-signup-offer"' if trial_enabled else marker)
+
+
 def document(path: str) -> str:
     title, description, body = PAGES[path]
     data: list[dict[str, object]] = [
@@ -149,9 +157,22 @@ def page_handler(path: str) -> Callable[[], HTMLResponse]:
     return render
 
 
+def canonical_redirect(path: str) -> Callable[[], RedirectResponse]:
+    def redirect() -> RedirectResponse:
+        # Relative URLs retain HTTPS behind Render without trusting forwarding headers.
+        return RedirectResponse(path, status_code=308)
+
+    return redirect
+
+
 def register(app: FastAPI, settings: Settings) -> None:
     for path in PAGES:
         app.add_api_route(path, page_handler(path), methods=["GET"], include_in_schema=False)
+
+    for path in (*PAGES, "/trial-terms"):
+        app.add_api_route(
+            path + "/", canonical_redirect(path), methods=["GET"], include_in_schema=False
+        )
 
     @app.get("/robots.txt", include_in_schema=False)
     def robots() -> Response:

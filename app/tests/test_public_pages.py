@@ -9,7 +9,7 @@ import pytest
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 
-from landwolf.public_pages import FAQ, ORIGIN, PAGES
+from landwolf.public_pages import FAQ, ORIGIN, PAGES, render_home
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -85,6 +85,18 @@ def test_no_soft_404_or_path_override(client: TestClient) -> None:
     assert len(client.get("/faq/").history) == 1
 
 
+@pytest.mark.parametrize("path", [*PAGES, "/trial-terms"])
+def test_slash_redirect_retains_transport(client: TestClient, path: str) -> None:
+    response = client.get(
+        path + "/?tracking=discarded",
+        headers={"X-Forwarded-Proto": "https", "X-Forwarded-Host": "untrusted.example"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 308
+    assert response.headers["location"] == path
+    assert client.get(path).status_code == 200
+
+
 def test_no_orphan_pages(client: TestClient) -> None:
     home = BeautifulSoup(client.get("/").text, "html.parser")
     assert set(PAGES).issubset({a.get("href") for a in home.select("a")})
@@ -93,3 +105,22 @@ def test_no_orphan_pages(client: TestClient) -> None:
         assert len(response.content) < 15_000
         assert "/assets/app.js" not in response.text
         assert "default-src 'self'" in response.headers["content-security-policy"]
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_home_renders_public_availability(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, enabled: bool
+) -> None:
+    # Exercise both presentation states; policy computation has separate trial tests.
+    monkeypatch.setattr("landwolf.main.trials.enabled", lambda _settings: enabled)
+    response = client.get("/")
+    offer = BeautifulSoup(response.text, "html.parser").select_one("#trial-signup-offer")
+    assert offer.has_attr("hidden") is not enabled
+    assert client.get("/api/session").json()["feedback_trial_enabled"] is enabled
+    assert response.headers["cache-control"] == "no-cache"
+
+
+@pytest.mark.parametrize("source", ["no marker", 'id="trial-signup-offer" hidden' * 2])
+def test_home_rejects_ambiguous_template(source: str) -> None:
+    with pytest.raises(ValueError, match="one trial-offer visibility marker"):
+        render_home(source, trial_enabled=True)

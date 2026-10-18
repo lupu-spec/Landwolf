@@ -4,7 +4,10 @@ The new public routes `/land-investing`, `/faq` and `/about` are server-rendered
 product information for US land investors. The existing home and trial terms
 also deliver their public content in the initial HTML response. Sign-in, research,
 scenarios, billing and CRM retain their established security and module boundaries.
-No public page reads account or property records. No database migration is needed.
+No public page reads account or property records. No database migration is needed. The home response renders the existing public trial
+availability flag through the same `trials.enabled` function used by the session
+API, so its disclosure does not appear only after that request. No account/session
+values are included in HTML; enrollment, eligibility, consent and billing are unchanged.
 
 `landwolf/public_pages.py` owns the public allowlist, sitemap, robots policy,
 breadcrumb schema and visible FAQ questions/answers. Canonicals use the fixed
@@ -21,7 +24,10 @@ update removed the retired feature guide. The requested FAQPage markup still des
 the visible FAQ, but has no Google FAQ rich-result eligibility:
 https://developers.google.com/search/updates
 
-Unknown URLs retain genuine 404s. Trailing slash variants redirect once. The obsolete
+Unknown URLs retain genuine 404s. Trailing slash variants use one relative 308 to retain HTTPS behind Render.
+`serve.py` deliberately ignores forwarding headers; relying on automatic absolute
+slash redirects could otherwise send a visitor back through HTTP. This change
+preserves that security setting and never derives redirect destinations from input. The obsolete
 version-history link now uses main. Do not hide arbitrary 404s behind a home redirect.
 The deployed check verifies HTTP/apex and HTTPS/www redirects to the final canonical
 origin. The October 18 native CI baseline confirmed one permanent 301 from both HTTP/apex
@@ -34,7 +40,7 @@ incoming links that are absent from the current page graph.
 
 The supplied original images remain unchanged. WebP quality-90 derivatives are:
 landscape 1920×1440 (719,434 bytes), logo 1536×512 (44,466 bytes), fallback photo
-768×512 (76,420 bytes). The logo uses a picture source with the original JPEG fallback.
+1536×1024 (238,600 bytes). The logo uses a picture source with the original JPEG fallback.
 SVG icons stay SVG. Decorative icons keep empty alternative text; content images
 retain descriptive alternatives. Source-owned external photos keep their original
 URLs and attribution rather than introducing a new fetch/proxy trust boundary.

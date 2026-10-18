@@ -3372,3 +3372,56 @@ a truncated ZIP. WebKit downloaded, but its required OS libraries are unavailabl
 `.venv/bin/playwright install-deps webkit` failed with denied setgroups/setuid
 operations. Full browser verification therefore remains a hosted gate. No OS
 sandbox or browser protection was disabled to obtain a pass.
+
+
+### Full browser result before final asset/redirect corrections
+
+Run 39157812908: focused public browsers passed all six Chromium/WebKit cases;
+all eight theme cases, four source-list cases and 18 mobile cases passed. The
+full browser suite then reported 128 passed and four failed: the converted
+placeholder photo was 768 pixels wide while the existing natural-size guards
+require 1536×1024. The WebP derivative now preserves those original dimensions
+(238,600 bytes); the guards retain their original expectations. The three WebP
+files now total 1,002,500 bytes. This supersedes the smaller trial derivative's
+0.84 MB figure above. Supplied originals remain unchanged.
+
+The four public slash-redirect cases pass locally (16 public-document cases in
+total). They require a relative 308 even with spoofed forwarding headers, avoiding
+HTTPS → HTTP → HTTPS chains while preserving `proxy_headers=False`. Full local
+backend/API verification after the redirect correction passed 588 cases. The
+production package and configured static, dependency and secret scans also passed.
+Final hosted gates and deployment acceptance remain pending.
+
+
+### Live home baseline and server-rendered disclosure
+
+Isolated read-only browser audit 39159320624 (2026-10-18 19:34 UTC) used fresh
+anonymous Chromium contexts against production v0.15.0. Phone 390: load 1424.1 ms,
+response start 335.8 ms, CLS 0.045789. Desktop 1440: load 959.4 ms, response start
+134.8 ms, CLS 0.063637. The public feedback-trial flag was true in both contexts.
+Artifact 12148466185 contains the public screenshots and metrics; no account was
+created, no private account data/cookies were exported, and no purchase occurred.
+These samples meet the 2-second load and 0.1 CLS budgets at that test location;
+they are not field percentiles or a promise for every network/device.
+
+The candidate now renders the existing public trial availability state into the
+initial home HTML via the same `trials.enabled` computation as `/api/session`.
+Only the disclosure visibility changes at render time; account/session values are
+not embedded and enrollment/consent/billing decisions remain in their existing
+handlers. Tests cover enabled/disabled presentation and invalid/duplicate template
+markers. The template contract preserves every other hidden panel/form state.
+
+Hosted public acceptance now verifies stylesheet/WebP hashes and captures both
+engines at phone/desktop sizes in Light/Dark/Auto, including the home and all new
+public pages. It checks exact computed colors, overflow, load <2000 ms and CLS
+≤0.1 where the browser exposes that metric, and retains public-only screenshots
+and measurements alongside the established hosted release evidence.
+
+
+Final local runtime rerun after server-rendered availability: `.venv/bin/pytest -q
+-m 'not browser'` passed 592 cases (132 browser cases deselected) in 100.85 seconds;
+`tests/test_public_pages.py` passed all 20 cases. Formatting, lint/types, 26 frontend
+unit tests, production build/package checks and all configured static, dependency
+and secret scans passed again. Hosted public browser metrics are written after
+each sample so a failing budget retains its measurements. Final hosted source
+checks and both deployment acceptance runs remain required before release.
