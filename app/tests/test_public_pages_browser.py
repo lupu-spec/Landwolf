@@ -40,12 +40,19 @@ def test_public_pages(browser_server: tuple[str, int], engine: str, width: int) 
                 expect(page.locator("html")).to_have_attribute(
                     "data-theme", "light" if mode == "light" else "dark"
                 )
+                # Capture an actual paint before comparing the rendered computed style.
+                page.screenshot(
+                    path=str(output / f"{path[1:]}-{mode}-{engine}-{width}.png"), full_page=True
+                )
                 expected_color = "rgb(32, 35, 43)" if mode == "light" else "rgb(241, 242, 246)"
                 try:
                     expect(page.locator("body")).to_have_css("color", expected_color)
                 except AssertionError:
                     diagnostics = page.evaluate("""() => ({
                         color: getComputedStyle(document.body).color,
+                        mainColor: getComputedStyle(document.querySelector("main")).color,
+                        rootColor: getComputedStyle(document.documentElement)
+                            .getPropertyValue("--fg"),
                         theme: document.documentElement.dataset.theme,
                         styles: [...document.styleSheets].map(s => ({
                             href: s.href, disabled: s.disabled,
@@ -65,9 +72,6 @@ def test_public_pages(browser_server: tuple[str, int], engine: str, width: int) 
                 assert page.locator("h1").count() == 1
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                 expect(page.locator("header img")).to_have_js_property("complete", True)
-                page.screenshot(
-                    path=str(output / f"{path[1:]}-{mode}-{engine}-{width}.png"), full_page=True
-                )
                 timing = page.evaluate("""() => ({path: location.pathname, cls: window.seoShifts,
                     clsSupported: PerformanceObserver.supportedEntryTypes.includes('layout-shift'),
                     load: performance.getEntriesByType('navigation')[0].loadEventEnd,
