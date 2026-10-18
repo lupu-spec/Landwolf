@@ -34,9 +34,10 @@ SVG icons stay SVG. Decorative icons keep empty alternative text; content images
 retain descriptive alternatives. Source-owned external photos keep their original
 URLs and attribution rather than introducing a new fetch/proxy trust boundary.
 
-New public pages use a system font, small dedicated stylesheet and existing theme
-initializer, with no Leaflet or application bundle. Image dimensions reserve layout
-space. Browser tests capture Light, Dark and Auto at 390/834/1440 pixels in Chromium
+New public pages use a system font, small dedicated stylesheet, existing theme
+initializer and a tiny public entry point reusing `setupAppearance`, with no Leaflet or application bundle. Image dimensions reserve layout
+space. The public appearance selector persists Light/Dark/Auto and follows system changes live.
+Browser tests capture Light, Dark and Auto at 390/834/1440 pixels in Chromium
 and WebKit, assert computed colors and no overflow, verify no-JS navigation and save
 screenshots plus navigation timing and CLS support/values. The local CI budget is
 load <2 seconds and CLS ≤0.1. WebKit lacks layout-shift entries; zero entries there

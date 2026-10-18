@@ -1,6 +1,8 @@
 """Crawlable public content without exposing private application records."""
 
 import json
+import subprocess
+from pathlib import Path
 from xml.etree import ElementTree
 
 import pytest
@@ -8,6 +10,14 @@ from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 
 from landwolf.public_pages import FAQ, ORIGIN, PAGES
+
+
+@pytest.fixture(scope="session", autouse=True)
+def built_public_assets() -> None:
+    # HTTP document assertions need the actual packaged frontend, even in a clean checkout.
+    subprocess.run(
+        ["npm", "run", "build"], cwd=Path(__file__).resolve().parents[1], check=True, timeout=60
+    )
 
 
 @pytest.mark.parametrize("path", ["/", *PAGES, "/trial-terms"])

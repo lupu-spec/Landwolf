@@ -128,11 +128,15 @@ def document(path: str) -> str:
 <meta name="description" content="{escape(description, quote=True)}">
 <link rel="canonical" href="{ORIGIN}{path}"><link rel="icon" href="/favicon.svg">
 <script src="/assets/theme-init.js"></script><link rel="stylesheet" href="/assets/public.css">
+<script defer src="/assets/public-theme.js"></script>
 <script type="application/ld+json">{structured}</script></head><body>
 <a class="skip-link" href="#main">Skip to content</a><header>
 <a href="/" aria-label="LandWolf home">
 <img src="/assets/landwolf-logo.webp" width="270" height="90" alt="LandWolf"></a>
-<nav aria-label="Public navigation">{links}</nav></header><main id="main">
+<nav aria-label="Public navigation">{links}</nav>
+<label>Appearance <select id="appearance" aria-label="Appearance">
+<option value="system">Auto</option><option value="light">Light</option>
+<option value="dark">Dark</option></select></label></header><main id="main">
 <nav aria-label="Breadcrumb"><a href="/">LandWolf</a> /
 <span aria-current="page">{escape(title)}</span></nav><h1>{escape(title)}</h1>{body}</main>
 <footer>© L91 LLC · LandWolf. Verify records with their original source.</footer></body></html>'''

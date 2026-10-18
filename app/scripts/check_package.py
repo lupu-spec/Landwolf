@@ -14,6 +14,7 @@ with ZipFile(wheels[-1]) as wheel:
     required = {
         "landwolf/main.py",
         "landwolf/public_pages.py",
+        "landwolf/static/assets/public-theme.js",
         "landwolf/static/assets/public.css",
         "landwolf/static/assets/landscape.webp",
         "landwolf/static/assets/landwolf-logo.webp",
@@ -42,6 +43,7 @@ with open_tar(sdists[-1], "r:gz") as archive:
     sources = {name.partition("/")[2] for name in archive.getnames()}
     required_sources = {
         "web/property-context.ts",
+        "web/public-theme.ts",
         "web/assets/landscape.webp",
         "tests/test_public_pages.py",
         "tests/test_public_pages_browser.py",

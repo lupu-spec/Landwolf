@@ -72,3 +72,9 @@ footer {
   background: var(--bg);
   padding: 0.5rem;
 }
+
+select {
+  min-height: 44px;
+  font: inherit;
+  margin-top: 1rem;
+}
