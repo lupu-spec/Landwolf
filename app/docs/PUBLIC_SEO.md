@@ -24,7 +24,11 @@ https://developers.google.com/search/updates
 Unknown URLs retain genuine 404s. Trailing slash variants redirect once. The obsolete
 version-history link now uses main. Do not hide arbitrary 404s behind a home redirect.
 The deployed check verifies HTTP/apex and HTTPS/www redirects to the final canonical
-origin. Redirect and external 404 audits remain unconfirmed until hosted checks run.
+origin. The October 18 native CI baseline confirmed one permanent 301 from both HTTP/apex
+and HTTPS/www to the canonical home; these redirects require no change. The
+production robots and sitemap endpoints returned 404. Post-deployment acceptance
+checks the new documents. Search Console is still needed to identify broken
+incoming links that are absent from the current page graph.
 
 ## Assets and speed
 

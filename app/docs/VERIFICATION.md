@@ -3340,3 +3340,35 @@ No production/staging deployment, ranking, earned backlink or sub-two-second fie
 performance is claimed here. Personal bio text is pending the owner’s factual input.
 Google's current documentation confirms FAQ rich results were removed May 7, 2026;
 the earlier health/government-only guidance was outdated and is corrected in PUBLIC_SEO.md.
+
+
+### Native public-origin baseline and browser diagnostics
+
+Read-only audit run 39158373200 (2026-10-18 19:21 UTC), isolated from runtime
+branches, observed production v0.15.0 at commit
+`55a35648140ffb3d3dead8c2e09a54d55dfc0e63`. Canonical HTTPS home and trial terms
+returned 200. HTTP/apex and HTTPS/www each returned one permanent 301 directly to
+`https://landwolf.ai/`; no redirect-chain change is needed for those origins.
+Robots and sitemap returned genuine 404s. One 20-second staging version request
+timed out; that is not evidence that staging is down and is not staging acceptance.
+
+Application runs 39156896926, 39157123463 and 39157342595 failed the new WebKit
+computed body-color assertion. Chromium passed all three widths. Retained Chromium
+metrics showed maximum local load 100.9 ms and maximum CLS 0.000597 across the
+captured public pages and home. These are local CI measurements, not field speed.
+Artifact 12147925992 shows the public stylesheet loaded and a WebKit screenshot
+with the intended RGB(32,35,43) text, despite a pre-capture computed read returning
+black. The same exact computed-color expectation now runs after an actual paint;
+it has not been removed, masked or given a different expected value. Further
+stylesheet, inherited color and screenshot diagnostics remain on failure.
+
+Review also aligned graphite's workspace heading selector with its H2 tag. Its
+ARIA level remains 1 in the active signed-in view, and existing typography/layout
+rules retain the approved values. A theme journey now checks its exact Light/Dark
+text color after login. This changes no navigation or account/billing behavior.
+
+Local browser fallback attempts: Chromium headless-shell download also failed with
+a truncated ZIP. WebKit downloaded, but its required OS libraries are unavailable;
+`.venv/bin/playwright install-deps webkit` failed with denied setgroups/setuid
+operations. Full browser verification therefore remains a hosted gate. No OS
+sandbox or browser protection was disabled to obtain a pass.
