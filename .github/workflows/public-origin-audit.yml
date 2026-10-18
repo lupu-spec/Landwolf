@@ -1,0 +1,43 @@
+name: Public origin baseline audit
+on:
+  push:
+    branches: [audit/public-origin-20261018]
+permissions:
+  contents: read
+jobs:
+  public:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read current public origins without credentials
+        run: |
+          python - <<'PY'
+          import json, re, urllib.request, urllib.error
+          class Redirects(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  print(json.dumps({"redirect": req.full_url, "status": code, "to": newurl}))
+                  if not newurl.startswith(("https://landwolf.ai/", "https://www.landwolf.ai/")):
+                      raise ValueError("Unexpected redirect destination")
+                  return super().redirect_request(req, fp, code, msg, headers, newurl)
+          opener = urllib.request.build_opener(Redirects())
+          urls = ["http://landwolf.ai/", "https://www.landwolf.ai/", "https://landwolf.ai/",
+                  "https://landwolf.ai/robots.txt", "https://landwolf.ai/sitemap.xml",
+                  "https://landwolf.ai/trial-terms", "https://landwolf.ai/api/version",
+                  "https://landwolf-premium-staging.onrender.com/api/version"]
+          for url in urls:
+              try:
+                  with opener.open(url, timeout=20) as r:
+                      body = r.read(150000).decode("utf-8", errors="replace")
+                      title = re.search(r"<title>(.*?)</title>", body, re.S)
+                      entry = {"url": url, "final": r.url, "status": r.status,
+                               "robots": r.headers.get("X-Robots-Tag"),
+                               "type": r.headers.get("Content-Type"),
+                               "title": title.group(1) if title else None}
+                      if url.endswith("/api/version"):
+                          entry["identity"] = json.loads(body)
+                      if url.endswith(("/robots.txt", "/sitemap.xml")):
+                          entry["public_crawl_document"] = body[:1500]
+                      print(json.dumps(entry))
+              except Exception as e:
+                  print(json.dumps({"url": url, "error": str(e)}))
+          PY
