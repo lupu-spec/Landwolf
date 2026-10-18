@@ -3,6 +3,60 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.16.0 — public SEO and stable initial HTML
+
+**Live in staging and production.** [PR #41](https://github.com/lupu-spec/Landwolf/pull/41)
+adds server-rendered public land research, FAQ and company pages; production sitemap
+and crawl policy; canonical/description/H1 metadata; breadcrumbs and FAQ schema;
+connected public navigation; direct relative 308 slash redirects; and WebP delivery.
+The public trial disclosure renders from the existing availability computation in
+the initial home response. Approved application appearance, Light/Dark/Auto,
+keyboard/accessibility behavior, authentication, billing policy and private data
+boundaries are retained. Source schema remains 13; no hosted database migration/reset,
+configuration change, customer-data export or restore was performed.
+
+- Source [application gates 39160300781](https://github.com/lupu-spec/Landwolf/actions/runs/39160300781)
+  passed 26 frontend, 592 backend/API and all 132 full browser cases, focused
+  public/theme/source/mobile checks, PostgreSQL/36-table exact restore, package
+  and security scans. Separate archived regressions passed 53 cases.
+- Staging: `bb7891856f5e48b683664c88ae73a9f33c6d2ae7`, Render
+  `dep-dbaicn49v7es738kpiag`, live 2026-10-18 20:05:56 UTC. Hosted
+  [acceptance 39162087913](https://github.com/lupu-spec/Landwolf/actions/runs/39162087913)
+  passed customer/session/privacy checks and all 48 public browser samples;
+  maximum load 977 ms, Chromium CLS 0 (WebKit CLS unsupported).
+- Production: `168eb749ae4a2396b98b7b1e48a9862fc915ebb3`, Render `dep-dbaij9dg1s2s73c896l0`,
+  live 2026-10-18 20:19:46 UTC. Native Git lookup proves its complete source tree equals
+  the staging-tested tree. [Independent observation 39163023226](https://github.com/lupu-spec/Landwolf/actions/runs/39163023226)
+  confirmed exact version/commit, healthy database and expected billing mode;
+  anonymous home samples were 1367.2 ms / CLS 0 (phone) and 970.6 ms /
+  CLS 0.001014 (desktop). These are lab samples, not universal field guarantees.
+- Production hosted acceptance and observed details are recorded in
+  [verification](app/docs/VERIFICATION.md). See [public SEO scope](app/docs/PUBLIC_SEO.md).
+  Search Console submission is unconfirmed after a sign-in timeout, author bio
+  text is pending, and no earned backlinks or top-ranking guarantee is claimed.
+
+## v0.16.0 — staging public SEO event (October 18, 2026)
+
+**Staging deployment observed; hosted acceptance pending.** Production remains
+v0.15.0 at this staging event. [PR #41](https://github.com/lupu-spec/Landwolf/pull/41)
+adds public server-rendered research information, sitemap/robots policy, canonical
+metadata, breadcrumbs/FAQ schema, direct relative slash redirects and WebP delivery.
+The initial home disclosure uses the existing public availability computation;
+authentication, trial consent, billing, accounts, CRM and schema 13 are retained.
+
+- Required source gates passed in [application run 39160300781](https://github.com/lupu-spec/Landwolf/actions/runs/39160300781):
+  26 frontend, 592 backend/API and 132 full browser cases, six focused public,
+  eight appearance, four source-list and 18 mobile cases; PostgreSQL/exact restore,
+  package and security checks. Archived regressions passed separately (53 cases).
+- Staging: `bb7891856f5e48b683664c88ae73a9f33c6d2ae7`, Render `dep-dbaicn49v7es738kpiag`,
+  live 2026-10-18 20:05:56 UTC. `/api/version` and `/api/health` returned the exact version,
+  environment, commit and healthy database/billing-disabled state.
+- Existing default Render workspace and isolated service/database retained;
+  automatic deploys remain off. No hosted database migration, export or restore was run.
+- See [public SEO scope](app/docs/PUBLIC_SEO.md) and [verification](app/docs/VERIFICATION.md).
+  Search Console submission, a factual personal bio and earned backlinks remain outstanding;
+  no indexing, ranking or universal field-speed guarantee is made.
+
 ## v0.15.0 — complete silver/glass appearance and light/dark modes
 
 **Live in staging and production; hosted acceptance complete.**
@@ -405,8 +459,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.15.0 | `55a35648140ffb3d3dead8c2e09a54d55dfc0e63` | 2026-10-16 21:02:02 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.15.0 | `29d4d465498feb60972c26b6f570aed5dce40105` | 2026-10-16 20:56:57 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.16.0 | `168eb749ae4a2396b98b7b1e48a9862fc915ebb3` | 2026-10-18 20:19:46 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.16.0 | `bb7891856f5e48b683664c88ae73a9f33c6d2ae7` | 2026-10-18 20:05:56 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -560,6 +614,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 20:28:08 | Production | v0.12.2 / `f6cf068809bbc18ec9c8919156967a003e280b93` | `dep-db59v7lckfvc739fkme0` | PR #35, entire tree identical to staging. Exact production health/billing/email/auth/privacy/session and six focused both-research-view journeys passed. Existing accounts/billing/CRM digests match; temporary audited test access revoked. Physical OS keyboards not run. See MOBILE_RESEARCH_KEYBOARD.md. |
 | 2026-10-11 00:05:56 | Beta | v0.13.0 / `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | `dep-db5d57vlot8c73ehshd0` | Private owner finances, allocated vendor expenses/confirmed CSV, graphs, three-month scenarios and growth actions. Full 571/20/114/53 gates, 36-table restore/security and exact standard/six focused staged research journeys passed. |
 | 2026-10-11 00:17:28 | Production | v0.13.0 / `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | `dep-db5dapdckfvc739qeaig` | PR #36, complete tree identical to tested staging. Standard exact navigation/session/private-route checks, 25 customer-table digests, finance generation and GET-only live Stripe reads passed. Six focused production research journeys blocked on auto-review-rejected temporary test access; no grant executed. See OWNER_FINANCE.md. |
+| 2026-10-18 20:05:56 | Staging | v0.16.0 / `bb7891856f5e48b683664c88ae73a9f33c6d2ae7` | `dep-dbaicn49v7es738kpiag` | Public SEO and initial HTML; all source gates passed in 39160300781. Exact staging version/health observed; hosted acceptance pending. No schema/configuration/data reset. |
+| 2026-10-18 20:19:46 | Production | v0.16.0 / `168eb749ae4a2396b98b7b1e48a9862fc915ebb3` | `dep-dbaij9dg1s2s73c896l0` | PR #41; entire Git tree equals the source accepted in staging. Exact runtime/health observed in 39163023226. Source and staged hosted gates passed; schema 13 and existing accounts/billing/CRM retained. See PUBLIC_SEO.md and VERIFICATION.md. |
 
 Post-deployment acceptance supplement, 2026-10-11 00:34:25 UTC: all six focused
 production research journeys passed in `38097925640` attempt 2 against the same
@@ -585,8 +641,9 @@ new deployment. See OWNER_FINANCE.md for the initial rejection/timeout and evide
 - Preserve history; append rollbacks as new events. Schema v4 is incompatible with
   the old schema-v3 image. An old-image rollback requires a coordinated database
   restore and reconciliation of writes since the backup; prefer a tested fix forward.
-- Keep this canonical ledger on `codex/landwolf-premium-staging` and synchronize it
-  with `codex/landwolf-beta-rebuild` at promotion. Do not infer deployment from Git.
+- Keep this canonical ledger on `main` and synchronize it with `staging` using
+  documentation-only commits after promotion. Historical `codex/*` branches are
+  recovery material. Do not infer deployment from Git.
 
 
 ## v0.4.0-beta.5 — Hunt save durability, live in isolated beta
