@@ -47,6 +47,10 @@ jobs:
           PYCODE
           )
           .venv/bin/python scripts/check_hosted_staging.py --environment "$TARGET_ENVIRONMENT" --commit "$EXPECTED_COMMIT"
+      - name: Public SEO acceptance
+        env:
+          TARGET_ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+        run: .venv/bin/python scripts/check_public_seo.py --environment "$TARGET_ENVIRONMENT"
       - name: Hosted browser evidence
         if: always()
         uses: actions/upload-artifact@v4
