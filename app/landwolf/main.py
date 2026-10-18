@@ -30,6 +30,7 @@ from landwolf import (
     feedback_export,
     finance,
     hunt,
+    public_pages,
     recovery,
     research_workspace,
     trials,
@@ -192,7 +193,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             response.headers["Cache-Control"] = "no-cache"
         if settings.secure_cookies:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
-        if settings.environment == "staging":
+        if settings.environment == "staging" or request.url.path.startswith("/api/"):
             response.headers["X-Robots-Tag"] = "noindex, nofollow"
         return response
 
@@ -843,6 +844,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     static = Path(__file__).resolve().parent / "static"
     if static.is_dir():
+        public_pages.register(app, settings)
         app.mount("/assets", StaticFiles(directory=static / "assets"), name="assets")
 
         @app.get("/trial-terms", include_in_schema=False)

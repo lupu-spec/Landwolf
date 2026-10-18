@@ -369,7 +369,7 @@ svg {
 .auth-story {
   position: relative;
   border-radius: 12px 0 0 12px;
-  background: var(--navy) url("/assets/landscape.jpg") center/cover;
+  background: var(--navy) url("/assets/landscape.webp") center/cover;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -551,7 +551,7 @@ input::placeholder {
   margin-bottom: 26px;
   gap: 22px;
 }
-.workspace-heading h1 {
+.workspace-heading h2 {
   font-size: 2.15rem;
   font-weight: 680;
   line-height: 1.2;
@@ -1580,7 +1580,7 @@ input::placeholder {
   .workspace {
     padding: 26px 5%;
   }
-  .workspace-heading h1 {
+  .workspace-heading h2 {
     font-size: 1.8rem;
   }
   .search-bar {
@@ -1725,7 +1725,7 @@ input::placeholder {
   .property-image {
     height: 200px;
   }
-  .workspace-heading h1 {
+  .workspace-heading h2 {
     font-size: 1.55rem;
   }
   .workspace-heading .muted {
@@ -1807,7 +1807,7 @@ input::placeholder {
 .workspace-heading {
   margin-bottom: 1rem;
 }
-.workspace-heading h1 {
+.workspace-heading h2 {
   font-size: clamp(1.5rem, 3vw, 2rem);
 }
 .nav-link,

@@ -8,9 +8,10 @@
     />
     <meta
       name="description"
-      content="LandWolf property intelligence across all 50 states, official sale inventories, and transparent deal scenarios."
+      content="Research US land with LandWolf: connected official sale inventories, property records and transparent deal scenarios. Coverage varies by source."
     />
-    <title>LandWolf — Property Intelligence</title>
+    <title>LandWolf — US Land Research &amp; Property Intelligence</title>
+    <link rel="canonical" href="https://landwolf.ai/" />
     <meta name="theme-color" content="#e8e9ee" />
     <script src="/assets/theme-init.js"></script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -23,12 +24,14 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <a href="/" class="brand" aria-label="LandWolf home"
-        ><img
-          src="/assets/landwolf-logo.jpg"
-          alt="LandWolf — Find distressed and acquisition opportunities"
-          width="270"
-          height="90"
-      /></a>
+        ><picture
+          ><source srcset="/assets/landwolf-logo.webp" type="image/webp" />
+          <img
+            src="/assets/landwolf-logo.jpg"
+            alt="LandWolf — Find distressed and acquisition opportunities"
+            width="270"
+            height="90" /></picture
+      ></a>
       <div class="navigation-dock" aria-label="App dock">
         <button
           type="button"
@@ -478,7 +481,7 @@
             <div class="membership-note">
               <span class="membership-note-icon" aria-hidden="true">↗</span>
               <div>
-                <strong>Built for a better-informed first move.</strong>
+                <strong>Research US land before you bid.</strong>
                 <p>
                   Search all 50 states. Connected government sources provide
                   land, foreclosure and auction records; coverage varies by
@@ -496,9 +499,9 @@
             <p class="eyebrow" id="workspace-eyebrow">
               DISCOVER • RESEARCH • EVALUATE
             </p>
-            <h1 id="workspace-title" tabindex="-1">
+            <h2 id="workspace-title" tabindex="-1">
               Find your next opportunity.
-            </h1>
+            </h2>
             <p class="muted" id="workspace-description">
               Real listings. Clear sources. A closer look at what matters.
             </p>
@@ -1474,7 +1477,7 @@
         © <span id="year"></span> L91 LLC · LandWolf<br />
         <a
           id="release-version"
-          href="https://github.com/lupu-spec/Landwolf/blob/codex/landwolf-beta-rebuild/RELEASES.md"
+          href="https://github.com/lupu-spec/Landwolf/blob/main/RELEASES.md"
           target="_blank"
           rel="noopener noreferrer"
           >Version history ↗</a
@@ -1484,6 +1487,11 @@
         Research tools, not investment or legal advice. Verify records and sale
         terms with the original source.
       </p>
+      <nav aria-label="Public resources">
+        <a href="/land-investing">Land research checklist</a> ·
+        <a href="/faq">FAQ</a> · <a href="/about">About LandWolf</a> ·
+        <a href="/trial-terms">Trial terms</a>
+      </nav>
       <a href="mailto:support.landwolf@gmail.com">Contact support ↗</a>
     </footer>
     <noscript
