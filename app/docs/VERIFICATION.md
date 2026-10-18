@@ -3425,3 +3425,45 @@ unit tests, production build/package checks and all configured static, dependenc
 and secret scans passed again. Hosted public browser metrics are written after
 each sample so a failing budget retains its measurements. Final hosted source
 checks and both deployment acceptance runs remain required before release.
+
+
+## v0.16.0 source approval and observed staging deployment — October 18, 2026
+
+Final source `bb7891856f5e48b683664c88ae73a9f33c6d2ae7` passed all required application gates in run 39160300781
+(job 117772011353): format, lint, Python/TypeScript types, 26 frontend tests,
+592 backend/API tests, PostgreSQL integration/exact 36-table backup/restore,
+six focused public browser cases, eight appearance, four source-list and 18 mobile
+cases, all 132 full browser cases (554.63 seconds), wheel/source/package checks,
+Bandit, pip-audit, npm audit and secret scans. Archived legacy run 39160300780
+passed 53 tests in its separate environment. No failure or partial run was counted
+as a pass; previous placeholder-size failures are resolved with original dimensions.
+
+Artifact 12148841781 was reviewed, including WebKit phone dark checklist, desktop
+light FAQ and phone Auto home captures. All six public responsive cases passed.
+Retained local Chromium metrics across the checked pages/home had maximum load
+61.6 ms and recorded CLS 0; WebKit maximum load was 201 ms, with CLS unsupported.
+These are CI lab samples. Appearance, overflow and image/keyboard regressions pass.
+
+Recovery review: production managed Postgres `dpg-dak1lih42hec73blthcg-a` is available
+on paid basic_256mb; staging database is also available. Current Render documentation
+confirms continuous PITR for paid databases (https://render.com/docs/postgresql-backups).
+The connector does not expose a precise recovery timestamp/window. No customer data
+was exported or restored; the disposable CI restore passed. This release changes no
+schema or database configuration and remains compatible with the preceding runtime.
+
+The existing staging branch was fast-forwarded to the approved source. Render deploy
+`dep-dbaicn49v7es738kpiag` is live, finished 2026-10-18 20:05:56 UTC, and reports commit `bb7891856f5e48b683664c88ae73a9f33c6d2ae7`.
+Direct HTTPS `/api/version` returned v0.16.0 / staging / that exact commit;
+`/api/health` returned status ok, version 0.16.0 and payments_enabled false.
+The deployed current-environment row was updated only after these observations.
+Hosted account/session/privacy and public browser acceptance are pending at this
+ledger event. Production has not yet been promoted.
+
+Direct staged HTTP SEO acceptance also passed (exit 0):
+`.venv/bin/python -c "from scripts.check_public_seo import check; check('staging')"`.
+All five public documents, internal links, canonical/description/H1 checks, visible
+FAQ schema, real 404, protected crawl policy, relative slash redirects and exact
+stylesheet/WebP hashes were verified. The first local HTTP root response took
+3683 ms; subsequent public documents took 104–108 ms. Those HTTP client samples
+are retained separately from browser navigation/CLS budgets; native browser
+acceptance is still pending and no universal sub-two-second result is claimed.
