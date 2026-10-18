@@ -16,9 +16,10 @@ Authentication, not robots.txt, remains the privacy boundary.
 Every public page has a title, unique description and one H1. The home footer and
 public navigation link every public route. Child pages have visible breadcrumbs;
 new information pages also expose BreadcrumbList schema. FAQPage schema exactly
-matches the visible FAQ. Google generally restricts FAQ rich results to authoritative
-health/government sites; markup does not promise an enhanced result:
-https://developers.google.com/search/docs/appearance/structured-data/faqpage
+matches the visible FAQ. Google removed FAQ rich results starting May 7, 2026; the June 15 documentation
+update removed the retired feature guide. The requested FAQPage markup still describes
+the visible FAQ, but has no Google FAQ rich-result eligibility:
+https://developers.google.com/search/updates
 
 Unknown URLs retain genuine 404s. Trailing slash variants redirect once. The obsolete
 version-history link now uses main. Do not hide arbitrary 404s behind a home redirect.

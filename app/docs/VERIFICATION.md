@@ -3289,3 +3289,54 @@ No application deployment follows these documentation-only sign-off commits.
 Runtime identities remain staging 29d4d46 / production 55a3564. Larger route/contract
 and base-layout consolidation from the repository review remains follow-up work;
 this release completed the requested appearance and its necessary regressions.
+
+
+## Public SEO candidate v0.16.0 — October 18, 2026
+
+PR #41 is separate from unmerged CSS PR #40. Public information is rendered in
+HTTP HTML, with explicit public routes, production sitemap/robots, canonical URLs,
+unique descriptions, breadcrumbs and visible-content FAQ schema. Staging and API
+noindex protections and all authorization/billing/CRM boundaries remain in place.
+Three WebP derivatives reduce delivered bundled raster bytes from approximately
+4.4 MB to 0.84 MB; supplied originals remain unchanged. See PUBLIC_SEO.md.
+
+Passed locally (exit 0, from app unless noted):
+
+- `uv sync --frozen --dev`, `npm ci`, `uv lock --check`.
+- `.venv/bin/ruff format --check landwolf tests scripts`, `npm run format:check`.
+- `.venv/bin/ruff check landwolf tests scripts`, `npm run lint`.
+- `.venv/bin/mypy landwolf`, `npm run typecheck`.
+- `npm run test:unit`: 26 passed.
+- `.venv/bin/pytest -q -m 'not browser'`: 584 passed, 132 browser cases deselected;
+  two existing test-client deprecation warnings. Final runtime rerun: 102.31 seconds.
+- `.venv/bin/pytest -q tests/test_public_pages.py`: 12 passed after moving all
+  prebuilt static assets aside; its session fixture ran the real `npm run build`.
+- `npm run build`, `.venv/bin/python -m build`,
+  `.venv/bin/python scripts/check_package.py`.
+- `.venv/bin/bandit -r landwolf`: no findings;
+  `.venv/bin/pip-audit --local --skip-editable`: no known vulnerabilities;
+  `npm audit --audit-level=moderate`: zero vulnerabilities; `npm run secrets`: no findings.
+- `git diff --check` and `git status --short` from the repository root.
+
+Failed / unavailable locally:
+
+- `.venv/bin/playwright install chromium webkit` failed with a truncated Chromium
+  download. `.venv/bin/pytest -q -m browser tests/test_public_pages_browser.py -x`
+  failed because the Chromium executable was unavailable. This is not a browser pass.
+- Full browser, disposable PostgreSQL/restore and legacy environments were not run
+  locally; hosted application/legacy CI must supply these required release gates.
+- Initial hosted application runs 39156489979 and 39156604200 failed public HTTP
+  tests because a clean checkout had no built assets. The new session fixture builds
+  real assets before HTTP checks; no assertion or test was removed or skipped.
+- A long secure Google sign-in request timed out. The scratch workspace was cleared
+  during the wait; changes were restored and saved to the separate PR. No Search
+  Console submission or verified-property access is claimed.
+- Live HTTPS requests from this local environment returned an intermediary “Site
+  Unavailable” HTML page even at HTTP 200. They cannot establish origin status,
+  redirects, real 404s or field speed. Hosted acceptance remains required.
+
+Hosted checks, screenshot review and deployment evidence are pending in this entry.
+No production/staging deployment, ranking, earned backlink or sub-two-second field
+performance is claimed here. Personal bio text is pending the owner’s factual input.
+Google's current documentation confirms FAQ rich results were removed May 7, 2026;
+the earlier health/government-only guidance was outdated and is corrected in PUBLIC_SEO.md.
