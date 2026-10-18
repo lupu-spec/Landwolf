@@ -3506,3 +3506,57 @@ private account/cookie data was exported. These samples are not field percentile
 The following final hosted production acceptance run verifies the deployed
 customer/session/privacy and 48 public browser cases. Its actual result will be
 appended after observation; it is not assumed passed at this ledger commit.
+
+
+## v0.16.0 final hosted production acceptance — Passed
+
+Production hosted release run [39163534677](https://github.com/lupu-spec/Landwolf/actions/runs/39163534677)
+(job 117781656708) completed successfully against runtime
+`168eb749ae4a2396b98b7b1e48a9862fc915ebb3`, version 0.16.0, on the existing production service.
+It checked exact release identity, HTTPS, environment, billing/email mode,
+authentication, paywall and owner authorization, Chromium/WebKit phone/desktop
+journeys, session persistence, cache clearing, browser restart and logout.
+The established checker retained one disposable reserved-domain non-cohort test
+account; no real purchase or trial enrollment was performed.
+
+Both hosted commands exited 0:
+- `.venv/bin/python scripts/check_hosted_staging.py --environment production --commit 168eb749ae4a2396b98b7b1e48a9862fc915ebb3`
+- `.venv/bin/python scripts/check_public_seo.py --environment production`
+
+Public acceptance verified five canonical server-rendered documents, descriptions,
+one literal H1, visible FAQ/schema consistency, breadcrumbs/internal links,
+image attributes, real 404 responses, production crawl policy, protected API
+noindex, relative single-hop slash redirects and exact deployed stylesheet/WebP
+hashes. All 48 public browser samples passed across Chromium/WebKit, phone/desktop,
+Light/Dark/Auto and live device appearance changes. Maximum warm browser load was
+501 ms; maximum supported Chromium CLS was 0.0011111111111111111.
+WebKit does not expose the CLS API; its CLS is not represented as a measured zero.
+
+Artifact 12149098801 (`hosted-staging-evidence`, the established artifact name even
+for production) was reviewed: desktop Chromium light home, phone WebKit Auto land
+research checklist, and the complete public-browser-metrics.json. The home capture
+shows the existing enabled feedback-trial disclosure before the sign-in controls;
+the public checklist has readable responsive text, visible navigation and attribution.
+The independent fresh-context production audit above remains the cold-navigation
+sample: phone 1367.2 ms, desktop 970.6 ms. These limited lab samples do not establish
+a field percentile or guarantee every visitor loads in under two seconds.
+
+Cross-environment live smoke [39163534662](https://github.com/lupu-spec/Landwolf/actions/runs/39163534662)
+passed with both runtimes at v0.16.0. Staging hosted recheck 39163535374 and live
+smoke 39163535412 also passed. No code or runtime was changed after the approved
+source gates; this evidence update is documentation only and is not a new deployment.
+The release table continues to identify staging runtime bb7891856f5e48b683664c88ae73a9f33c6d2ae7
+and production runtime 168eb749ae4a2396b98b7b1e48a9862fc915ebb3, not documentation branch heads.
+
+Outstanding external/editorial work: Search Console submission was **not run**:
+the secure Google sign-in handoff timed out without an observed authenticated
+session or ownership/submission confirmation. The user chose to provide a real bio
+but has not supplied biography text; no personal credentials were invented.
+Company attribution is present. No backlink outreach was sent and no backlinks
+were acquired; the useful public checklist and outreach draft in PUBLIC_SEO.md
+are preparation, not earned links. Search ranking by Monday is not guaranteed.
+
+Resolved source failures and unavailable local browser setup are retained above.
+The successful native source/browser/security/package gates and both hosted
+acceptance runs close the technical release checks; they do not close the external
+Search Console, biography or backlink tasks.
