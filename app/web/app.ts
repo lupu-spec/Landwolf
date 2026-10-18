@@ -476,7 +476,7 @@ function photo(
 ): HTMLElement {
   const src = safeImage(record.image_url);
   const img = element("img", css) as HTMLImageElement;
-  const fallback = "/assets/no-photo-available.png";
+  const fallback = "/assets/no-photo-available.webp";
   img.src = src ?? fallback;
   img.alt = src
     ? `Official source image for tract ${record.tract}`

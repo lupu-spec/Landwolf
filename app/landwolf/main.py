@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -30,6 +30,7 @@ from landwolf import (
     feedback_export,
     finance,
     hunt,
+    public_pages,
     recovery,
     research_workspace,
     trials,
@@ -192,7 +193,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             response.headers["Cache-Control"] = "no-cache"
         if settings.secure_cookies:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
-        if settings.environment == "staging":
+        if settings.environment == "staging" or request.url.path.startswith("/api/"):
             response.headers["X-Robots-Tag"] = "noindex, nofollow"
         return response
 
@@ -843,6 +844,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     static = Path(__file__).resolve().parent / "static"
     if static.is_dir():
+        index_template = (static / "index.html").read_text(encoding="utf-8")
+        public_pages.register(app, settings)
         app.mount("/assets", StaticFiles(directory=static / "assets"), name="assets")
 
         @app.get("/trial-terms", include_in_schema=False)
@@ -850,8 +853,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return FileResponse(static / "assets" / "trial-terms.html")
 
         @app.get("/", include_in_schema=False)
-        def index() -> FileResponse:
-            return FileResponse(static / "index.html")
+        def index() -> HTMLResponse:
+            return HTMLResponse(
+                public_pages.render_home(index_template, trial_enabled=trials.enabled(settings))
+            )
 
         @app.get("/favicon.svg", include_in_schema=False)
         def favicon() -> FileResponse:

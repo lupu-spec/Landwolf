@@ -13,6 +13,12 @@ with ZipFile(wheels[-1]) as wheel:
         raise SystemExit("Wheel contains retired Saved implementation")
     required = {
         "landwolf/main.py",
+        "landwolf/public_pages.py",
+        "landwolf/static/assets/public-theme.js",
+        "landwolf/static/assets/public.css",
+        "landwolf/static/assets/landscape.webp",
+        "landwolf/static/assets/landwolf-logo.webp",
+        "landwolf/static/assets/no-photo-available.webp",
         "landwolf/crm.py",
         "landwolf/crm_core.py",
         "landwolf/locations.py",
@@ -37,6 +43,10 @@ with open_tar(sdists[-1], "r:gz") as archive:
     sources = {name.partition("/")[2] for name in archive.getnames()}
     required_sources = {
         "web/property-context.ts",
+        "web/public-theme.ts",
+        "web/assets/landscape.webp",
+        "tests/test_public_pages.py",
+        "tests/test_public_pages_browser.py",
         "tests/property-context.test.mjs",
         "web/source-health.ts",
         "web/source-list.ts",

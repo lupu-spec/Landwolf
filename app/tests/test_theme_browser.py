@@ -59,6 +59,9 @@ def test_appearance_across_feature_surfaces(browser_server, engine, width):
         for mode in ("dark", "light"):
             appearance.select_option(mode)
             expect(page.locator("html")).to_have_attribute("data-theme", mode)
+            expect(page.locator("#workspace-title")).to_have_css(
+                "color", "rgb(241, 242, 246)" if mode == "dark" else "rgb(32, 35, 43)"
+            )
             assert_surface(page, ".search-bar", mode)
             assert_surface(page, ".property-card", mode)
             if width < 640:

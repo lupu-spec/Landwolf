@@ -3289,3 +3289,139 @@ No application deployment follows these documentation-only sign-off commits.
 Runtime identities remain staging 29d4d46 / production 55a3564. Larger route/contract
 and base-layout consolidation from the repository review remains follow-up work;
 this release completed the requested appearance and its necessary regressions.
+
+
+## Public SEO candidate v0.16.0 — October 18, 2026
+
+PR #41 is separate from unmerged CSS PR #40. Public information is rendered in
+HTTP HTML, with explicit public routes, production sitemap/robots, canonical URLs,
+unique descriptions, breadcrumbs and visible-content FAQ schema. Staging and API
+noindex protections and all authorization/billing/CRM boundaries remain in place.
+Three WebP derivatives reduce delivered bundled raster bytes from approximately
+4.4 MB to 0.84 MB; supplied originals remain unchanged. See PUBLIC_SEO.md.
+
+Passed locally (exit 0, from app unless noted):
+
+- `uv sync --frozen --dev`, `npm ci`, `uv lock --check`.
+- `.venv/bin/ruff format --check landwolf tests scripts`, `npm run format:check`.
+- `.venv/bin/ruff check landwolf tests scripts`, `npm run lint`.
+- `.venv/bin/mypy landwolf`, `npm run typecheck`.
+- `npm run test:unit`: 26 passed.
+- `.venv/bin/pytest -q -m 'not browser'`: 584 passed, 132 browser cases deselected;
+  two existing test-client deprecation warnings. Final runtime rerun: 102.31 seconds.
+- `.venv/bin/pytest -q tests/test_public_pages.py`: 12 passed after moving all
+  prebuilt static assets aside; its session fixture ran the real `npm run build`.
+- `npm run build`, `.venv/bin/python -m build`,
+  `.venv/bin/python scripts/check_package.py`.
+- `.venv/bin/bandit -r landwolf`: no findings;
+  `.venv/bin/pip-audit --local --skip-editable`: no known vulnerabilities;
+  `npm audit --audit-level=moderate`: zero vulnerabilities; `npm run secrets`: no findings.
+- `git diff --check` and `git status --short` from the repository root.
+
+Failed / unavailable locally:
+
+- `.venv/bin/playwright install chromium webkit` failed with a truncated Chromium
+  download. `.venv/bin/pytest -q -m browser tests/test_public_pages_browser.py -x`
+  failed because the Chromium executable was unavailable. This is not a browser pass.
+- Full browser, disposable PostgreSQL/restore and legacy environments were not run
+  locally; hosted application/legacy CI must supply these required release gates.
+- Initial hosted application runs 39156489979 and 39156604200 failed public HTTP
+  tests because a clean checkout had no built assets. The new session fixture builds
+  real assets before HTTP checks; no assertion or test was removed or skipped.
+- A long secure Google sign-in request timed out. The scratch workspace was cleared
+  during the wait; changes were restored and saved to the separate PR. No Search
+  Console submission or verified-property access is claimed.
+- Live HTTPS requests from this local environment returned an intermediary “Site
+  Unavailable” HTML page even at HTTP 200. They cannot establish origin status,
+  redirects, real 404s or field speed. Hosted acceptance remains required.
+
+Hosted checks, screenshot review and deployment evidence are pending in this entry.
+No production/staging deployment, ranking, earned backlink or sub-two-second field
+performance is claimed here. Personal bio text is pending the owner’s factual input.
+Google's current documentation confirms FAQ rich results were removed May 7, 2026;
+the earlier health/government-only guidance was outdated and is corrected in PUBLIC_SEO.md.
+
+
+### Native public-origin baseline and browser diagnostics
+
+Read-only audit run 39158373200 (2026-10-18 19:21 UTC), isolated from runtime
+branches, observed production v0.15.0 at commit
+`55a35648140ffb3d3dead8c2e09a54d55dfc0e63`. Canonical HTTPS home and trial terms
+returned 200. HTTP/apex and HTTPS/www each returned one permanent 301 directly to
+`https://landwolf.ai/`; no redirect-chain change is needed for those origins.
+Robots and sitemap returned genuine 404s. One 20-second staging version request
+timed out; that is not evidence that staging is down and is not staging acceptance.
+
+Application runs 39156896926, 39157123463 and 39157342595 failed the new WebKit
+computed body-color assertion. Chromium passed all three widths. Retained Chromium
+metrics showed maximum local load 100.9 ms and maximum CLS 0.000597 across the
+captured public pages and home. These are local CI measurements, not field speed.
+Artifact 12147925992 shows the public stylesheet loaded and a WebKit screenshot
+with the intended RGB(32,35,43) text, despite a pre-capture computed read returning
+black. The same exact computed-color expectation now runs after an actual paint;
+it has not been removed, masked or given a different expected value. Further
+stylesheet, inherited color and screenshot diagnostics remain on failure.
+
+Review also aligned graphite's workspace heading selector with its H2 tag. Its
+ARIA level remains 1 in the active signed-in view, and existing typography/layout
+rules retain the approved values. A theme journey now checks its exact Light/Dark
+text color after login. This changes no navigation or account/billing behavior.
+
+Local browser fallback attempts: Chromium headless-shell download also failed with
+a truncated ZIP. WebKit downloaded, but its required OS libraries are unavailable;
+`.venv/bin/playwright install-deps webkit` failed with denied setgroups/setuid
+operations. Full browser verification therefore remains a hosted gate. No OS
+sandbox or browser protection was disabled to obtain a pass.
+
+
+### Full browser result before final asset/redirect corrections
+
+Run 39157812908: focused public browsers passed all six Chromium/WebKit cases;
+all eight theme cases, four source-list cases and 18 mobile cases passed. The
+full browser suite then reported 128 passed and four failed: the converted
+placeholder photo was 768 pixels wide while the existing natural-size guards
+require 1536×1024. The WebP derivative now preserves those original dimensions
+(238,600 bytes); the guards retain their original expectations. The three WebP
+files now total 1,002,500 bytes. This supersedes the smaller trial derivative's
+0.84 MB figure above. Supplied originals remain unchanged.
+
+The four public slash-redirect cases pass locally (16 public-document cases in
+total). They require a relative 308 even with spoofed forwarding headers, avoiding
+HTTPS → HTTP → HTTPS chains while preserving `proxy_headers=False`. Full local
+backend/API verification after the redirect correction passed 588 cases. The
+production package and configured static, dependency and secret scans also passed.
+Final hosted gates and deployment acceptance remain pending.
+
+
+### Live home baseline and server-rendered disclosure
+
+Isolated read-only browser audit 39159320624 (2026-10-18 19:34 UTC) used fresh
+anonymous Chromium contexts against production v0.15.0. Phone 390: load 1424.1 ms,
+response start 335.8 ms, CLS 0.045789. Desktop 1440: load 959.4 ms, response start
+134.8 ms, CLS 0.063637. The public feedback-trial flag was true in both contexts.
+Artifact 12148466185 contains the public screenshots and metrics; no account was
+created, no private account data/cookies were exported, and no purchase occurred.
+These samples meet the 2-second load and 0.1 CLS budgets at that test location;
+they are not field percentiles or a promise for every network/device.
+
+The candidate now renders the existing public trial availability state into the
+initial home HTML via the same `trials.enabled` computation as `/api/session`.
+Only the disclosure visibility changes at render time; account/session values are
+not embedded and enrollment/consent/billing decisions remain in their existing
+handlers. Tests cover enabled/disabled presentation and invalid/duplicate template
+markers. The template contract preserves every other hidden panel/form state.
+
+Hosted public acceptance now verifies stylesheet/WebP hashes and captures both
+engines at phone/desktop sizes in Light/Dark/Auto, including the home and all new
+public pages. It checks exact computed colors, overflow, load <2000 ms and CLS
+≤0.1 where the browser exposes that metric, and retains public-only screenshots
+and measurements alongside the established hosted release evidence.
+
+
+Final local runtime rerun after server-rendered availability: `.venv/bin/pytest -q
+-m 'not browser'` passed 592 cases (132 browser cases deselected) in 100.85 seconds;
+`tests/test_public_pages.py` passed all 20 cases. Formatting, lint/types, 26 frontend
+unit tests, production build/package checks and all configured static, dependency
+and secret scans passed again. Hosted public browser metrics are written after
+each sample so a failing budget retains its measurements. Final hosted source
+checks and both deployment acceptance runs remain required before release.

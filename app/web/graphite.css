@@ -291,7 +291,7 @@ summary:focus-visible {
   background: var(--tile);
   color: var(--ink);
 }
-.workspace-heading h1,
+.workspace-heading h2,
 .workspace-heading .eyebrow,
 .workspace-heading .muted,
 .results-controls,

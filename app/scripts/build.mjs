@@ -11,6 +11,14 @@ await build({
   minify: true,
 });
 await build({
+  entryPoints: ["web/public-theme.ts"],
+  bundle: true,
+  format: "iife",
+  target: "es2022",
+  outfile: `${output}/assets/public-theme.js`,
+  minify: true,
+});
+await build({
   entryPoints: ["web/app.ts"],
   bundle: true,
   format: "esm",

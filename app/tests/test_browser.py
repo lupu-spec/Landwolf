@@ -307,7 +307,7 @@ def test_missing_and_failed_listing_photos_use_branded_image(
         for card in page.locator(".property-card").all():
             card.scroll_into_view_if_needed()
             image = card.locator(".property-image img.image-missing")
-            expect(image).to_have_attribute("src", "/assets/no-photo-available.png")
+            expect(image).to_have_attribute("src", "/assets/no-photo-available.webp")
             expect(image).to_have_js_property("naturalWidth", 1536)
             expect(image).to_have_attribute("alt", "LandWolf — No photo available")
         page.locator(".property-card").first.get_by_role("button", name="View property").click()
@@ -369,7 +369,7 @@ def test_hunt_result_photos_and_plain_titles(browser_server: tuple[str, int], wi
         )
         for image in (broken, absent, disallowed):
             image.scroll_into_view_if_needed()
-            expect(image).to_have_attribute("src", "/assets/no-photo-available.png")
+            expect(image).to_have_attribute("src", "/assets/no-photo-available.webp")
             expect(image).to_have_js_property("naturalWidth", 1536)
         expect(cards.filter(has_text="Test fixture 99004")).to_contain_text("Acreage")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
