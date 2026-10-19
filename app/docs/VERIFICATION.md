@@ -3861,3 +3861,31 @@ proved its complete Git tree equals staged e12d187b456b90da1936d129f5ff7e62267db
 Production hosted acceptance remains pending. Existing default workspace, manually
 deployed services, databases and protected source/account/billing/CRM contracts
 were retained. Subsequent ledger documents do not relabel either runtime.
+
+### v0.18.0 acceptance complete in both environments
+
+Independent production run 39190339428 (job 117861529054) passed exact runtime
+v0.18.0 / 7e8aaa71e3fb60948657622273c11dc135aad53c, HTTPS, production environment,
+healthy database, live payment mode and expected email delivery mode. Both deployed
+CSS file hashes matched; Auto followed dark/light device changes; four actual
+Chromium/WebKit phone/desktop customer journeys retained header/dock captures,
+owner-only privacy restrictions, unpaid-customer paywall, logout and persistent
+sign-in after cache clear/browser restart. Static source choices retained all 50
+Craigslist options without operational/customer data exposure. No purchase, owner
+grant, customer export or data reset was performed.
+
+All 48 production public browser samples passed exact themes, load/layout budgets,
+documents/crawl policy/metadata/schema/links and genuine 404 checks. Maximum load
+853 ms; maximum supported Chromium CLS 0.001112; WebKit CLS unsupported. These
+remain lab samples, not universal field guarantees. The reconciled staged/runtime
+source also passed complete application run 39188135828; its metadata reconciliation
+introduced no runtime/test/build differences from verified source 627e0e0.
+
+v0.18 runtime identities remain staging e12d187b456b90da1936d129f5ff7e62267db0ec
+(Render dep-dbanseajnfac738eu9h0, live 2026-10-19 02:20:46 UTC) and production
+7e8aaa71e3fb60948657622273c11dc135aad53c (Render dep-dbao0mmq1p3s73cdvjqg,
+live 2026-10-19 02:29:35 UTC). Their complete Git trees match. No application
+redeployment follows the documentation-only sign-off commits; manual deploy mode,
+existing databases/services and protected account/billing/CRM contracts are retained.
+The source-flow release and bounded header consolidation are complete. Prior local
+browser/access limitations and resolved native failures remain recorded above.

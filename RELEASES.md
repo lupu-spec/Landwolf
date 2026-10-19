@@ -3,6 +3,38 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.18.0 — header CSS consolidation live; hosted acceptance complete
+
+**Live in staging and production.** [PR #40](https://github.com/lupu-spec/Landwolf/pull/40)
+reduces `.site-header` from seven rules to three and removes superseded navigation
+styles: 31 fewer CSS lines. Approved silver/glass, Light/Dark/Auto, mobile navigation,
+keyboard/accessibility, print and account/billing/CRM behavior are retained. The
+v0.17 publisher searches remain available; publisher imports stay disabled pending
+agreements. No dependency upgrade, migration, account reset or paid resource change.
+
+- [Source gates 39186749900](https://github.com/lupu-spec/Landwolf/actions/runs/39186749900)
+  passed 27 frontend, 679 API and all 142 browser cases, PostgreSQL/exact 36-table
+  restore, package and security checks; separate legacy tests passed 53. The
+  reconciled runtime also passed [gates 39188135828](https://github.com/lupu-spec/Landwolf/actions/runs/39188135828).
+  Both engines matched every computed header property and all 62 paired screenshots
+  exactly across responsive, appearance, role, print and zoom cases.
+- Staging runtime `e12d187b456b90da1936d129f5ff7e62267db0ec`, Render
+  `dep-dbanseajnfac738eu9h0`, live 2026-10-19 02:20:46 UTC.
+  [Hosted acceptance 39189767343](https://github.com/lupu-spec/Landwolf/actions/runs/39189767343)
+  passed both CSS hashes, Auto/device, responsive header/dock/customer/source,
+  privacy/session/research checks and all 48 public browser samples.
+- Production runtime `7e8aaa71e3fb60948657622273c11dc135aad53c`, Render
+  `dep-dbao0mmq1p3s73cdvjqg`, live 2026-10-19 02:29:35 UTC. Its complete Git tree
+  equals staged e12d187. [Hosted acceptance 39190339428](https://github.com/lupu-spec/Landwolf/actions/runs/39190339428)
+  passed exact identity/health/live billing mode, both CSS hashes, Auto/device,
+  customer/paywall/privacy/session checks and all 48 public browser samples.
+  Maximum sampled load was 853 ms; supported Chromium CLS at most 0.001112
+  (WebKit unsupported). These are lab samples, not universal field guarantees.
+- Both existing services/databases and manual deploy settings remain intact.
+  Documentation heads do not relabel runtime. See
+  [scope and retained failures](app/docs/HEADER_CSS_REFACTOR.md) and
+  [complete verification](app/docs/VERIFICATION.md).
+
 ## v0.18.0 — production CSS consolidation deployment event
 
 **Staging acceptance passed; production deployment observed, acceptance pending.**

@@ -8,7 +8,7 @@ repeated 800px order/width/alignment/grid declarations are removed. Intentional
 responsive navigation, graphite palette/wrapping, print and keyboard rules remain.
 No HTML, TypeScript, backend behavior, authentication, billing or data changes are
 part of the CSS refactor. Runtime/package identity advances to 0.18.0; dependencies
-are unchanged. This candidate builds on the separately reviewed source-flow work.
+are unchanged. This release builds on the verified v0.17 source-flow release.
 
 The immutable approved v0.16.0 production CSS commit is
 `168eb749ae4a2396b98b7b1e48a9862fc915ebb3`. CI fetches that exact object. Independent
@@ -97,3 +97,14 @@ research checks and all 48 public samples. PR #40 merged as
 Production deploy dep-dbao0mmq1p3s73cdvjqg became live at 2026-10-19 02:29:35 UTC.
 Independent production hosted acceptance is pending; runtime commits are recorded
 separately from subsequent documentation heads in RELEASES.md.
+
+## Deployment and acceptance complete
+
+v0.18.0 is live and accepted in both environments. Staging remains e12d187b456b90da1936d129f5ff7e62267db0ec;
+production remains 7e8aaa71e3fb60948657622273c11dc135aad53c. The complete production
+tree equals the staged tree. Hosted production run 39190339428 passed exact
+identity/health/live billing mode, both stylesheet hashes, Auto/device, phone/desktop
+header/dock/customer/paywall/privacy/persistent-session checks and 48 public browser
+samples. The reconciled source also passed full application run 39188135828.
+No new application deployment follows the documentation-only sign-off commits.
+See RELEASES.md for deployment IDs and observed UTC times.
