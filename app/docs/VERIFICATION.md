@@ -3709,3 +3709,19 @@ Independent native government check 39183615132 also exited 1: USDA ConnectTimeo
 the other seven government feeds were ready. This confirms an upstream/access
 limitation beyond the local HTTP502 result. All publisher imports remained disabled.
 Required live-source verification is not passed; deployment remains pending.
+
+The source-only candidate 61febfe5a02b398db4dbae4922936283aa869378 passed native
+run 39182934783: 27 frontend, 679 API and all 140 full browser tests; PostgreSQL,
+exact 36-table restore, packaging/security, plus 53 separate archived tests.
+Source screenshots were reviewed at phone/desktop widths. No publisher imports
+were enabled. USDA recovered: a fresh disposable v0.18 CLI sync exited 0 with all
+eight original government feeds ready and 282 records; earlier failures are retained.
+
+Combined v0.18 run 39183956547 passed focused exact header comparisons (62 pairs)
+but failed its full browser gate: 141 passed, one Chromium guest-short screenshot
+mismatch. Package/security stages after that browser failure were skipped, not
+passed. Retained PNG analysis found 35 rounded-edge pixels different (maximum
+channel delta 21/255) despite identical computed styles/rectangles. The test now
+awaits font/image decoding and uses official Chromium deterministic compositor
+flags without BeginFrameControl. No tolerance, mask, assertion removal or retry
+to match is added. All gates rerun; no CSS deployment is authorized by this failed run.

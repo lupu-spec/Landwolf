@@ -53,7 +53,12 @@ def approved_css(name):
 
 def settle_header(page):
     page.bring_to_front()
-    page.evaluate("window.scrollTo(0, 0)")
+    page.evaluate("""async () => {
+        await document.fonts.ready;
+        await Promise.all(Array.from(document.querySelectorAll('.site-header img'),
+            image => image.decode()));
+        window.scrollTo(0, 0);
+    }""")
     page.mouse.move(0, 940)
     page.locator("#dock-track").evaluate("el => { el.scrollLeft = 0; }")
     page.evaluate("""() => new Promise(resolve => requestAnimationFrame(() =>
@@ -119,7 +124,21 @@ def test_header_cascade_matches_approved_release(browser_server, engine):
     output = Path("test-results/header-css")
     output.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as playwright:
-        browser = getattr(playwright, engine).launch()
+        # Chromium's deterministic compositor flags keep image decoding and
+        # compositing synchronized without changing CSS or image tolerances.
+        # Do not enable BeginFrameControl: Playwright drives normal frame ticks.
+        args = (
+            [
+                "--run-all-compositor-stages-before-draw",
+                "--disable-new-content-rendering-timeout",
+                "--disable-image-animation-resync",
+                "--disable-threaded-animation",
+                "--disable-checker-imaging",
+            ]
+            if engine == "chromium"
+            else []
+        )
+        browser = getattr(playwright, engine).launch(args=args)
         contexts = [
             browser.new_context(viewport={"width": 1440, "height": 950}, reduced_motion="reduce")
             for _ in range(2)

@@ -55,3 +55,17 @@ The comparison now pins the actual approved production v0.16 commit above. This
 retains those separately shipped SEO changes on both sides; it does not approve a
 new design or tolerate differences. Every property and exact image check remains.
 The earlier v0.15 results and failures remain recorded for traceability.
+
+## Full-suite capture follow-up
+
+Run 39183956547 passed the focused comparison (62 exact pairs) but the full suite
+reported 141 passes and one Chromium guest-short header mismatch. Artifact
+12158326786 was inspected: 35 pixels at rounded logo/control edges differed;
+all computed styles and geometry matched. No release pass is claimed for that run.
+The comparison now waits for font readiness and header image decoding, then uses
+Chromium's deterministic compositor/renderer flags from its official
+[command-line handler](https://github.com/chromium/chromium/blob/8e28e3b041d7634887b31d0245b8d8d734041283/headless/lib/browser/command_line_handler.cc).
+BeginFrameControl is not enabled because normal Playwright frame ticks must continue.
+No CSS, screenshot mask, excluded property, tolerance or retry-to-match is added.
+Both focused and full suites must rerun. The verified source-flow release remains
+independent; this refactor will not deploy until its complete gates pass.
