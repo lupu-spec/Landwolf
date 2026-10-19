@@ -1,0 +1,27 @@
+name: Explicit government source availability
+on:
+  push:
+    branches: [verify/government-availability-2026-10-19]
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked Python tools
+        run: |
+          pip install uv==0.12.11
+          uv sync --frozen --dev
+      - name: Explicit read-only government source verification
+        env:
+          LANDWOLF_DATABASE_URL: sqlite:////tmp/landwolf-government-verification.db
+          LANDWOLF_LICENSED_LISTING_SOURCES: "[]"
+        run: .venv/bin/python -m landwolf.cli sync
