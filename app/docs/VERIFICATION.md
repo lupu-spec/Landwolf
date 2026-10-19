@@ -3816,3 +3816,32 @@ This reconciliation changes only documentation and hosted-check event routing.
 The application, tests, build/dependency files and application CI are byte-identical
 to tested CSS source 627e0e08585de56380e9b254d839fb132f7fda6d, whose full browser
 run remains pending. No CSS release is claimed until its required gates pass.
+
+
+### v0.18.0 full verification passed; observed staging
+
+Final source 627e0e08585de56380e9b254d839fb132f7fda6d passed complete native run
+39186749900 (verify job 117850673701): format/lint/types; 27 frontend and 679 API
+cases; PostgreSQL integration/exact 36-table backup/restore; eight commercial,
+six public, eight appearance, four source-list and 18 mobile focused cases; all
+142 full browser cases; production package validation and every security scanner.
+Separate archived tests passed 53 cases. Focused header job 117850673888 also passed.
+Artifact 12158412312 contains 62 exact approved/candidate pairs; local byte checks
+confirmed all matched, and phone/desktop images were visually reviewed. Full browser
+evidence is artifact 12158723592. No masks, tolerances, changed visual assertions
+or retries-to-match were introduced; earlier failed runs remain recorded above.
+
+After the capture fix, local commands passed again: Ruff/Prettier format, Ruff/
+ESLint lint, mypy/TypeScript, 27 frontend/679 API tests, npm build, Python build/
+package validation, Bandit, pip-audit, npm audit and secretlint. git diff --check
+was clean. The local browser launch limitation above remains a failed local
+invocation; actual native Chromium/WebKit establish the browser verification.
+
+Runtime e12d187b456b90da1936d129f5ff7e62267db0ec reconciles only v0.17 observed
+ledger/hosted-event routing. git diff --exit-code against verified source 627e0e0
+passed for all landwolf/web/tests/scripts, package/dependency files and application
+CI. Render staging dep-dbanseajnfac738eu9h0 became live at 2026-10-19 02:20:46 UTC.
+Direct HTTPS /api/version matched v0.18.0, staging and exact e12d187; /api/health
+matched ok, v0.18.0 and payments_enabled false. The existing default workspace,
+service/database, source/billing/CRM contracts and manual deploy mode were retained.
+Hosted staging acceptance is pending. Production remains verified v0.17.0.
