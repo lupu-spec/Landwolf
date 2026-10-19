@@ -3660,3 +3660,56 @@ A local Chromium installation failed with truncated downloads; WebKit's focused
 invocation failed before the journey because host browser libraries are missing.
 These are unavailable local browser checks, not passes; native CI supplies both
 browsers and remains required. No browser test is skipped or weakened.
+
+
+### v0.17.0 verified source release — observed staging event
+
+Source commit 61febfe5a02b398db4dbae4922936283aa869378 passed complete native
+application run 39182934783: format/lint/types, 27 frontend and 679 backend/API tests;
+PostgreSQL integration and exact pg_dump/restore digests across 36 tables; eight
+focused source/browser cases and all 140 full browser cases; production build,
+wheel/source packaging, Bandit, pip-audit, npm audit and secretlint. Separate
+archived regressions passed 53 cases. Phone/desktop publisher screenshots from
+artifact 12157303664 were visually reviewed; all three appearance modes and both
+engines are covered. The local browser installation/launch gaps above remain
+historical failures, resolved for release verification by actual native browsers.
+
+A final v0.17 disposable command exited 0:
+`LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-v17-release-source-check.db LANDWOLF_LICENSED_LISTING_SOURCES='[]' .venv/bin/python -m landwolf.cli sync`.
+All eight original government feeds were ready with 282 records and no publisher
+imports enabled. Earlier local HTTP502 and independent native USDA timeout were
+retained; recovery was verified before promotion. No hosted database was accessed
+by this sync. All local final format/lint/type/frontend/API/build/package/security
+commands passed and git diff --check was clean; source tests passed 87 cases.
+
+Render staging deploy dep-dbanchk9v7es7396s5rg became live at
+2026-10-19 01:46:54 UTC, runtime commit 61febfe5a02b398db4dbae4922936283aa869378.
+The default workspace and existing isolated service/database were retained.
+Hosted acceptance is pending; production still runs v0.16.0. The header CSS
+candidate is separate and has not been deployed by this source release.
+
+Direct staging HTTPS observation passed: /api/version returned v0.17.0, staging,
+and exact runtime 61febfe5a02b398db4dbae4922936283aa869378; /api/health returned
+ok, v0.17.0 and payments_enabled false. API ref updates did not produce a hosted
+workflow run for the ledger commit. Hosted acceptance gains an explicit
+pull_request trigger limited to RELEASES.md on staging/main; the environment is
+selected from the PR base (or push branch). Existing push triggers and all checker
+assertions remain unchanged. A ledger-only PR runs the established checks against
+the observed runtime; no application behavior or deployment changes are included.
+
+Staging hosted acceptance run 39187139290 passed (job 117851834280): four
+Chromium/WebKit 390/1440px customer journeys, all 50 Craigslist choices and metadata
+privacy, linked state/source selection, native publisher disclosure, no-match/reset,
+live mapped inventory, research/CSRF, owner-only boundaries, persistence/cache/
+restart/logout. All 48 public browser samples passed; maximum load 638.7 ms,
+maximum supported Chromium CLS 0.001112; WebKit CLS is unsupported. These are lab
+samples, not field guarantees. One disposable non-cohort verification account was
+retained; no owner grant, purchase or existing customer-data export/reset occurred.
+
+PR #42 merged as b5fa49aa57cd7461ea753833dd82cc81517e4ef9. Native Git lookups prove
+its complete tree equals source/staging 61febfe5a02b398db4dbae4922936283aa869378
+(tree 6b98b5ed0be60a898ca1f9c233555ba014c6a524). Production deploy
+ dep-dbangsks728c738rn9f0 became live at 2026-10-19 01:55:51 UTC on that commit.
+Existing service, database, live-only payment configuration and manual deploy mode
+were retained. Hosted production acceptance is pending; no v0.18 CSS deployment
+is claimed. Ledger/document commits do not relabel either runtime commit.
