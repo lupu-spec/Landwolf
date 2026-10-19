@@ -70,6 +70,7 @@ jobs:
       - name: Browser journey
         run: |
           npm run build
+          .venv/bin/pytest -q -m browser tests/test_commercial_browser.py
           .venv/bin/pytest -q -m browser tests/test_public_pages_browser.py
           .venv/bin/pytest -q -m browser tests/test_theme_browser.py
           .venv/bin/pytest -q -m browser tests/test_source_list_browser.py

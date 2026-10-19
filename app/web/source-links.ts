@@ -12,6 +12,9 @@ export function sourceLink(url: string, label: string): HTMLAnchorElement {
       !parsed.port &&
       [
         "www.glo.texas.gov",
+        "www.zillow.com",
+        "www.craigslist.org",
+        "www.compass.com",
         "www.resales.usda.gov",
         "www.irsauctions.gov",
         "www.treasury.gov",

@@ -4,6 +4,7 @@ Default CI data is explicitly synthetic. LANDWOLF_E2E_LIVE=1 instead copies only
 listing/source records from a successful local live sync, never existing accounts.
 """
 
+import json
 import os
 import re
 import socket
@@ -669,7 +670,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
     engine, factory = database(url)
     initialize(engine)
     mode = getattr(request, "param", "")
-    owner_mode = mode in {"research_owner", "nationwide_owner", "finance_owner"}
+    owner_mode = mode in {"research_owner", "nationwide_owner", "finance_owner", "commercial_owner"}
     if owner_mode:
         with factory() as session, session.begin():
             session.add(
@@ -730,6 +731,20 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 )
             )
         source_engine.dispose()
+    elif mode == "commercial_owner":
+        from test_commercial import compass, craigslist, zillow
+
+        from landwolf.commercial import SCOPE, parse
+        from landwolf.trust import publish_snapshot
+
+        with factory() as session, session.begin():
+            for source, html in (
+                ("zillow_tx", zillow()),
+                ("compass_tx", compass()),
+                ("craigslist_tx", craigslist()),
+                ("craigslist_ca", craigslist("CA")),
+            ):
+                publish_snapshot(session, source, parse(source, html), scope_note=SCOPE)
     elif mode in {"nationwide", "nationwide_owner", "finance_owner"}:
         seed_national(factory)
     else:
@@ -812,6 +827,11 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
         "LANDWOLF_PUBLIC_ORIGIN": origin,
         "LANDWOLF_AUTO_SYNC": "false",
     }
+    environment["LANDWOLF_LICENSED_LISTING_SOURCES"] = json.dumps(
+        ["zillow_tx", "compass_tx", "craigslist_tx", "craigslist_ca"]
+        if mode == "commercial_owner"
+        else []
+    )
     if owner_mode:
         environment["LANDWOLF_OWNER_ACCOUNT_ID"] = "00000000-0000-0000-0000-000000000001"
     if getattr(request, "param", "") == "mail":

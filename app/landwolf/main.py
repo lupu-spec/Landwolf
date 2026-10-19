@@ -25,6 +25,7 @@ from landwolf import (
     admin,
     auth,
     billing,
+    commercial,
     crm,
     feedback,
     feedback_export,
@@ -62,7 +63,7 @@ from landwolf.research import (
     ResearchService,
 )
 from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, Registration, SearchQuery
-from landwolf.sources import SOURCE_BY_ID
+from landwolf.sources import SOURCE_BY_ID, SOURCES
 from landwolf.trust import property_evidence
 from landwolf.version import VERSION, release
 
@@ -116,7 +117,7 @@ class BodyLimit:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     engine, factory = database(settings.database_url)
-    provider = Catalog(factory)
+    provider = Catalog(factory, settings.licensed_listing_sources)
     research = ResearchService()
     mailer = recovery.Mailer(settings)
 
@@ -486,6 +487,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             auth.COOKIE, path="/", secure=settings.secure_cookies, httponly=True, samesite="strict"
         )
         return {"ok": True}
+
+    @app.get("/api/source-options")
+    def source_options(request: Request, session: DB) -> list[dict[str, Any]]:
+        auth.authenticate(request, session, settings)
+        # Static filter metadata only: no source health, counts, accounts or CRM data.
+        return [
+            {
+                "id": d.id,
+                "name": d.name,
+                "states": list(d.states),
+                "categories": list(d.categories),
+                "external_searches": list(commercial.PAGE_GROUPS.get(d.id, ())),
+                "import_enabled": d.id in provider.providers,
+            }
+            for d in SOURCES
+            if d.automated or d.id in commercial.PAGE_GROUPS
+        ]
 
     @app.get("/api/sources")
     def sources(request: Request, session: DB) -> dict[str, Any]:

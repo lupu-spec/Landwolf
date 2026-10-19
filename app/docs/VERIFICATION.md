@@ -3560,3 +3560,103 @@ Resolved source failures and unavailable local browser setup are retained above.
 The successful native source/browser/security/package gates and both hosted
 acceptance runs close the technical release checks; they do not close the external
 Search Console, biography or backlink tasks.
+
+
+## v0.17.0 candidate — seller/broker sources and linked state filters
+
+Implementation adds Zillow/Compass Texas land-page samples and 50 state-specific
+Craigslist adapters from the publisher directory (412 regional markets). Static
+source metadata drives the main state/category/source controls; original API
+authentication, billing, CSRF, owner diagnostics, CRM and schema 13 are preserved.
+New publisher records carry availability/classification warnings and enter Hunt
+Needs review. No photos, seller contacts or full descriptions are imported.
+
+Passed explicit direct-source trial: `.venv/bin/python
+scripts/check_commercial_sources.py --sample-regions` returned exit 0 for all 52
+source checks (one regional page/state; 577 supported rows total). It is not a full
+regional or nationwide-inventory proof. Full read-only regional checker completed
+all 52 checks successfully, returning 3,620 supported rows across the 412 reviewed
+Craigslist markets plus Zillow (41) and Compass (5) samples. Full coverage means
+all reviewed regions were requested, not complete listing pagination. Some regions
+had zero supported matches; missing fields stay unknown. Aggregate-only logs are
+in test-results/commercial-live*.json.
+
+Local source parser/API tests initially passed 76 cases; additional Hunt/location
+and atomic multi-region regressions were then added for the final gate run.
+Early mypy annotations, test line formatting, and a Craigslist canonical-URL/parser
+assumption were corrected; these earlier failures are not counted as passed gates.
+The production adapter returned 41 Zillow, 68 Dallas Craigslist and 5 Compass rows
+in the initial live check before the 50-state expansion. Scope and limits are in
+COMMERCIAL_SOURCES.md. Source refreshes retain last-good snapshots and quarantine
+anomalous changes.
+
+Current source/package/browser/security gates and the disposable CLI-wide sync
+are pending at this candidate documentation event. Staging and production remain
+v0.16.0; this candidate is not deployed. Observed final results and deployment
+identities will be appended after completion.
+
+Local final gates passed format/lint/types, 27 frontend unit tests and all 670
+backend/API tests (108.27 seconds). Wheel/source build and check_package passed;
+Bandit, pip-audit and npm audit passed (no known dependency vulnerabilities).
+Secretlint rejected a synthetic BasicAuth test URL; the regression now uses a
+username-only invalid URL to test credential rejection without embedding a
+credential literal. No scanner exclusion or rule change was made. Secret scan
+recheck and native gates are required for the updated candidate.
+
+Local focused browser invocation `.venv/bin/pytest -q -m browser
+tests/test_commercial_browser.py -x` failed before executing the journey because
+the Chromium executable is unavailable. Native CI installs the real browsers;
+this local result is an unavailable verification gap, not a pass.
+
+The explicit disposable CLI-wide sync exited 0: all 60 automated feeds were ready,
+with 3,902 normalized records and no failed source. The database was
+/tmp/landwolf-v17-source-verification.db; no hosted/customer database was accessed.
+Final review added fail-closed conversion of malformed nested publisher objects
+and excessive JSON nesting into SourceUnavailable so source failures cannot stop
+the shared scheduler. Four additional malformed-shape cases were added; the empty
+list-coordinate fixture initially exposed a permissive shape conversion, which was
+fixed with explicit object validation rather than weakening the assertion. Final
+focused tests and security scans are rerun; native final gates remain pending.
+Hosted acceptance now also checks static source metadata privacy and all 50
+Craigslist choices, plus staged linked state/source filtering and reset.
+
+Native initial browser run 39181126308 failed all four new cases at the final
+Reset click: the test assumed Reset was visible with nonempty results, but the
+existing UI exposes it only in the empty state. The preceding sign-in, source
+filtering, cross-state selection, original link/detail and appearance captures
+succeeded. The tests and hosted checker now create a real no-match filter and
+assert the empty state before clicking Reset; no forced click, skip, expected
+result weakening or production UI change was used. Final native gates must rerun.
+
+Recovery compatibility: the new runtime reads older payloads without a schema
+migration, but v0.16 does not recognize seller_listing/new publisher status values.
+After ingestion or account-owned research cases exist, do not blindly deploy an
+old v0.16 artifact or delete user research to roll back. A recovery build must
+retain v0.17 contracts while disabling/reverting the collector behavior as needed.
+
+
+### Provider terms review and launch scope correction
+
+Review of actual Zillow, Craigslist and Compass terms after the read-only trials
+found restrictions on automated collection and commercial redisplay. No provider
+agreements were supplied. Trial counts above establish parsing only, not permission.
+All commercial collectors now default to disabled; only validated licensed source
+IDs can enable one. The manual checker exits 2 without an HTTP client when none
+are configured. The eight government collectors remain enabled. No further
+publisher collection is run without agreement scope.
+
+Main-screen controls expose publisher search links: 50 Craigslist state choices
+with all 412 reviewed markets, plus Zillow and Compass Texas. Numeric filters must
+be applied on the publisher site. New browser tests cover disabled-mode links,
+keyboard disclosure, state switching and Light/Dark/Auto at phone/desktop sizes.
+Prior native runs are not final approval; all gates must rerun for this change.
+No v0.17 deployment has occurred yet.
+
+Local scope-change checks: format, lint, mypy, TypeScript and 27 frontend tests
+passed. The new checker regression initially failed because pytest does not put
+scripts/ on its import path; it now loads the actual script with runpy and the
+focused suite passed (87 tests). Full API checks are rerunning after that fix.
+A local Chromium installation failed with truncated downloads; WebKit's focused
+invocation failed before the journey because host browser libraries are missing.
+These are unavailable local browser checks, not passes; native CI supplies both
+browsers and remains required. No browser test is skipped or weakened.
