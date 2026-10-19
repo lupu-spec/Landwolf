@@ -3687,3 +3687,12 @@ Render staging deploy dep-dbanchk9v7es7396s5rg became live at
 The default workspace and existing isolated service/database were retained.
 Hosted acceptance is pending; production still runs v0.16.0. The header CSS
 candidate is separate and has not been deployed by this source release.
+
+Direct staging HTTPS observation passed: /api/version returned v0.17.0, staging,
+and exact runtime 61febfe5a02b398db4dbae4922936283aa869378; /api/health returned
+ok, v0.17.0 and payments_enabled false. API ref updates did not produce a hosted
+workflow run for the ledger commit. Hosted acceptance gains an explicit
+pull_request trigger limited to RELEASES.md on staging/main; the environment is
+selected from the PR base (or push branch). Existing push triggers and all checker
+assertions remain unchanged. A ledger-only PR runs the established checks against
+the observed runtime; no application behavior or deployment changes are included.

@@ -24,6 +24,7 @@ No Apify, paid service, schema migration, account reset or billing/CRM change.
 - Staging runtime: `61febfe5a02b398db4dbae4922936283aa869378`, Render
   `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC. The existing default
   workspace, service, isolated database and manual deployment setting were retained.
+- Exact HTTPS version/commit and healthy database/billing-disabled state were observed.
 - The CSS-only follow-up remains separate and is not part of this deployment.
   See [source scope](app/docs/COMMERCIAL_SOURCES.md) and
   [verification](app/docs/VERIFICATION.md).
