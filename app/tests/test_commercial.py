@@ -99,7 +99,7 @@ def test_zillow_deduplicates_converts_area_and_preserves_asking_price():
 def test_craigslist_all_50_state_definitions_and_published_state_filter(state):
     source = f"craigslist_{state.lower()}"
     definition = SOURCE_BY_ID[source]
-    assert definition.states == (state,) and definition.automated
+    assert definition.states == (state,) and not definition.automated
     assert 0 < len(REGIONS[state]) <= 40
     rows = commercial.parse(source, craigslist(state))
     assert rows[0].state == state and rows[0].source == source
@@ -227,7 +227,10 @@ def test_state_refresh_preserves_snapshot_when_a_region_fails(client, monkeypatc
 def test_catalog_options_search_and_detail_share_new_sources(client: TestClient, signed_in):
     options = client.get("/api/source-options").json()
     assert len([x for x in options if x["id"].startswith("craigslist_")]) == 50
-    assert all(set(x) == {"id", "name", "states", "categories"} for x in options)
+    assert all(
+        set(x) == {"id", "name", "states", "categories", "external_searches", "import_enabled"}
+        for x in options
+    )
     records = [
         commercial.parse("zillow_tx", zillow())[0],
         commercial.parse("compass_tx", compass())[0],
@@ -317,3 +320,59 @@ def test_state_refresh_is_atomic_across_multiple_regions(monkeypatch):
 def test_malformed_nested_publisher_shapes_do_not_escape_refresh_contract(html):
     with pytest.raises(SourceUnavailable):
         commercial.parse("zillow_tx", html)
+
+
+def test_publishers_default_to_links_and_only_explicit_sources_can_import(client, signed_in):
+    from landwolf.catalog import Catalog
+    from landwolf.config import Settings
+
+    factory = client.app.state.factory
+    default = Catalog(factory)
+    assert len(default.providers) == 8
+    assert not set(default.providers) & commercial.PAGE_GROUPS.keys()
+    options = client.get("/api/source-options").json()
+    for option in options:
+        if option["id"] in commercial.PAGE_GROUPS:
+            assert not option["import_enabled"]
+            assert option["external_searches"] == list(commercial.PAGE_GROUPS[option["id"]])
+    settings = Settings(licensed_listing_sources=("craigslist_ca", "zillow_tx"))
+    enabled = Catalog(factory, settings.licensed_listing_sources)
+    assert set(enabled.providers) - set(default.providers) == {"craigslist_ca", "zillow_tx"}
+    assert enabled.statuses(source_id="craigslist_ca")[0]["automated"]
+    assert not default.statuses(source_id="craigslist_ca")[0]["automated"]
+    assert all("craigslist_ca" not in row["feed_ids"] for row in default.coverage())
+
+
+@pytest.mark.parametrize("values", [("unknown",), ("zillow_tx", "zillow_tx"), ("craigslist_dc",)])
+def test_listing_agreement_configuration_rejects_unknown_or_duplicate_sources(values):
+    from pydantic import ValidationError
+
+    from landwolf.config import Settings
+
+    with pytest.raises(ValidationError):
+        Settings(licensed_listing_sources=values)
+
+
+def test_live_checker_makes_no_requests_without_agreement_configuration(
+    monkeypatch, tmp_path, capsys
+):
+    import runpy
+    from pathlib import Path
+
+    from landwolf.config import Settings
+
+    check = runpy.run_path(str(Path(__file__).parents[1] / "scripts/check_commercial_sources.py"))[
+        "check"
+    ]
+    monkeypatch.setitem(
+        check.__globals__, "Settings", lambda: Settings(licensed_listing_sources=())
+    )
+
+    def no_client(*args, **kwargs):
+        pytest.fail("Disabled collectors must not construct an HTTP client")
+
+    monkeypatch.setattr(check.__globals__["httpx"], "AsyncClient", no_client)
+    output = tmp_path / "not-created.json"
+    assert asyncio.run(check(False, output)) == 2
+    assert not output.exists()
+    assert "no publisher requests" in capsys.readouterr().out

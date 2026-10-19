@@ -65,3 +65,56 @@ def test_commercial_state_source_filters_details_and_themes(browser_server, engi
         expect(source).to_have_value("")
         expect(page.locator(".property-card")).to_have_count(4)
         browser.close()
+
+
+@pytest.mark.parametrize("browser_server", ["nationwide_owner"], indirect=True)
+@pytest.mark.parametrize("engine", ["chromium", "webkit"])
+@pytest.mark.parametrize("width", [390, 1440])
+def test_default_publisher_links_follow_state_without_imports(browser_server, engine, width):
+    from landwolf.commercial import PAGE_GROUPS
+
+    origin, _ = browser_server
+    with sync_playwright() as playwright:
+        browser = getattr(playwright, engine).launch()
+        page = browser.new_page(viewport={"width": width, "height": 950})
+        page.goto(origin)
+        page.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
+        page.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        page.locator("#auth-submit").click()
+        state = page.locator("#state")
+        source = page.locator("#source-filter")
+        state.select_option("TX")
+        page.locator("#category").select_option("seller_listing")
+        source.select_option("craigslist_tx")
+        state.select_option("CA")
+        expect(source).to_have_value("craigslist_ca")
+        panel = page.locator("#publisher-searches")
+        expect(panel).to_be_visible()
+        panel.locator("summary").focus()
+        page.keyboard.press("Enter")
+        expect(panel.locator("a")).to_have_count(len(PAGE_GROUPS["craigslist_ca"]))
+        expect(panel).to_contain_text("Automatic import is not enabled")
+        assert [a.get_attribute("href") for a in panel.locator("a").all()] == list(
+            PAGE_GROUPS["craigslist_ca"]
+        )
+        assert all(
+            a.get_attribute("rel") == "noopener noreferrer" for a in panel.locator("a").all()
+        )
+        for mode in ("light", "dark", "system"):
+            page.get_by_role("combobox", name="Appearance", exact=True).select_option(mode)
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            page.screenshot(
+                path=f"test-results/publisher-links-{engine}-{width}-{mode}.png", full_page=True
+            )
+        page.locator("#search-submit").click()
+        expect(page.locator("#empty-state")).to_be_visible()
+        expect(page.locator(".property-card")).to_have_count(0)
+        state.select_option("TX")
+        source.select_option("zillow_tx")
+        expect(panel.locator("a")).to_have_attribute("href", PAGE_GROUPS["zillow_tx"][0])
+        source.select_option("compass_tx")
+        expect(panel.locator("a")).to_have_attribute("href", PAGE_GROUPS["compass_tx"][0])
+        page.locator("#reset-filters").click()
+        expect(panel).to_be_hidden()
+        expect(panel.locator("a")).to_have_count(0)
+        browser.close()

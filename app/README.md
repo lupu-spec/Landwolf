@@ -37,7 +37,8 @@ The application wheel includes the built browser assets.
 
 The main screen also offers Zillow and Compass Texas land-search pages and
 50 state-specific Craigslist sources through linked state/category/source filters.
-These are partial search-page samples, not complete market coverage. See
+Automatic imports are disabled pending provider agreements. Open the linked
+publisher searches and apply numeric filters there. See
 [scope, verification and limitations](docs/COMMERCIAL_SOURCES.md).
 
 ## Source coverage

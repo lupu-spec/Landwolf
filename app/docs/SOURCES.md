@@ -82,7 +82,8 @@ the existing six-hour backend stale/availability diagnostics.
 
 See [commercial sources](COMMERCIAL_SOURCES.md) for Zillow and Compass Texas
 land-search samples and 50 state-specific Craigslist sources covering 412 reviewed
-regional markets. These are sampled result pages, not complete inventories. The
-main screen links state, category and source filters. All imported publisher
+regional markets. The main screen links state, category and source choices to
+external publisher searches. Automatic imports are disabled pending provider
+agreements. These links do not establish complete inventories. Future licensed publisher
 listings require availability/classification review; no photos or seller contacts
 are copied. Existing official inventories and research APIs remain separate.

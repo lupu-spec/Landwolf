@@ -25,6 +25,7 @@ from landwolf import (
     admin,
     auth,
     billing,
+    commercial,
     crm,
     feedback,
     feedback_export,
@@ -116,7 +117,7 @@ class BodyLimit:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     engine, factory = database(settings.database_url)
-    provider = Catalog(factory)
+    provider = Catalog(factory, settings.licensed_listing_sources)
     research = ResearchService()
     mailer = recovery.Mailer(settings)
 
@@ -492,9 +493,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         auth.authenticate(request, session, settings)
         # Static filter metadata only: no source health, counts, accounts or CRM data.
         return [
-            {"id": d.id, "name": d.name, "states": list(d.states), "categories": list(d.categories)}
+            {
+                "id": d.id,
+                "name": d.name,
+                "states": list(d.states),
+                "categories": list(d.categories),
+                "external_searches": list(commercial.PAGE_GROUPS.get(d.id, ())),
+                "import_enabled": d.id in provider.providers,
+            }
             for d in SOURCES
-            if d.automated
+            if d.automated or d.id in commercial.PAGE_GROUPS
         ]
 
     @app.get("/api/sources")

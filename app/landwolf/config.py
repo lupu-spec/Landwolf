@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     public_origin: str = Field(default_factory=default_public_origin)
     additional_origins: tuple[str, ...] = Field(default=(), max_length=4)
     auto_sync: bool = True
+    licensed_listing_sources: tuple[str, ...] = Field(default=(), max_length=52)
     owner_account_id: str | None = Field(default=None, pattern=r"^[0-9a-fA-F-]{36}$")
     payments_enabled: bool = False
     feedback_trial_launch_at: int = Field(default=0, ge=0)
@@ -52,6 +53,18 @@ class Settings(BaseSettings):
     mail_from: EmailStr | None = None
     mail_api_key: SecretStr | None = Field(default=None, repr=False)
     gmail_app_password: SecretStr | None = Field(default=None, repr=False)
+
+    @field_validator("licensed_listing_sources")
+    @classmethod
+    def reviewed_listing_sources(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        from landwolf.states import STATES
+
+        allowed = {"zillow_tx", "compass_tx"} | {f"craigslist_{code.lower()}" for code in STATES}
+        if len(set(values)) != len(values) or any(value not in allowed for value in values):
+            raise ValueError(
+                "Use unique reviewed listing source IDs covered by provider agreements"
+            )
+        return values
 
     @field_validator("payments_enabled", mode="before")
     @classmethod

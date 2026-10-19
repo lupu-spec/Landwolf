@@ -3633,3 +3633,30 @@ migration, but v0.16 does not recognize seller_listing/new publisher status valu
 After ingestion or account-owned research cases exist, do not blindly deploy an
 old v0.16 artifact or delete user research to roll back. A recovery build must
 retain v0.17 contracts while disabling/reverting the collector behavior as needed.
+
+
+### Provider terms review and launch scope correction
+
+Review of actual Zillow, Craigslist and Compass terms after the read-only trials
+found restrictions on automated collection and commercial redisplay. No provider
+agreements were supplied. Trial counts above establish parsing only, not permission.
+All commercial collectors now default to disabled; only validated licensed source
+IDs can enable one. The manual checker exits 2 without an HTTP client when none
+are configured. The eight government collectors remain enabled. No further
+publisher collection is run without agreement scope.
+
+Main-screen controls expose publisher search links: 50 Craigslist state choices
+with all 412 reviewed markets, plus Zillow and Compass Texas. Numeric filters must
+be applied on the publisher site. New browser tests cover disabled-mode links,
+keyboard disclosure, state switching and Light/Dark/Auto at phone/desktop sizes.
+Prior native runs are not final approval; all gates must rerun for this change.
+No v0.17 deployment has occurred yet.
+
+Local scope-change checks: format, lint, mypy, TypeScript and 27 frontend tests
+passed. The new checker regression initially failed because pytest does not put
+scripts/ on its import path; it now loads the actual script with runpy and the
+focused suite passed (87 tests). Full API checks are rerunning after that fix.
+A local Chromium installation failed with truncated downloads; WebKit's focused
+invocation failed before the journey because host browser libraries are missing.
+These are unavailable local browser checks, not passes; native CI supplies both
+browsers and remains required. No browser test is skipped or weakened.

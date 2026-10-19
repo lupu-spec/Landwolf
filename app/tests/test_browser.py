@@ -4,6 +4,7 @@ Default CI data is explicitly synthetic. LANDWOLF_E2E_LIVE=1 instead copies only
 listing/source records from a successful local live sync, never existing accounts.
 """
 
+import json
 import os
 import re
 import socket
@@ -826,6 +827,11 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
         "LANDWOLF_PUBLIC_ORIGIN": origin,
         "LANDWOLF_AUTO_SYNC": "false",
     }
+    environment["LANDWOLF_LICENSED_LISTING_SOURCES"] = json.dumps(
+        ["zillow_tx", "compass_tx", "craigslist_tx", "craigslist_ca"]
+        if mode == "commercial_owner"
+        else []
+    )
     if owner_mode:
         environment["LANDWOLF_OWNER_ACCOUNT_ID"] = "00000000-0000-0000-0000-000000000001"
     if getattr(request, "param", "") == "mail":

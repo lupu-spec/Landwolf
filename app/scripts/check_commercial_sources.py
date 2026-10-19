@@ -8,10 +8,15 @@ from pathlib import Path
 import httpx
 
 from landwolf.commercial import PAGE_GROUPS, retrieve
+from landwolf.config import Settings
 from landwolf.provider import SourceUnavailable
 
 
 async def check(sample_regions: bool, output: Path) -> int:
+    sources = Settings().licensed_listing_sources
+    if not sources:
+        print("Not run: no provider agreements configured; no publisher requests made.")
+        return 2
     results = []
     # Two independent state checks; each state's requests remain sequential and paced.
     slots = asyncio.Semaphore(2)
@@ -47,7 +52,7 @@ async def check(sample_regions: bool, output: Path) -> int:
                 output.write_text(json.dumps(results, indent=2))
                 print(json.dumps(result), flush=True)
 
-        await asyncio.gather(*(one(source) for source in PAGE_GROUPS))
+        await asyncio.gather(*(one(source) for source in sources))
     return int(any(r["status"] != "passed" for r in results))
 
 

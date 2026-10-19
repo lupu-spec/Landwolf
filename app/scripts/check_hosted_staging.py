@@ -228,7 +228,16 @@ def main() -> None:
                     } == {f"craigslist_{state.lower()}" for state in STATES}
                     assert {"zillow_tx", "compass_tx"} <= {row["id"] for row in options}
                     assert all(
-                        set(row) == {"id", "name", "states", "categories"} for row in options
+                        set(row)
+                        == {
+                            "id",
+                            "name",
+                            "states",
+                            "categories",
+                            "external_searches",
+                            "import_enabled",
+                        }
+                        for row in options
                     )
 
                     expect(page.locator("#finance-nav")).to_be_hidden()
@@ -297,6 +306,11 @@ def main() -> None:
                     page.locator("#source-filter").select_option("craigslist_tx")
                     page.locator("#state").select_option("CA")
                     expect(page.locator("#source-filter")).to_have_value("craigslist_ca")
+                    panel = page.locator("#publisher-searches")
+                    expect(panel).to_be_visible()
+                    panel.locator("summary").click()
+                    expect(panel).to_contain_text("Automatic import is not enabled")
+                    assert panel.locator("a").count() > 1
                     page.locator("#search-submit").click()
                     expect(page.locator("#results-title")).not_to_contain_text("Loading")
                     assert page.locator("#workspace-error").inner_text() == ""

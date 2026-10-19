@@ -18,7 +18,7 @@ service/database and `staging` branch. A branch push alone is not deployment.
 | Base layouts and feature-specific UI | `web/styles.css`, individual feature modules | Existing corresponding browser tests |
 | Sessions and recovery | `landwolf/auth.py`, `recovery.py`, `crm_access.py` | Security, session and recovery API/browser tests |
 | Payments and trials | `landwolf/billing.py`, `trials.py`, `feedback.py` | Live/test isolation, consent, notice, cancellation and idempotency tests |
-| Seller/broker sources and state filters | `commercial.py`, `craigslist_regions.py`, `web/source-filter.ts`; see `COMMERCIAL_SOURCES.md` | Commercial parser/API/state-isolation and responsive browser tests, explicit read-only upstream checks |
+| Seller/broker sources and state filters | `commercial.py`, `craigslist_regions.py`, `web/source-filter.ts`; see `COMMERCIAL_SOURCES.md` | Commercial parser/API/state-isolation and responsive browser tests, explicit upstream checks only for configured licensed sources |
 | Ingestion and provenance | `catalog.py`, `provider.py`, `national.py`, `trust.py` | Parser/invariant tests; explicit upstream checks only when needed |
 | Research, Hunts, scenarios | `research*.py`, `hunt.py`, `analysis.py` | Ownership, assumptions, invariants and end-to-end handoffs |
 | Owner finances and CRM | `finance*.py`, `crm*.py`; matching web modules | Role/ownership, cents/rounding, imports, forecast and CSV tests |

@@ -166,8 +166,10 @@ SOURCES += (
         "Sampled first Texas land-search page only; not complete Texas or nationwide inventory. "
         "Only publisher-tagged lots/land currently marked for sale are included. "
         "Coordinates and acreage are publisher-reported, not surveyed boundaries.",
+        automated=False,
         reuse_note="Publisher listing facts and original links only; no photos, seller contacts "
-        "or listing descriptions imported. Check publisher terms before further reuse.",
+        "or listing descriptions imported. Automatic import requires a provider agreement "
+        "covering collection and display.",
     ),
     SourceDefinition(
         "compass_tx",
@@ -179,8 +181,10 @@ SOURCES += (
         "offers must match Texas address/location records. Publisher property schema can "
         "use residential labels: confirm vacant-land status at the original listing. "
         "Unpublished acreage remains unknown.",
+        automated=False,
         reuse_note="Publisher listing facts and original links only; no photos, seller contacts "
-        "or listing descriptions imported. Check publisher terms before further reuse.",
+        "or listing descriptions imported. Automatic import requires a provider agreement "
+        "covering collection and display.",
     ),
 ) + tuple(
     SourceDefinition(
@@ -193,8 +197,10 @@ SOURCES += (
         "publisher-listed regional markets for this state. Only explicit matching-state "
         "addresses and land-related titles are imported. Not complete statewide inventory. "
         "Owner/broker identity, availability and vacant-land status are unverified.",
+        automated=False,
         reuse_note="Publisher listing facts and original links only; no photos or seller "
-        "contacts imported. Check publisher terms before further reuse.",
+        "contacts imported. Automatic import requires a provider agreement "
+        "covering collection and display.",
     )
     for state, name in STATES.items()
 )
