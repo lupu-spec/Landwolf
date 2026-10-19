@@ -1,7 +1,7 @@
 name: Explicit government source availability
 on:
-  push:
-    branches: [verify/government-availability-2026-10-19]
+  pull_request:
+    paths: [.github/workflows/explicit-government-check.yml]
 permissions:
   contents: read
 jobs:
