@@ -3677,3 +3677,21 @@ at least 2.2 seconds apart, respecting the real 60/minute search limit. No serve
 limit, assertion, baseline, screenshot tolerance or test selection is weakened.
 The full application CI budget increases to 45 minutes for additional coverage.
 All final gates remain required before staging and production.
+
+Local v0.18 checks passed: uv sync --frozen --dev, uv lock --check, npm ci;
+Ruff/Prettier format, Ruff/ESLint lint, mypy/TypeScript, 27 frontend and 679 API
+cases; production browser build, Python wheel/source build and package validation;
+Bandit, pip-audit, npm audit and secretlint; git diff --check. Focused local header
+browser launch failed because Chromium is unavailable, before comparisons.
+Native full/focused browser, PostgreSQL/restore and archived checks remain pending.
+Hosted acceptance now checks hashes of both stylesheets, Auto device changes and
+guest/customer phone/desktop header/dock screenshots, retaining the existing
+privacy, payment and research journeys.
+
+Default-only disposable CLI sync was run twice with licensed source IDs empty.
+Both exited 1: seven original government feeds succeeded (262 records), while
+USDA returned HTTP 502 at searchSFH. All 52 publisher sources remained directory
+links with imports disabled. The existing failure/last-good behavior was retained.
+An isolated native verification branch runs the same unchanged collectors from
+GitHub's network to distinguish local access from upstream failure. This live
+check is failed, not a pass; no hosted database or customer records were touched.
