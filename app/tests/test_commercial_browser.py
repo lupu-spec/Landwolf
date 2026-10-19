@@ -57,6 +57,9 @@ def test_commercial_state_source_filters_details_and_themes(browser_server, engi
             page.screenshot(
                 path=f"test-results/commercial-{engine}-{width}-{mode}.png", full_page=True
             )
+        page.locator("#location").fill("no-synthetic-listing-matches-this-filter")
+        page.locator("#search-submit").click()
+        expect(page.locator("#empty-state")).to_be_visible()
         page.locator("#reset-filters").click()
         expect(state).to_have_value("US")
         expect(source).to_have_value("")

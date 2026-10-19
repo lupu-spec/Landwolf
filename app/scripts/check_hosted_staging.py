@@ -300,6 +300,9 @@ def main() -> None:
                     page.locator("#search-submit").click()
                     expect(page.locator("#results-title")).not_to_contain_text("Loading")
                     assert page.locator("#workspace-error").inner_text() == ""
+                    page.locator("#location").fill(f"landwolf-reset-check-{uuid.uuid4().hex}")
+                    page.locator("#search-submit").click()
+                    expect(page.locator("#empty-state")).to_be_visible()
                     page.locator("#reset-filters").click()
                     expect(page.locator(".property-card").first).to_be_visible()
                     print(

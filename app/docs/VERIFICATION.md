@@ -3619,3 +3619,17 @@ fixed with explicit object validation rather than weakening the assertion. Final
 focused tests and security scans are rerun; native final gates remain pending.
 Hosted acceptance now also checks static source metadata privacy and all 50
 Craigslist choices, plus staged linked state/source filtering and reset.
+
+Native initial browser run 39181126308 failed all four new cases at the final
+Reset click: the test assumed Reset was visible with nonempty results, but the
+existing UI exposes it only in the empty state. The preceding sign-in, source
+filtering, cross-state selection, original link/detail and appearance captures
+succeeded. The tests and hosted checker now create a real no-match filter and
+assert the empty state before clicking Reset; no forced click, skip, expected
+result weakening or production UI change was used. Final native gates must rerun.
+
+Recovery compatibility: the new runtime reads older payloads without a schema
+migration, but v0.16 does not recognize seller_listing/new publisher status values.
+After ingestion or account-owned research cases exist, do not blindly deploy an
+old v0.16 artifact or delete user research to roll back. A recovery build must
+retain v0.17 contracts while disabling/reverting the collector behavior as needed.
