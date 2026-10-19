@@ -69,3 +69,9 @@ BeginFrameControl is not enabled because normal Playwright frame ticks must cont
 No CSS, screenshot mask, excluded property, tolerance or retry-to-match is added.
 Both focused and full suites must rerun. The verified source-flow release remains
 independent; this refactor will not deploy until its complete gates pass.
+
+The independent v0.17 source release is now live in both environments. Its two
+stylesheets are byte-identical to the pinned v0.16 baseline, so the immutable CSS
+comparison remains valid. Observed v0.17 ledger entries and hosted-ledger checks
+are retained when reconciling this branch; only the CSS/release identity and its
+regression coverage are part of the follow-up runtime change.

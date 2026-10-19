@@ -3662,6 +3662,86 @@ These are unavailable local browser checks, not passes; native CI supplies both
 browsers and remains required. No browser test is skipped or weakened.
 
 
+### v0.17.0 verified source release — observed staging event
+
+Source commit 61febfe5a02b398db4dbae4922936283aa869378 passed complete native
+application run 39182934783: format/lint/types, 27 frontend and 679 backend/API tests;
+PostgreSQL integration and exact pg_dump/restore digests across 36 tables; eight
+focused source/browser cases and all 140 full browser cases; production build,
+wheel/source packaging, Bandit, pip-audit, npm audit and secretlint. Separate
+archived regressions passed 53 cases. Phone/desktop publisher screenshots from
+artifact 12157303664 were visually reviewed; all three appearance modes and both
+engines are covered. The local browser installation/launch gaps above remain
+historical failures, resolved for release verification by actual native browsers.
+
+A final v0.17 disposable command exited 0:
+`LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-v17-release-source-check.db LANDWOLF_LICENSED_LISTING_SOURCES='[]' .venv/bin/python -m landwolf.cli sync`.
+All eight original government feeds were ready with 282 records and no publisher
+imports enabled. Earlier local HTTP502 and independent native USDA timeout were
+retained; recovery was verified before promotion. No hosted database was accessed
+by this sync. All local final format/lint/type/frontend/API/build/package/security
+commands passed and git diff --check was clean; source tests passed 87 cases.
+
+Render staging deploy dep-dbanchk9v7es7396s5rg became live at
+2026-10-19 01:46:54 UTC, runtime commit 61febfe5a02b398db4dbae4922936283aa869378.
+The default workspace and existing isolated service/database were retained.
+Hosted acceptance is pending; production still runs v0.16.0. The header CSS
+candidate is separate and has not been deployed by this source release.
+
+Direct staging HTTPS observation passed: /api/version returned v0.17.0, staging,
+and exact runtime 61febfe5a02b398db4dbae4922936283aa869378; /api/health returned
+ok, v0.17.0 and payments_enabled false. API ref updates did not produce a hosted
+workflow run for the ledger commit. Hosted acceptance gains an explicit
+pull_request trigger limited to RELEASES.md on staging/main; the environment is
+selected from the PR base (or push branch). Existing push triggers and all checker
+assertions remain unchanged. A ledger-only PR runs the established checks against
+the observed runtime; no application behavior or deployment changes are included.
+
+Staging hosted acceptance run 39187139290 passed (job 117851834280): four
+Chromium/WebKit 390/1440px customer journeys, all 50 Craigslist choices and metadata
+privacy, linked state/source selection, native publisher disclosure, no-match/reset,
+live mapped inventory, research/CSRF, owner-only boundaries, persistence/cache/
+restart/logout. All 48 public browser samples passed; maximum load 638.7 ms,
+maximum supported Chromium CLS 0.001112; WebKit CLS is unsupported. These are lab
+samples, not field guarantees. One disposable non-cohort verification account was
+retained; no owner grant, purchase or existing customer-data export/reset occurred.
+
+PR #42 merged as b5fa49aa57cd7461ea753833dd82cc81517e4ef9. Native Git lookups prove
+its complete tree equals source/staging 61febfe5a02b398db4dbae4922936283aa869378
+(tree 6b98b5ed0be60a898ca1f9c233555ba014c6a524). Production deploy
+ dep-dbangsks728c738rn9f0 became live at 2026-10-19 01:55:51 UTC on that commit.
+Existing service, database, live-only payment configuration and manual deploy mode
+were retained. Hosted production acceptance is pending; no v0.18 CSS deployment
+is claimed. Ledger/document commits do not relabel either runtime commit.
+
+### v0.17.0 production acceptance complete
+
+Native production run 39187665620 (job 117853406374) passed exact v0.17.0 identity,
+commit b5fa49aa57cd7461ea753833dd82cc81517e4ef9, HTTPS, production environment,
+healthy database, live billing mode and expected email configuration. Four actual
+Chromium/WebKit customer journeys at 390/1440px passed authentication, owner-only
+coverage/privacy boundaries, unpaid-customer paywall, logout, and persistence after
+cache clear/browser restart. Static source metadata covered all 50 Craigslist
+choices with no operational/customer data exposure. No charge or owner grant was
+created. All 48 production public browser samples passed: maximum load 912 ms,
+maximum supported Chromium CLS 0.001014; WebKit CLS unsupported. Public documents,
+crawl policy, metadata/schema/links, exact themes and genuine 404 checks passed.
+
+Local production HTTP observation returned status 200 text/html Site Unavailable,
+so its JSON decode failed and it is not a local health pass. Independent native
+production checks succeeded against the exact expected commit and health response;
+that successful external verification establishes runtime health. The local access
+limitation is retained rather than silently treated as a successful command.
+
+The v0.17 source release is complete in both environments. Runtime commits remain
+staging 61febfe5a02b398db4dbae4922936283aa869378 and production
+b5fa49aa57cd7461ea753833dd82cc81517e4ef9; subsequent ledger/CI-trigger documents are
+not new application deployments. Both manual deploy settings, existing services,
+account/CRM databases, live-only payments, trials and privacy controls are retained.
+The v0.18 CSS candidate remains separate and under full regression verification;
+no v0.18 staging/production deployment is claimed here.
+
+
 ## v0.18.0 header CSS follow-up — candidate, not deployed
 
 The bounded header/navigation consolidation from PR #40 is reconciled onto the
@@ -3725,3 +3805,14 @@ channel delta 21/255) despite identical computed styles/rectangles. The test now
 awaits font/image decoding and uses official Chromium deterministic compositor
 flags without BeginFrameControl. No tolerance, mask, assertion removal or retry
 to match is added. All gates rerun; no CSS deployment is authorized by this failed run.
+
+
+### CSS branch reconciliation after the independent source release
+
+v0.17 is now live and accepted in staging/production. Its observed ledger and
+hosted-ledger PR trigger are retained from main 2f49fa753861ee171079a6e64a703ad090ecdc2b.
+All earlier v0.18 candidate failures above are historical; v0.18 is still not deployed.
+This reconciliation changes only documentation and hosted-check event routing.
+The application, tests, build/dependency files and application CI are byte-identical
+to tested CSS source 627e0e08585de56380e9b254d839fb132f7fda6d, whose full browser
+run remains pending. No CSS release is claimed until its required gates pass.

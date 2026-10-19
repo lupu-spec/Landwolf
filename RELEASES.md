@@ -3,6 +3,87 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.17.0 — publisher searches live; hosted acceptance complete
+
+**Live in staging and production.** [PR #42](https://github.com/lupu-spec/Landwolf/pull/42)
+adds state-linked publisher searches for 50 Craigslist states (412 regional markets),
+Zillow Texas and Compass Texas. Automatic imports remain disabled pending scoped
+provider agreements. Apply price/acreage filters on publisher sites; these links
+are not imported inventory. All eight existing government feeds remain enabled.
+No paid resource, account reset, schema migration or billing/CRM change was made.
+
+- Required source [gates 39182934783](https://github.com/lupu-spec/Landwolf/actions/runs/39182934783)
+  passed 27 frontend, 679 backend/API and all 140 browser cases, PostgreSQL/exact
+  36-table restore, package and security scans; separate legacy tests passed 53.
+  Fresh disposable live sync passed all eight feeds (282 records) after USDA recovered.
+- Staging runtime `61febfe5a02b398db4dbae4922936283aa869378`, Render
+  `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC.
+  [Hosted acceptance 39187139290](https://github.com/lupu-spec/Landwolf/actions/runs/39187139290)
+  passed customer/privacy/source/session/research checks and 48 public browser samples.
+- Production runtime `b5fa49aa57cd7461ea753833dd82cc81517e4ef9`, Render
+  `dep-dbangsks728c738rn9f0`, live 2026-10-19 01:55:51 UTC; its complete tree equals
+  the staging-tested tree. [Hosted acceptance 39187665620](https://github.com/lupu-spec/Landwolf/actions/runs/39187665620)
+  passed exact identity/health/live billing mode, four customer/paywall/privacy
+  journeys, persistent sign-in/logout and 48 public browser samples. Maximum load
+  was 912 ms; supported Chromium CLS was at most 0.001014 (WebKit unsupported).
+  These are lab samples, not universal field guarantees.
+- Manual deploy settings and both existing databases/services were retained.
+  Documentation heads do not relabel runtime. The header CSS follow-up remains
+  separate and is not deployed. See [source scope](app/docs/COMMERCIAL_SOURCES.md)
+  and [verification](app/docs/VERIFICATION.md).
+
+## v0.17.0 — publisher searches, production deployment event
+
+**Staging acceptance passed; production deployment observed, acceptance pending.**
+[PR #42](https://github.com/lupu-spec/Landwolf/pull/42) links all 50 Craigslist
+states (412 regional markets), Zillow Texas and Compass Texas to main-screen
+state/category/source choices. Publisher imports remain disabled pending scoped
+agreements; numeric filters apply separately on publisher sites. Eight existing
+government feeds remain enabled. No paid resources, schema migration, account reset
+or billing/CRM policy change.
+
+- Required source gates passed in [39182934783](https://github.com/lupu-spec/Landwolf/actions/runs/39182934783):
+  27 frontend, 679 API and all 140 browser cases, PostgreSQL/exact restore, package
+  and security checks; separate archived regressions passed 53 cases.
+- Staging `61febfe5a02b398db4dbae4922936283aa869378`, Render
+  `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC.
+  [Hosted acceptance 39187139290](https://github.com/lupu-spec/Landwolf/actions/runs/39187139290)
+  passed four customer journeys, linked source/state controls, owner/privacy/CSRF,
+  research, persistent sessions and all 48 public browser samples. Maximum sampled
+  load was 639 ms; maximum supported Chromium CLS was 0.001112 (WebKit unsupported).
+- Production `b5fa49aa57cd7461ea753833dd82cc81517e4ef9`, Render
+  `dep-dbangsks728c738rn9f0`, live 2026-10-19 01:55:51 UTC. Native Git tree lookup
+  proves its complete tree equals the staging-tested source tree. Production
+  hosted verification remains pending; a pushed documentation head is not runtime.
+- The CSS refactor remains separate; no v0.18 deployment is claimed. See
+  [scope](app/docs/COMMERCIAL_SOURCES.md) and [verification](app/docs/VERIFICATION.md).
+
+## v0.17.0 — publisher search links, staging event (October 19, 2026)
+
+**Staging deployment observed; hosted acceptance pending.** Production remains
+v0.16.0. [PR #42](https://github.com/lupu-spec/Landwolf/pull/42) connects main-screen
+state/category/source choices to Zillow and Compass Texas searches and all 50
+Craigslist states (412 reviewed regional markets). Numeric filters must be applied
+on publisher sites. Automated imports from these publishers remain disabled pending
+scoped provider agreements. The original eight government feeds remain enabled.
+No Apify, paid service, schema migration, account reset or billing/CRM change.
+
+- Source commit `61febfe5a02b398db4dbae4922936283aa869378` passed
+  [application gates 39182934783](https://github.com/lupu-spec/Landwolf/actions/runs/39182934783):
+  27 frontend, 679 backend/API, eight focused source/browser and all 140 full
+  browser cases; PostgreSQL/exact 36-table restore, build/package and security.
+  Separate archived regressions passed 53 cases.
+- A fresh disposable CLI sync exited 0: all eight original feeds ready, 282 records,
+  zero publisher imports enabled. Earlier USDA HTTP502/timeout failures were
+  retained; upstream recovery was verified before staging.
+- Staging runtime: `61febfe5a02b398db4dbae4922936283aa869378`, Render
+  `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC. The existing default
+  workspace, service, isolated database and manual deployment setting were retained.
+- Exact HTTPS version/commit and healthy database/billing-disabled state were observed.
+- The CSS-only follow-up remains separate and is not part of this deployment.
+  See [source scope](app/docs/COMMERCIAL_SOURCES.md) and
+  [verification](app/docs/VERIFICATION.md).
+
 ## v0.16.0 — public SEO and stable initial HTML
 
 **Live in staging and production.** [PR #41](https://github.com/lupu-spec/Landwolf/pull/41)
@@ -459,8 +540,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.16.0 | `168eb749ae4a2396b98b7b1e48a9862fc915ebb3` | 2026-10-18 20:19:46 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.16.0 | `bb7891856f5e48b683664c88ae73a9f33c6d2ae7` | 2026-10-18 20:05:56 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.17.0 | `b5fa49aa57cd7461ea753833dd82cc81517e4ef9` | 2026-10-19 01:55:51 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.17.0 | `61febfe5a02b398db4dbae4922936283aa869378` | 2026-10-19 01:46:54 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
