@@ -3,6 +3,58 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.18.0 — production CSS consolidation deployment event
+
+**Staging acceptance passed; production deployment observed, acceptance pending.**
+[PR #40](https://github.com/lupu-spec/Landwolf/pull/40) consolidates the header from
+seven rules to three and removes superseded navigation declarations (31 fewer CSS
+lines). Approved silver/glass, Light/Dark/Auto, mobile/keyboard, print and existing
+source/account/billing/CRM behavior are retained. No migration or account reset.
+
+- [Source gates 39186749900](https://github.com/lupu-spec/Landwolf/actions/runs/39186749900)
+  passed 27 frontend, 679 API and all 142 browser cases, exact header comparisons,
+  PostgreSQL/36-table restore, package and security checks; separate legacy tests
+  passed 53. All 62 paired images matched exactly; no mask/tolerance was added.
+- Staging runtime `e12d187b456b90da1936d129f5ff7e62267db0ec`, Render
+  `dep-dbanseajnfac738eu9h0`, live 2026-10-19 02:20:46 UTC.
+  [Hosted acceptance 39189767343](https://github.com/lupu-spec/Landwolf/actions/runs/39189767343)
+  passed both CSS hashes, Auto/device changes, phone/desktop customer/header/dock,
+  source/privacy/session/research checks and 48 public browser samples. Maximum
+  sampled load was 401 ms; supported Chromium CLS at most 0.001112 (WebKit unsupported).
+- Production runtime `7e8aaa71e3fb60948657622273c11dc135aad53c`, Render
+  `dep-dbao0mmq1p3s73cdvjqg`, live 2026-10-19 02:29:35 UTC. Native Git tree lookup
+  proves its complete tree equals the staging-tested runtime tree. Independent
+  production hosted verification remains pending.
+- Manual deployments, existing services/databases and v0.17 publisher-import guards
+  remain intact. Documentation heads are not runtime. See
+  [scope/history](app/docs/HEADER_CSS_REFACTOR.md) and [verification](app/docs/VERIFICATION.md).
+
+## v0.18.0 — bounded header CSS consolidation, staging event
+
+**Staging deployment observed; hosted acceptance pending.** Production remains
+v0.17.0. [PR #40](https://github.com/lupu-spec/Landwolf/pull/40) reduces shared
+header rules from seven to three and removes superseded navigation declarations:
+31 fewer CSS lines, retaining approved silver/glass, Light/Dark/Auto, responsive,
+keyboard and print behavior. Source searches, accounts, billing and CRM are unchanged.
+
+- [Application gates 39186749900](https://github.com/lupu-spec/Landwolf/actions/runs/39186749900)
+  passed 27 frontend, 679 backend/API and all 142 full browser cases; focused
+  mobile/theme/source/public checks, PostgreSQL/exact 36-table restore, package
+  and security scans. Separate archived regressions passed 53 cases.
+- Both engines passed every computed header property/pseudo-element/rectangle
+  comparison across 17 widths, guest/owner, appearance modes, print, large text and
+  short viewports. All 62 retained screenshot pairs matched byte-for-byte and
+  representative images were reviewed. No mask, tolerance or assertion removal.
+- Tested source `627e0e08585de56380e9b254d839fb132f7fda6d`; reconciled staging
+  runtime `e12d187b456b90da1936d129f5ff7e62267db0ec` has identical application,
+  test/build/dependency files and application CI. Only observed v0.17 ledger and
+  hosted-check routing documentation were reconciled before deployment.
+- Staging Render `dep-dbanseajnfac738eu9h0`, live 2026-10-19 02:20:46 UTC.
+  Exact HTTPS version/commit and healthy database/payments-disabled state were
+  observed. Existing service/database and manual deploy settings were retained.
+- See [bounded scope and retained failures](app/docs/HEADER_CSS_REFACTOR.md)
+  and [verification](app/docs/VERIFICATION.md). No production v0.18 deployment is claimed.
+
 ## v0.17.0 — publisher searches live; hosted acceptance complete
 
 **Live in staging and production.** [PR #42](https://github.com/lupu-spec/Landwolf/pull/42)
@@ -540,8 +592,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.17.0 | `b5fa49aa57cd7461ea753833dd82cc81517e4ef9` | 2026-10-19 01:55:51 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.17.0 | `61febfe5a02b398db4dbae4922936283aa869378` | 2026-10-19 01:46:54 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.18.0 | `7e8aaa71e3fb60948657622273c11dc135aad53c` | 2026-10-19 02:29:35 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.18.0 | `e12d187b456b90da1936d129f5ff7e62267db0ec` | 2026-10-19 02:20:46 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 

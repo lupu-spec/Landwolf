@@ -75,3 +75,25 @@ stylesheets are byte-identical to the pinned v0.16 baseline, so the immutable CS
 comparison remains valid. Observed v0.17 ledger entries and hosted-ledger checks
 are retained when reconciling this branch; only the CSS/release identity and its
 regression coverage are part of the follow-up runtime change.
+
+## Verified source and observed staging
+
+Source 627e0e08585de56380e9b254d839fb132f7fda6d passed application run 39186749900:
+27 frontend, 679 API and all 142 full browser cases, plus PostgreSQL/exact restore,
+production packaging and security. Both focused comparisons passed; all 62 artifact
+pairs were byte-identical and representative phone/desktop images were reviewed.
+The documented capture synchronization resolved the retained full-suite failure
+without changing CSS, assertions, masks or image tolerances.
+
+Runtime e12d187b456b90da1936d129f5ff7e62267db0ec reconciles only the observed v0.17
+ledger and hosted-check routing; application/test/build files and application CI
+are identical to that verified source. Staging deploy dep-dbanseajnfac738eu9h0 became
+live at 2026-10-19 02:20:46 UTC. Hosted acceptance is pending; production stays v0.17.
+
+Staging hosted run 39189767343 passed both deployed stylesheet hashes, Auto device
+changes, phone/desktop guest/customer header/dock captures, source/privacy/session/
+research checks and all 48 public samples. PR #40 merged as
+7e8aaa71e3fb60948657622273c11dc135aad53c; its complete tree equals staged e12d187.
+Production deploy dep-dbao0mmq1p3s73cdvjqg became live at 2026-10-19 02:29:35 UTC.
+Independent production hosted acceptance is pending; runtime commits are recorded
+separately from subsequent documentation heads in RELEASES.md.
