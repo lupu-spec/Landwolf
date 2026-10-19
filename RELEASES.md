@@ -3,6 +3,31 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.17.0 — publisher search links, staging event (October 19, 2026)
+
+**Staging deployment observed; hosted acceptance pending.** Production remains
+v0.16.0. [PR #42](https://github.com/lupu-spec/Landwolf/pull/42) connects main-screen
+state/category/source choices to Zillow and Compass Texas searches and all 50
+Craigslist states (412 reviewed regional markets). Numeric filters must be applied
+on publisher sites. Automated imports from these publishers remain disabled pending
+scoped provider agreements. The original eight government feeds remain enabled.
+No Apify, paid service, schema migration, account reset or billing/CRM change.
+
+- Source commit `61febfe5a02b398db4dbae4922936283aa869378` passed
+  [application gates 39182934783](https://github.com/lupu-spec/Landwolf/actions/runs/39182934783):
+  27 frontend, 679 backend/API, eight focused source/browser and all 140 full
+  browser cases; PostgreSQL/exact 36-table restore, build/package and security.
+  Separate archived regressions passed 53 cases.
+- A fresh disposable CLI sync exited 0: all eight original feeds ready, 282 records,
+  zero publisher imports enabled. Earlier USDA HTTP502/timeout failures were
+  retained; upstream recovery was verified before staging.
+- Staging runtime: `61febfe5a02b398db4dbae4922936283aa869378`, Render
+  `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC. The existing default
+  workspace, service, isolated database and manual deployment setting were retained.
+- The CSS-only follow-up remains separate and is not part of this deployment.
+  See [source scope](app/docs/COMMERCIAL_SOURCES.md) and
+  [verification](app/docs/VERIFICATION.md).
+
 ## v0.16.0 — public SEO and stable initial HTML
 
 **Live in staging and production.** [PR #41](https://github.com/lupu-spec/Landwolf/pull/41)
@@ -460,7 +485,7 @@ coverage, accounts and existing infrastructure are retained. See
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.16.0 | `168eb749ae4a2396b98b7b1e48a9862fc915ebb3` | 2026-10-18 20:19:46 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.16.0 | `bb7891856f5e48b683664c88ae73a9f33c6d2ae7` | 2026-10-18 20:05:56 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.17.0 | `61febfe5a02b398db4dbae4922936283aa869378` | 2026-10-19 01:46:54 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 

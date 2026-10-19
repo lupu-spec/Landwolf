@@ -3660,3 +3660,30 @@ A local Chromium installation failed with truncated downloads; WebKit's focused
 invocation failed before the journey because host browser libraries are missing.
 These are unavailable local browser checks, not passes; native CI supplies both
 browsers and remains required. No browser test is skipped or weakened.
+
+
+### v0.17.0 verified source release — observed staging event
+
+Source commit 61febfe5a02b398db4dbae4922936283aa869378 passed complete native
+application run 39182934783: format/lint/types, 27 frontend and 679 backend/API tests;
+PostgreSQL integration and exact pg_dump/restore digests across 36 tables; eight
+focused source/browser cases and all 140 full browser cases; production build,
+wheel/source packaging, Bandit, pip-audit, npm audit and secretlint. Separate
+archived regressions passed 53 cases. Phone/desktop publisher screenshots from
+artifact 12157303664 were visually reviewed; all three appearance modes and both
+engines are covered. The local browser installation/launch gaps above remain
+historical failures, resolved for release verification by actual native browsers.
+
+A final v0.17 disposable command exited 0:
+`LANDWOLF_DATABASE_URL=sqlite:////tmp/landwolf-v17-release-source-check.db LANDWOLF_LICENSED_LISTING_SOURCES='[]' .venv/bin/python -m landwolf.cli sync`.
+All eight original government feeds were ready with 282 records and no publisher
+imports enabled. Earlier local HTTP502 and independent native USDA timeout were
+retained; recovery was verified before promotion. No hosted database was accessed
+by this sync. All local final format/lint/type/frontend/API/build/package/security
+commands passed and git diff --check was clean; source tests passed 87 cases.
+
+Render staging deploy dep-dbanchk9v7es7396s5rg became live at
+2026-10-19 01:46:54 UTC, runtime commit 61febfe5a02b398db4dbae4922936283aa869378.
+The default workspace and existing isolated service/database were retained.
+Hosted acceptance is pending; production still runs v0.16.0. The header CSS
+candidate is separate and has not been deployed by this source release.
