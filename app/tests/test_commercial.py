@@ -137,7 +137,7 @@ def test_compass_matches_offer_location_and_preserves_unknown_acreage():
         "http://www.zillow.com/homedetails/Test/9900_zpid/",
         "https://evil.example/homedetails/Test/9900_zpid/",
         "https://www.zillow.com/homedetails/Test/9900_zpid/?next=x",
-        "https://user:pass@www.zillow.com/homedetails/Test/9900_zpid/",
+        "https://fixture-user@www.zillow.com/homedetails/Test/9900_zpid/",
         "https://www.zillow.com:444/homedetails/Test/9900_zpid/",
     ],
 )

@@ -3594,3 +3594,16 @@ Current source/package/browser/security gates and the disposable CLI-wide sync
 are pending at this candidate documentation event. Staging and production remain
 v0.16.0; this candidate is not deployed. Observed final results and deployment
 identities will be appended after completion.
+
+Local final gates passed format/lint/types, 27 frontend unit tests and all 670
+backend/API tests (108.27 seconds). Wheel/source build and check_package passed;
+Bandit, pip-audit and npm audit passed (no known dependency vulnerabilities).
+Secretlint rejected a synthetic BasicAuth test URL; the regression now uses a
+username-only invalid URL to test credential rejection without embedding a
+credential literal. No scanner exclusion or rule change was made. Secret scan
+recheck and native gates are required for the updated candidate.
+
+Local focused browser invocation `.venv/bin/pytest -q -m browser
+tests/test_commercial_browser.py -x` failed before executing the journey because
+the Chromium executable is unavailable. Native CI installs the real browsers;
+this local result is an unavailable verification gap, not a pass.
