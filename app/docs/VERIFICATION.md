@@ -3607,3 +3607,15 @@ Local focused browser invocation `.venv/bin/pytest -q -m browser
 tests/test_commercial_browser.py -x` failed before executing the journey because
 the Chromium executable is unavailable. Native CI installs the real browsers;
 this local result is an unavailable verification gap, not a pass.
+
+The explicit disposable CLI-wide sync exited 0: all 60 automated feeds were ready,
+with 3,902 normalized records and no failed source. The database was
+/tmp/landwolf-v17-source-verification.db; no hosted/customer database was accessed.
+Final review added fail-closed conversion of malformed nested publisher objects
+and excessive JSON nesting into SourceUnavailable so source failures cannot stop
+the shared scheduler. Four additional malformed-shape cases were added; the empty
+list-coordinate fixture initially exposed a permissive shape conversion, which was
+fixed with explicit object validation rather than weakening the assertion. Final
+focused tests and security scans are rerun; native final gates remain pending.
+Hosted acceptance now also checks static source metadata privacy and all 50
+Craigslist choices, plus staged linked state/source filtering and reset.

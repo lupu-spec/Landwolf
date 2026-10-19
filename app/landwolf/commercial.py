@@ -58,7 +58,7 @@ def documents(soup: BeautifulSoup, kind: str) -> list[Any]:
     for script in soup.find_all("script", attrs={"type": kind}):
         try:
             result.append(json.loads(script.get_text()))
-        except ValueError as exc:
+        except (ValueError, RecursionError) as exc:
             raise SourceUnavailable("Invalid public listing JSON") from exc
     return result
 
@@ -100,6 +100,14 @@ def value(number: Any) -> float | None:
     if not 0 <= result <= 1_000_000_000:
         raise SourceUnavailable("Listing number outside supported range")
     return result or None
+
+
+def mapping(data: Any) -> dict[str, Any]:
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise SourceUnavailable("Invalid publisher object")
+    return data
 
 
 def coordinates(data: dict[str, Any]) -> dict[str, float | None]:
@@ -147,7 +155,7 @@ def zillow(soup: BeautifulSoup) -> list[PropertyRecord]:
     for obj in objects(documents(soup, "application/json")):
         if not obj.get("zpid") or not obj.get("detailUrl"):
             continue
-        info = (obj.get("hdpData") or {}).get("homeInfo") or {}
+        info = mapping(mapping(obj.get("hdpData")).get("homeInfo"))
         if info.get("state") != "TX" or info.get("homeType") not in {"LOT", "LAND"}:
             continue
         if info.get("homeStatus") != "FOR_SALE":
@@ -171,7 +179,7 @@ def zillow(soup: BeautifulSoup) -> list[PropertyRecord]:
             acres=acres,
             acreage_basis="calculated" if acres and unit not in {"acre", "acres"} else "reported",
             location_description=str(obj.get("address") or ""),
-            **coordinates(obj.get("latLong") or {}),
+            **coordinates(mapping(obj.get("latLong"))),
         )
         result[item.id] = item
     return list(result.values())
@@ -193,7 +201,7 @@ def craigslist(soup: BeautifulSoup, source: str) -> list[PropertyRecord]:
         if len(matches) != 1:
             continue
         place = matches[0]
-        address = place.get("address") or {}
+        address = mapping(place.get("address"))
         if address.get("addressRegion") != source.removeprefix("craigslist_").upper():
             continue
         # Keyword searches contain houses, financing promotions and unrelated ads.
@@ -241,7 +249,7 @@ def compass(soup: BeautifulSoup) -> list[PropertyRecord]:
     for obj in nodes:
         if obj.get("@type") != "Product" or obj.get("url") not in locations:
             continue
-        offer = obj.get("offers") or {}
+        offer = mapping(obj.get("offers"))
         if (
             offer.get("priceCurrency") != "USD"
             or offer.get("availability") != "https://schema.org/InStock"
@@ -259,7 +267,7 @@ def compass(soup: BeautifulSoup) -> list[PropertyRecord]:
                     str(address.get(k) or "")
                     for k in ("streetAddress", "addressLocality", "addressRegion", "postalCode")
                 ),
-                **coordinates(location.get("geo") or {}),
+                **coordinates(mapping(location.get("geo"))),
             )
         )
     return result
@@ -269,15 +277,18 @@ def parse(source: str, html: str, *, allow_empty: bool = False) -> list[Property
     if source not in PAGES or len(html.encode()) > MAX_BYTES:
         raise SourceUnavailable("Unsupported source or oversized page")
     soup = BeautifulSoup(html, "html.parser")
-    if source.startswith("craigslist_"):
-        if not soup.select("li.cl-static-search-result") and not any(
-            obj.get("@type") == "ItemList"
-            for obj in objects(documents(soup, "application/ld+json"))
-        ):
-            raise SourceUnavailable("Craigslist result structure not confirmed")
-        rows = craigslist(soup, source)
-    else:
-        rows = (zillow if source == "zillow_tx" else compass)(soup)
+    try:
+        if source.startswith("craigslist_"):
+            if not soup.select("li.cl-static-search-result") and not any(
+                obj.get("@type") == "ItemList"
+                for obj in objects(documents(soup, "application/ld+json"))
+            ):
+                raise SourceUnavailable("Craigslist result structure not confirmed")
+            rows = craigslist(soup, source)
+        else:
+            rows = (zillow if source == "zillow_tx" else compass)(soup)
+    except (TypeError, AttributeError, KeyError) as exc:
+        raise SourceUnavailable("Publisher listing structure changed; snapshot retained") from exc
     if (
         (not rows and not allow_empty)
         or len(rows) > MAX_ROWS

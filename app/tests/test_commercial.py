@@ -303,3 +303,17 @@ def test_state_refresh_is_atomic_across_multiple_regions(monkeypatch):
     with pytest.raises(SourceUnavailable, match="403"):
         asyncio.run(run())
     assert seen[1:] == list(pages[:2])
+
+
+@pytest.mark.parametrize(
+    "html",
+    [
+        zillow(hdpData=[]),
+        zillow(detailUrl={"bad": "shape"}),
+        zillow(latLong=[]),
+        '<script type="application/json">' + "[" * 2000 + "]" * 2000 + "</script>",
+    ],
+)
+def test_malformed_nested_publisher_shapes_do_not_escape_refresh_contract(html):
+    with pytest.raises(SourceUnavailable):
+        commercial.parse("zillow_tx", html)
