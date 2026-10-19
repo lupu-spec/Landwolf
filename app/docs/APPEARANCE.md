@@ -48,3 +48,12 @@ Keep these compatibility constraints when changing the finish:
 - Resize observers must schedule dock/map layout writes in an animation frame,
   coalescing repeated notifications. Keep the zero-browser-error, rotation,
   keyboard and 200% text-size checks; do not filter resize-loop errors.
+
+
+## Header cascade maintenance
+
+Header layout uses one base rule and tablet/phone deltas in styles.css. Earlier
+superseded declarations are removed without changing intentional theme, print or
+keyboard rules. The immutable approved CSS regression compares all computed
+header properties and exact paired responsive screenshots. See
+[scope and retained verification history](HEADER_CSS_REFACTOR.md).

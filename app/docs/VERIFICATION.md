@@ -3660,3 +3660,20 @@ A local Chromium installation failed with truncated downloads; WebKit's focused
 invocation failed before the journey because host browser libraries are missing.
 These are unavailable local browser checks, not passes; native CI supplies both
 browsers and remains required. No browser test is skipped or weakened.
+
+
+## v0.18.0 header CSS follow-up — candidate, not deployed
+
+The bounded header/navigation consolidation from PR #40 is reconciled onto the
+current source-flow candidate, retaining approved SEO and source changes. It
+removes 38 CSS lines and adds seven, reducing .site-header rules from seven to
+three without changing theme/breakpoint/keyboard contracts. Versions advance
+only for LandWolf itself; third-party dependency metadata is retained.
+
+Inspection of focused run 38994952816 confirms Chromium passed exact independent
+render comparisons. WebKit failed at owner width 1001 because the fixture account
+hit HTTP 429 after repeated reloads. The comparison now paces paired owner loads
+at least 2.2 seconds apart, respecting the real 60/minute search limit. No server
+limit, assertion, baseline, screenshot tolerance or test selection is weakened.
+The full application CI budget increases to 45 minutes for additional coverage.
+All final gates remain required before staging and production.
