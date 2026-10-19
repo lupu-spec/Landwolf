@@ -15,6 +15,7 @@ service/database and `staging` branch. A branch push alone is not deployment.
 | DOM and displayed source links | `web/dom.ts`, `web/source-links.ts` | UI types, source-list and existing browser suites |
 | Public SEO | `landwolf/public_pages.py`, `web/assets/public.css`; see `PUBLIC_SEO.md` | Public document tests, no-JS/responsive browsers, hosted SEO acceptance |
 | Shared light/dark appearance | `web/graphite.css`, `web/theme*.ts`; see `APPEARANCE.md` | Phone/tablet/desktop Chromium and WebKit, zoom, print |
+| Shared header cascade | `web/styles.css`; see `HEADER_CSS_REFACTOR.md` | `tests/test_header_css_browser.py`, existing dock/mobile/theme suites |
 | Base layouts and feature-specific UI | `web/styles.css`, individual feature modules | Existing corresponding browser tests |
 | Sessions and recovery | `landwolf/auth.py`, `recovery.py`, `crm_access.py` | Security, session and recovery API/browser tests |
 | Payments and trials | `landwolf/billing.py`, `trials.py`, `feedback.py` | Live/test isolation, consent, notice, cancellation and idempotency tests |

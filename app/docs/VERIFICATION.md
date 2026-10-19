@@ -3740,3 +3740,79 @@ not new application deployments. Both manual deploy settings, existing services,
 account/CRM databases, live-only payments, trials and privacy controls are retained.
 The v0.18 CSS candidate remains separate and under full regression verification;
 no v0.18 staging/production deployment is claimed here.
+
+
+## v0.18.0 header CSS follow-up — candidate, not deployed
+
+The bounded header/navigation consolidation from PR #40 is reconciled onto the
+current source-flow candidate, retaining approved SEO and source changes. It
+removes 38 CSS lines and adds seven, reducing .site-header rules from seven to
+three without changing theme/breakpoint/keyboard contracts. Versions advance
+only for LandWolf itself; third-party dependency metadata is retained.
+
+Inspection of focused run 38994952816 confirms Chromium passed exact independent
+render comparisons. WebKit failed at owner width 1001 because the fixture account
+hit HTTP 429 after repeated reloads. The comparison now paces paired owner loads
+at least 2.2 seconds apart, respecting the real 60/minute search limit. No server
+limit, assertion, baseline, screenshot tolerance or test selection is weakened.
+The full application CI budget increases to 45 minutes for additional coverage.
+All final gates remain required before staging and production.
+
+Local v0.18 checks passed: uv sync --frozen --dev, uv lock --check, npm ci;
+Ruff/Prettier format, Ruff/ESLint lint, mypy/TypeScript, 27 frontend and 679 API
+cases; production browser build, Python wheel/source build and package validation;
+Bandit, pip-audit, npm audit and secretlint; git diff --check. Focused local header
+browser launch failed because Chromium is unavailable, before comparisons.
+Native full/focused browser, PostgreSQL/restore and archived checks remain pending.
+Hosted acceptance now checks hashes of both stylesheets, Auto device changes and
+guest/customer phone/desktop header/dock screenshots, retaining the existing
+privacy, payment and research journeys.
+
+Default-only disposable CLI sync was run twice with licensed source IDs empty.
+Both exited 1: seven original government feeds succeeded (262 records), while
+USDA returned HTTP 502 at searchSFH. All 52 publisher sources remained directory
+links with imports disabled. The existing failure/last-good behavior was retained.
+An isolated native verification branch runs the same unchanged collectors from
+GitHub's network to distinguish local access from upstream failure. This live
+check is failed, not a pass; no hosted database or customer records were touched.
+
+Native focused run 39183298613 failed the exact phone owner dock image despite
+matching all computed header properties. Artifact 12156918738 was inspected:
+24,719 pixels differed across the 360x105 translucent dock, with different underlying
+page content. Git comparison confirms the obsolete v0.15 styles target h1/JPEG,
+whereas approved deployed v0.16 uses h2/WebP. The immutable baseline is corrected
+to actual production 168eb749ae4a2396b98b7b1e48a9862fc915ebb3 to preserve those
+already shipped SEO changes on both sides. No mask, tolerance or assertion removal
+is introduced; all exact regressions rerun. Earlier failures are retained.
+
+Independent native government check 39183615132 also exited 1: USDA ConnectTimeout;
+the other seven government feeds were ready. This confirms an upstream/access
+limitation beyond the local HTTP502 result. All publisher imports remained disabled.
+Required live-source verification is not passed; deployment remains pending.
+
+The source-only candidate 61febfe5a02b398db4dbae4922936283aa869378 passed native
+run 39182934783: 27 frontend, 679 API and all 140 full browser tests; PostgreSQL,
+exact 36-table restore, packaging/security, plus 53 separate archived tests.
+Source screenshots were reviewed at phone/desktop widths. No publisher imports
+were enabled. USDA recovered: a fresh disposable v0.18 CLI sync exited 0 with all
+eight original government feeds ready and 282 records; earlier failures are retained.
+
+Combined v0.18 run 39183956547 passed focused exact header comparisons (62 pairs)
+but failed its full browser gate: 141 passed, one Chromium guest-short screenshot
+mismatch. Package/security stages after that browser failure were skipped, not
+passed. Retained PNG analysis found 35 rounded-edge pixels different (maximum
+channel delta 21/255) despite identical computed styles/rectangles. The test now
+awaits font/image decoding and uses official Chromium deterministic compositor
+flags without BeginFrameControl. No tolerance, mask, assertion removal or retry
+to match is added. All gates rerun; no CSS deployment is authorized by this failed run.
+
+
+### CSS branch reconciliation after the independent source release
+
+v0.17 is now live and accepted in staging/production. Its observed ledger and
+hosted-ledger PR trigger are retained from main 2f49fa753861ee171079a6e64a703ad090ecdc2b.
+All earlier v0.18 candidate failures above are historical; v0.18 is still not deployed.
+This reconciliation changes only documentation and hosted-check event routing.
+The application, tests, build/dependency files and application CI are byte-identical
+to tested CSS source 627e0e08585de56380e9b254d839fb132f7fda6d, whose full browser
+run remains pending. No CSS release is claimed until its required gates pass.

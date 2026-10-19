@@ -129,14 +129,15 @@ def main() -> None:
         assert session.json()["payments_enabled"] is payments_enabled
         root = client.get("/")
         root.raise_for_status()
-        assert "/assets/graphite.css" in root.text
-        theme = client.get("/assets/graphite.css")
-        theme.raise_for_status()
-        assert theme.headers["content-type"].startswith("text/css")
-        assert (
-            hashlib.sha256(theme.content).digest()
-            == hashlib.sha256(Path("web/graphite.css").read_bytes()).digest()
-        )
+        for filename in ("styles.css", "graphite.css"):
+            assert f"/assets/{filename}" in root.text
+            stylesheet = client.get(f"/assets/{filename}")
+            stylesheet.raise_for_status()
+            assert stylesheet.headers["content-type"].startswith("text/css")
+            assert (
+                hashlib.sha256(stylesheet.content).digest()
+                == hashlib.sha256((Path("web") / filename).read_bytes()).digest()
+            ), f"Deployed stylesheet differs: {filename}"
         if args.environment == "staging":
             assert "noindex" in root.headers["x-robots-tag"]
         else:
@@ -182,6 +183,10 @@ def main() -> None:
                     page.goto(origin, wait_until="domcontentloaded", timeout=90000)
                     expect(page.locator("#release-version")).to_contain_text(f"v{VERSION}")
                     appearance = page.get_by_role("combobox", name="Appearance", exact=True)
+                    appearance.select_option("system")
+                    for device in ("dark", "light"):
+                        page.emulate_media(color_scheme=device)
+                        expect(page.locator("html")).to_have_attribute("data-theme", device)
                     for mode in ("dark", "light"):
                         appearance.select_option(mode)
                         expect(page.locator("html")).to_have_attribute("data-theme", mode)
@@ -189,6 +194,10 @@ def main() -> None:
                         assert (
                             page.locator(".auth-panel").evaluate("el => getComputedStyle(el).color")
                             == expected
+                        )
+                        page.locator(".site-header").screenshot(
+                            path=str(output / f"header-guest-{mode}-{engine}-{width}.png"),
+                            animations="disabled",
                         )
                     page.reload()
                     expect(appearance).to_have_value("light")
@@ -207,6 +216,18 @@ def main() -> None:
                     page.locator("#auth-submit").click()
                     expect(page.locator("#workspace")).to_be_visible()
                     registered = True
+                    for mode in ("dark", "light"):
+                        appearance.select_option(mode)
+                        expect(page.locator("html")).to_have_attribute("data-theme", mode)
+                        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                        page.locator(".site-header").screenshot(
+                            path=str(output / f"header-customer-{mode}-{engine}-{width}.png"),
+                            animations="disabled",
+                        )
+                        page.locator(".navigation-dock").screenshot(
+                            path=str(output / f"dock-customer-{mode}-{engine}-{width}.png"),
+                            animations="disabled",
+                        )
                     page.locator(".site-header .wolf-chat-trigger").click()
                     chat = page.locator("#wolf-chat-panel")
                     expect(chat).to_be_visible()

@@ -63,6 +63,7 @@ with open_tar(sdists[-1], "r:gz") as archive:
         "web/theme-preference.ts",
         "tests/theme-preference.test.mjs",
         "tests/test_theme_browser.py",
+        "tests/test_header_css_browser.py",
         "tests/source-health.test.mjs",
     }
     if required_sources - sources:
