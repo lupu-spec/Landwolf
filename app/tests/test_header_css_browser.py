@@ -1,4 +1,4 @@
-"""Compare shared header layout with immutable approved v0.15.0 stylesheets.
+"""Compare shared header layout with immutable approved v0.16.0 stylesheets.
 
 CI fetches BASELINE_COMMIT explicitly; no customer data or network baseline is used.
 Screenshots compare within one browser run, avoiding cross-platform font goldens.
@@ -16,7 +16,7 @@ from test_browser import browser_server as browser_server
 from landwolf.version import VERSION
 
 pytestmark = pytest.mark.browser
-BASELINE_COMMIT = "55a35648140ffb3d3dead8c2e09a54d55dfc0e63"
+BASELINE_COMMIT = "168eb749ae4a2396b98b7b1e48a9862fc915ebb3"
 ROOT = Path(__file__).resolve().parents[2]
 WIDTHS = (
     360,

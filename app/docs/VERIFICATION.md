@@ -3695,3 +3695,17 @@ links with imports disabled. The existing failure/last-good behavior was retaine
 An isolated native verification branch runs the same unchanged collectors from
 GitHub's network to distinguish local access from upstream failure. This live
 check is failed, not a pass; no hosted database or customer records were touched.
+
+Native focused run 39183298613 failed the exact phone owner dock image despite
+matching all computed header properties. Artifact 12156918738 was inspected:
+24,719 pixels differed across the 360x105 translucent dock, with different underlying
+page content. Git comparison confirms the obsolete v0.15 styles target h1/JPEG,
+whereas approved deployed v0.16 uses h2/WebP. The immutable baseline is corrected
+to actual production 168eb749ae4a2396b98b7b1e48a9862fc915ebb3 to preserve those
+already shipped SEO changes on both sides. No mask, tolerance or assertion removal
+is introduced; all exact regressions rerun. Earlier failures are retained.
+
+Independent native government check 39183615132 also exited 1: USDA ConnectTimeout;
+the other seven government feeds were ready. This confirms an upstream/access
+limitation beyond the local HTTP502 result. All publisher imports remained disabled.
+Required live-source verification is not passed; deployment remains pending.

@@ -10,14 +10,14 @@ No HTML, TypeScript, backend behavior, authentication, billing or data changes a
 part of the CSS refactor. Runtime/package identity advances to 0.18.0; dependencies
 are unchanged. This candidate builds on the separately reviewed source-flow work.
 
-The immutable approved v0.15.0 CSS commit is
-`55a35648140ffb3d3dead8c2e09a54d55dfc0e63`. CI fetches that exact object. Independent
+The immutable approved v0.16.0 production CSS commit is
+`168eb749ae4a2396b98b7b1e48a9862fc915ebb3`. CI fetches that exact object. Independent
 pages load baseline and candidate stylesheets in the same order. Every header-tree
 computed property, pseudo-element and bounding rectangle is compared across 17
 widths, guest/owner states, Light/Dark/Auto, print, 200% text and short viewports.
 Phone/tablet/desktop header and dock images must match exactly within one browser
-run. No masks, exclusions, changed baseline or tolerance are used. Captures must
-stabilize to two identical paints within six attempts; concise hashes avoid PNG
+run. The baseline is the current approved production release. No masks, excluded
+properties or image tolerances are used. Captures must stabilize to two identical paints within six attempts; concise hashes avoid PNG
 output floods while full evidence is retained.
 
 Earlier PR #40 CI failed: initial Chromium captures differed at six rounded logo
@@ -36,10 +36,22 @@ release evidence belong in RELEASES.md. Fetch the baseline from the repository
 root before a shallow-clone check; then from app run:
 
 ```sh
-git fetch --no-tags --depth=1 origin 55a35648140ffb3d3dead8c2e09a54d55dfc0e63
+git fetch --no-tags --depth=1 origin 168eb749ae4a2396b98b7b1e48a9862fc915ebb3
 .venv/bin/pytest -q -m browser tests/test_header_css_browser.py
 ```
 
 Existing mobile/dock/theme tests continue to verify keyboard/focus, rotation,
 viewport handling, persistence and accessibility. See VERIFICATION.md for exact
 commands, results and retained local browser limitations.
+
+## Reconciliation with the deployed SEO release
+
+The first reconciled run 39183298613 found an exact phone dock difference despite
+identical computed header styles. Retained images show changed page content behind
+the translucent dock. The former v0.15 baseline targets workspace h1 and a JPEG;
+the already deployed v0.16 SEO release uses h2 and WebP. Applying obsolete whole-page
+styles to current markup changes the dock backdrop independently of this refactor.
+The comparison now pins the actual approved production v0.16 commit above. This
+retains those separately shipped SEO changes on both sides; it does not approve a
+new design or tolerate differences. Every property and exact image check remains.
+The earlier v0.15 results and failures remain recorded for traceability.
