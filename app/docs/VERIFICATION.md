@@ -3713,3 +3713,30 @@ its complete tree equals source/staging 61febfe5a02b398db4dbae4922936283aa869378
 Existing service, database, live-only payment configuration and manual deploy mode
 were retained. Hosted production acceptance is pending; no v0.18 CSS deployment
 is claimed. Ledger/document commits do not relabel either runtime commit.
+
+### v0.17.0 production acceptance complete
+
+Native production run 39187665620 (job 117853406374) passed exact v0.17.0 identity,
+commit b5fa49aa57cd7461ea753833dd82cc81517e4ef9, HTTPS, production environment,
+healthy database, live billing mode and expected email configuration. Four actual
+Chromium/WebKit customer journeys at 390/1440px passed authentication, owner-only
+coverage/privacy boundaries, unpaid-customer paywall, logout, and persistence after
+cache clear/browser restart. Static source metadata covered all 50 Craigslist
+choices with no operational/customer data exposure. No charge or owner grant was
+created. All 48 production public browser samples passed: maximum load 912 ms,
+maximum supported Chromium CLS 0.001014; WebKit CLS unsupported. Public documents,
+crawl policy, metadata/schema/links, exact themes and genuine 404 checks passed.
+
+Local production HTTP observation returned status 200 text/html Site Unavailable,
+so its JSON decode failed and it is not a local health pass. Independent native
+production checks succeeded against the exact expected commit and health response;
+that successful external verification establishes runtime health. The local access
+limitation is retained rather than silently treated as a successful command.
+
+The v0.17 source release is complete in both environments. Runtime commits remain
+staging 61febfe5a02b398db4dbae4922936283aa869378 and production
+b5fa49aa57cd7461ea753833dd82cc81517e4ef9; subsequent ledger/CI-trigger documents are
+not new application deployments. Both manual deploy settings, existing services,
+account/CRM databases, live-only payments, trials and privacy controls are retained.
+The v0.18 CSS candidate remains separate and under full regression verification;
+no v0.18 staging/production deployment is claimed here.

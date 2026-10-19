@@ -3,6 +3,35 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.17.0 — publisher searches live; hosted acceptance complete
+
+**Live in staging and production.** [PR #42](https://github.com/lupu-spec/Landwolf/pull/42)
+adds state-linked publisher searches for 50 Craigslist states (412 regional markets),
+Zillow Texas and Compass Texas. Automatic imports remain disabled pending scoped
+provider agreements. Apply price/acreage filters on publisher sites; these links
+are not imported inventory. All eight existing government feeds remain enabled.
+No paid resource, account reset, schema migration or billing/CRM change was made.
+
+- Required source [gates 39182934783](https://github.com/lupu-spec/Landwolf/actions/runs/39182934783)
+  passed 27 frontend, 679 backend/API and all 140 browser cases, PostgreSQL/exact
+  36-table restore, package and security scans; separate legacy tests passed 53.
+  Fresh disposable live sync passed all eight feeds (282 records) after USDA recovered.
+- Staging runtime `61febfe5a02b398db4dbae4922936283aa869378`, Render
+  `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC.
+  [Hosted acceptance 39187139290](https://github.com/lupu-spec/Landwolf/actions/runs/39187139290)
+  passed customer/privacy/source/session/research checks and 48 public browser samples.
+- Production runtime `b5fa49aa57cd7461ea753833dd82cc81517e4ef9`, Render
+  `dep-dbangsks728c738rn9f0`, live 2026-10-19 01:55:51 UTC; its complete tree equals
+  the staging-tested tree. [Hosted acceptance 39187665620](https://github.com/lupu-spec/Landwolf/actions/runs/39187665620)
+  passed exact identity/health/live billing mode, four customer/paywall/privacy
+  journeys, persistent sign-in/logout and 48 public browser samples. Maximum load
+  was 912 ms; supported Chromium CLS was at most 0.001014 (WebKit unsupported).
+  These are lab samples, not universal field guarantees.
+- Manual deploy settings and both existing databases/services were retained.
+  Documentation heads do not relabel runtime. The header CSS follow-up remains
+  separate and is not deployed. See [source scope](app/docs/COMMERCIAL_SOURCES.md)
+  and [verification](app/docs/VERIFICATION.md).
+
 ## v0.17.0 — publisher searches, production deployment event
 
 **Staging acceptance passed; production deployment observed, acceptance pending.**
