@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from urllib.parse import urlsplit
 
+from landwolf.craigslist_regions import REGIONS
 from landwolf.states import STATES
 
 
@@ -22,7 +23,7 @@ class SourceDefinition:
 
 
 NATIONWIDE = tuple(STATES)
-SOURCES = (
+SOURCES: tuple[SourceDefinition, ...] = (
     SourceDefinition(
         "mn_dot",
         "Minnesota Department of Transportation",
@@ -154,6 +155,48 @@ SOURCES = (
         "offer to sell, an auction date, or proof the owner will lose the property.",
         False,
     ),
+)
+SOURCES += (
+    SourceDefinition(
+        "zillow_tx",
+        "Zillow — Texas land listings",
+        "https://www.zillow.com/tx/land/",
+        ("TX",),
+        ("seller_listing",),
+        "Sampled first Texas land-search page only; not complete Texas or nationwide inventory. "
+        "Only publisher-tagged lots/land currently marked for sale are included. "
+        "Coordinates and acreage are publisher-reported, not surveyed boundaries.",
+        reuse_note="Publisher listing facts and original links only; no photos, seller contacts "
+        "or listing descriptions imported. Check publisher terms before further reuse.",
+    ),
+    SourceDefinition(
+        "compass_tx",
+        "Compass — Texas land-search results",
+        "https://www.compass.com/homes-for-sale/texas/land/",
+        ("TX",),
+        ("seller_listing",),
+        "Sampled first Texas land-search page; not complete inventory. Published active "
+        "offers must match Texas address/location records. Publisher property schema can "
+        "use residential labels: confirm vacant-land status at the original listing. "
+        "Unpublished acreage remains unknown.",
+        reuse_note="Publisher listing facts and original links only; no photos, seller contacts "
+        "or listing descriptions imported. Check publisher terms before further reuse.",
+    ),
+) + tuple(
+    SourceDefinition(
+        f"craigslist_{state.lower()}",
+        f"Craigslist — {name}",
+        f"https://www.craigslist.org/search/area/{REGIONS[state][0]}?cat=rea&query=land",
+        (state,),
+        ("seller_listing",),
+        f"Samples the first land-keyword result page in each of {len(REGIONS[state])} "
+        "publisher-listed regional markets for this state. Only explicit matching-state "
+        "addresses and land-related titles are imported. Not complete statewide inventory. "
+        "Owner/broker identity, availability and vacant-land status are unverified.",
+        reuse_note="Publisher listing facts and original links only; no photos or seller "
+        "contacts imported. Check publisher terms before further reuse.",
+    )
+    for state, name in STATES.items()
 )
 SOURCE_BY_ID = {source.id: source for source in SOURCES}
 

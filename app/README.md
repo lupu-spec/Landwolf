@@ -33,6 +33,13 @@ ignored by Git. The source refreshes every six hours while the process runs.
 The public health endpoint is `/api/health`. API documentation is disabled.
 The application wheel includes the built browser assets.
 
+## Seller and broker sources
+
+The main screen also offers Zillow and Compass Texas land-search pages and
+50 state-specific Craigslist sources through linked state/category/source filters.
+These are partial search-page samples, not complete market coverage. See
+[scope, verification and limitations](docs/COMMERCIAL_SOURCES.md).
+
 ## Source coverage
 
 Search accepts all 50 US states, or `US` for the nationwide view. The live adapters

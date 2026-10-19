@@ -9,7 +9,13 @@ from landwolf.crm_core import CONTACT_TYPES, INDUSTRIES, USES, Profile
 from landwolf.states import state_code
 
 Category = Literal[
-    "government_land", "tax_sale", "foreclosure", "pre_foreclosure", "surplus", "public_auction"
+    "government_land",
+    "tax_sale",
+    "foreclosure",
+    "pre_foreclosure",
+    "surplus",
+    "public_auction",
+    "seller_listing",
 ]
 
 
@@ -60,6 +66,7 @@ class PropertyRecord(Contract):
     sale_type: str = Field(default="Public land sale", max_length=100)
     sale_status: Literal[
         "Available",
+        "Publisher listing — verify availability",
         "Auction scheduled",
         "Date not announced",
         "Date needs review",

@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from landwolf import commercial
 from landwolf.db import Listing, SourceState
 from landwolf.national import PublicReader, retrieve
 from landwolf.provider import REFRESH_SECONDS, GLOProvider, SourceUnavailable
@@ -70,7 +71,7 @@ class InventoryProvider:
                 initial = session.get(SourceState, source) or SourceState(id=source)
                 initial.status, initial.message, initial.last_attempt = (
                     "syncing",
-                    "Refreshing official inventory",
+                    "Refreshing publisher inventory",
                     int(time.time()),
                 )
                 session.add(initial)
@@ -86,11 +87,20 @@ class InventoryProvider:
                         },
                     ) as client,
                 ):
-                    records = await retrieve(source, PublicReader(source, client))
+                    records = (
+                        await commercial.retrieve(source, client)
+                        if source in commercial.PAGES
+                        else await retrieve(source, PublicReader(source, client))
+                    )
                 if any(r.source != source or not safe_link(r.source_url) for r in records):
                     raise SourceUnavailable("Source provenance failed validation")
                 with self.factory() as session, session.begin():
-                    publish_snapshot(session, source, records)
+                    publish_snapshot(
+                        session,
+                        source,
+                        records,
+                        scope_note=commercial.SCOPE if source in commercial.PAGES else None,
+                    )
             except (
                 SourceUnavailable,
                 TimeoutError,

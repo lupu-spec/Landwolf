@@ -669,7 +669,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
     engine, factory = database(url)
     initialize(engine)
     mode = getattr(request, "param", "")
-    owner_mode = mode in {"research_owner", "nationwide_owner", "finance_owner"}
+    owner_mode = mode in {"research_owner", "nationwide_owner", "finance_owner", "commercial_owner"}
     if owner_mode:
         with factory() as session, session.begin():
             session.add(
@@ -730,6 +730,20 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 )
             )
         source_engine.dispose()
+    elif mode == "commercial_owner":
+        from test_commercial import compass, craigslist, zillow
+
+        from landwolf.commercial import SCOPE, parse
+        from landwolf.trust import publish_snapshot
+
+        with factory() as session, session.begin():
+            for source, html in (
+                ("zillow_tx", zillow()),
+                ("compass_tx", compass()),
+                ("craigslist_tx", craigslist()),
+                ("craigslist_ca", craigslist("CA")),
+            ):
+                publish_snapshot(session, source, parse(source, html), scope_note=SCOPE)
     elif mode in {"nationwide", "nationwide_owner", "finance_owner"}:
         seed_national(factory)
     else:

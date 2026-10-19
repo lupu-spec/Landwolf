@@ -3560,3 +3560,37 @@ Resolved source failures and unavailable local browser setup are retained above.
 The successful native source/browser/security/package gates and both hosted
 acceptance runs close the technical release checks; they do not close the external
 Search Console, biography or backlink tasks.
+
+
+## v0.17.0 candidate — seller/broker sources and linked state filters
+
+Implementation adds Zillow/Compass Texas land-page samples and 50 state-specific
+Craigslist adapters from the publisher directory (412 regional markets). Static
+source metadata drives the main state/category/source controls; original API
+authentication, billing, CSRF, owner diagnostics, CRM and schema 13 are preserved.
+New publisher records carry availability/classification warnings and enter Hunt
+Needs review. No photos, seller contacts or full descriptions are imported.
+
+Passed explicit direct-source trial: `.venv/bin/python
+scripts/check_commercial_sources.py --sample-regions` returned exit 0 for all 52
+source checks (one regional page/state; 577 supported rows total). It is not a full
+regional or nationwide-inventory proof. Full read-only regional checker completed
+all 52 checks successfully, returning 3,620 supported rows across the 412 reviewed
+Craigslist markets plus Zillow (41) and Compass (5) samples. Full coverage means
+all reviewed regions were requested, not complete listing pagination. Some regions
+had zero supported matches; missing fields stay unknown. Aggregate-only logs are
+in test-results/commercial-live*.json.
+
+Local source parser/API tests initially passed 76 cases; additional Hunt/location
+and atomic multi-region regressions were then added for the final gate run.
+Early mypy annotations, test line formatting, and a Craigslist canonical-URL/parser
+assumption were corrected; these earlier failures are not counted as passed gates.
+The production adapter returned 41 Zillow, 68 Dallas Craigslist and 5 Compass rows
+in the initial live check before the 50-state expansion. Scope and limits are in
+COMMERCIAL_SOURCES.md. Source refreshes retain last-good snapshots and quarantine
+anomalous changes.
+
+Current source/package/browser/security gates and the disposable CLI-wide sync
+are pending at this candidate documentation event. Staging and production remain
+v0.16.0; this candidate is not deployed. Observed final results and deployment
+identities will be appended after completion.

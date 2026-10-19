@@ -1,3 +1,4 @@
+import { setupSourceFilter, type SourceOption } from "./source-filter";
 import { sourceLink } from "./source-links";
 import { setupAppearance } from "./theme";
 import { setupCoverage, type CoverageReport } from "./coverage";
@@ -245,11 +246,17 @@ let mapNeedsFit = false;
 let mapViewportFrame = 0;
 let notificationTimer: ReturnType<typeof setTimeout> | undefined;
 let isOwner = false;
+const sourceFilter = setupSourceFilter(
+  byId<HTMLSelectElement>("state"),
+  byId<HTMLSelectElement>("category"),
+  byId<HTMLSelectElement>("source-filter"),
+);
 const coverage = setupCoverage(
   sourceLink,
   (state) => {
     form.reset();
     byId<HTMLSelectElement>("state").value = state;
+    sourceFilter.update();
     void navigate("explore");
   },
   () => Boolean(csrf && isOwner && currentView === "sources"),
@@ -303,6 +310,7 @@ let researchProperty: PropertyRecord | null = null;
 let researchContextSequence = 0;
 const categoryNames: Record<string, string> = {
   government_land: "DNR & government land",
+  seller_listing: "Seller & broker listing",
   tax_sale: "Tax sale",
   foreclosure: "Foreclosure / REO",
   pre_foreclosure: "Pre-foreclosure notice",
@@ -334,6 +342,7 @@ function notify(message: string): void {
 
 function clearSession(): void {
   csrf = "";
+  sourceFilter.clear();
   isOwner = false;
   assistant.clear();
   decisions.clear();
@@ -573,6 +582,9 @@ async function enterWorkspace(info: SessionInfo): Promise<void> {
   byId("account-email").textContent = info.email;
   const current = await api<SessionInfo>("/api/session");
   if (!csrf || csrf !== sessionToken) return;
+  const sourceChoices = await api<SourceOption[]>("/api/source-options");
+  if (!csrf || csrf !== sessionToken) return;
+  sourceFilter.load(sourceChoices);
   isOwner = current.is_owner === true;
   byId("coverage-nav").hidden = !isOwner;
   byId("crm-nav").hidden = !isOwner;
@@ -838,6 +850,7 @@ byId("workspace-retry").addEventListener("click", () => {
 byId("reset-filters").addEventListener("click", () => {
   form.reset();
   byId<HTMLSelectElement>("state").value = "US";
+  sourceFilter.update();
   page = 1;
   void search();
 });
