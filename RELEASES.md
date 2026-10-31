@@ -1,5 +1,18 @@
 # LandWolf release log
 
+## v0.18.1 — production acceptance complete
+
+**Live in production and staging; final acceptance passed.** Production hosted
+run [41211814103](https://github.com/lupu-spec/Landwolf/actions/runs/41211814103)
+passed exact v0.18.1/6eba75a identity, health/live billing configuration,
+customer/privacy/CSRF/paywall journeys, persistent browser sessions/logout and
+public responsive checks. Live smoke 41211814059 passed. Post-deploy logs had no
+runtime warning, error, source-refresh failure or quarantine event in the observed
+window. External database inspection remains intentionally blocked; stored source
+timestamps and quarantine rows were not independently queried or modified.
+No additional runtime deploy followed the documentation commits. Details and
+immutable deployment IDs are in the rollout entries below.
+
 ## v0.18.1 — production deployment event, October 31, 2026
 
 **Production deployment observed; final hosted acceptance pending.**

@@ -1,5 +1,16 @@
 # LandWolf verification
 
+## v0.18.1 — production acceptance completion
+
+Production hosted run 41211814103 completed successfully after the observed
+deployment: exact identity/health and live billing mode, Chromium/WebKit phone and
+desktop customer/paywall/privacy/CSRF checks, persistent-profile cache-clear,
+restart/logout, public documents/themes and responsive budgets. Live smoke
+41211814059 passed. No post-startup runtime warning/error, source-refresh failure
+or quarantine event was logged in the observed window. External database access
+remains intentionally blocked; stored refresh timestamps/quarantine rows were not
+queried or changed. This evidence-only update does not relabel or redeploy runtime.
+
 ## v0.18.1 — final source repair gates and observed rollout
 
 **Passed (exit 0):** `uv sync --frozen --dev`; `npm ci`;
