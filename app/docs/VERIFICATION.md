@@ -1,5 +1,50 @@
 # LandWolf verification
 
+## v0.18.1 — final source repair gates and observed rollout
+
+**Passed (exit 0):** `uv sync --frozen --dev`; `npm ci`;
+`.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check`;
+`.venv/bin/ruff check landwolf tests scripts`; `npm run lint`;
+`.venv/bin/mypy landwolf`; `npm run typecheck`; `npm run test:unit` (27);
+`.venv/bin/pytest -q -m 'not browser'` (683);
+`.venv/bin/pytest -q tests/test_minnesota.py tests/test_national.py` (52);
+`npm run build`; `.venv/bin/python -m build`;
+`.venv/bin/python scripts/check_package.py`; `.venv/bin/bandit -r landwolf`;
+`.venv/bin/pip-audit --local --skip-editable`; `.venv/bin/pip-audit -r requirements.lock`;
+`npm audit --audit-level=moderate`; `npm run secrets`; `uv lock --check`;
+`git diff --check`; `git status --short` (clean before rollout documentation).
+Both dependency audits reported no known vulnerabilities. The initial Python
+format check failed on the new regression test; formatting fixed it before all
+checks passed. No security or regression gate was weakened.
+
+**Passed in final hosted application run 41208443024:** the same static/unit/API
+commands; `.venv/bin/python scripts/check_postgres.py`;
+`.venv/bin/python scripts/check_restore.py` against disposable CI PostgreSQL;
+focused commercial/public/theme/source/mobile/dock/assistant browser suites;
+`.venv/bin/pytest -q -m browser` (142); header screenshot/cascade comparison;
+package and security gates. Archived run 41208442977 passed its separate
+`PYTHONPATH=. pytest -q`. Local PostgreSQL/restore were **Not run** (Docker absent).
+Local browser installation **Failed** (truncated CDN archives); local browser tests
+were **Not run** in this patch, and were replaced by actual successful hosted runs,
+not mocks, skips or a pass claim for the failed local installation.
+
+**Live source command passed:** `LANDWOLF_DATABASE_URL=sqlite:///<disposable-db>`
+with `LANDWOLF_LICENSED_LISTING_SOURCES=[]` and
+`.venv/bin/python -m landwolf.cli sync`: MN 5, AR 2, TX 29, USDA 19, Treasury 19,
+IRS 6, AK 2, MI 29 (111). Both `check-research` points returned partial status
+because FEMA was unavailable through this runner; Census, USGS, soil and applicable
+NC parcels succeeded. Staging's real hosted research request returned ready, so
+the runner failure is not evidence of a provider-wide or production FEMA outage.
+
+Staging `a82eb0b31c8adf63156b4043fbd7df13fbff49d2`, Render
+`dep-dbivr9ks728c738f302g`, became live at 2026-10-31 14:40:48 UTC. Its exact
+HTTPS identity/health and hosted acceptance 41211329329 passed (customer/session,
+map, research, privacy/CSRF, browser and public pages). Production
+`6eba75a029f0eaac91958887fb69d69c976a94a7`, Render
+`dep-dbivu7p42hec73blijog`, became live at 2026-10-31 14:47:00 UTC using the exact
+same tested source tree. Final production hosted acceptance remains pending at
+this checkpoint. A documentation head is not the runtime commit.
+
 ## Authorized release-unblocking patch — October 31, 2026
 
 The owner authorized layout repairs and necessary release-blocker patches before
