@@ -1,7 +1,9 @@
 # LandWolf application
 
-A separate rebuild of LandWolf with the original wordmark, wolf logo, white/navy
-palette, and rural photography. Fresh email/password accounts unlock source-backed
+A separate rebuild of LandWolf with the original wordmark, wolf logo, graphite/silver
+palette, and rural photography. Choose Auto, Light or Dark from Appearance in the
+header. Frosted cards, controls, dock and chat follow the same mode; the choice
+is saved on this browser. See [Appearance](docs/APPEARANCE.md). Fresh email/password accounts unlock source-backed
 property search, map/list browsing, public-record research, and reproducible deal analysis.
 Paid production access uses live Stripe subscriptions at $29/month or $299/year.
 The owner, explicit complimentary grants, and accepted eligible investor pilots
@@ -31,6 +33,14 @@ ignored by Git. The source refreshes every six hours while the process runs.
 The public health endpoint is `/api/health`. API documentation is disabled.
 The application wheel includes the built browser assets.
 
+## Seller and broker sources
+
+The main screen also offers Zillow and Compass Texas land-search pages and
+50 state-specific Craigslist sources through linked state/category/source filters.
+Automatic imports are disabled pending provider agreements. Open the linked
+publisher searches and apply numeric filters there. See
+[scope, verification and limitations](docs/COMMERCIAL_SOURCES.md).
+
 ## Source coverage
 
 Search accepts all 50 US states, or `US` for the nationwide view. The live adapters
@@ -50,13 +60,16 @@ read these official inventories:
 This is **partial inventory coverage**, not every listing in every state or county.
 A federal program may have no current records in a state. HUD and GSA are directory
 links only. Nationwide pre-foreclosure and tax-lien certificate feeds are not
-connected. The authenticated Data coverage page distinguishes feed snapshots,
-directory links, current record counts, and gaps for every state and sale category.
+connected. The owner-only Data coverage page shows a compact source/health/last-updated list.
+Select a source to expand refresh history, inventory counts, publisher links and
+coverage limits. Green is ≤24 hours since the last successful import, yellow is
+>24 to <36 hours, and red is ≥36 hours or no valid successful import. Gray means
+directory only. [Source status guide](docs/DATA_SOURCE_VIEW.md) explains the limits.
 See [SOURCES.md](docs/SOURCES.md) for the original sources and parsing rules.
 
 Each provider replaces only its own inventory after a complete successful retrieval.
-A failure preserves that provider's last snapshot and displays its status. At most
-two providers refresh concurrently; new adapters allow 240 requests per refresh
+A failure preserves that provider's last snapshot and displays its status. One
+provider refreshes at a time; new adapters allow 240 requests per refresh
 including one bounded retry for transient failures, 30-second request timeouts,
 an 8 MB response limit and a 300-second overall deadline. The original GLO adapter
 keeps its stricter 180-second deadline. Inventories are bounded, URLs are explicitly

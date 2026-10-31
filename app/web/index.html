@@ -8,24 +8,30 @@
     />
     <meta
       name="description"
-      content="LandWolf property intelligence across all 50 states, official sale inventories, and transparent deal scenarios."
+      content="Research US land with LandWolf: connected official sale inventories, property records and transparent deal scenarios. Coverage varies by source."
     />
-    <title>LandWolf — Property Intelligence</title>
+    <title>LandWolf — US Land Research &amp; Property Intelligence</title>
+    <link rel="canonical" href="https://landwolf.ai/" />
+    <meta name="theme-color" content="#e8e9ee" />
+    <script src="/assets/theme-init.js"></script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/assets/leaflet.css" />
     <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/graphite.css" />
     <script type="module" src="/assets/app.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <a href="/" class="brand" aria-label="LandWolf home"
-        ><img
-          src="/assets/landwolf-logo.jpg"
-          alt="LandWolf — Find distressed and acquisition opportunities"
-          width="270"
-          height="90"
-      /></a>
+        ><picture
+          ><source srcset="/assets/landwolf-logo.webp" type="image/webp" />
+          <img
+            src="/assets/landwolf-logo.jpg"
+            alt="LandWolf — Find distressed and acquisition opportunities"
+            width="270"
+            height="90" /></picture
+      ></a>
       <div class="navigation-dock" aria-label="App dock">
         <button
           type="button"
@@ -237,6 +243,22 @@
         </button>
       </div>
       <div class="account-tools">
+        <label class="theme-control">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="8" />
+            <path
+              d="M12 4v16a8 8 0 0 0 0-16Z"
+              fill="currentColor"
+              stroke="none"
+            />
+          </svg>
+          <span class="sr-only">Appearance</span>
+          <select id="appearance" aria-label="Appearance">
+            <option value="system">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
         <button id="signout" class="button quiet small" hidden>Sign out</button>
       </div>
     </header>
@@ -459,7 +481,7 @@
             <div class="membership-note">
               <span class="membership-note-icon" aria-hidden="true">↗</span>
               <div>
-                <strong>Built for a better-informed first move.</strong>
+                <strong>Research US land before you bid.</strong>
                 <p>
                   Search all 50 states. Connected government sources provide
                   land, foreclosure and auction records; coverage varies by
@@ -477,9 +499,9 @@
             <p class="eyebrow" id="workspace-eyebrow">
               DISCOVER • RESEARCH • EVALUATE
             </p>
-            <h1 id="workspace-title" tabindex="-1">
+            <h2 id="workspace-title" tabindex="-1" aria-level="1">
               Find your next opportunity.
-            </h1>
+            </h2>
             <p class="muted" id="workspace-description">
               Real listings. Clear sources. A closer look at what matters.
             </p>
@@ -525,7 +547,12 @@
             Review feedback pilot
           </button>
         </aside>
-        <section id="billing-panel" hidden aria-label="Membership and billing">
+        <section
+          id="billing-panel"
+          class="source-panel"
+          hidden
+          aria-label="Membership and billing"
+        >
           <div id="billing-content"></div>
         </section>
         <section
@@ -548,7 +575,7 @@
           aria-labelledby="coverage-title"
         >
           <p class="eyebrow">KNOW WHAT YOU'RE SEARCHING</p>
-          <h2 id="coverage-title">Coverage you can inspect.</h2>
+          <h2 id="coverage-title">Data sources</h2>
           <p>
             Connected means LandWolf can retrieve listings from that source. A
             successful retrieval does not verify title, liens, market value, or
@@ -568,6 +595,9 @@
                 <option value="government_land">
                   DNR &amp; government land
                 </option>
+                <option value="seller_listing">
+                  Seller &amp; broker listings
+                </option>
                 <option value="tax_sale">Tax sales</option>
                 <option value="foreclosure">Foreclosure / REO</option>
                 <option value="pre_foreclosure">Pre-foreclosure notices</option>
@@ -576,7 +606,12 @@
               </select>
             </div>
           </div>
-          <div id="source-cards"></div>
+          <p class="source-health-legend">
+            Green: ≤24 hours · Yellow: &gt;24 to &lt;36 hours · Red: ≥36 hours
+            or no successful update. Gray: directory only. Times use your
+            device’s time zone. Select a source for details.
+          </p>
+          <div id="source-cards" aria-label="Source freshness"></div>
           <details class="feature-roadmap">
             <summary>Development roadmap</summary>
             <div id="feature-roadmap"></div>
@@ -948,6 +983,9 @@
                 <option value="government_land">
                   DNR &amp; government land
                 </option>
+                <option value="seller_listing">
+                  Seller &amp; broker listings
+                </option>
                 <option value="tax_sale">Tax sales</option>
                 <option value="foreclosure">Foreclosure / REO</option>
                 <option value="pre_foreclosure">Pre-foreclosure notices</option>
@@ -970,20 +1008,17 @@
             <label for="source-filter">Data source</label>
             <select id="source-filter" name="source" form="search-form">
               <option value="">All matching sources</option>
-              <option value="ar_cosl">Arkansas county tax sales</option>
-              <option value="tx_glo_public">Texas GLO</option>
-              <option value="usda_resales">USDA foreclosures / REO</option>
-              <option value="irs_auctions">IRS tax-seizure auctions</option>
-              <option value="us_treasury">Treasury public auctions</option>
-              <option value="ak_dnr">Alaska DNR</option>
-              <option value="mi_dnr">Michigan DNR</option>
-              <option value="mn_dot">Minnesota DOT surplus</option>
             </select>
             <span
               >Price and acreage filters exclude unknown values. Check bid type
               and dates in each listing.</span
             >
           </div>
+          <details id="publisher-searches" hidden>
+            <summary>Browse selected publisher</summary>
+            <p id="publisher-search-note"></p>
+            <ul id="publisher-search-links"></ul>
+          </details>
           <div class="coverage-strip">
             <p id="source-summary">Loading listings…</p>
             <button id="refresh-results" class="text-button">
@@ -1445,7 +1480,7 @@
         © <span id="year"></span> L91 LLC · LandWolf<br />
         <a
           id="release-version"
-          href="https://github.com/lupu-spec/Landwolf/blob/codex/landwolf-beta-rebuild/RELEASES.md"
+          href="https://github.com/lupu-spec/Landwolf/blob/main/RELEASES.md"
           target="_blank"
           rel="noopener noreferrer"
           >Version history ↗</a
@@ -1455,6 +1490,11 @@
         Research tools, not investment or legal advice. Verify records and sale
         terms with the original source.
       </p>
+      <nav aria-label="Public resources">
+        <a href="/land-investing">Land research checklist</a> ·
+        <a href="/faq">FAQ</a> · <a href="/about">About LandWolf</a> ·
+        <a href="/trial-terms">Trial terms</a>
+      </nav>
       <a href="mailto:support.landwolf@gmail.com">Contact support ↗</a>
     </footer>
     <noscript

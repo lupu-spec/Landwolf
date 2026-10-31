@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from landwolf import commercial
 from landwolf.db import Listing, SourceState
 from landwolf.national import PublicReader, retrieve
 from landwolf.provider import REFRESH_SECONDS, GLOProvider, SourceUnavailable
@@ -70,7 +71,7 @@ class InventoryProvider:
                 initial = session.get(SourceState, source) or SourceState(id=source)
                 initial.status, initial.message, initial.last_attempt = (
                     "syncing",
-                    "Refreshing official inventory",
+                    "Refreshing publisher inventory",
                     int(time.time()),
                 )
                 session.add(initial)
@@ -86,11 +87,20 @@ class InventoryProvider:
                         },
                     ) as client,
                 ):
-                    records = await retrieve(source, PublicReader(source, client))
+                    records = (
+                        await commercial.retrieve(source, client)
+                        if source in commercial.PAGES
+                        else await retrieve(source, PublicReader(source, client))
+                    )
                 if any(r.source != source or not safe_link(r.source_url) for r in records):
                     raise SourceUnavailable("Source provenance failed validation")
                 with self.factory() as session, session.begin():
-                    publish_snapshot(session, source, records)
+                    publish_snapshot(
+                        session,
+                        source,
+                        records,
+                        scope_note=commercial.SCOPE if source in commercial.PAGES else None,
+                    )
             except (
                 SourceUnavailable,
                 TimeoutError,
@@ -111,12 +121,14 @@ class InventoryProvider:
 
 
 class Catalog:
-    def __init__(self, factory: sessionmaker[Session]) -> None:
+    def __init__(
+        self, factory: sessionmaker[Session], licensed_listing_sources: tuple[str, ...] = ()
+    ) -> None:
         self.factory = factory
         self.providers = {
             d.id: GLOProvider(factory) if d.id == "tx_glo_public" else InventoryProvider(factory, d)
             for d in SOURCES
-            if d.automated
+            if d.automated or d.id in licensed_listing_sources
         }
 
     def statuses(
@@ -126,7 +138,7 @@ class Catalog:
         for d in SOURCES:
             if not matches(d, state, category, source_id):
                 continue
-            if d.automated:
+            if d.id in self.providers:
                 status = self.providers[d.id].status()
                 status.update(
                     states=list(d.states),
@@ -173,7 +185,7 @@ class Catalog:
                 "name": name,
                 "record_count": counts.get(code, 0),
                 "directory_url": "https://www.usa.gov/states/" + name.lower().replace(" ", "-"),
-                "feed_ids": [d.id for d in SOURCES if d.automated and code in d.states],
+                "feed_ids": [d.id for d in SOURCES if d.id in self.providers and code in d.states],
             }
             for code, name in STATES.items()
         ]

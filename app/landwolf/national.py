@@ -25,6 +25,7 @@ TREASURY = "https://www.treasury.gov/auctions/treasury/rp/"
 ALASKA = "https://dnr.alaska.gov"
 MICHIGAN = "https://www.dnr.state.mi.us"
 ARKANSAS = "https://cosl.org"
+IRS_OUTSIDE_50_STATES = frozenset({"AS", "DC", "GU", "MP", "PR", "VI"})
 
 
 def approved_url(source: str, url: str) -> bool:
@@ -433,6 +434,13 @@ def parse_irs(html: str) -> tuple[list[PropertyRecord], bool]:
         url = urljoin(IRS, str(anchor["href"]))
         if not approved_url("irs_auctions", url):
             raise SourceUnavailable("IRS property link is outside the reviewed source")
+        if state in IRS_OUTSIDE_50_STATES:
+            # IRS auctions can include the federal district and US territories. They are
+            # outside LandWolf's reviewed 50-state listing contract, so exclude only those
+            # known jurisdictions while continuing to fail closed on unknown state codes.
+            continue
+        if state not in STATES:
+            raise SourceUnavailable("IRS property state is not recognized")
         node = str(card.get("id", ""))
         numeric_identifier = re.fullmatch(r"node-(\d{1,12})", node)
         identifier = (

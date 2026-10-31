@@ -73,7 +73,9 @@ def log_run(
         session.execute(delete(SourceRun).where(SourceRun.id.in_(older)))
 
 
-def publish_snapshot(session: Session, source: str, records: list[PropertyRecord]) -> bool:
+def publish_snapshot(
+    session: Session, source: str, records: list[PropertyRecord], *, scope_note: str | None = None
+) -> bool:
     """Caller owns the transaction. Quarantine anomalies without replacing good data."""
     if len(records) > 5000 or len({item.id for item in records}) != len(records):
         raise ValueError("Duplicate identifiers or oversized inventory")
@@ -169,7 +171,7 @@ def publish_snapshot(session: Session, source: str, records: list[PropertyRecord
         session.add(event)
     state.last_success, state.record_count = now, len(records)
     state.status = "ready"
-    state.message = (
+    state.message = scope_note or (
         "Complete official inventory retrieved; confirm availability and sale terms at source."
     )
     log_run(
@@ -267,7 +269,7 @@ def property_evidence(record: PropertyRecord, state: SourceState | None) -> dict
         "freshness": "current_retrieval" if fresh else "needs_attention",
         "evidence": evidence,
         "next_steps": [
-            "Confirm current availability, eligibility and deadlines with the selling agency.",
+            "Confirm current availability, eligibility and deadlines with the publisher or seller.",
             "Match the county parcel and legal description before relying on location research.",
             "Verify title, liens, legal access and intended use with qualified professionals.",
             "Obtain comparable sales and costs before treating a scenario as underwriting.",

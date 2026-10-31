@@ -92,7 +92,7 @@ def main() -> None:
         else:
             # A manual refresh must be usable with a new, disposable database too.
             initialize(engine)
-            result = asyncio.run(Catalog(factory).refresh())
+            result = asyncio.run(Catalog(factory, settings.licensed_listing_sources).refresh())
             print(json.dumps(result, indent=2))
             if any(source["automated"] and source["status"] != "ready" for source in result):
                 raise SystemExit(1)

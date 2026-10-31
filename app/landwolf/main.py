@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -25,11 +25,13 @@ from landwolf import (
     admin,
     auth,
     billing,
+    commercial,
     crm,
     feedback,
     feedback_export,
     finance,
     hunt,
+    public_pages,
     recovery,
     research_workspace,
     trials,
@@ -61,7 +63,7 @@ from landwolf.research import (
     ResearchService,
 )
 from landwolf.schemas import AnalysisInput, Credentials, PropertyRecord, Registration, SearchQuery
-from landwolf.sources import SOURCE_BY_ID
+from landwolf.sources import SOURCE_BY_ID, SOURCES
 from landwolf.trust import property_evidence
 from landwolf.version import VERSION, release
 
@@ -115,7 +117,7 @@ class BodyLimit:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     engine, factory = database(settings.database_url)
-    provider = Catalog(factory)
+    provider = Catalog(factory, settings.licensed_listing_sources)
     research = ResearchService()
     mailer = recovery.Mailer(settings)
 
@@ -192,7 +194,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             response.headers["Cache-Control"] = "no-cache"
         if settings.secure_cookies:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
-        if settings.environment == "staging":
+        if settings.environment == "staging" or request.url.path.startswith("/api/"):
             response.headers["X-Robots-Tag"] = "noindex, nofollow"
         return response
 
@@ -485,6 +487,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             auth.COOKIE, path="/", secure=settings.secure_cookies, httponly=True, samesite="strict"
         )
         return {"ok": True}
+
+    @app.get("/api/source-options")
+    def source_options(request: Request, session: DB) -> list[dict[str, Any]]:
+        auth.authenticate(request, session, settings)
+        # Static filter metadata only: no source health, counts, accounts or CRM data.
+        return [
+            {
+                "id": d.id,
+                "name": d.name,
+                "states": list(d.states),
+                "categories": list(d.categories),
+                "external_searches": list(commercial.PAGE_GROUPS.get(d.id, ())),
+                "import_enabled": d.id in provider.providers,
+            }
+            for d in SOURCES
+            if d.automated or d.id in commercial.PAGE_GROUPS
+        ]
 
     @app.get("/api/sources")
     def sources(request: Request, session: DB) -> dict[str, Any]:
@@ -843,6 +862,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     static = Path(__file__).resolve().parent / "static"
     if static.is_dir():
+        index_template = (static / "index.html").read_text(encoding="utf-8")
+        public_pages.register(app, settings)
         app.mount("/assets", StaticFiles(directory=static / "assets"), name="assets")
 
         @app.get("/trial-terms", include_in_schema=False)
@@ -850,8 +871,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return FileResponse(static / "assets" / "trial-terms.html")
 
         @app.get("/", include_in_schema=False)
-        def index() -> FileResponse:
-            return FileResponse(static / "index.html")
+        def index() -> HTMLResponse:
+            return HTMLResponse(
+                public_pages.render_home(index_template, trial_enabled=trials.enabled(settings))
+            )
 
         @app.get("/favicon.svg", include_in_schema=False)
         def favicon() -> FileResponse:

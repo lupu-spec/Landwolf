@@ -1,6 +1,9 @@
 name: LandWolf hosted release checks
 
 on:
+  pull_request:
+    branches: [staging, main]
+    paths: [RELEASES.md]
   push:
     branches: [staging, main]
     paths:
@@ -35,7 +38,7 @@ jobs:
           .venv/bin/ruff check scripts/check_hosted_staging.py
       - name: Check the exact deployed release
         env:
-          TARGET_ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+          TARGET_ENVIRONMENT: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'production' || 'staging' }}
         run: |
           EXPECTED_COMMIT=$(python - "$TARGET_ENVIRONMENT" <<'PYCODE'
           import re
@@ -47,6 +50,10 @@ jobs:
           PYCODE
           )
           .venv/bin/python scripts/check_hosted_staging.py --environment "$TARGET_ENVIRONMENT" --commit "$EXPECTED_COMMIT"
+      - name: Public SEO acceptance
+        env:
+          TARGET_ENVIRONMENT: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'production' || 'staging' }}
+        run: .venv/bin/python scripts/check_public_seo.py --environment "$TARGET_ENVIRONMENT"
       - name: Hosted browser evidence
         if: always()
         uses: actions/upload-artifact@v4

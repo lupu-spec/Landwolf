@@ -3,24 +3,393 @@
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
+## v0.18.0 — header CSS consolidation live; hosted acceptance complete
+
+**Live in staging and production.** [PR #40](https://github.com/lupu-spec/Landwolf/pull/40)
+reduces `.site-header` from seven rules to three and removes superseded navigation
+styles: 31 fewer CSS lines. Approved silver/glass, Light/Dark/Auto, mobile navigation,
+keyboard/accessibility, print and account/billing/CRM behavior are retained. The
+v0.17 publisher searches remain available; publisher imports stay disabled pending
+agreements. No dependency upgrade, migration, account reset or paid resource change.
+
+- [Source gates 39186749900](https://github.com/lupu-spec/Landwolf/actions/runs/39186749900)
+  passed 27 frontend, 679 API and all 142 browser cases, PostgreSQL/exact 36-table
+  restore, package and security checks; separate legacy tests passed 53. The
+  reconciled runtime also passed [gates 39188135828](https://github.com/lupu-spec/Landwolf/actions/runs/39188135828).
+  Both engines matched every computed header property and all 62 paired screenshots
+  exactly across responsive, appearance, role, print and zoom cases.
+- Staging runtime `e12d187b456b90da1936d129f5ff7e62267db0ec`, Render
+  `dep-dbanseajnfac738eu9h0`, live 2026-10-19 02:20:46 UTC.
+  [Hosted acceptance 39189767343](https://github.com/lupu-spec/Landwolf/actions/runs/39189767343)
+  passed both CSS hashes, Auto/device, responsive header/dock/customer/source,
+  privacy/session/research checks and all 48 public browser samples.
+- Production runtime `7e8aaa71e3fb60948657622273c11dc135aad53c`, Render
+  `dep-dbao0mmq1p3s73cdvjqg`, live 2026-10-19 02:29:35 UTC. Its complete Git tree
+  equals staged e12d187. [Hosted acceptance 39190339428](https://github.com/lupu-spec/Landwolf/actions/runs/39190339428)
+  passed exact identity/health/live billing mode, both CSS hashes, Auto/device,
+  customer/paywall/privacy/session checks and all 48 public browser samples.
+  Maximum sampled load was 853 ms; supported Chromium CLS at most 0.001112
+  (WebKit unsupported). These are lab samples, not universal field guarantees.
+- Both existing services/databases and manual deploy settings remain intact.
+  Documentation heads do not relabel runtime. See
+  [scope and retained failures](app/docs/HEADER_CSS_REFACTOR.md) and
+  [complete verification](app/docs/VERIFICATION.md).
+
+## v0.18.0 — production CSS consolidation deployment event
+
+**Staging acceptance passed; production deployment observed, acceptance pending.**
+[PR #40](https://github.com/lupu-spec/Landwolf/pull/40) consolidates the header from
+seven rules to three and removes superseded navigation declarations (31 fewer CSS
+lines). Approved silver/glass, Light/Dark/Auto, mobile/keyboard, print and existing
+source/account/billing/CRM behavior are retained. No migration or account reset.
+
+- [Source gates 39186749900](https://github.com/lupu-spec/Landwolf/actions/runs/39186749900)
+  passed 27 frontend, 679 API and all 142 browser cases, exact header comparisons,
+  PostgreSQL/36-table restore, package and security checks; separate legacy tests
+  passed 53. All 62 paired images matched exactly; no mask/tolerance was added.
+- Staging runtime `e12d187b456b90da1936d129f5ff7e62267db0ec`, Render
+  `dep-dbanseajnfac738eu9h0`, live 2026-10-19 02:20:46 UTC.
+  [Hosted acceptance 39189767343](https://github.com/lupu-spec/Landwolf/actions/runs/39189767343)
+  passed both CSS hashes, Auto/device changes, phone/desktop customer/header/dock,
+  source/privacy/session/research checks and 48 public browser samples. Maximum
+  sampled load was 401 ms; supported Chromium CLS at most 0.001112 (WebKit unsupported).
+- Production runtime `7e8aaa71e3fb60948657622273c11dc135aad53c`, Render
+  `dep-dbao0mmq1p3s73cdvjqg`, live 2026-10-19 02:29:35 UTC. Native Git tree lookup
+  proves its complete tree equals the staging-tested runtime tree. Independent
+  production hosted verification remains pending.
+- Manual deployments, existing services/databases and v0.17 publisher-import guards
+  remain intact. Documentation heads are not runtime. See
+  [scope/history](app/docs/HEADER_CSS_REFACTOR.md) and [verification](app/docs/VERIFICATION.md).
+
+## v0.18.0 — bounded header CSS consolidation, staging event
+
+**Staging deployment observed; hosted acceptance pending.** Production remains
+v0.17.0. [PR #40](https://github.com/lupu-spec/Landwolf/pull/40) reduces shared
+header rules from seven to three and removes superseded navigation declarations:
+31 fewer CSS lines, retaining approved silver/glass, Light/Dark/Auto, responsive,
+keyboard and print behavior. Source searches, accounts, billing and CRM are unchanged.
+
+- [Application gates 39186749900](https://github.com/lupu-spec/Landwolf/actions/runs/39186749900)
+  passed 27 frontend, 679 backend/API and all 142 full browser cases; focused
+  mobile/theme/source/public checks, PostgreSQL/exact 36-table restore, package
+  and security scans. Separate archived regressions passed 53 cases.
+- Both engines passed every computed header property/pseudo-element/rectangle
+  comparison across 17 widths, guest/owner, appearance modes, print, large text and
+  short viewports. All 62 retained screenshot pairs matched byte-for-byte and
+  representative images were reviewed. No mask, tolerance or assertion removal.
+- Tested source `627e0e08585de56380e9b254d839fb132f7fda6d`; reconciled staging
+  runtime `e12d187b456b90da1936d129f5ff7e62267db0ec` has identical application,
+  test/build/dependency files and application CI. Only observed v0.17 ledger and
+  hosted-check routing documentation were reconciled before deployment.
+- Staging Render `dep-dbanseajnfac738eu9h0`, live 2026-10-19 02:20:46 UTC.
+  Exact HTTPS version/commit and healthy database/payments-disabled state were
+  observed. Existing service/database and manual deploy settings were retained.
+- See [bounded scope and retained failures](app/docs/HEADER_CSS_REFACTOR.md)
+  and [verification](app/docs/VERIFICATION.md). No production v0.18 deployment is claimed.
+
+## v0.17.0 — publisher searches live; hosted acceptance complete
+
+**Live in staging and production.** [PR #42](https://github.com/lupu-spec/Landwolf/pull/42)
+adds state-linked publisher searches for 50 Craigslist states (412 regional markets),
+Zillow Texas and Compass Texas. Automatic imports remain disabled pending scoped
+provider agreements. Apply price/acreage filters on publisher sites; these links
+are not imported inventory. All eight existing government feeds remain enabled.
+No paid resource, account reset, schema migration or billing/CRM change was made.
+
+- Required source [gates 39182934783](https://github.com/lupu-spec/Landwolf/actions/runs/39182934783)
+  passed 27 frontend, 679 backend/API and all 140 browser cases, PostgreSQL/exact
+  36-table restore, package and security scans; separate legacy tests passed 53.
+  Fresh disposable live sync passed all eight feeds (282 records) after USDA recovered.
+- Staging runtime `61febfe5a02b398db4dbae4922936283aa869378`, Render
+  `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC.
+  [Hosted acceptance 39187139290](https://github.com/lupu-spec/Landwolf/actions/runs/39187139290)
+  passed customer/privacy/source/session/research checks and 48 public browser samples.
+- Production runtime `b5fa49aa57cd7461ea753833dd82cc81517e4ef9`, Render
+  `dep-dbangsks728c738rn9f0`, live 2026-10-19 01:55:51 UTC; its complete tree equals
+  the staging-tested tree. [Hosted acceptance 39187665620](https://github.com/lupu-spec/Landwolf/actions/runs/39187665620)
+  passed exact identity/health/live billing mode, four customer/paywall/privacy
+  journeys, persistent sign-in/logout and 48 public browser samples. Maximum load
+  was 912 ms; supported Chromium CLS was at most 0.001014 (WebKit unsupported).
+  These are lab samples, not universal field guarantees.
+- Manual deploy settings and both existing databases/services were retained.
+  Documentation heads do not relabel runtime. The header CSS follow-up remains
+  separate and is not deployed. See [source scope](app/docs/COMMERCIAL_SOURCES.md)
+  and [verification](app/docs/VERIFICATION.md).
+
+## v0.17.0 — publisher searches, production deployment event
+
+**Staging acceptance passed; production deployment observed, acceptance pending.**
+[PR #42](https://github.com/lupu-spec/Landwolf/pull/42) links all 50 Craigslist
+states (412 regional markets), Zillow Texas and Compass Texas to main-screen
+state/category/source choices. Publisher imports remain disabled pending scoped
+agreements; numeric filters apply separately on publisher sites. Eight existing
+government feeds remain enabled. No paid resources, schema migration, account reset
+or billing/CRM policy change.
+
+- Required source gates passed in [39182934783](https://github.com/lupu-spec/Landwolf/actions/runs/39182934783):
+  27 frontend, 679 API and all 140 browser cases, PostgreSQL/exact restore, package
+  and security checks; separate archived regressions passed 53 cases.
+- Staging `61febfe5a02b398db4dbae4922936283aa869378`, Render
+  `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC.
+  [Hosted acceptance 39187139290](https://github.com/lupu-spec/Landwolf/actions/runs/39187139290)
+  passed four customer journeys, linked source/state controls, owner/privacy/CSRF,
+  research, persistent sessions and all 48 public browser samples. Maximum sampled
+  load was 639 ms; maximum supported Chromium CLS was 0.001112 (WebKit unsupported).
+- Production `b5fa49aa57cd7461ea753833dd82cc81517e4ef9`, Render
+  `dep-dbangsks728c738rn9f0`, live 2026-10-19 01:55:51 UTC. Native Git tree lookup
+  proves its complete tree equals the staging-tested source tree. Production
+  hosted verification remains pending; a pushed documentation head is not runtime.
+- The CSS refactor remains separate; no v0.18 deployment is claimed. See
+  [scope](app/docs/COMMERCIAL_SOURCES.md) and [verification](app/docs/VERIFICATION.md).
+
+## v0.17.0 — publisher search links, staging event (October 19, 2026)
+
+**Staging deployment observed; hosted acceptance pending.** Production remains
+v0.16.0. [PR #42](https://github.com/lupu-spec/Landwolf/pull/42) connects main-screen
+state/category/source choices to Zillow and Compass Texas searches and all 50
+Craigslist states (412 reviewed regional markets). Numeric filters must be applied
+on publisher sites. Automated imports from these publishers remain disabled pending
+scoped provider agreements. The original eight government feeds remain enabled.
+No Apify, paid service, schema migration, account reset or billing/CRM change.
+
+- Source commit `61febfe5a02b398db4dbae4922936283aa869378` passed
+  [application gates 39182934783](https://github.com/lupu-spec/Landwolf/actions/runs/39182934783):
+  27 frontend, 679 backend/API, eight focused source/browser and all 140 full
+  browser cases; PostgreSQL/exact 36-table restore, build/package and security.
+  Separate archived regressions passed 53 cases.
+- A fresh disposable CLI sync exited 0: all eight original feeds ready, 282 records,
+  zero publisher imports enabled. Earlier USDA HTTP502/timeout failures were
+  retained; upstream recovery was verified before staging.
+- Staging runtime: `61febfe5a02b398db4dbae4922936283aa869378`, Render
+  `dep-dbanchk9v7es7396s5rg`, live 2026-10-19 01:46:54 UTC. The existing default
+  workspace, service, isolated database and manual deployment setting were retained.
+- Exact HTTPS version/commit and healthy database/billing-disabled state were observed.
+- The CSS-only follow-up remains separate and is not part of this deployment.
+  See [source scope](app/docs/COMMERCIAL_SOURCES.md) and
+  [verification](app/docs/VERIFICATION.md).
+
+## v0.16.0 — public SEO and stable initial HTML
+
+**Live in staging and production.** [PR #41](https://github.com/lupu-spec/Landwolf/pull/41)
+adds server-rendered public land research, FAQ and company pages; production sitemap
+and crawl policy; canonical/description/H1 metadata; breadcrumbs and FAQ schema;
+connected public navigation; direct relative 308 slash redirects; and WebP delivery.
+The public trial disclosure renders from the existing availability computation in
+the initial home response. Approved application appearance, Light/Dark/Auto,
+keyboard/accessibility behavior, authentication, billing policy and private data
+boundaries are retained. Source schema remains 13; no hosted database migration/reset,
+configuration change, customer-data export or restore was performed.
+
+- Source [application gates 39160300781](https://github.com/lupu-spec/Landwolf/actions/runs/39160300781)
+  passed 26 frontend, 592 backend/API and all 132 full browser cases, focused
+  public/theme/source/mobile checks, PostgreSQL/36-table exact restore, package
+  and security scans. Separate archived regressions passed 53 cases.
+- Staging: `bb7891856f5e48b683664c88ae73a9f33c6d2ae7`, Render
+  `dep-dbaicn49v7es738kpiag`, live 2026-10-18 20:05:56 UTC. Hosted
+  [acceptance 39162087913](https://github.com/lupu-spec/Landwolf/actions/runs/39162087913)
+  passed customer/session/privacy checks and all 48 public browser samples;
+  maximum load 977 ms, Chromium CLS 0 (WebKit CLS unsupported).
+- Production: `168eb749ae4a2396b98b7b1e48a9862fc915ebb3`, Render `dep-dbaij9dg1s2s73c896l0`,
+  live 2026-10-18 20:19:46 UTC. Native Git lookup proves its complete source tree equals
+  the staging-tested tree. [Independent observation 39163023226](https://github.com/lupu-spec/Landwolf/actions/runs/39163023226)
+  confirmed exact version/commit, healthy database and expected billing mode;
+  anonymous home samples were 1367.2 ms / CLS 0 (phone) and 970.6 ms /
+  CLS 0.001014 (desktop). These are lab samples, not universal field guarantees.
+- Production hosted acceptance and observed details are recorded in
+  [verification](app/docs/VERIFICATION.md). See [public SEO scope](app/docs/PUBLIC_SEO.md).
+  Search Console submission is unconfirmed after a sign-in timeout, author bio
+  text is pending, and no earned backlinks or top-ranking guarantee is claimed.
+
+## v0.16.0 — staging public SEO event (October 18, 2026)
+
+**Staging deployment observed; hosted acceptance pending.** Production remains
+v0.15.0 at this staging event. [PR #41](https://github.com/lupu-spec/Landwolf/pull/41)
+adds public server-rendered research information, sitemap/robots policy, canonical
+metadata, breadcrumbs/FAQ schema, direct relative slash redirects and WebP delivery.
+The initial home disclosure uses the existing public availability computation;
+authentication, trial consent, billing, accounts, CRM and schema 13 are retained.
+
+- Required source gates passed in [application run 39160300781](https://github.com/lupu-spec/Landwolf/actions/runs/39160300781):
+  26 frontend, 592 backend/API and 132 full browser cases, six focused public,
+  eight appearance, four source-list and 18 mobile cases; PostgreSQL/exact restore,
+  package and security checks. Archived regressions passed separately (53 cases).
+- Staging: `bb7891856f5e48b683664c88ae73a9f33c6d2ae7`, Render `dep-dbaicn49v7es738kpiag`,
+  live 2026-10-18 20:05:56 UTC. `/api/version` and `/api/health` returned the exact version,
+  environment, commit and healthy database/billing-disabled state.
+- Existing default Render workspace and isolated service/database retained;
+  automatic deploys remain off. No hosted database migration, export or restore was run.
+- See [public SEO scope](app/docs/PUBLIC_SEO.md) and [verification](app/docs/VERIFICATION.md).
+  Search Console submission, a factual personal bio and earned backlinks remain outstanding;
+  no indexing, ranking or universal field-speed guarantee is made.
+
+## v0.15.0 — complete silver/glass appearance and light/dark modes
+
+**Live in staging and production; hosted acceptance complete.**
+[PR #39](https://github.com/lupu-spec/Landwolf/pull/39) applies shared silver/glass
+surfaces, rounded outlines, inset fields and readable text throughout the app.
+Appearance offers Auto, Light and Dark, with browser persistence, first-paint
+initialization and live device/cross-tab updates. Mobile fonts, keyboard controls,
+zoom, branding, source-age rules and existing business behavior are preserved.
+See [Appearance](app/docs/APPEARANCE.md).
+
+- [Required CI](https://github.com/lupu-spec/Landwolf/actions/runs/38963112491)
+  passed 26 frontend, 572 backend/API, 126 full browser, 8 appearance, 4 source-list
+  and 18 mobile/dock/chat cases, PostgreSQL/36-table exact restore, package and
+  security gates. Separate archived regression CI passed 53 tests.
+- Staging: `29d4d465498feb60972c26b6f570aed5dce40105`, Render
+  `dep-db98ukmq1p3s739krerg`, live 2026-10-16 20:56:57 UTC.
+- Production: `55a35648140ffb3d3dead8c2e09a54d55dfc0e63`, Render
+  `dep-db990vrbc2fs73eqpo2g`, live 2026-10-16 21:02:02 UTC.
+- Native Git-object lookup proved both runtime source trees are exactly
+  `770b1ae8c75c7488d6641dc6b017558413378b0c`, the verified candidate tree.
+- [Hosted staging acceptance](https://github.com/lupu-spec/Landwolf/actions/runs/38965980741)
+  passed exact identity/health, deployed stylesheet hash, both appearance modes
+  and persistence, four Chromium/WebKit customer/research journeys, CSRF/private
+  boundaries, and actual persistent browser-profile/cache-clear/restart/logout.
+- [Staging release live smoke](https://github.com/lupu-spec/Landwolf/actions/runs/38965980738)
+  passed both then-current environments, HTTPS and supplied branding assets.
+
+[Production hosted acceptance](https://github.com/lupu-spec/Landwolf/actions/runs/38966641513)
+passed exact v0.15.0/55a3564 identity, health, deployed stylesheet hash, both
+appearance modes and reload persistence, Chromium/WebKit phone/desktop
+login/paywall/logout and actual persistent-profile/cache-clear/restart/logout.
+[Final live smoke](https://github.com/lupu-spec/Landwolf/actions/runs/38966641453)
+passed both current environments, HTTPS, supplied branding assets and www.
+Initial source-push checks with the previous ledger are not v0.15.0 acceptance. Automatic deploys remain off; subsequent evidence/doc changes
+do not redeploy the app. No database reset, billing/provider configuration change,
+account grant or payment is part of this presentation release. One disposable
+standard non-cohort smoke account is retained in each environment under existing
+smoke filtering.
+All three PDF guides and both HTML guides were updated in place with the current
+appearance controls and verified release notes. Earlier screenshots remain
+explicitly labeled reference illustrations. In-app help and the technical change
+guide are updated too.
+Physical iOS keyboard behavior, real payment conversion and email inbox delivery
+are not established by these automated checks.
+
+## v0.14.0 — graphite source diagnostics live (October 16, 2026)
+
+**Live in staging and production; hosted acceptance complete.**
+[PR #38](https://github.com/lupu-spec/Landwolf/pull/38) adds a compact expandable
+source-name / health / last-updated list, exact 24/36-hour age boundaries,
+graphite/silver styling and focused frontend module extractions. Source data,
+accounts, schema, payment/trial runtime and research behavior are retained.
+
+- Staging: `612b737fa28cef71ad3c16d379fb33fe03f3fa1b`, Render
+  `dep-db931eeq1p3s739sq6bg`, live 2026-10-16 14:13:26 UTC.
+- Production: squash merge `3679070c575591873d556bab8504c7d55b5635d7`, Render
+  `dep-db935gajnfac739mv6s0`, live 2026-10-16 14:21:53 UTC.
+- GitHub Git-tree verification proved both runtime source trees are exactly
+  `f4fadb9a2467f0009200fffba4e45bad39509212`.
+- [Candidate CI](https://github.com/lupu-spec/Landwolf/actions/runs/38911250054)
+  passed 24 frontend, 572 backend/API, 4 focused source-view, 18 existing focused
+  browser, 118 full browser, disposable PostgreSQL/36-table restore, build/package,
+  format/lint/types and security. Separate archived CI passed 53 tests.
+- [Staging acceptance](https://github.com/lupu-spec/Landwolf/actions/runs/38914439829)
+  passed exact release/health, stylesheet hash and computed theme, four Chromium/
+  WebKit journeys, actual research response, source-access restrictions and
+  persistent sign-in/cache-clear/restart/logout. One disposable non-cohort staging
+  verification account is retained under existing smoke-test categorization.
+- [Live smoke](https://github.com/lupu-spec/Landwolf/actions/runs/38914439897)
+  verified both then-current environment identities, HTTPS, supplied logo and
+  fallback image. This ledger update triggers final checks against the new
+  production identity above. Production owner controls are tested in isolated CI;
+  hosted customer checks do not impersonate the owner or create a payment.
+
+[Production acceptance](https://github.com/lupu-spec/Landwolf/actions/runs/38915826912)
+passed exact v0.14.0/3679070 identity, health, deployed stylesheet hash/computed
+theme, production billing/email configuration, Chromium/WebKit phone/desktop
+login/paywall/logout and actual browser-profile persistence/cache-clear checks.
+[Final live smoke](https://github.com/lupu-spec/Landwolf/actions/runs/38915826834)
+passed both current environments, HTTPS, branding assets and www redirect.
+The three current PDF guides and two HTML guides were updated in place with
+verified release notes; earlier screenshots remain labeled reference illustrations.
+One disposable non-cohort production smoke account is retained; no checkout,
+subscription, charge, owner grant or billing configuration change was created.
+
+Automatic deploys remain off. This ledger/verification-script update is not a
+new application deployment. The existing source tree and database remain in use.
+Physical iOS keyboards, real payment conversion and email inbox delivery are
+outside this release's live acceptance checks. See
+[full command results](app/docs/VERIFICATION.md),
+[repository review](app/docs/CODE_REVIEW_2026_10_16.md) and
+[AI change guide](app/docs/AI_CHANGE_GUIDE.md).
+
+## v0.14.0 — staging rollout (October 16, 2026)
+
+**Staging live; production promotion pending at this checkpoint.** Existing staging
+service deployed `612b737fa28cef71ad3c16d379fb33fe03f3fa1b` as
+`dep-db931eeq1p3s739sq6bg`, live at 2026-10-16 14:13:26 UTC.
+[Candidate application gates](https://github.com/lupu-spec/Landwolf/actions/runs/38911250054)
+passed 24 frontend, 572 backend/API, 4 focused source-list, 18 existing focused
+browser and 118 full browser tests, disposable PostgreSQL and 36-table restore,
+format/lint/types, build/package and security checks.
+[Archived regressions](https://github.com/lupu-spec/Landwolf/actions/runs/38911250076)
+passed separately. Hosted acceptance is triggered by this observed staging ledger
+update. No production deploy, account grant, price change, database reset or
+billing-runtime change is made at this checkpoint.
+
+## v0.14.0 — graphite interface and compact source diagnostics (candidate)
+
+Prepared October 16, 2026 from main `34649586357702f12ed0d183392faff896658476`.
+Preparation record: not deployed at preparation time. Adds expandable source/health/last-updated rows, exact 24/36-hour
+import-age colors, a graphite/silver appearance and focused frontend module
+extractions. Preserves original source links, owner authorization, billing,
+accounts, schema, research and source-refresh behavior. Includes a repository-wide
+review inventory and [AI change guidance](app/docs/AI_CHANGE_GUIDE.md).
+
+Local command results and unresolved hosted gates are in
+[VERIFICATION.md](app/docs/VERIFICATION.md) and
+[the review](app/docs/CODE_REVIEW_2026_10_16.md). The live environment rows below
+remain unchanged until staging and production are observed at the new release.
+
 ## v0.13.1 — transparent feedback-trial signup (October 13, 2026)
 
-**Release candidate; no deployment confirmed at the time of this entry.**
-[PR #37](https://github.com/lupu-spec/Landwolf/pull/37) updates the new-user
-signup explanation of the pre-existing conditional self-service offer:
-up to 90 days without an initial payment; honest surveys on days 30, 60 and 90;
-only missed surveys can trigger a $29/month subscription, after at least seven
-days' advance emailed notice and an opportunity to complete or cancel; no
-retroactive trial-day charges; all surveys completed means no automatic
-subscription. Existing full terms and server-side Stripe setup-mode consent remain
-unchanged. The release also adds a regression test matching home-page disclosures
-against Checkout setup consent. No subscription prices, active customers, owner
-exemptions, invited-pilot rules, or production database schema are changed.
+**Live in staging and production; hosted acceptance complete.**
+[PR #37](https://github.com/lupu-spec/Landwolf/pull/37) updates the public
+signup explanation of the pre-existing self-service feedback offer: up to 90
+days without an initial charge, surveys due on days 30/60/90, and a possible
+$29/month subscription only after missing feedback and an emailed notice at
+least seven days ahead. Feedback or online cancellation prevents conversion,
+and completion of all three check-ins ends with no automatic billing. The
+full terms, recorded consent, Stripe setup-mode Checkout, and existing
+server-side payment guards are unchanged. No price changes, schema changes,
+owner/CRM exemption changes or invited-pilot conversion changes were made.
 
-Package and runtime identity advance together to v0.13.1. Staging and production
-promotion require passing final CI checks, exact source identity verification,
-observable health and clear evidence appended to this ledger. Render automatic
-deploys remain disabled.
+**Verified release identity.** Staging at
+`64df5f89aa01f143c397f74d218006bc32f2bf52` deployed as
+`dep-db7057om7kps73bjcun0`, live October 13 at 10:07:35 UTC.
+Production merged PR #37 at
+`7f240b33d868d44cf717d35458e18d50fd1cff99`, deployed as
+`dep-db70bhrrjlhs739go14g`, live at 10:21:02 UTC.
+GitHub comparison verified **zero changed files** between the staged and
+merged production source trees. Both hosted `/api/version` responses matched
+these exact commits and v0.13.1; both `/api/health` checks returned OK.
+Staging remained payments-disabled; production confirmed payments,
+mail delivery and feedback-trial enrollment enabled. The deployed
+production homepage and `/trial-terms` were checked for the promised
+feedback dates, notice, pricing, cancellation and no automatic billing;
+`www.landwolf.ai` redirected to the apex.
+
+**Verification Passed:** application gates
+[run 38380735522](https://github.com/lupu-spec/Landwolf/actions/runs/38380735522)
+reported 572 backend/API, 18 focused browser, and 114 full browser passes,
+with formatting, lint, types, disposable PostgreSQL integration and
+backup/restore, build, package, security and diff checks all successful.
+Archived legacy [run 38380735540](https://github.com/lupu-spec/Landwolf/actions/runs/38380735540)
+passed 53 tests. Read-only live Stripe checks found active $29/month and
+$299/year prices unchanged, and the same one expired verification
+subscription before and after promotion; no real checkout, subscription or
+payment was created during this release.
+
+**Limits:** no authenticated production purchase, real-card conversion,
+physical mobile keyboard or email-delivery-to-inbox test was performed.
+Production database before/after row digests were not accessible through the
+external Render API because the database's IP allowlist is empty. Its
+network restrictions were preserved; this release has no database-schema
+or billing-runtime code changes. Render automatic deploys remain disabled.
+This subsequent release-ledger entry is documentation only and does not
+trigger another application deployment.
 
 ## Repository maintenance — October 11, 2026; no changed runtime deployed
 
@@ -255,8 +624,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.13.0 | `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | 2026-10-11 00:17:28 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.13.0 | `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | 2026-10-11 00:05:56 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.18.0 | `7e8aaa71e3fb60948657622273c11dc135aad53c` | 2026-10-19 02:29:35 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.18.0 | `e12d187b456b90da1936d129f5ff7e62267db0ec` | 2026-10-19 02:20:46 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -410,6 +779,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-10-10 20:28:08 | Production | v0.12.2 / `f6cf068809bbc18ec9c8919156967a003e280b93` | `dep-db59v7lckfvc739fkme0` | PR #35, entire tree identical to staging. Exact production health/billing/email/auth/privacy/session and six focused both-research-view journeys passed. Existing accounts/billing/CRM digests match; temporary audited test access revoked. Physical OS keyboards not run. See MOBILE_RESEARCH_KEYBOARD.md. |
 | 2026-10-11 00:05:56 | Beta | v0.13.0 / `3a755fd3e1c65a82e1836c67d1cabca12a49f2f3` | `dep-db5d57vlot8c73ehshd0` | Private owner finances, allocated vendor expenses/confirmed CSV, graphs, three-month scenarios and growth actions. Full 571/20/114/53 gates, 36-table restore/security and exact standard/six focused staged research journeys passed. |
 | 2026-10-11 00:17:28 | Production | v0.13.0 / `3977a9aeced1dde09fb6d165726535b4ebc5aab1` | `dep-db5dapdckfvc739qeaig` | PR #36, complete tree identical to tested staging. Standard exact navigation/session/private-route checks, 25 customer-table digests, finance generation and GET-only live Stripe reads passed. Six focused production research journeys blocked on auto-review-rejected temporary test access; no grant executed. See OWNER_FINANCE.md. |
+| 2026-10-18 20:05:56 | Staging | v0.16.0 / `bb7891856f5e48b683664c88ae73a9f33c6d2ae7` | `dep-dbaicn49v7es738kpiag` | Public SEO and initial HTML; all source gates passed in 39160300781. Exact staging version/health observed; hosted acceptance pending. No schema/configuration/data reset. |
+| 2026-10-18 20:19:46 | Production | v0.16.0 / `168eb749ae4a2396b98b7b1e48a9862fc915ebb3` | `dep-dbaij9dg1s2s73c896l0` | PR #41; entire Git tree equals the source accepted in staging. Exact runtime/health observed in 39163023226. Source and staged hosted gates passed; schema 13 and existing accounts/billing/CRM retained. See PUBLIC_SEO.md and VERIFICATION.md. |
 
 Post-deployment acceptance supplement, 2026-10-11 00:34:25 UTC: all six focused
 production research journeys passed in `38097925640` attempt 2 against the same
@@ -435,8 +806,9 @@ new deployment. See OWNER_FINANCE.md for the initial rejection/timeout and evide
 - Preserve history; append rollbacks as new events. Schema v4 is incompatible with
   the old schema-v3 image. An old-image rollback requires a coordinated database
   restore and reconciliation of writes since the backup; prefer a tested fix forward.
-- Keep this canonical ledger on `codex/landwolf-premium-staging` and synchronize it
-  with `codex/landwolf-beta-rebuild` at promotion. Do not infer deployment from Git.
+- Keep this canonical ledger on `main` and synchronize it with `staging` using
+  documentation-only commits after promotion. Historical `codex/*` branches are
+  recovery material. Do not infer deployment from Git.
 
 
 ## v0.4.0-beta.5 — Hunt save durability, live in isolated beta

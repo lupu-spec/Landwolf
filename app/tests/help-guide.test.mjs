@@ -27,6 +27,7 @@ test("natural-language app questions retrieve the reviewed task, without fabrica
     ["Why are there no results?", "empty"],
     ["How can I run a deal scenario?", "scenario"],
     ["How do I stay signed in?", "session"],
+    ["How do I change dark mode?", "appearance"],
   ];
   for (const [question, id] of cases) {
     const result = answerHelp(question, customer);
@@ -90,6 +91,10 @@ test("role and authentication determine every topic and follow-up", () => {
         );
       }
   assert.equal(answerHelp("export users csv", owner).topics[0].id, "users");
+  assert.equal(
+    answerHelp("source freshness green yellow red", owner).topics[0].id,
+    "coverage",
+  );
   assert.equal(answerHelp("next", customer, "hunt").topics[0].id, "hunt");
 });
 

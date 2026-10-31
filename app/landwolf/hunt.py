@@ -87,6 +87,10 @@ def evaluate(
     now = int(time.time()) if now is None else now
     failures: list[str] = []
     missing: list[str] = []
+    if record.category == "seller_listing":
+        missing.append(
+            "Verify publisher availability, vacant-land status and seller/broker identity"
+        )
     if not record.active or record.sale_status == "Pre-foreclosure notice":
         failures.append("Not an active land sale")
     if criteria.states and record.state not in criteria.states:

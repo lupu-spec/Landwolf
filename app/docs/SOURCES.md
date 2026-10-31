@@ -70,3 +70,20 @@ on October 1. Those auction entries must not be promoted as currently open sales
 The generic listing JSON schema remains in existing `lw2_` tables; no account reset,
 schema replacement, legacy database edit, billing integration or paid resource
 addition is required for this expansion.
+
+## Inspect freshness in the app
+
+The owner-only Data coverage tab uses a compact three-column disclosure list.
+See [Data source view](DATA_SOURCE_VIEW.md) for colors, timestamps and expanded
+refresh details. Import freshness is separate from publisher freshness and from
+the existing six-hour backend stale/availability diagnostics.
+
+## Seller and broker expansion
+
+See [commercial sources](COMMERCIAL_SOURCES.md) for Zillow and Compass Texas
+land-search samples and 50 state-specific Craigslist sources covering 412 reviewed
+regional markets. The main screen links state, category and source choices to
+external publisher searches. Automatic imports are disabled pending provider
+agreements. These links do not establish complete inventories. Future licensed publisher
+listings require availability/classification review; no photos or seller contacts
+are copied. Existing official inventories and research APIs remain separate.

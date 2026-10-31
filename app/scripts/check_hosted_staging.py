@@ -5,6 +5,7 @@ No traces, cookies, passwords or account response bodies are written to artifact
 """
 
 import argparse
+import hashlib
 import os
 import re
 import secrets
@@ -16,6 +17,7 @@ from tempfile import TemporaryDirectory
 import httpx
 from playwright.sync_api import Playwright, expect, sync_playwright
 
+from landwolf.states import STATES
 from landwolf.version import VERSION
 
 ORIGINS = {
@@ -127,6 +129,15 @@ def main() -> None:
         assert session.json()["payments_enabled"] is payments_enabled
         root = client.get("/")
         root.raise_for_status()
+        for filename in ("styles.css", "graphite.css"):
+            assert f"/assets/{filename}" in root.text
+            stylesheet = client.get(f"/assets/{filename}")
+            stylesheet.raise_for_status()
+            assert stylesheet.headers["content-type"].startswith("text/css")
+            assert (
+                hashlib.sha256(stylesheet.content).digest()
+                == hashlib.sha256((Path("web") / filename).read_bytes()).digest()
+            ), f"Deployed stylesheet differs: {filename}"
         if args.environment == "staging":
             assert "noindex" in root.headers["x-robots-tag"]
         else:
@@ -136,6 +147,7 @@ def main() -> None:
                 assert redirect.status_code in {301, 302, 307, 308}
                 assert redirect.headers["location"] == "https://landwolf.ai/"
         for path in (
+            "/api/source-options",
             "/api/sources",
             "/api/capabilities",
             "/api/feedback",
@@ -170,6 +182,25 @@ def main() -> None:
                 try:
                     page.goto(origin, wait_until="domcontentloaded", timeout=90000)
                     expect(page.locator("#release-version")).to_contain_text(f"v{VERSION}")
+                    appearance = page.get_by_role("combobox", name="Appearance", exact=True)
+                    appearance.select_option("system")
+                    for device in ("dark", "light"):
+                        page.emulate_media(color_scheme=device)
+                        expect(page.locator("html")).to_have_attribute("data-theme", device)
+                    for mode in ("dark", "light"):
+                        appearance.select_option(mode)
+                        expect(page.locator("html")).to_have_attribute("data-theme", mode)
+                        expected = "rgb(241, 242, 246)" if mode == "dark" else "rgb(32, 35, 43)"
+                        assert (
+                            page.locator(".auth-panel").evaluate("el => getComputedStyle(el).color")
+                            == expected
+                        )
+                        page.locator(".site-header").screenshot(
+                            path=str(output / f"header-guest-{mode}-{engine}-{width}.png"),
+                            animations="disabled",
+                        )
+                    page.reload()
+                    expect(appearance).to_have_value("light")
                     page.get_by_role(
                         "button", name="Sign in" if registered else "Create account", exact=True
                     ).click()
@@ -185,6 +216,18 @@ def main() -> None:
                     page.locator("#auth-submit").click()
                     expect(page.locator("#workspace")).to_be_visible()
                     registered = True
+                    for mode in ("dark", "light"):
+                        appearance.select_option(mode)
+                        expect(page.locator("html")).to_have_attribute("data-theme", mode)
+                        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                        page.locator(".site-header").screenshot(
+                            path=str(output / f"header-customer-{mode}-{engine}-{width}.png"),
+                            animations="disabled",
+                        )
+                        page.locator(".navigation-dock").screenshot(
+                            path=str(output / f"dock-customer-{mode}-{engine}-{width}.png"),
+                            animations="disabled",
+                        )
                     page.locator(".site-header .wolf-chat-trigger").click()
                     chat = page.locator("#wolf-chat-panel")
                     expect(chat).to_be_visible()
@@ -198,6 +241,26 @@ def main() -> None:
                     ).to_have_count(0)
                     chat.get_by_role("button", name="Collapse Romulus and Remus chat").click()
                     expect(page.locator("#coverage-nav")).to_be_hidden()
+                    choices = context.request.get(f"{origin}/api/source-options")
+                    assert choices.status == 200
+                    options = choices.json()
+                    assert {
+                        row["id"] for row in options if row["id"].startswith("craigslist_")
+                    } == {f"craigslist_{state.lower()}" for state in STATES}
+                    assert {"zillow_tx", "compass_tx"} <= {row["id"] for row in options}
+                    assert all(
+                        set(row)
+                        == {
+                            "id",
+                            "name",
+                            "states",
+                            "categories",
+                            "external_searches",
+                            "import_enabled",
+                        }
+                        for row in options
+                    )
+
                     expect(page.locator("#finance-nav")).to_be_hidden()
                     expect(page.locator("#finance-panel")).to_be_empty()
                     for endpoint in (
@@ -259,6 +322,28 @@ def main() -> None:
                         continue
                     page.locator('#main-nav [data-nav="explore"]').click()
                     expect(page.locator(".property-card").first).to_be_visible()
+                    page.locator("#state").select_option("TX")
+                    page.locator("#category").select_option("seller_listing")
+                    page.locator("#source-filter").select_option("craigslist_tx")
+                    page.locator("#state").select_option("CA")
+                    expect(page.locator("#source-filter")).to_have_value("craigslist_ca")
+                    panel = page.locator("#publisher-searches")
+                    expect(panel).to_be_visible()
+                    panel.locator("summary").click()
+                    expect(panel).to_contain_text("Automatic import is not enabled")
+                    assert panel.locator("a").count() > 1
+                    page.locator("#search-submit").click()
+                    expect(page.locator("#results-title")).not_to_contain_text("Loading")
+                    assert page.locator("#workspace-error").inner_text() == ""
+                    page.locator("#location").fill(f"landwolf-reset-check-{uuid.uuid4().hex}")
+                    page.locator("#search-submit").click()
+                    expect(page.locator("#empty-state")).to_be_visible()
+                    page.locator("#reset-filters").click()
+                    expect(page.locator(".property-card").first).to_be_visible()
+                    print(
+                        f"Passed: {engine} {width}px linked state/source controls "
+                        "and 50 source options"
+                    )
                     state = context.request.get(f"{origin}/api/session").json()
                     headers = {
                         "Origin": origin,

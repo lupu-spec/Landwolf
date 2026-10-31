@@ -124,10 +124,21 @@ def test_complete_decision_workflow(browser_server, engine_name, width):
 
         page.reload()
         expect(page.locator("#workspace")).to_be_visible()
+        pending_goals = []
+        page.route("**/api/hunts/*/research-goal", lambda route: pending_goals.append(route))
         page.locator(".property-card").filter(has_text="Test fixture 99001").get_by_role(
             "button", name="View property 99001", exact=True
         ).click()
         workspace = page.locator("#decision-workspace")
+        # Hold the real goal request to exercise slow mobile loads without sleeps.
+        expect(workspace.get_by_role("button", name="Record research", exact=True)).to_be_disabled()
+        expect(
+            workspace.get_by_role("button", name="Calculate preview", exact=True)
+        ).to_be_disabled()
+        assert len(pending_goals) == 1
+        pending_goals[0].continue_()
+        expect(workspace.get_by_role("button", name="Record research", exact=True)).to_be_enabled()
+        page.unroute("**/api/hunts/*/research-goal")
         expect(workspace.get_by_label("Known additional costs ($)", exact=True)).to_have_value(
             "25000"
         )

@@ -17,6 +17,9 @@ and preserves approved complimentary access and feedback-pilot policies.
 | [`app/docs/OWNER_FINANCE.md`](app/docs/OWNER_FINANCE.md) | Owner finances, expense imports and forecasting assumptions |
 | [`app/docs/L91_LLC_CRM.md`](app/docs/L91_LLC_CRM.md) | Owner CRM operations |
 | [`app/docs/HUNT.md`](app/docs/HUNT.md) | Hunt behavior and coverage limits |
+| [`app/docs/DATA_SOURCE_VIEW.md`](app/docs/DATA_SOURCE_VIEW.md) | Compact source status list and freshness colors |
+| [`app/docs/CODE_REVIEW_2026_10_16.md`](app/docs/CODE_REVIEW_2026_10_16.md) | Repository review, findings and refactoring evidence |
+| [`app/docs/AI_CHANGE_GUIDE.md`](app/docs/AI_CHANGE_GUIDE.md) | How Codex/Chat should safely modify the application |
 | [`app/docs/VERIFICATION.md`](app/docs/VERIFICATION.md) | Exact command results, resolved failures and remaining limits |
 | [`archive/`](archive/README.md) | Retired application, old operational material and recovery index |
 

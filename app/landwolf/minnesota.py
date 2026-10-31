@@ -28,18 +28,23 @@ def parse_minnesota(html: str, *, by_bid: bool) -> list[PropertyRecord]:
             break
         section.append(sibling)
     listing = next((node for node in section if node.name == "ul"), None)
+    paragraph_rows = [
+        node for node in section if node.name == "p" and node.find("a", href=True) is not None
+    ]
     section_text = " ".join(" ".join(node.stripped_strings) for node in section)
     explicit_empty = by_bid and bool(
         re.search(r"There are currently no\s+properties available for sale by bid\.", section_text)
     )
-    if explicit_empty and listing is None:
+    if explicit_empty and listing is None and not paragraph_rows:
         return []
     if explicit_empty:
         raise SourceUnavailable("Minnesota sale list contradicts its empty notice")
-    if listing is None:
+    if listing is not None and paragraph_rows:
+        raise SourceUnavailable("Minnesota sale list has conflicting layouts")
+    rows = listing.find_all("li", recursive=False) if listing is not None else paragraph_rows
+    if not rows:
         raise SourceUnavailable("Minnesota sale list missing")
-    rows = listing.find_all("li", recursive=False)
-    if not rows or len(rows) > 200:
+    if len(rows) > 200:
         raise SourceUnavailable("Minnesota inventory size requires review")
     date_match = re.search(
         r"Last Update:\s*([A-Za-z]+ \d{1,2}, \d{4})", soup.get_text(" ", strip=True)

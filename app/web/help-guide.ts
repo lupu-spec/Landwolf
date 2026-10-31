@@ -36,6 +36,29 @@ export const MAX_QUESTION = 600;
 export const SUPPORT_EMAIL = "support.landwolf@gmail.com";
 const topics: HelpTopic[] = [
   {
+    id: "appearance",
+    title: "Light and dark appearance",
+    keywords:
+      "appearance theme dark light mode auto system silver glass colors contrast",
+    views: [
+      "auth",
+      "explore",
+      "research",
+      "hunt",
+      "sources",
+      "account",
+      "billing",
+      "feedback",
+      "property",
+    ],
+    steps: [
+      "Use Appearance in the header to choose Light, Dark or Auto.",
+      "Auto follows your device’s light or dark setting, including changes while LandWolf is open.",
+      "Your choice is saved in this browser and applies to forms, cards, research, the dock and chat.",
+    ],
+    tip: "Appearance does not change your account or research. If browser storage is blocked, your choice lasts for the current page. Print packets use a light background.",
+  },
+  {
     id: "start",
     title: "Get started",
     keywords:
@@ -416,15 +439,15 @@ const topics: HelpTopic[] = [
     id: "coverage",
     title: "Inspect data coverage",
     keywords:
-      "coverage sources diagnostics connected feeds refresh status inventory counts source failed connection",
+      "coverage sources diagnostics connected feeds refresh status inventory counts source failed connection health freshness green yellow red last updated timestamp",
     views: ["sources"],
     owner: true,
     steps: [
       "Open Data coverage with the configured owner account.",
-      "Inspect source status, last successful refresh and the available state/category information.",
+      "Read the source name, health circle and last updated time; select a source to expand its details.",
       "Use the original publisher links to confirm availability and sale terms.",
     ],
-    tip: "Diagnostics are owner-only. Customer searches and Hunts still use connected inventory. A healthy source is not proof of complete nationwide inventory or verified property facts.",
+    tip: "Diagnostics are owner-only. Green means a successful import within 24 hours; yellow means over 24 but under 36 hours; red means 36 hours or more, or no successful import. Gray means directory only. Expand a row for failures, history and coverage. These colors do not verify publisher freshness or property facts.",
   },
   {
     id: "support",

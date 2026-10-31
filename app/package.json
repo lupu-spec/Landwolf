@@ -1,6 +1,6 @@
 {
   "name": "landwolf-ui",
-  "version": "0.13.1",
+  "version": "0.18.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,6 +15,9 @@
   },
   "dependencies": {
     "leaflet": "1.9.4"
+  },
+  "overrides": {
+    "minimatch": "11.0.1"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

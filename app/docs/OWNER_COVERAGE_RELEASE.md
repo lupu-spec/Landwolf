@@ -104,3 +104,11 @@ image bytes for both sites, and the www HTTPS version endpoint. The release ledg
 was synchronized to the staging branch as documentation only. Final local
 `git diff --check` and `git status --short` passed with a clean tracked worktree
 after synchronization; the deployment remains on the immutable runtime merge.
+
+## Current source-list interface (v0.14.0)
+
+The owner access restriction remains in place. The source cards are now compact
+rows with source name, freshness circle and last successful update. Select a row
+for its details. See [the current guide](DATA_SOURCE_VIEW.md) for exact thresholds,
+directory-only handling and the distinction between import age and feed failures.
+The original release evidence above remains historical.
