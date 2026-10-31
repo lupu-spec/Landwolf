@@ -1,5 +1,23 @@
 # LandWolf release log
 
+## v0.18.1 — source layout repairs, staging deployment event
+
+**Live in isolated staging; production promotion pending.** Candidate
+`c88f5db3c9b59bbcf3216945d33b3136dd18ceae` passed application run
+[41208443024](https://github.com/lupu-spec/Landwolf/actions/runs/41208443024):
+27 frontend, 683 API/backend, 142 full browser tests, focused browser journeys,
+PostgreSQL/exact backup and restore, header visual comparison, packaging and all
+security gates. Archived run 41208442977 passed separately. A fresh disposable
+source sync retrieved all eight listing feeds (111 records).
+
+- Staging runtime `a82eb0b31c8adf63156b4043fbd7df13fbff49d2` uses the exact tested
+  source tree; Render `dep-dbivr9ks728c738f302g` became live 2026-10-31 14:40:48 UTC.
+- Changes: IRS reviewed jurisdiction filtering, MnDOT paragraph layout support,
+  guarded research-goal loading, and audited/pinned dependency security updates.
+- Existing service/database, manual deployments, billing and account policy,
+  source allowlists, snapshots and quarantine protections are unchanged.
+- Hosted staging acceptance remains pending. Production remains v0.18.0.
+
 This is the deployment ledger. A branch head is not proof of a live deployment.
 Check each site's `/api/version` for the running version and immutable commit.
 
@@ -625,7 +643,7 @@ coverage, accounts and existing infrastructure are retained. See
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
 | Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.18.0 | `7e8aaa71e3fb60948657622273c11dc135aad53c` | 2026-10-19 02:29:35 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.18.0 | `e12d187b456b90da1936d129f5ff7e62267db0ec` | 2026-10-19 02:20:46 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.18.1 | `a82eb0b31c8adf63156b4043fbd7df13fbff49d2` | 2026-10-31 14:40:48 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
