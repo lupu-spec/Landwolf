@@ -33,6 +33,20 @@ def test_immediate_sale_unit_conversion_is_explicit():
     assert item.sale_status == "Available" and item.auction_date is None
 
 
+def test_bid_sales_accept_current_publisher_paragraph_layout():
+    paragraph = BID.replace("<ul><li>", "<p>").replace("</li></ul>", "</p>")
+    item = parse_minnesota(paragraph, by_bid=True)[0]
+    assert item.id == "mn-dot-99999"
+    assert item.auction_date.isoformat() == "2099-09-30"
+
+
+def test_mixed_minnesota_inventory_layouts_fail_closed():
+    paragraph = BID.replace("<ul><li>", "<p>").replace("</li></ul>", "</p>")
+    conflicting = paragraph.replace("</h3>", "</h3><ul><li>unexpected</li></ul>", 1)
+    with pytest.raises(SourceUnavailable, match="conflicting layouts"):
+        parse_minnesota(conflicting, by_bid=True)
+
+
 @pytest.mark.parametrize("change", ["Sold", "Canceled"])
 def test_cancelled_and_sold_not_active(change):
     assert not parse_minnesota(BID.replace("(PDF)", change), by_bid=True)[0].active
