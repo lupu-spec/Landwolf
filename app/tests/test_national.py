@@ -178,6 +178,18 @@ def test_irs_external_promotions_are_excluded_from_filtered_property_inventory()
         parse_irs(IRS + promotion.replace(" external-sale", ""))
 
 
+@pytest.mark.parametrize("code,zip_code", [("DC", "20001"), ("PR", "00983")])
+def test_irs_excludes_reviewed_jurisdictions_outside_the_50_states(
+    code: str, zip_code: str
+) -> None:
+    outside_scope = IRS.replace("Test City WA, 98000", f"Test City {code}, {zip_code}")
+    assert parse_irs(outside_scope) == ([], False)
+
+    unknown = IRS.replace("Test City WA, 98000", "Test City ZZ, 98000")
+    with pytest.raises(SourceUnavailable, match="state"):
+        parse_irs(unknown)
+
+
 def test_irs_filter_markup_without_selected_attribute_remains_reviewed() -> None:
     current_markup = IRS.replace(" selected", "")
     assert parse_irs(current_markup)[0][0].state == "WA"

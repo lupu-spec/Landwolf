@@ -1,5 +1,56 @@
 # LandWolf verification
 
+## Authorized release-unblocking patch — October 31, 2026
+
+The owner authorized layout repairs and necessary release-blocker patches before
+production promotion. IRS and MnDOT source repairs remain narrowly scoped. Locked
+security updates now use certifi 2026.10.23, dnspython 2.9.1, filelock 4.2.5,
+msgpack 1.2.4 and fast-uri's audited patch; minimatch is pinned through an npm
+override to 11.0.1. Both local dependency audits returned zero vulnerabilities.
+Lint/type checks exercise the overridden build-tool dependency compatibility.
+
+The prior hosted browser failure was a real loading race: a save could be clicked
+before its Hunt goal finished loading. Research actions are now disabled until
+the current goal loads, with a held-real-request regression in both browser engines
+and viewport sizes. Failed goal loads remain fail-closed; Hunt reselection retries.
+No authentication, entitlement, billing, database, provider allowlist or quarantine
+policy changes are included. Hosted release gates and deployment remain pending.
+Local Playwright installation failed because the CDN returned truncated archives;
+this is not a passing local browser gate.
+
+## Production source maintenance — October 31, 2026
+
+The official MnDOT bid inventory changed from list items to one paragraph per sale.
+The parser now accepts either reviewed layout, rejects mixed layouts, and preserves
+the existing heading, sale-document URL, field, size, and duplicate checks. The
+separate IRS repair still excludes only reviewed non-state jurisdictions and fails
+closed on unknown codes. A disposable live refresh passed all eight automated
+sources with 111 records: Minnesota 5, Arkansas 2, Texas 29, USDA 19, Treasury 19,
+IRS 6, Alaska 2, and Michigan 29. Production itself remains on v0.18.0 and retains
+last-good snapshots; no production database was used for verification.
+
+**Passed locally:** frozen Python and Node installs; Python/JavaScript format, lint,
+and types; 27 frontend tests; 683 non-browser tests; 52 focused Minnesota/national
+tests; browser bundle; wheel/source build and package inspection; Bandit; secretlint;
+live Dallas and Raleigh research checks for Census, USGS, USDA Soil, and applicable
+NC parcels; `uv lock --check`; `git diff --check`; and a fresh disposable live-source
+sync. FEMA remained unavailable through the application path with HTTP 503; the
+candidate `gis.fema.gov` path returned `Service not found`, so no endpoint change
+was made.
+
+**Failed:** `pip-audit` reported 17 advisory rows in unchanged locked `certifi`,
+`dnspython`, `filelock`, and `msgpack` versions. `npm audit --audit-level=moderate`
+reported 12 moderate advisories in unchanged locked `fast-uri` and `minimatch`
+dependency chains. The browser suite could not start because Chromium and WebKit
+executables were absent; the locked Playwright download returned truncated archives.
+
+**Not run locally:** disposable PostgreSQL integration and exact backup/restore,
+because Docker is unavailable. Hosted CI must cover PostgreSQL, restore, browser,
+package, legacy, and visual-regression gates. Do not deploy until those gates and
+the mandatory dependency audits pass. No billing, entitlement, pilot, account,
+production data, schema, source allowlist, credential, network, last-good snapshot,
+or quarantine behavior changed.
+
 ## v0.13.1 conditional trial disclosure — live October 13, 2026
 
 **Passed source and CI checks:** [PR #37](https://github.com/lupu-spec/Landwolf/pull/37)

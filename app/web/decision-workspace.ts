@@ -521,6 +521,7 @@ export function setupDecisionWorkspace(
       const goalNote = node("p", "", "input-note");
       form.append(goalNote);
       let goalLoading = false;
+      let busy = false;
       let goalRequest = 0;
       async function loadGoal() {
         const request = ++goalRequest;
@@ -530,9 +531,11 @@ export function setupDecisionWorkspace(
           : "This goal applies to this property.";
         if (!hunt.value) {
           goalLoading = false;
+          updateActionState();
           return;
         }
         goalLoading = true;
+        updateActionState();
         try {
           const value = await api<{ goal: Goal }>(
             `/api/hunts/${encodeURIComponent(hunt.value)}/research-goal`,
@@ -542,6 +545,7 @@ export function setupDecisionWorkspace(
           goal = goalFields(goalHost, value.goal);
           goal.fieldset.disabled = true;
           goalLoading = false;
+          updateActionState();
         } catch (error) {
           if (current() && request === goalRequest)
             status.textContent = errorText(error);
@@ -798,7 +802,10 @@ export function setupDecisionWorkspace(
         pause_note: pauseNote.value.trim(),
       });
       const actions = node("div", "", "hunt-actions");
-      let busy = false;
+      function updateActionState() {
+        for (const b of actions.querySelectorAll("button"))
+          b.disabled = busy || goalLoading;
+      }
       async function submit(save: boolean) {
         if (busy || !current()) return;
         if (goalLoading) {
@@ -817,7 +824,7 @@ export function setupDecisionWorkspace(
         if (!form.reportValidity()) return;
         dismissMobileKeyboard();
         busy = true;
-        for (const b of actions.querySelectorAll("button")) b.disabled = true;
+        updateActionState();
         try {
           const value = await api<Case>(
             `/api/${save ? "decision-cases" : "decision-preview"}/${encodeURIComponent(listingId)}`,
@@ -836,8 +843,7 @@ export function setupDecisionWorkspace(
             status.textContent = `${errorText(error)} Your edits remain in the form.`;
         } finally {
           busy = false;
-          for (const b of actions.querySelectorAll("button"))
-            b.disabled = false;
+          updateActionState();
         }
       }
       actions.append(
