@@ -16,6 +16,9 @@
   "dependencies": {
     "leaflet": "1.9.4"
   },
+  "overrides": {
+    "minimatch": "11.0.1"
+  },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@secretlint/secretlint-rule-preset-recommend": "13.0.5",

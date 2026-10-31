@@ -1,5 +1,23 @@
 # LandWolf verification
 
+## Authorized release-unblocking patch — October 31, 2026
+
+The owner authorized layout repairs and necessary release-blocker patches before
+production promotion. IRS and MnDOT source repairs remain narrowly scoped. Locked
+security updates now use certifi 2026.10.23, dnspython 2.9.1, filelock 4.2.5,
+msgpack 1.2.4 and fast-uri's audited patch; minimatch is pinned through an npm
+override to 11.0.1. Both local dependency audits returned zero vulnerabilities.
+Lint/type checks exercise the overridden build-tool dependency compatibility.
+
+The prior hosted browser failure was a real loading race: a save could be clicked
+before its Hunt goal finished loading. Research actions are now disabled until
+the current goal loads, with a held-real-request regression in both browser engines
+and viewport sizes. Failed goal loads remain fail-closed; Hunt reselection retries.
+No authentication, entitlement, billing, database, provider allowlist or quarantine
+policy changes are included. Hosted release gates and deployment remain pending.
+Local Playwright installation failed because the CDN returned truncated archives;
+this is not a passing local browser gate.
+
 ## Production source maintenance — October 31, 2026
 
 The official MnDOT bid inventory changed from list items to one paragraph per sale.
