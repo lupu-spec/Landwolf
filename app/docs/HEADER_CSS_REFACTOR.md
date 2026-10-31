@@ -8,7 +8,7 @@ repeated 800px order/width/alignment/grid declarations are removed. Intentional
 responsive navigation, graphite palette/wrapping, print and keyboard rules remain.
 No HTML, TypeScript, backend behavior, authentication, billing or data changes are
 part of the CSS refactor. Runtime/package identity advances to 0.18.0; dependencies
-are unchanged. This candidate builds on the separately reviewed source-flow work.
+are unchanged. This release builds on the verified v0.17 source-flow release.
 
 The immutable approved v0.16.0 production CSS commit is
 `168eb749ae4a2396b98b7b1e48a9862fc915ebb3`. CI fetches that exact object. Independent
@@ -75,3 +75,36 @@ stylesheets are byte-identical to the pinned v0.16 baseline, so the immutable CS
 comparison remains valid. Observed v0.17 ledger entries and hosted-ledger checks
 are retained when reconciling this branch; only the CSS/release identity and its
 regression coverage are part of the follow-up runtime change.
+
+## Verified source and observed staging
+
+Source 627e0e08585de56380e9b254d839fb132f7fda6d passed application run 39186749900:
+27 frontend, 679 API and all 142 full browser cases, plus PostgreSQL/exact restore,
+production packaging and security. Both focused comparisons passed; all 62 artifact
+pairs were byte-identical and representative phone/desktop images were reviewed.
+The documented capture synchronization resolved the retained full-suite failure
+without changing CSS, assertions, masks or image tolerances.
+
+Runtime e12d187b456b90da1936d129f5ff7e62267db0ec reconciles only the observed v0.17
+ledger and hosted-check routing; application/test/build files and application CI
+are identical to that verified source. Staging deploy dep-dbanseajnfac738eu9h0 became
+live at 2026-10-19 02:20:46 UTC. Hosted acceptance is pending; production stays v0.17.
+
+Staging hosted run 39189767343 passed both deployed stylesheet hashes, Auto device
+changes, phone/desktop guest/customer header/dock captures, source/privacy/session/
+research checks and all 48 public samples. PR #40 merged as
+7e8aaa71e3fb60948657622273c11dc135aad53c; its complete tree equals staged e12d187.
+Production deploy dep-dbao0mmq1p3s73cdvjqg became live at 2026-10-19 02:29:35 UTC.
+Independent production hosted acceptance is pending; runtime commits are recorded
+separately from subsequent documentation heads in RELEASES.md.
+
+## Deployment and acceptance complete
+
+v0.18.0 is live and accepted in both environments. Staging remains e12d187b456b90da1936d129f5ff7e62267db0ec;
+production remains 7e8aaa71e3fb60948657622273c11dc135aad53c. The complete production
+tree equals the staged tree. Hosted production run 39190339428 passed exact
+identity/health/live billing mode, both stylesheet hashes, Auto/device, phone/desktop
+header/dock/customer/paywall/privacy/persistent-session checks and 48 public browser
+samples. The reconciled source also passed full application run 39188135828.
+No new application deployment follows the documentation-only sign-off commits.
+See RELEASES.md for deployment IDs and observed UTC times.

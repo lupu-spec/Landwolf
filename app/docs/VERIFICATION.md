@@ -3867,3 +3867,76 @@ This reconciliation changes only documentation and hosted-check event routing.
 The application, tests, build/dependency files and application CI are byte-identical
 to tested CSS source 627e0e08585de56380e9b254d839fb132f7fda6d, whose full browser
 run remains pending. No CSS release is claimed until its required gates pass.
+
+
+### v0.18.0 full verification passed; observed staging
+
+Final source 627e0e08585de56380e9b254d839fb132f7fda6d passed complete native run
+39186749900 (verify job 117850673701): format/lint/types; 27 frontend and 679 API
+cases; PostgreSQL integration/exact 36-table backup/restore; eight commercial,
+six public, eight appearance, four source-list and 18 mobile focused cases; all
+142 full browser cases; production package validation and every security scanner.
+Separate archived tests passed 53 cases. Focused header job 117850673888 also passed.
+Artifact 12158412312 contains 62 exact approved/candidate pairs; local byte checks
+confirmed all matched, and phone/desktop images were visually reviewed. Full browser
+evidence is artifact 12158723592. No masks, tolerances, changed visual assertions
+or retries-to-match were introduced; earlier failed runs remain recorded above.
+
+After the capture fix, local commands passed again: Ruff/Prettier format, Ruff/
+ESLint lint, mypy/TypeScript, 27 frontend/679 API tests, npm build, Python build/
+package validation, Bandit, pip-audit, npm audit and secretlint. git diff --check
+was clean. The local browser launch limitation above remains a failed local
+invocation; actual native Chromium/WebKit establish the browser verification.
+
+Runtime e12d187b456b90da1936d129f5ff7e62267db0ec reconciles only v0.17 observed
+ledger/hosted-event routing. git diff --exit-code against verified source 627e0e0
+passed for all landwolf/web/tests/scripts, package/dependency files and application
+CI. Render staging dep-dbanseajnfac738eu9h0 became live at 2026-10-19 02:20:46 UTC.
+Direct HTTPS /api/version matched v0.18.0, staging and exact e12d187; /api/health
+matched ok, v0.18.0 and payments_enabled false. The existing default workspace,
+service/database, source/billing/CRM contracts and manual deploy mode were retained.
+Hosted staging acceptance is pending. Production remains verified v0.17.0.
+
+Staging hosted run 39189767343 (job 117859787059) passed exact v0.18 identity/health,
+hashes of styles.css and graphite.css, Auto device-dark/device-light transitions,
+guest/customer phone/desktop header/dock captures and all retained authentication,
+source/state, owner-only privacy, CSRF, research, persistence/cache/restart/logout
+checks. All 48 public browser samples passed: maximum load 401 ms, supported
+Chromium CLS at most 0.001112; WebKit CLS unsupported. Existing source import guards
+and customer data/billing behavior were retained; no purchase or owner grant.
+
+PR #40 merged as 7e8aaa71e3fb60948657622273c11dc135aad53c. Native commit lookup
+proved its complete Git tree equals staged e12d187b456b90da1936d129f5ff7e62267db0ec
+(tree dbb09772a5c2799c62f201d7edb51551e4a28259). Production Render deploy
+ dep-dbao0mmq1p3s73cdvjqg became live at 2026-10-19 02:29:35 UTC on that commit.
+Production hosted acceptance remains pending. Existing default workspace, manually
+deployed services, databases and protected source/account/billing/CRM contracts
+were retained. Subsequent ledger documents do not relabel either runtime.
+
+### v0.18.0 acceptance complete in both environments
+
+Independent production run 39190339428 (job 117861529054) passed exact runtime
+v0.18.0 / 7e8aaa71e3fb60948657622273c11dc135aad53c, HTTPS, production environment,
+healthy database, live payment mode and expected email delivery mode. Both deployed
+CSS file hashes matched; Auto followed dark/light device changes; four actual
+Chromium/WebKit phone/desktop customer journeys retained header/dock captures,
+owner-only privacy restrictions, unpaid-customer paywall, logout and persistent
+sign-in after cache clear/browser restart. Static source choices retained all 50
+Craigslist options without operational/customer data exposure. No purchase, owner
+grant, customer export or data reset was performed.
+
+All 48 production public browser samples passed exact themes, load/layout budgets,
+documents/crawl policy/metadata/schema/links and genuine 404 checks. Maximum load
+853 ms; maximum supported Chromium CLS 0.001112; WebKit CLS unsupported. These
+remain lab samples, not universal field guarantees. The reconciled staged/runtime
+source also passed complete application run 39188135828; its metadata reconciliation
+introduced no runtime/test/build differences from verified source 627e0e0.
+
+v0.18 runtime identities remain staging e12d187b456b90da1936d129f5ff7e62267db0ec
+(Render dep-dbanseajnfac738eu9h0, live 2026-10-19 02:20:46 UTC) and production
+7e8aaa71e3fb60948657622273c11dc135aad53c (Render dep-dbao0mmq1p3s73cdvjqg,
+live 2026-10-19 02:29:35 UTC). Their complete Git trees match. No application
+redeployment follows the documentation-only sign-off commits; manual deploy mode,
+existing databases/services and protected account/billing/CRM contracts are retained.
+The source-flow release and bounded header consolidation are complete. Prior local
+browser/access limitations and resolved native failures remain recorded above.
