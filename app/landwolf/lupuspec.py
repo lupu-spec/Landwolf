@@ -25,7 +25,9 @@ from landwolf.db import Base
 from landwolf.schemas import Contract
 
 Capability = Literal["studio", "software", "fabrication", "supply"]
-Status = Literal["received", "reviewing", "quoted", "approved", "in_progress", "delivered", "closed"]
+Status = Literal[
+    "received", "reviewing", "quoted", "approved", "in_progress", "delivered", "closed"
+]
 CAPABILITIES: dict[str, str] = {
     "studio": "Studio",
     "software": "Software",
@@ -83,13 +85,19 @@ class RequestInput(Contract):
     @field_validator("phone")
     @classmethod
     def valid_phone(cls, value: str) -> str:
-        return value if not value else Intake.model_validate({
-            "external_id": "validation",
-            "email": "validation@example.com",
-            "full_name": "Validation",
-            "primary_use": "other",
-            "phone": value,
-        }).phone
+        return (
+            value
+            if not value
+            else Intake.model_validate(
+                {
+                    "external_id": "validation",
+                    "email": "validation@example.com",
+                    "full_name": "Validation",
+                    "primary_use": "other",
+                    "phone": value,
+                }
+            ).phone
+        )
 
     @field_validator("reference_url")
     @classmethod
@@ -245,9 +253,7 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         owner = admin.require_owner(request, session, settings, write=True)
         auth.limit(session, f"lupuspec-admin:{owner.id}", 30, 60)
         row = session.scalar(
-            select(ConceptRequest)
-            .where(ConceptRequest.id == request_id)
-            .with_for_update()
+            select(ConceptRequest).where(ConceptRequest.id == request_id).with_for_update()
         )
         if row is None:
             raise HTTPException(404, "Request not found")
