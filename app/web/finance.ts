@@ -336,7 +336,11 @@ export function setupFinance(api: Api) {
     businessLines.append(lineCards);
     const capabilities = node("div", "", "finance-cards");
     for (const [id, label] of Object.entries(lupuspecCapabilities)) {
-      const item = report.lupuspec.capabilities[id];
+      const item = report.lupuspec.capabilities[id] ?? {
+        receipts_cents: 0,
+        expenses_cents: 0,
+        net_cents: 0,
+      };
       const card = node("div", "", "finance-card");
       card.append(
         node("span", "LupuSpec " + label),
