@@ -879,8 +879,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return FileResponse(static / "lupuspec.html", media_type="text/html")
 
         app.add_api_route(
-            "/lupuspec/", public_pages.canonical_redirect("/lupuspec"),
-            methods=["GET"], include_in_schema=False,
+            "/lupuspec/",
+            public_pages.canonical_redirect("/lupuspec"),
+            methods=["GET"],
+            include_in_schema=False,
         )
 
         @app.get("/trial-terms", include_in_schema=False)
