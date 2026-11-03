@@ -23,7 +23,14 @@ from landwolf import admin, auth, billing, crm_reporting
 from landwolf.config import Settings
 from landwolf.crm_core import Contact
 from landwolf.db import Account
-from landwolf.finance_models import FinanceAudit, FinanceExpense, FinanceSettings, FinanceSnapshot
+from landwolf.finance_models import (
+    FinanceAudit,
+    FinanceExpense,
+    FinanceSettings,
+    FinanceSnapshot,
+    LupuSpecFinanceEntry,
+)
+from landwolf.lupuspec import CAPABILITIES as LUPUSPEC_CAPABILITIES
 from landwolf.schemas import Contract
 
 Vendor = Literal["render", "spaceship", "openai", "other"]
@@ -64,6 +71,28 @@ class ExpenseInput(Contract):
         value = valid_date(value)
         if value > datetime.now(UTC).date().isoformat():
             raise ValueError("Actual expenses cannot have a future date; use forecast budgets")
+        return value
+
+
+class LupuSpecEntryInput(Contract):
+    date: str = Field(max_length=10)
+    capability: Literal["studio", "software", "fabrication", "supply"]
+    kind: Literal["receipt", "expense"]
+    amount_cents: int = Field(strict=True, ge=-MAX_CENTS, le=MAX_CENTS)
+    reference: str = Field(default="", pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,39}$|^$")
+
+    @field_validator("date")
+    @classmethod
+    def check_date(cls, value: str) -> str:
+        if valid_date(value) > datetime.now(UTC).date().isoformat():
+            raise ValueError("Cash entries must have an actual, non-future date")
+        return value
+
+    @field_validator("amount_cents")
+    @classmethod
+    def nonzero_amount(cls, value: int) -> int:
+        if value == 0:
+            raise ValueError("Cash entries must not be zero")
         return value
 
 
@@ -160,6 +189,46 @@ def add_expense(
     audit(session, owner, "finance_expense_added", row.id)
     session.commit()
     return expense_view(row)
+
+
+def lupuspec_entry_view(row: LupuSpecFinanceEntry) -> dict[str, Any]:
+    return {
+        "id": row.id,
+        "date": row.date,
+        "capability": row.capability,
+        "kind": row.kind,
+        "amount_cents": row.amount_cents,
+        "reference": row.reference,
+        "created_at": row.created_at,
+    }
+
+
+def add_lupuspec_entry(
+    request: Request, session: Session, settings: Settings, body: LupuSpecEntryInput
+) -> dict[str, Any]:
+    owner = write_owner(request, session, settings)
+    identity = "|".join(
+        (body.date, body.capability, body.kind, str(body.amount_cents), body.reference)
+    )
+    key = hashlib.sha256(identity.encode()).hexdigest()
+    if session.scalar(
+        select(LupuSpecFinanceEntry.id).where(LupuSpecFinanceEntry.fingerprint == key)
+    ):
+        raise HTTPException(409, "Possible duplicate entry; use a distinct reference if needed")
+    row = LupuSpecFinanceEntry(
+        id=str(uuid.uuid4()),
+        fingerprint=key,
+        date=body.date,
+        capability=body.capability,
+        kind=body.kind,
+        amount_cents=body.amount_cents,
+        reference=body.reference,
+        created_by=owner.id,
+        created_at=int(time.time()),
+    )
+    session.add(row)
+    session.commit()
+    return lupuspec_entry_view(row)
 
 
 def import_rows(body: ImportInput) -> tuple[list[ExpenseInput], int]:
@@ -549,6 +618,29 @@ def report(session: Session, settings: Settings) -> dict[str, Any]:
         raise HTTPException(
             503, "Expense history exceeds the current report limit; narrow the accounting period"
         )
+    lupuspec_entries = session.scalars(
+        select(LupuSpecFinanceEntry)
+        .where(LupuSpecFinanceEntry.date >= start)
+        .order_by(LupuSpecFinanceEntry.date.desc(), LupuSpecFinanceEntry.id)
+        .limit(501)
+    ).all()
+    if len(lupuspec_entries) > 500:
+        raise HTTPException(503, "LupuSpec financial history exceeds the current report limit")
+    capability_totals: dict[str, dict[str, int]] = {
+        key: {"receipts_cents": 0, "expenses_cents": 0, "net_cents": 0}
+        for key in LUPUSPEC_CAPABILITIES
+    }
+    for entry in lupuspec_entries:
+        target = capability_totals[entry.capability]
+        target["receipts_cents" if entry.kind == "receipt" else "expenses_cents"] += (
+            entry.amount_cents
+        )
+    for target in capability_totals.values():
+        target["net_cents"] = target["receipts_cents"] - target["expenses_cents"]
+    lupuspec_totals = {
+        key: sum(totals[key] for totals in capability_totals.values())
+        for key in ("receipts_cents", "expenses_cents", "net_cents")
+    }
     history = []
     for offset in range(-5, 1):
         label = month(today, offset)
@@ -558,6 +650,15 @@ def report(session: Session, settings: Settings) -> dict[str, Any]:
         )
         receipts = actual.get("receipts", 0) if snapshot else None
         refunds, fees = actual.get("refunds", 0), actual.get("fees", 0)
+        lupuspec_receipts = sum(
+            row.amount_cents for row in lupuspec_entries
+            if row.kind == "receipt" and row.date.startswith(label)
+        )
+        lupuspec_expenses = sum(
+            row.amount_cents for row in lupuspec_entries
+            if row.kind == "expense" and row.date.startswith(label)
+        )
+        combined_expenses = cost + lupuspec_expenses + (fees if snapshot else 0)
         history.append(
             {
                 "month": label,
@@ -569,6 +670,17 @@ def report(session: Session, settings: Settings) -> dict[str, Any]:
                 "fees_cents": fees if snapshot else None,
                 "expenses_cents": cost,
                 "net_cents": receipts - refunds - fees - cost if receipts is not None else None,
+                "lupuspec_receipts_cents": lupuspec_receipts,
+                "lupuspec_expenses_cents": lupuspec_expenses,
+                "lupuspec_net_cents": lupuspec_receipts - lupuspec_expenses,
+                "consolidated_receipts_cents": (
+                    receipts + lupuspec_receipts if receipts is not None else None
+                ),
+                "consolidated_expenses_cents": combined_expenses,
+                "consolidated_net_cents": (
+                    receipts - refunds + lupuspec_receipts - combined_expenses
+                    if receipts is not None else None
+                ),
                 "new_users": sum(
                     datetime.fromtimestamp(value, UTC).strftime("%Y-%m") == label
                     for value in signups
@@ -637,6 +749,12 @@ def report(session: Session, settings: Settings) -> dict[str, Any]:
         "stripe_stale": bool(stored and stored.updated_at < now - 86400),
         "history": history,
         "expenses": [expense_view(row) for row in expenses],
+        "lupuspec": {
+            "entries": [lupuspec_entry_view(row) for row in lupuspec_entries],
+            "capabilities": capability_totals,
+            "totals": lupuspec_totals,
+            "period": "Current and previous five UTC calendar months",
+        },
         "plan": plan.model_dump(),
         "forecast": forecasts(plan, snapshot, today),
         "users": stats,
@@ -646,7 +764,10 @@ def report(session: Session, settings: Settings) -> dict[str, Any]:
         "is not cash. Three next-calendar-month scenarios assume normalized monthly receipts, "
         "not actual annual renewal timing. Churn/conversion/fees are editable hypotheses. "
         "No auto-conversion of complimentary pilots is assumed. ChatGPT plan fees and API spend "
-        "must be entered separately if both apply; no bank connection is active.",
+        "must be entered separately if both apply; no bank connection is active. "
+        "LupuSpec cash entries are manual and excluded from LandWolf subscription forecasts. "
+        "Do not enter LupuSpec cash already included in Stripe account receipts a second time. "
+        "Consolidated revenue/net remain unknown when Stripe has no verified snapshot.",
     }
 
 
