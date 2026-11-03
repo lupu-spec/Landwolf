@@ -1,5 +1,18 @@
 # LandWolf release log
 
+## v0.19.0 — LupuSpec portal candidate (not deployed)
+
+Feature branch for owner review: adds a separate LupuSpec concept-intake
+customer portal with Studio, Software, Fabrication and Supply; project-scoped
+CRM intake and owner request status review; LupuSpec-specific owner cash ledger;
+shared consolidated L91/ LandWolf finance view. Additive schema 14 migration
+and preserved LandWolf subscription/billing boundary. Automated job dispatch,
+external suppliers and customer payment capture are intentionally not enabled.
+**Status: not deployed or release-verified.** No Render service/database change,
+production acceptance or deploy event is claimed by this entry.
+See app/docs/LUPUSPEC_PORTAL.md for scope and limitations.
+
+
 ## v0.18.1 — production acceptance complete
 
 **Live in production and staging; final acceptance passed.** Production hosted
