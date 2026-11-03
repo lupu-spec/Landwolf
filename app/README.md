@@ -1,5 +1,11 @@
 # LandWolf application
 
+## Owner-approved factory runs (v0.21.0 candidate)
+
+CRM can send an approved Software request directly to the paired local runner and
+retrieve private status/results. See [FACTORY_CONNECTION.md](docs/FACTORY_CONNECTION.md)
+for approval, retries, cancellation, credentials and release requirements.
+
 ## Customer workspace (v0.20.0 candidate)
 
 Private multi-service projects, customer updates, owner-reviewed factory briefs and

@@ -1,5 +1,44 @@
 # LandWolf release log
 
+## v0.21.0 — customer-to-factory connection candidate
+
+Owner-approved Software requests can be sent from CRM to the existing paired local
+runner with durable, idempotent dispatch and private results. Schema 16 adds one
+dispatch table. Cloudflare migration 0005 adds a scoped server connection and job
+mapping; existing local sandbox and machine credentials are unchanged. Candidate
+only; production remains v0.20.0 until an observed deployment is recorded below.
+
+## v0.20.0 — production and staging acceptance complete, November 3, 2026
+
+Customer portal: https://landwolf.ai/lupuspec. PR #50 was merged into PR #49,
+then PR #49 was merged into main. Both deployed commits have the exact verified
+source tree `01d9972b6f610df81a6a2428edd13319912fd8d9`.
+
+- Staging: `03520d37b203fbb4916d9551b7d556bdd07daac5`,
+  Render `dep-dbl6946tlv9c73b3guf0`, live 2026-11-03 22:49:04 UTC.
+- Production: `b4b647fe222f20f800ba9305452c2d4af2bc3b55`,
+  Render `dep-dbl6f9ff3r2c73dncgvg`, live 2026-11-03 23:02:23 UTC.
+- Both environments observed v0.20.0, healthy HTTPS and schema 15. Existing
+  services/databases, accounts, live billing and owner restrictions were preserved.
+- Passed: candidate application CI 41706453874 (header comparison passed on retry),
+  legacy CI 41706453944, deployed Chromium/WebKit customer isolation, project/message
+  persistence, CSRF, owner API rejection, responsive layouts and logout.
+- Passed: hosted LandWolf journeys, persistent browser sessions, production paywall,
+  public documents, crawl policy, themes, links and layout budgets in both environments.
+- Staging's combined hosted command hit the normal authentication rate limit in its
+  last WebKit persistence check. After the bucket reset, the unchanged persistence
+  function passed for both engines. Local WebKit initially lacked system libraries;
+  final hosted checks ran in the prepared Playwright Docker image. No gate or
+  security limit was weakened. Production's full combined command exited 0.
+- No application warnings/errors appeared in the observed post-deploy log windows.
+  Synthetic example.com test accounts and clearly labeled no-work projects were
+  retained. No customer charge, financial test entry or factory dispatch was made.
+- Schema 15 cannot use a schema-14 code-only rollback; prefer a tested forward fix
+  or a reconciled database restore. Complete backup/restore rehearsal passed in CI.
+
+This documentation-only record does not trigger another runtime deployment.
+The historical candidate and earlier deployment entries below remain unchanged.
+
 ## v0.20.0 — private customer workspace candidate (not deployed)
 
 [PR #50](https://github.com/lupu-spec/Landwolf/pull/50) builds on PR #49 with
@@ -701,8 +740,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.18.1 | `6eba75a029f0eaac91958887fb69d69c976a94a7` | 2026-10-31 14:47:00 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.18.1 | `a82eb0b31c8adf63156b4043fbd7df13fbff49d2` | 2026-10-31 14:40:48 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.20.0 | `b4b647fe222f20f800ba9305452c2d4af2bc3b55` | 2026-11-03 23:02:23 |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.20.0 | `03520d37b203fbb4916d9551b7d556bdd07daac5` | 2026-11-03 22:49:04 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 

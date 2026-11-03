@@ -418,7 +418,7 @@ class ResearchGoal(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
 
 
-SCHEMA_VERSION = 15
+SCHEMA_VERSION = 16
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -431,7 +431,12 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 def initialize(engine: Engine) -> None:
     """Add customer service boundaries in v15; preserve all existing data."""
-    from landwolf import finance_models, lupuspec, portal_models  # noqa: F401 -- additive tables
+    from landwolf import (  # noqa: F401 -- additive tables
+        factory_bridge,
+        finance_models,
+        lupuspec,
+        portal_models,
+    )
     from landwolf.crm_core import Contact, CRMBase, Project
 
     with engine.begin() as connection:
@@ -461,6 +466,7 @@ def initialize(engine: Engine) -> None:
             [12],
             [13],
             [14],
+            [15],
             [SCHEMA_VERSION],
         ):
             raise RuntimeError("Unsupported application schema version; migration required")

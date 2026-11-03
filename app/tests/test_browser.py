@@ -670,7 +670,13 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
     engine, factory = database(url)
     initialize(engine)
     mode = getattr(request, "param", "")
-    owner_mode = mode in {"research_owner", "nationwide_owner", "finance_owner", "commercial_owner"}
+    owner_mode = mode in {
+        "research_owner",
+        "nationwide_owner",
+        "finance_owner",
+        "commercial_owner",
+        "factory_owner",
+    }
     if owner_mode:
         with factory() as session, session.begin():
             session.add(
@@ -745,7 +751,7 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 ("craigslist_ca", craigslist("CA")),
             ):
                 publish_snapshot(session, source, parse(source, html), scope_note=SCOPE)
-    elif mode in {"nationwide", "nationwide_owner", "finance_owner"}:
+    elif mode in {"nationwide", "nationwide_owner", "finance_owner", "factory_owner"}:
         seed_national(factory)
     else:
         seed(factory)
@@ -842,7 +848,9 @@ def browser_server(tmp_path: Path, request: pytest.FixtureRequest) -> Iterator[t
                 sys.executable,
                 "-m",
                 "uvicorn",
-                "research_fixture:create_fixture_app"
+                "factory_fixture:create_fixture_app"
+                if mode == "factory_owner"
+                else "research_fixture:create_fixture_app"
                 if mode in {"research", "research_owner", "mail"}
                 else "landwolf.main:create_app",
                 "--app-dir",

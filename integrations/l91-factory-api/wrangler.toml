@@ -1,0 +1,14 @@
+name = "l91-production-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+# Existing production database. Use a separate database for development.
+[[d1_databases]]
+binding = "DATABASE"
+database_name = "l91-production-db"
+database_id = "45f5bcc2-a2d4-43d6-b599-f0597d01ca6c"
+migrations_dir = "migrations"
+
+[vars]
+CLERK_ISSUER = "https://clerk.l91.landwolf.ai"
+CLERK_JWKS_URL = "https://clerk.l91.landwolf.ai/.well-known/jwks.json"
+ALLOWED_ORIGIN = "https://l91.landwolf.ai"

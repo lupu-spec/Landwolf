@@ -3538,3 +3538,9 @@ select {
   min-height: 100px;
   font: inherit;
 }
+
+.customer-management pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}

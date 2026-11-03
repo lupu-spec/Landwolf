@@ -1,5 +1,36 @@
 # LandWolf verification
 
+## v0.20.0 — production and staging acceptance complete, November 3, 2026
+
+Customer portal: https://landwolf.ai/lupuspec. PR #50 was merged into PR #49,
+then PR #49 was merged into main. Both deployed commits have the exact verified
+source tree `01d9972b6f610df81a6a2428edd13319912fd8d9`.
+
+- Staging: `03520d37b203fbb4916d9551b7d556bdd07daac5`,
+  Render `dep-dbl6946tlv9c73b3guf0`, live 2026-11-03 22:49:04 UTC.
+- Production: `b4b647fe222f20f800ba9305452c2d4af2bc3b55`,
+  Render `dep-dbl6f9ff3r2c73dncgvg`, live 2026-11-03 23:02:23 UTC.
+- Both environments observed v0.20.0, healthy HTTPS and schema 15. Existing
+  services/databases, accounts, live billing and owner restrictions were preserved.
+- Passed: candidate application CI 41706453874 (header comparison passed on retry),
+  legacy CI 41706453944, deployed Chromium/WebKit customer isolation, project/message
+  persistence, CSRF, owner API rejection, responsive layouts and logout.
+- Passed: hosted LandWolf journeys, persistent browser sessions, production paywall,
+  public documents, crawl policy, themes, links and layout budgets in both environments.
+- Staging's combined hosted command hit the normal authentication rate limit in its
+  last WebKit persistence check. After the bucket reset, the unchanged persistence
+  function passed for both engines. Local WebKit initially lacked system libraries;
+  final hosted checks ran in the prepared Playwright Docker image. No gate or
+  security limit was weakened. Production's full combined command exited 0.
+- No application warnings/errors appeared in the observed post-deploy log windows.
+  Synthetic example.com test accounts and clearly labeled no-work projects were
+  retained. No customer charge, financial test entry or factory dispatch was made.
+- Schema 15 cannot use a schema-14 code-only rollback; prefer a tested forward fix
+  or a reconciled database restore. Complete backup/restore rehearsal passed in CI.
+
+This documentation-only record does not trigger another runtime deployment.
+The historical candidate and earlier deployment entries below remain unchanged.
+
 ## v0.20.0 — customer workspace final source acceptance
 
 Runtime code `c250f93d776ae4368d71fb3b022cdd022cc61966` passed
