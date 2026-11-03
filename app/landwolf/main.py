@@ -31,6 +31,7 @@ from landwolf import (
     feedback_export,
     finance,
     hunt,
+    lupuspec,
     public_pages,
     recovery,
     research_workspace,
@@ -858,6 +859,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return analyze(spec)
 
     crm.register(app, settings, factory)
+    lupuspec.register(app, settings, factory)
     research_workspace.register(app, settings, factory)
 
     static = Path(__file__).resolve().parent / "static"
@@ -865,6 +867,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         index_template = (static / "index.html").read_text(encoding="utf-8")
         public_pages.register(app, settings)
         app.mount("/assets", StaticFiles(directory=static / "assets"), name="assets")
+
+        @app.get("/lupuspec", include_in_schema=False)
+        def lupuspec_portal() -> FileResponse:
+            return FileResponse(static / "lupuspec.html", media_type="text/html")
+
+        app.add_api_route(
+            "/lupuspec/", public_pages.canonical_redirect("/lupuspec"),
+            methods=["GET"], include_in_schema=False,
+        )
 
         @app.get("/trial-terms", include_in_schema=False)
         def trial_terms() -> FileResponse:
