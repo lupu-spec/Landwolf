@@ -17,9 +17,10 @@ from typing import Any, Literal
 from fastapi import HTTPException, Request
 from pydantic import Field, field_validator
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from landwolf import admin, auth, billing, crm_reporting
+from landwolf import admin, auth, billing, crm_reporting, service_finance
 from landwolf.config import Settings
 from landwolf.crm_core import Contact
 from landwolf.db import Account
@@ -75,6 +76,10 @@ class ExpenseInput(Contract):
 
 
 class LupuSpecEntryInput(Contract):
+    stream: str = Field(default="", max_length=40)
+    work_item_id: uuid.UUID | None = None
+    source_reference: str = Field(default="", pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,79}$|^$")
+    reversal_of: uuid.UUID | None = None
     date: str = Field(max_length=10)
     capability: Literal["studio", "software", "fabrication", "supply"]
     kind: Literal["receipt", "expense"]
@@ -207,9 +212,27 @@ def add_lupuspec_entry(
     request: Request, session: Session, settings: Settings, body: LupuSpecEntryInput
 ) -> dict[str, Any]:
     owner = write_owner(request, session, settings)
-    identity = "|".join(
-        (body.date, body.capability, body.kind, str(body.amount_cents), body.reference)
+    dimension = service_finance.prepare_dimension(
+        session,
+        capability=body.capability,
+        kind=body.kind,
+        amount=body.amount_cents,
+        stream=body.stream,
+        work_item_id=body.work_item_id,
+        source_reference=body.source_reference,
+        reversal_of=body.reversal_of,
     )
+    identity_parts = [
+        body.date,
+        body.capability,
+        body.kind,
+        str(body.amount_cents),
+        body.reference,
+    ]
+    # Preserve the v14 duplicate key for unclassified callers after migration.
+    if dimension is not None:
+        identity_parts.extend([body.stream, str(body.work_item_id or ""), body.source_reference])
+    identity = "|".join(identity_parts)
     key = hashlib.sha256(identity.encode()).hexdigest()
     if session.scalar(
         select(LupuSpecFinanceEntry.id).where(LupuSpecFinanceEntry.fingerprint == key)
@@ -226,8 +249,16 @@ def add_lupuspec_entry(
         created_by=owner.id,
         created_at=int(time.time()),
     )
-    session.add(row)
-    session.commit()
+    try:
+        session.add(row)
+        session.flush()
+        if dimension is not None:
+            dimension.entry_id = row.id
+            session.add(dimension)
+        session.commit()
+    except IntegrityError as exc:
+        session.rollback()
+        raise HTTPException(409, "Entry or source reference already recorded") from exc
     return lupuspec_entry_view(row)
 
 
@@ -757,6 +788,7 @@ def report(session: Session, settings: Settings) -> dict[str, Any]:
             "capabilities": capability_totals,
             "totals": lupuspec_totals,
             "period": "Current and previous five UTC calendar months",
+            "breakdown": service_finance.breakdown(session, list(lupuspec_entries)),
         },
         "plan": plan.model_dump(),
         "forecast": forecasts(plan, snapshot, today),

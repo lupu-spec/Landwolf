@@ -3513,3 +3513,28 @@ select {
     grid-template-columns: 1.5fr 1fr;
   }
 }
+
+.finance-entry-id {
+  overflow-wrap: anywhere;
+}
+.customer-management {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  overflow-wrap: anywhere;
+}
+.customer-management form,
+.customer-management label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.customer-management input[type="checkbox"] {
+  width: auto;
+  align-self: start;
+}
+.customer-management textarea {
+  width: 100%;
+  min-height: 100px;
+  font: inherit;
+}

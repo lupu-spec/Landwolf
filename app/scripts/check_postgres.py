@@ -625,6 +625,9 @@ def main() -> None:
                 session.get(FeedbackTrial, trial_account.id).consent_text == trials.TERMS,
                 "PostgreSQL billing consent did not persist",
             )
+        from check_customer_portal import check as check_customer_portal
+
+        check_customer_portal(client, settings, suffix)
     print(
         "Passed: PostgreSQL authentication, nationwide JSON filters, "
         "nulls, dates, pagination, permanent Saved deletion, retained accounts/sessions, "
