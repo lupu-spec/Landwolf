@@ -125,7 +125,7 @@ def test_same_origin_required_without_landwolf_login(client):
         submit(
             client, payload, headers={"Origin": "http://testserver", "Content-Type": "text/plain"}
         ).status_code
-        == 415
+        == 422
     )
     assert submit(client, payload).status_code == 201
 
