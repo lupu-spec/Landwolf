@@ -651,11 +651,13 @@ def report(session: Session, settings: Settings) -> dict[str, Any]:
         receipts = actual.get("receipts", 0) if snapshot else None
         refunds, fees = actual.get("refunds", 0), actual.get("fees", 0)
         lupuspec_receipts = sum(
-            row.amount_cents for row in lupuspec_entries
+            row.amount_cents
+            for row in lupuspec_entries
             if row.kind == "receipt" and row.date.startswith(label)
         )
         lupuspec_expenses = sum(
-            row.amount_cents for row in lupuspec_entries
+            row.amount_cents
+            for row in lupuspec_entries
             if row.kind == "expense" and row.date.startswith(label)
         )
         combined_expenses = cost + lupuspec_expenses + (fees if snapshot else 0)
@@ -679,7 +681,8 @@ def report(session: Session, settings: Settings) -> dict[str, Any]:
                 "consolidated_expenses_cents": combined_expenses,
                 "consolidated_net_cents": (
                     receipts - refunds + lupuspec_receipts - combined_expenses
-                    if receipts is not None else None
+                    if receipts is not None
+                    else None
                 ),
                 "new_users": sum(
                     datetime.fromtimestamp(value, UTC).strftime("%Y-%m") == label
