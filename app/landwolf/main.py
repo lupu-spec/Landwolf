@@ -447,6 +447,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def finance_refresh(request: Request, session: DB) -> dict[str, Any]:
         return finance.refresh(request, session, settings)
 
+    @app.post("/api/admin/finance/lupuspec/entries", status_code=201)
+    def lupuspec_finance_entry(
+        body: finance.LupuSpecEntryInput, request: Request, session: DB
+    ) -> dict[str, Any]:
+        return finance.add_lupuspec_entry(request, session, settings, body)
+
     @app.post("/api/admin/finance/expenses", status_code=201)
     def finance_expense(
         body: finance.ExpenseInput, request: Request, session: DB
