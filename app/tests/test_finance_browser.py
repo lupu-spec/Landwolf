@@ -31,7 +31,9 @@ def test_owner_finance_responsive_and_recovery(browser_server, engine_name, widt
         ).to_be_visible()
         expect(panel.locator("svg[role=img]")).to_have_count(4)
         expect(panel.get_by_role("table")).to_have_count(4)
-        expect(panel.get_by_role("heading", name="L91 business lines · current UTC month")).to_be_visible()
+        expect(
+            panel.get_by_role("heading", name="L91 business lines · current UTC month")
+        ).to_be_visible()
         expect(panel.get_by_role("heading", name="LupuSpec receipts and expenses")).to_be_visible()
         expect(panel.get_by_role("button", name="Refresh Stripe")).to_be_disabled()
         expect(panel.locator(".finance-card").first).to_contain_text("$145.00")
