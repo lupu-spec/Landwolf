@@ -1,5 +1,37 @@
 # LandWolf verification
 
+## v0.20.0 — customer workspace candidate (local checkpoint)
+
+This source extends PR #49; no production or staging deployment is claimed.
+
+**Passed (exit 0):** `.venv/bin/ruff format --check landwolf tests scripts`;
+`npm run format:check`; `.venv/bin/ruff check landwolf tests scripts`;
+`npm run lint`; `.venv/bin/mypy landwolf`; `npm run typecheck`;
+`npm run test:unit` (27); `.venv/bin/pytest -q -m 'not browser'` (743);
+`LANDWOLF_TEST_POSTGRES_URL=<disposable-local-landwolf_ci> .venv/bin/python scripts/check_postgres.py`;
+`npm run build`; `.venv/bin/pytest -q -m browser tests/test_customer_portal_browser.py -k 'owner and chromium' -x` (1);
+`npm run secrets`; `git diff --check`.
+
+PostgreSQL 18 ran in an owned disposable Docker container on loopback. It exercised
+account/project/service/message persistence, duplicate submissions, optimistic
+work updates, cash dimensions and a second customer's denied access, alongside
+all existing integration checks. No production database or customer data was used.
+
+**Resolved failures:** new migration tests needed the WorkItem import; two existing
+migration assertions needed the new expected schema 15 (all retention assertions
+kept); owner select controls needed explicit accessible labels; asynchronous form
+tests now await their actual successful HTTP response before checking rendering.
+The v14 unclassified cash fingerprint is retained so upgrades cannot bypass its
+duplicate guard. Supply sales and purchased-parts costs use distinct stream codes.
+
+**Pending at this checkpoint:** full Chromium/WebKit browser suite, package/security
+sequence, isolated legacy tests, CI backup/restore and hosted CI. Host WebKit lacks
+system libraries, so local browser verification uses the official Playwright
+Python v1.62.0 Noble Docker image with both real engines. Tests are not skipped or
+mocked to bypass that host limitation. `check_restore.py` is CI-only and will be
+reported from the real GitHub Actions service; its environment guard is retained.
+See [customer workspace/data model](CUSTOMER_WORKSPACE.md) for scope and limitations.
+
 ## v0.18.1 — production acceptance completion
 
 Production hosted run 41211814103 completed successfully after the observed

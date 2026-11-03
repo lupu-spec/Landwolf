@@ -29,10 +29,12 @@ def test_lupuspec_customer_portal(browser_server, engine, width):
             "Create a 3D printable prototype enclosure for an electronics project."
         )
         page.get_by_label("Full name").fill("Browser Synthetic Customer")
-        page.get_by_label("Email").fill("lupuspec-browser@example.com")
+        page.get_by_label("Email", exact=True).fill("lupuspec-browser@example.com")
         page.get_by_label("I authorize L91 LLC to contact me about this project.").check()
-        page.get_by_role("button", name="Submit project request").click()
-        expect(page.get_by_role("status")).to_contain_text("Request received. Reference:")
+        with page.expect_response("**/api/lupuspec/requests") as submitted:
+            page.get_by_role("button", name="Submit project request").click()
+        assert submitted.value.status == 201
+        expect(page.locator("#submission-status")).to_contain_text("Request received. Reference:")
         assert page.request.get(origin + "/api/admin/lupuspec/requests").status == 401
         Path("test-results").mkdir(exist_ok=True)
         page.screenshot(

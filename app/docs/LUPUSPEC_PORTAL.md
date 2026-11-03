@@ -1,3 +1,5 @@
+> Extended by the v0.20.0 customer-workspace candidate. See [Customer workspace and data scheme](CUSTOMER_WORKSPACE.md). This document records the original PR #49 scope.
+
 # LupuSpec customer portal — v0.19.0 candidate
 
 Status: **feature branch only; not deployed**. LupuSpec is operated by L91 LLC.

@@ -27,6 +27,7 @@ from landwolf import (
     billing,
     commercial,
     crm,
+    customer_portal,
     feedback,
     feedback_export,
     finance,
@@ -190,7 +191,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
-        elif request.url.path == "/" or request.url.path.startswith("/assets/"):
+        elif request.url.path in {"/", "/lupuspec"} or request.url.path.startswith("/assets/"):
             # Stable asset names must revalidate after a deployment.
             response.headers["Cache-Control"] = "no-cache"
         if settings.secure_cookies:
@@ -866,6 +867,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     crm.register(app, settings, factory)
     lupuspec.register(app, settings, factory)
+    customer_portal.register(app, settings, factory)
     research_workspace.register(app, settings, factory)
 
     static = Path(__file__).resolve().parent / "static"

@@ -1,4 +1,5 @@
 /** Owner-only CRM. Personal records live in the server, never local browser storage. */
+import { customerManagement } from "./customer-management";
 import { addContactForm, renderAccountAdmin } from "./crm-admin";
 import { renderStatistics, type Statistics } from "./crm-reporting";
 
@@ -715,6 +716,7 @@ export function setupCRM(api: Api) {
         info,
         details,
         actions,
+        customerManagement(api, entry.id, () => active && stamp === sequence),
       );
       lupuspecQueue.append(card);
     }

@@ -16,182 +16,286 @@
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="site-header">
-      <a class="brand" href="/lupuspec">Lupu<span>Spec</span></a>
-      <nav aria-label="Related business">
-        <span>Operated by L91 LLC</span>
+      <a class="brand" href="/lupuspec"
+        ><img
+          src="/assets/lupuspec-wolf.png"
+          alt="LupuSpec"
+          width="270"
+          height="90"
+      /></a>
+      <nav aria-label="Customer navigation">
+        <button type="button" id="new-project-nav" aria-current="page">
+          NEW PROJECT
+        </button>
+        <button type="button" id="my-projects-nav">MY PROJECTS</button>
+        <button type="button" id="signin-nav">SIGN IN</button>
+        <button type="button" id="signout-nav" hidden>SIGN OUT</button>
+        <span>L91 LLC</span>
         <a href="/">LandWolf.ai</a>
       </nav>
     </header>
     <main id="main">
-      <div class="heading">
-        <p class="eyebrow">Customer portal</p>
-        <h1>LupuSpec</h1>
-        <p>
-          Submit a project concept or design requirements for review. Select one
-          primary capability; additional software, parts or fabrication needs
-          can be included in the description.
-        </p>
-      </div>
-      <form id="concept-form">
-        <fieldset class="capability-section">
-          <legend>1. Select a capability</legend>
-          <div class="capabilities">
-            <label class="capability">
-              <input
-                type="radio"
-                name="capability"
-                value="studio"
-                required
-                checked
-              />
-              <span class="capability-symbol" aria-hidden="true">01</span>
-              <strong>Studio</strong>
-              <span
-                >Concept development, engineering requirements, CAD and product
-                design.</span
-              >
-            </label>
-            <label class="capability">
-              <input type="radio" name="capability" value="software" required />
-              <span class="capability-symbol" aria-hidden="true">02</span>
-              <strong>Software</strong>
-              <span
-                >Web, Linux, Windows, macOS, AI and systems development.</span
-              >
-            </label>
-            <label class="capability">
-              <input
-                type="radio"
-                name="capability"
-                value="fabrication"
-                required
-              />
-              <span class="capability-symbol" aria-hidden="true">03</span>
-              <strong>Fabrication</strong>
-              <span
-                >3D printing, CNC machining, prototypes and custom
-                components.</span
-              >
-            </label>
-            <label class="capability">
-              <input type="radio" name="capability" value="supply" required />
-              <span class="capability-symbol" aria-hidden="true">04</span>
-              <strong>Supply</strong>
-              <span
-                >Parts sourcing, bills of materials, suppliers and
-                fulfillment.</span
-              >
-            </label>
+      <p id="account-state" class="account-state">CHECKING SIGN-IN…</p>
+      <p id="portal-status" role="status" aria-live="polite"></p>
+      <section
+        id="signin-panel"
+        class="form-section"
+        aria-labelledby="signin-title"
+        hidden
+      >
+        <p class="eyebrow">CUSTOMER ACCOUNT</p>
+        <h1 id="signin-title">SIGN IN</h1>
+        <p class="note">USE YOUR LANDWOLF OR LUPUSPEC ACCOUNT</p>
+        <form id="signin-form" class="field-grid">
+          <label id="join-name-wrap" hidden
+            >ACCOUNT NAME<input
+              name="full_name"
+              autocomplete="name"
+              maxlength="120"
+          /></label>
+          <label
+            >ACCOUNT EMAIL<input
+              name="email"
+              type="email"
+              autocomplete="username"
+              required
+              maxlength="254"
+          /></label>
+          <label
+            >PASSWORD<input
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              minlength="12"
+              maxlength="128"
+              required
+          /></label>
+          <div class="span-full action-row">
+            <button id="auth-submit" type="submit">SIGN IN</button
+            ><button id="auth-toggle" type="button" class="secondary">
+              CREATE ACCOUNT</button
+            ><button id="recover-account" type="button" class="secondary">
+              RESET PASSWORD
+            </button>
           </div>
-        </fieldset>
-        <section class="form-section" aria-labelledby="details-heading">
-          <h2 id="details-heading">2. Project requirements</h2>
-          <div class="field-grid">
-            <label class="span-full"
-              >Project title
-              <input
-                name="title"
-                maxlength="150"
-                minlength="3"
-                autocomplete="off"
-                required
-                placeholder="Example: Custom controller enclosure"
-              />
-            </label>
-            <label class="span-full"
-              >Concept and requirements
-              <textarea
-                name="text"
-                rows="6"
-                maxlength="4000"
-                minlength="20"
-                required
-                placeholder="Describe the function, dimensions, materials, platform, constraints or deliverables."
-              ></textarea>
-            </label>
-            <label
-              >Quantity (if applicable)
-              <input
-                name="quantity"
-                type="number"
-                value="1"
-                min="1"
-                max="10000"
-                step="1"
-                required
-              />
-            </label>
-            <label
-              >Design file link (optional)
-              <input
-                name="reference_url"
-                type="url"
-                maxlength="500"
-                pattern="https://.*"
-                placeholder="https://…"
-              />
-            </label>
+        </form>
+      </section>
+      <section id="workspace-panel" aria-labelledby="workspace-title" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CUSTOMER PORTAL</p>
+            <h1 id="workspace-title">MY PROJECTS</h1>
           </div>
-          <p class="note">
-            Provide an HTTPS link to drawings, CAD files or reference designs.
-            File uploads and automated manufacturing dispatch are not enabled.
+          <button type="button" id="refresh-projects">REFRESH</button>
+        </div>
+        <div class="workspace-grid">
+          <section class="project-sidebar" aria-label="Project list">
+            <label
+              >SERVICE<select id="service-filter" aria-label="SERVICE">
+                <option value="">ALL SERVICES</option>
+                <option value="studio">STUDIO</option>
+                <option value="software">SOFTWARE</option>
+                <option value="fabrication">FABRICATION</option>
+                <option value="supply">SUPPLY</option>
+              </select></label
+            >
+            <div id="project-list"></div>
+            <div class="action-row">
+              <button type="button" id="previous-projects" hidden>
+                PREVIOUS</button
+              ><button type="button" id="next-projects" hidden>NEXT</button>
+            </div>
+          </section>
+          <section
+            id="project-detail"
+            class="project-detail"
+            aria-live="polite"
+          ></section>
+        </div>
+      </section>
+      <section id="intake-panel">
+        <div class="heading">
+          <p class="eyebrow">Customer portal</p>
+          <h1>LupuSpec</h1>
+          <p>DESIGN · SOFTWARE · FABRICATION · SUPPLY</p>
+        </div>
+        <form id="concept-form">
+          <fieldset class="capability-section">
+            <legend>01 / SERVICE</legend>
+            <div class="capabilities">
+              <label class="capability">
+                <input
+                  type="radio"
+                  name="capability"
+                  value="studio"
+                  required
+                  checked
+                />
+                <span class="capability-symbol" aria-hidden="true">01</span>
+                <strong>Studio</strong>
+                <span>CONCEPTS · CAD · SPECIFICATIONS</span>
+              </label>
+              <label class="capability">
+                <input
+                  type="radio"
+                  name="capability"
+                  value="software"
+                  required
+                />
+                <span class="capability-symbol" aria-hidden="true">02</span>
+                <strong>Software</strong>
+                <span>WEB · LINUX · WINDOWS · MACOS</span>
+              </label>
+              <label class="capability">
+                <input
+                  type="radio"
+                  name="capability"
+                  value="fabrication"
+                  required
+                />
+                <span class="capability-symbol" aria-hidden="true">03</span>
+                <strong>Fabrication</strong>
+                <span>3D PRINTING · CNC · CUSTOM PARTS</span>
+              </label>
+              <label class="capability">
+                <input type="radio" name="capability" value="supply" required />
+                <span class="capability-symbol" aria-hidden="true">04</span>
+                <strong>Supply</strong>
+                <span>PARTS · SUPPLIERS · DELIVERY</span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset id="additional-services" class="additional-services" hidden>
+            <legend>ADDITIONAL SERVICES</legend>
+            <p class="note">SELECT ANY OTHER SERVICES THIS PROJECT NEEDS</p>
+            <div class="action-row">
+              <label
+                ><input type="checkbox" name="extra" value="studio" />
+                STUDIO</label
+              ><label
+                ><input type="checkbox" name="extra" value="software" />
+                SOFTWARE</label
+              ><label
+                ><input type="checkbox" name="extra" value="fabrication" />
+                FABRICATION</label
+              ><label
+                ><input type="checkbox" name="extra" value="supply" />
+                SUPPLY</label
+              >
+            </div>
+          </fieldset>
+          <p id="guest-note" class="note">
+            SIGN IN TO TRACK PROJECTS AND COMBINE SERVICES
           </p>
-        </section>
-        <section class="form-section" aria-labelledby="contact-heading">
-          <h2 id="contact-heading">3. Contact details</h2>
-          <div class="field-grid">
-            <label
-              >Full name
-              <input
-                name="full_name"
-                autocomplete="name"
-                maxlength="120"
-                required
-              />
+          <section class="form-section" aria-labelledby="details-heading">
+            <h2 id="details-heading">02 / PROJECT</h2>
+            <div class="field-grid">
+              <label class="span-full"
+                >Project title
+                <input
+                  name="title"
+                  maxlength="150"
+                  minlength="3"
+                  autocomplete="off"
+                  required
+                  placeholder="Example: Custom controller enclosure"
+                />
+              </label>
+              <label class="span-full"
+                >Concept and requirements
+                <textarea
+                  name="text"
+                  rows="6"
+                  maxlength="4000"
+                  minlength="20"
+                  required
+                  placeholder="Describe the function, dimensions, materials, platform, constraints or deliverables."
+                ></textarea>
+              </label>
+              <label
+                >Quantity (if applicable)
+                <input
+                  name="quantity"
+                  type="number"
+                  value="1"
+                  min="1"
+                  max="10000"
+                  step="1"
+                  required
+                />
+              </label>
+              <label
+                >Design file link (optional)
+                <input
+                  name="reference_url"
+                  type="url"
+                  maxlength="500"
+                  pattern="https://.*"
+                  placeholder="https://…"
+                />
+              </label>
+            </div>
+            <p class="note">
+              Provide an HTTPS link to drawings, CAD files or reference designs.
+              Share only files intended for the project team.
+            </p>
+          </section>
+          <section class="form-section" aria-labelledby="contact-heading">
+            <h2 id="contact-heading">03 / CONTACT</h2>
+            <div class="field-grid">
+              <label
+                >Full name
+                <input
+                  name="full_name"
+                  autocomplete="name"
+                  maxlength="120"
+                  required
+                />
+              </label>
+              <label
+                >Company (optional)
+                <input
+                  name="company"
+                  autocomplete="organization"
+                  maxlength="160"
+                />
+              </label>
+              <label
+                >Email
+                <input
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  maxlength="254"
+                  required
+                />
+              </label>
+              <label
+                >Phone (optional)
+                <input
+                  name="phone"
+                  type="tel"
+                  autocomplete="tel"
+                  maxlength="32"
+                />
+              </label>
+            </div>
+            <label class="agreement">
+              <input name="contact_permission" type="checkbox" required />
+              I authorize L91 LLC to contact me about this project. This does
+              not subscribe me to marketing emails.
             </label>
-            <label
-              >Company (optional)
-              <input
-                name="company"
-                autocomplete="organization"
-                maxlength="160"
-              />
-            </label>
-            <label
-              >Email
-              <input
-                name="email"
-                type="email"
-                autocomplete="email"
-                maxlength="254"
-                required
-              />
-            </label>
-            <label
-              >Phone (optional)
-              <input
-                name="phone"
-                type="tel"
-                autocomplete="tel"
-                maxlength="32"
-              />
-            </label>
-          </div>
-          <label class="agreement">
-            <input name="contact_permission" type="checkbox" required />
-            I authorize L91 LLC to contact me about this project. This does not
-            subscribe me to marketing emails.
-          </label>
-          <p class="note">
-            Requests are reviewed before quoting. Submitting a request does not
-            place an order or authorize a charge.
-          </p>
-          <button type="submit" id="submit-request">
-            Submit project request
-          </button>
-          <p id="submission-status" role="status" aria-live="polite"></p>
-        </section>
-      </form>
+            <p class="note">
+              Requests are reviewed before quoting. Submitting a request does
+              not place an order or authorize a charge.
+            </p>
+            <button type="submit" id="submit-request">
+              Submit project request
+            </button>
+            <p id="submission-status" role="status" aria-live="polite"></p>
+          </section>
+        </form>
+      </section>
     </main>
     <footer>© L91 LLC · LupuSpec <a href="/">LandWolf.ai</a></footer>
   </body>

@@ -30,7 +30,8 @@ def test_owner_finance_responsive_and_recovery(browser_server, engine_name, widt
             panel.get_by_role("heading", name="Next three months · scenario planning")
         ).to_be_visible()
         expect(panel.locator("svg[role=img]")).to_have_count(4)
-        expect(panel.get_by_role("table")).to_have_count(3)
+        expect(panel.get_by_role("table")).to_have_count(4)
+        expect(panel.get_by_role("heading", name="CUSTOMERS AND STREAMS")).to_be_visible()
         expect(
             panel.get_by_role("heading", name="L91 business lines · current UTC month")
         ).to_be_visible()

@@ -159,6 +159,45 @@ def _owner_view(row: ConceptRequest, contact: Contact) -> dict[str, Any]:
     }
 
 
+def store_request(body: RequestInput, session: Session) -> ConceptRequest:
+    """Write intake in the caller transaction; this grants no customer access."""
+    contact = capture(
+        session,
+        "lupuspec",
+        Intake(
+            external_id="lupuspec:"
+            + hashlib.sha256(str(body.email).casefold().encode()).hexdigest(),
+            email=str(body.email).casefold(),
+            full_name=body.full_name,
+            company=body.company,
+            phone=body.phone,
+            primary_use="lupuspec_" + body.capability,
+            use_details=body.title[:1000],
+            marketing_opt_in=False,
+        ),
+        source="lupuspec_portal",
+    )
+    now = int(time.time())
+    item = ConceptRequest(
+        id=str(uuid.uuid4()),
+        submission_id=str(body.submission_id),
+        content_hash=_content_hash(body),
+        contact_id=contact.id,
+        capability=body.capability,
+        title=body.title,
+        text=body.text,
+        reference_url=body.reference_url,
+        quantity=body.quantity,
+        status="received",
+        revision=1,
+        created_at=now,
+        updated_at=now,
+    )
+    session.add(item)
+    session.flush()
+    return item
+
+
 def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -> None:
     def db() -> Iterator[Session]:
         with factory() as session:
@@ -186,41 +225,8 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
             if existing.content_hash != digest:
                 raise HTTPException(409, "Submission ID was already used for different details")
             return {"request_id": existing.id, "status": existing.status}
-        normalized_email = str(body.email).casefold()
-        contact_key = hashlib.sha256(normalized_email.encode()).hexdigest()
         try:
-            contact = capture(
-                session,
-                "lupuspec",
-                Intake(
-                    external_id="lupuspec:" + contact_key,
-                    email=normalized_email,
-                    full_name=body.full_name,
-                    company=body.company,
-                    phone=body.phone,
-                    primary_use="lupuspec_" + body.capability,
-                    use_details=body.title[:1000],
-                    marketing_opt_in=False,
-                ),
-                source="lupuspec_portal",
-            )
-            now = int(time.time())
-            item = ConceptRequest(
-                id=str(uuid.uuid4()),
-                submission_id=submission_id,
-                content_hash=digest,
-                contact_id=contact.id,
-                capability=body.capability,
-                title=body.title,
-                text=body.text,
-                reference_url=body.reference_url,
-                quantity=body.quantity,
-                status="received",
-                revision=1,
-                created_at=now,
-                updated_at=now,
-            )
-            session.add(item)
+            item = store_request(body, session)
             session.commit()
         except ValueError as exc:
             session.rollback()

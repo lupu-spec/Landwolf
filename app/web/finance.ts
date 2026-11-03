@@ -2,6 +2,27 @@
 import type { Api } from "./crm";
 import { renderChart } from "./finance-chart";
 
+type ServiceCatalog = {
+  work: {
+    id: string;
+    title: string;
+    customer_id: string;
+    request_id: string;
+    service: string;
+  }[];
+  streams: { id: string; label: string; service: string; kind: string }[];
+  customers: { id: string; name: string; email: string }[];
+};
+type CashGroup = {
+  service: string;
+  stream: string;
+  customer_id: string | null;
+  project_id: string | null;
+  currency: string;
+  receipts_cents: number;
+  expenses_cents: number;
+  net_cents: number;
+};
 type Budget = {
   amount_cents: number | null;
   interval: "month" | "year";
@@ -100,6 +121,11 @@ type Report = {
     capabilities: Record<string, LupuSpecTotals>;
     totals: LupuSpecTotals;
     period: string;
+    breakdown: {
+      rows: CashGroup[];
+      unclassified_entries: number;
+      basis: string;
+    };
   };
   plan: Plan;
   forecast: Forecast[];
@@ -155,6 +181,7 @@ function field(label: string, value: string, type = "number") {
 function select(label: string, options: Record<string, string>, value: string) {
   const wrap = node("label", label);
   const input = node("select");
+  input.setAttribute("aria-label", label);
   input.id = `finance-${crypto.randomUUID()}`;
   wrap.htmlFor = input.id;
   for (const [key, text] of Object.entries(options)) {
@@ -199,8 +226,11 @@ export function setupFinance(api: Api) {
     const token = ++generation;
     panel.replaceChildren(node("p", "Loading owner financial dashboard…"));
     try {
-      const report = await api<Report>("/api/admin/finance");
-      if (active && token === generation) render(report);
+      const [report, catalog] = await Promise.all([
+        api<Report>("/api/admin/finance"),
+        api<ServiceCatalog>("/api/admin/portal/catalog"),
+      ]);
+      if (active && token === generation) render(report, catalog);
     } catch (error) {
       if (active && token === generation)
         panel.replaceChildren(
@@ -212,7 +242,7 @@ export function setupFinance(api: Api) {
         );
     }
   }
-  function render(report: Report) {
+  function render(report: Report, catalog: ServiceCatalog) {
     const token = generation;
     panel.replaceChildren();
     const status = node("p", "", "finance-status");
@@ -437,7 +467,7 @@ export function setupFinance(api: Api) {
       node("h2", "LupuSpec receipts and expenses"),
       node(
         "p",
-        "Owner-entered USD cash records by capability. This ledger does not charge customers or sync transactions from Stripe. Negative amounts reverse a recorded receipt or expense; use a distinct reference for corrections.",
+        "Owner-entered USD cash records by capability. This ledger does not charge customers or sync transactions from Stripe. Classify each entry by stream and source reference. Receipts require customer work. Negative amounts fully reverse the linked original; record a new entry for the corrected amount.",
         "muted",
       ),
     );
@@ -469,12 +499,69 @@ export function setupFinance(api: Api) {
       "text",
     );
     ledgerReference.input.maxLength = 40;
+    const stream = select("Revenue or cost stream", {}, "");
+    const work = select("Customer / project work", {}, "");
+    const source = field("Unique cash source reference", "", "text");
+    source.input.required = true;
+    source.input.maxLength = 80;
+    source.input.placeholder = "Bank receipt or supplier reference";
+    source.input.pattern = "[A-Za-z][A-Za-z0-9_.:-]{0,79}";
+    const reversal = field(
+      "Original entry ID (full reversal only)",
+      "",
+      "text",
+    );
+    reversal.input.maxLength = 36;
+    function choices() {
+      stream.input.replaceChildren();
+      work.input.replaceChildren();
+      for (const row of catalog.streams.filter(
+        (s) =>
+          s.service === ledgerCapability.input.value &&
+          s.kind === ledgerKind.input.value,
+      )) {
+        const o = node("option", row.label);
+        o.value = row.id;
+        stream.input.append(o);
+      }
+      const empty = node(
+        "option",
+        ledgerKind.input.value === "expense"
+          ? "UNASSIGNED SERVICE COST"
+          : "SELECT CUSTOMER WORK",
+      );
+      empty.value = "";
+      work.input.append(empty);
+      for (const row of catalog.work.filter(
+        (w) => w.service === ledgerCapability.input.value,
+      )) {
+        const o = node(
+          "option",
+          row.title +
+            " · CUSTOMER " +
+            row.customer_id.slice(0, 8) +
+            " · " +
+            row.id.slice(0, 8),
+        );
+        o.value = row.id;
+        work.input.append(o);
+      }
+      work.input.required = ledgerKind.input.value === "receipt";
+      stream.input.required = true;
+    }
+    ledgerCapability.input.addEventListener("change", choices);
+    ledgerKind.input.addEventListener("change", choices);
+    choices();
     ledgerFields.append(
       ledgerDate.wrap,
       ledgerCapability.wrap,
       ledgerKind.wrap,
       ledgerAmount.wrap,
       ledgerReference.wrap,
+      stream.wrap,
+      work.wrap,
+      source.wrap,
+      reversal.wrap,
     );
     const ledgerSave = node("button", "Record LupuSpec entry", "button");
     ledgerSave.type = "submit";
@@ -492,6 +579,10 @@ export function setupFinance(api: Api) {
           kind: ledgerKind.input.value,
           amount_cents: cents,
           reference: ledgerReference.input.value,
+          stream: stream.input.value,
+          work_item_id: work.input.value || null,
+          source_reference: source.input.value,
+          reversal_of: reversal.input.value || null,
         })
           .then(() => {
             if (active && token === generation) return open();
@@ -530,6 +621,81 @@ export function setupFinance(api: Api) {
     }
     lupuspecLedger.append(ledgerForm, ledgerRecords);
     panel.append(lupuspecLedger);
+    const streams = node("section", "", "finance-section");
+    streams.append(
+      node("h2", "CUSTOMERS AND STREAMS"),
+      node("p", report.lupuspec.breakdown.basis, "muted"),
+      node(
+        "p",
+        "UNCLASSIFIED ENTRIES · " +
+          report.lupuspec.breakdown.unclassified_entries,
+      ),
+    );
+    const customerFilter = select(
+      "Customer financial filter",
+      {
+        "": "ALL CUSTOMERS",
+        ...Object.fromEntries(
+          catalog.customers.map((c) => [
+            c.id,
+            c.name + " · " + c.id.slice(0, 8),
+          ]),
+        ),
+        unassigned: "UNASSIGNED",
+      },
+      "",
+    );
+    const serviceFilter = select(
+      "Service financial filter",
+      { "": "ALL SERVICES", ...lupuspecCapabilities },
+      "",
+    );
+    const streamCards = node("div", "", "finance-cards");
+    function showStreams() {
+      streamCards.replaceChildren();
+      const rows = report.lupuspec.breakdown.rows.filter(
+        (row) =>
+          (!serviceFilter.input.value ||
+            row.service === serviceFilter.input.value) &&
+          (!customerFilter.input.value ||
+            (row.customer_id || "unassigned") === customerFilter.input.value),
+      );
+      for (const row of rows) {
+        const card = node("article", "", "finance-card");
+        card.append(
+          node(
+            "span",
+            row.service.toUpperCase() +
+              " / " +
+              (catalog.streams.find((s) => s.id === row.stream)?.label ||
+                "UNCLASSIFIED"),
+          ),
+          node("strong", amount(row.net_cents)),
+          node("p", "RECEIPTS · " + amount(row.receipts_cents)),
+          node("p", "COSTS · " + amount(row.expenses_cents)),
+          node(
+            "p",
+            row.customer_id
+              ? "CUSTOMER · " + row.customer_id.slice(0, 8)
+              : "UNASSIGNED",
+          ),
+          node(
+            "p",
+            row.project_id
+              ? "PROJECT · " + row.project_id.slice(0, 8)
+              : "NO PROJECT",
+          ),
+        );
+        streamCards.append(card);
+      }
+      if (!rows.length)
+        streamCards.append(node("p", "NO ENTRIES FOR THIS SELECTION"));
+    }
+    customerFilter.input.addEventListener("change", showStreams);
+    serviceFilter.input.addEventListener("change", showStreams);
+    streams.append(customerFilter.wrap, serviceFilter.wrap, streamCards);
+    showStreams();
+    panel.append(streams);
     const forecastSection = node("section", "", "finance-section");
     forecastSection.append(
       node("h2", "Next three months · scenario planning"),

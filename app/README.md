@@ -1,5 +1,12 @@
 # LandWolf application
 
+## Customer workspace (v0.20.0 candidate)
+
+Private multi-service projects, customer updates, owner-reviewed factory briefs and
+customer/project/stream cash classification extend PR #49. See
+[Customer workspace and data scheme](docs/CUSTOMER_WORKSPACE.md). Not deployed.
+
+
 ## LupuSpec customer portal (v0.19.0 candidate)
 
 LupuSpec, an L91 LLC business, has a separate customer concept-intake portal
