@@ -35,7 +35,7 @@ def test_owner_finance_responsive_and_recovery(browser_server, engine_name, widt
         expect(panel.get_by_role("heading", name="LupuSpec receipts and expenses")).to_be_visible()
         expect(panel.get_by_role("button", name="Refresh Stripe")).to_be_disabled()
         expect(panel.locator(".finance-card").first).to_contain_text("$145.00")
-        expect(panel.locator(".finance-card").last).to_contain_text("$145.00")
+        expect(panel.locator(".finance-card").nth(4)).to_contain_text("$145.00")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         panel.get_by_label("Forecast scenario").select_option("growth")
         panel.get_by_label("Expense amount dollars").fill("7.01")
