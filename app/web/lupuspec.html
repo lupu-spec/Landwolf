@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="LupuSpec customer portal for software, product design, fabrication and parts procurement." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://landwolf.ai/lupuspec" />
+    <link rel="stylesheet" href="/assets/lupuspec.css" />
+    <script type="module" src="/assets/lupuspec.js"></script>
+    <title>LupuSpec | Customer Portal</title>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="/lupuspec">Lupu<span>Spec</span></a>
+      <nav aria-label="Related business">
+        <span>Operated by L91 LLC</span>
+        <a href="/">LandWolf.ai</a>
+      </nav>
+    </header>
+    <main id="main">
+      <div class="heading">
+        <p class="eyebrow">Customer portal</p>
+        <h1>LupuSpec</h1>
+        <p>Submit a project concept or design requirements for review. Select one primary capability; additional software, parts or fabrication needs can be included in the description.</p>
+      </div>
+      <form id="concept-form">
+        <fieldset class="capability-section">
+          <legend>1. Select a capability</legend>
+          <div class="capabilities">
+            <label class="capability">
+              <input type="radio" name="capability" value="studio" required checked />
+              <span class="capability-symbol" aria-hidden="true">01</span>
+              <strong>Studio</strong>
+              <span>Concept development, engineering requirements, CAD and product design.</span>
+            </label>
+            <label class="capability">
+              <input type="radio" name="capability" value="software" required />
+              <span class="capability-symbol" aria-hidden="true">02</span>
+              <strong>Software</strong>
+              <span>Web, Linux, Windows, macOS, AI and systems development.</span>
+            </label>
+            <label class="capability">
+              <input type="radio" name="capability" value="fabrication" required />
+              <span class="capability-symbol" aria-hidden="true">03</span>
+              <strong>Fabrication</strong>
+              <span>3D printing, CNC machining, prototypes and custom components.</span>
+            </label>
+            <label class="capability">
+              <input type="radio" name="capability" value="supply" required />
+              <span class="capability-symbol" aria-hidden="true">04</span>
+              <strong>Supply</strong>
+              <span>Parts sourcing, bills of materials, suppliers and fulfillment.</span>
+            </label>
+          </div>
+        </fieldset>
+        <section class="form-section" aria-labelledby="details-heading">
+          <h2 id="details-heading">2. Project requirements</h2>
+          <div class="field-grid">
+            <label class="span-full">Project title
+              <input name="title" maxlength="150" minlength="3" autocomplete="off" required placeholder="Example: Custom controller enclosure" />
+            </label>
+            <label class="span-full">Concept and requirements
+              <textarea name="text" rows="6" maxlength="4000" minlength="20" required placeholder="Describe the function, dimensions, materials, platform, constraints or deliverables."></textarea>
+            </label>
+            <label>Quantity (if applicable)
+              <input name="quantity" type="number" value="1" min="1" max="10000" step="1" required />
+            </label>
+            <label>Design file link (optional)
+              <input name="reference_url" type="url" maxlength="500" pattern="https://.*" placeholder="https://…" />
+            </label>
+          </div>
+          <p class="note">Provide an HTTPS link to drawings, CAD files or reference designs. File uploads and automated manufacturing dispatch are not enabled.</p>
+        </section>
+        <section class="form-section" aria-labelledby="contact-heading">
+          <h2 id="contact-heading">3. Contact details</h2>
+          <div class="field-grid">
+            <label>Full name
+              <input name="full_name" autocomplete="name" maxlength="120" required />
+            </label>
+            <label>Company (optional)
+              <input name="company" autocomplete="organization" maxlength="160" />
+            </label>
+            <label>Email
+              <input name="email" type="email" autocomplete="email" maxlength="254" required />
+            </label>
+            <label>Phone (optional)
+              <input name="phone" type="tel" autocomplete="tel" maxlength="32" />
+            </label>
+          </div>
+          <label class="agreement">
+            <input name="contact_permission" type="checkbox" required />
+            I authorize L91 LLC to contact me about this project. This does not subscribe me to marketing emails.
+          </label>
+          <p class="note">Requests are reviewed before quoting. Submitting a request does not place an order or authorize a charge.</p>
+          <button type="submit" id="submit-request">Submit project request</button>
+          <p id="submission-status" role="status" aria-live="polite"></p>
+        </section>
+      </form>
+    </main>
+    <footer>© L91 LLC · LupuSpec <a href="/">LandWolf.ai</a></footer>
+  </body>
+</html>
