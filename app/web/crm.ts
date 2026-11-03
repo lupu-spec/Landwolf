@@ -618,7 +618,7 @@ export function setupCRM(api: Api) {
     integrations.append(form, keyBox, keys);
     controls.append(integrations);
   }
-  async function loadLup uspecQueue(): Promise<void> {
+  async function loadLupuspecQueue(): Promise<void> {
     const stamp = sequence;
     type RequestRow = {
       id: string;
@@ -699,7 +699,7 @@ export function setupCRM(api: Api) {
             status: stage.value,
             revision: entry.revision,
           });
-          if (active && stamp === sequence) await loadLup uspecQueue();
+          if (active && stamp === sequence) await loadLupuspecQueue();
         }),
       );
       card.append(
@@ -728,7 +728,7 @@ export function setupCRM(api: Api) {
       renderControls();
       await load();
       try {
-        await loadLup uspecQueue();
+        await loadLupuspecQueue();
       } catch (error) {
         if (active && sequence === stamp) {
           lupuspecQueue.replaceChildren(node("p", "LupuSpec requests could not be loaded."));
