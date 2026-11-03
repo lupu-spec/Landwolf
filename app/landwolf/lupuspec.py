@@ -41,7 +41,8 @@ class ConceptRequest(Base):
     __table_args__ = (
         CheckConstraint("quantity >= 1 AND quantity <= 10000"),
         CheckConstraint(
-            "status IN ('received','reviewing','quoted','approved','in_progress','delivered','closed')"
+            "status IN ('received','reviewing','quoted','approved',"
+            "'in_progress','delivered','closed')"
         ),
     )
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
