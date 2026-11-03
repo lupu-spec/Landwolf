@@ -443,16 +443,24 @@ export function setupFinance(api: Api) {
     );
     const ledgerForm = node("form");
     const ledgerFields = node("div", "", "finance-form-grid");
-    const ledgerDate = field("Cash entry date", new Date().toISOString().slice(0, 10), "date");
+    const ledgerDate = field(
+      "Cash entry date",
+      new Date().toISOString().slice(0, 10),
+      "date",
+    );
     const ledgerCapability = select(
       "Capability",
       lupuspecCapabilities,
       "studio",
     );
-    const ledgerKind = select("Entry type", {
-      receipt: "Cash receipt",
-      expense: "Expense",
-    }, "receipt");
+    const ledgerKind = select(
+      "Entry type",
+      {
+        receipt: "Cash receipt",
+        expense: "Expense",
+      },
+      "receipt",
+    );
     const ledgerAmount = field("Amount in USD", "");
     ledgerAmount.input.required = true;
     const ledgerReference = field(
@@ -498,15 +506,25 @@ export function setupFinance(api: Api) {
     });
     const ledgerRecords = node("details");
     ledgerRecords.append(
-      node("summary", "LupuSpec recorded entries (" + report.lupuspec.entries.length + ")"),
+      node(
+        "summary",
+        "LupuSpec recorded entries (" + report.lupuspec.entries.length + ")",
+      ),
     );
     for (const entry of report.lupuspec.entries) {
       ledgerRecords.append(
         node(
           "p",
-          entry.date + " · " + (lupuspecCapabilities[entry.capability as keyof typeof lupuspecCapabilities] ?? entry.capability)
-            + " · " + entry.kind + " · " + amount(entry.amount_cents)
-            + (entry.reference ? " · " + entry.reference : ""),
+          entry.date +
+            " · " +
+            (lupuspecCapabilities[
+              entry.capability as keyof typeof lupuspecCapabilities
+            ] ?? entry.capability) +
+            " · " +
+            entry.kind +
+            " · " +
+            amount(entry.amount_cents) +
+            (entry.reference ? " · " + entry.reference : ""),
         ),
       );
     }

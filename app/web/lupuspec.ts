@@ -1,7 +1,8 @@
 /** Public, same-origin LupuSpec concept intake. No browser credential storage. */
 type FormFields = HTMLInputElement | HTMLTextAreaElement;
 const form = document.querySelector<HTMLFormElement>("#concept-form");
-const status = document.querySelector<HTMLParagraphElement>("#submission-status");
+const status =
+  document.querySelector<HTMLParagraphElement>("#submission-status");
 const submit = document.querySelector<HTMLButtonElement>("#submit-request");
 
 if (form && status && submit) {

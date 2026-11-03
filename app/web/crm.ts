@@ -656,7 +656,10 @@ export function setupCRM(api: Api) {
     );
     lupuspecQueue.append(
       header,
-      node("p", "Customer submissions are not approved work orders or automatic production jobs."),
+      node(
+        "p",
+        "Customer submissions are not approved work orders or automatic production jobs.",
+      ),
     );
     const link = node("a", "Open customer intake portal");
     link.href = "/lupuspec";
@@ -667,9 +670,13 @@ export function setupCRM(api: Api) {
       const info = node("p");
       info.className = "muted";
       info.textContent =
-        entry.capability + " · " +
+        entry.capability +
+        " · " +
         new Date(entry.created_at * 1000).toLocaleDateString() +
-        " · " + entry.quantity + " requested · " + entry.status;
+        " · " +
+        entry.quantity +
+        " requested · " +
+        entry.status;
       const details = node("details");
       details.append(node("summary", "Review concept requirements"));
       details.append(node("p", entry.text));
@@ -712,7 +719,9 @@ export function setupCRM(api: Api) {
       lupuspecQueue.append(card);
     }
     if (!response.requests.length) {
-      lupuspecQueue.append(node("p", "No LupuSpec requests have been received."));
+      lupuspecQueue.append(
+        node("p", "No LupuSpec requests have been received."),
+      );
     }
   }
 
@@ -731,7 +740,9 @@ export function setupCRM(api: Api) {
         await loadLupuspecQueue();
       } catch (error) {
         if (active && sequence === stamp) {
-          lupuspecQueue.replaceChildren(node("p", "LupuSpec requests could not be loaded."));
+          lupuspecQueue.replaceChildren(
+            node("p", "LupuSpec requests could not be loaded."),
+          );
           message(error);
         }
       }

@@ -1,5 +1,11 @@
 :root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   color-scheme: light dark;
   --bg: #f3f3f3;
   --panel: #fff;
@@ -140,7 +146,9 @@ fieldset {
   padding: 1.35rem;
   min-height: 215px;
   cursor: pointer;
-  transition: border-color 0.16s, box-shadow 0.16s;
+  transition:
+    border-color 0.16s,
+    box-shadow 0.16s;
   position: relative;
 }
 
