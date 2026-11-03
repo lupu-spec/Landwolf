@@ -105,6 +105,8 @@ export function setupCRM(api: Api) {
   const controls = node("div");
   const statistics = node("section");
   statistics.className = "crm-statistics";
+  const lupuspecQueue = node("section");
+  lupuspecQueue.className = "finance-section";
   function clear() {
     downloadController?.abort();
     downloadController = undefined;
@@ -115,6 +117,7 @@ export function setupCRM(api: Api) {
     detail.replaceChildren();
     controls.replaceChildren();
     statistics.replaceChildren();
+    lupuspecQueue.replaceChildren();
     selected = "";
     contactOpener = undefined;
     page = 1;
@@ -615,17 +618,123 @@ export function setupCRM(api: Api) {
     integrations.append(form, keyBox, keys);
     controls.append(integrations);
   }
+  async function loadLup uspecQueue(): Promise<void> {
+    const stamp = sequence;
+    type RequestRow = {
+      id: string;
+      contact_id: string;
+      full_name: string;
+      email: string;
+      capability: string;
+      title: string;
+      text: string;
+      reference_url: string;
+      quantity: number;
+      status: string;
+      revision: number;
+      created_at: number;
+    };
+    const available = [
+      "received",
+      "reviewing",
+      "quoted",
+      "approved",
+      "in_progress",
+      "delivered",
+      "closed",
+    ];
+    const response = await api<{ requests: RequestRow[] }>(
+      "/api/admin/lupuspec/requests",
+    );
+    if (!active || stamp !== sequence) return;
+    lupuspecQueue.replaceChildren();
+    const header = node("div");
+    header.className = "crm-actions";
+    header.append(
+      node("h2", "LupuSpec project requests"),
+      node("p", response.requests.length + " recent requests (200 max)"),
+    );
+    lupuspecQueue.append(
+      header,
+      node("p", "Customer submissions are not approved work orders or automatic production jobs."),
+    );
+    const link = node("a", "Open customer intake portal");
+    link.href = "/lupuspec";
+    lupuspecQueue.append(link);
+    for (const entry of response.requests) {
+      const card = node("article");
+      card.className = "crm-contact";
+      const info = node("p");
+      info.className = "muted";
+      info.textContent =
+        entry.capability + " · " +
+        new Date(entry.created_at * 1000).toLocaleDateString() +
+        " · " + entry.quantity + " requested · " + entry.status;
+      const details = node("details");
+      details.append(node("summary", "Review concept requirements"));
+      details.append(node("p", entry.text));
+      if (entry.reference_url) {
+        const reference = node("a", "View linked reference design");
+        reference.href = entry.reference_url;
+        reference.target = "_blank";
+        reference.rel = "noopener noreferrer";
+        details.append(reference);
+      }
+      const actions = node("div");
+      actions.className = "crm-actions";
+      const stage = node("select");
+      stage.setAttribute("aria-label", "Request status for " + entry.title);
+      for (const value of available) {
+        const option = node("option", value.replaceAll("_", " "));
+        option.value = value;
+        stage.append(option);
+      }
+      stage.value = entry.status;
+      actions.append(
+        button("Open CRM contact", () => showContact(entry.contact_id)),
+        stage,
+        button("Update status", async () => {
+          if (stage.value === entry.status) return;
+          await api("/api/admin/lupuspec/requests/" + entry.id, "PATCH", {
+            status: stage.value,
+            revision: entry.revision,
+          });
+          if (active && stamp === sequence) await loadLup uspecQueue();
+        }),
+      );
+      card.append(
+        node("h3", entry.title),
+        node("p", entry.full_name + " · " + entry.email),
+        info,
+        details,
+        actions,
+      );
+      lupuspecQueue.append(card);
+    }
+    if (!response.requests.length) {
+      lupuspecQueue.append(node("p", "No LupuSpec requests have been received."));
+    }
+  }
+
   async function open() {
     clear();
     active = true;
     const stamp = sequence;
-    panel.append(statistics, controls, status, list, detail);
+    panel.append(statistics, lupuspecQueue, controls, status, list, detail);
     status.textContent = "Loading CRM…";
     try {
       catalog = await api<Catalog>("/api/admin/crm/projects");
       if (!active || sequence !== stamp) return;
       renderControls();
       await load();
+      try {
+        await loadLup uspecQueue();
+      } catch (error) {
+        if (active && sequence === stamp) {
+          lupuspecQueue.replaceChildren(node("p", "LupuSpec requests could not be loaded."));
+          message(error);
+        }
+      }
     } catch (e) {
       message(e);
     }
