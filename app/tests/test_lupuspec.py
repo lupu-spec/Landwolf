@@ -45,9 +45,7 @@ def test_public_intake_creates_a_crm_contact_and_request(client, capability):
     response = submit(client, payload)
     assert response.status_code == 201, response.text
     with client.app.state.factory() as session:
-        contact = session.scalar(
-            select(Contact).where(Contact.project_id == "lupuspec")
-        )
+        contact = session.scalar(select(Contact).where(Contact.project_id == "lupuspec"))
         assert contact.email == payload["email"]
         assert contact.primary_use == "lupuspec_" + capability
         assert contact.marketing_opt_in is False
@@ -120,12 +118,15 @@ def test_invalid_intake_rejected_without_customer_or_request(client, change, exp
 def test_same_origin_required_without_landwolf_login(client):
     payload = request_body()
     assert submit(client, payload, headers={}).status_code == 403
-    assert submit(
-        client, payload, headers={"Origin": "https://attacker.example"}
-    ).status_code == 403
-    assert submit(
-        client, payload, headers={"Origin": "http://testserver", "Content-Type": "text/plain"}
-    ).status_code == 415
+    assert (
+        submit(client, payload, headers={"Origin": "https://attacker.example"}).status_code == 403
+    )
+    assert (
+        submit(
+            client, payload, headers={"Origin": "http://testserver", "Content-Type": "text/plain"}
+        ).status_code
+        == 415
+    )
     assert submit(client, payload).status_code == 201
 
 
@@ -148,10 +149,7 @@ def test_status_requires_owner_csrf_and_revision(client, owner_signed_in):
     request = submit(client, request_body())
     item_id = request.json()["request_id"]
     route = "/api/admin/lupuspec/requests/" + item_id
-    assert (
-        client.patch(route, json={"status": "reviewing", "revision": 1}).status_code
-        == 403
-    )
+    assert client.patch(route, json={"status": "reviewing", "revision": 1}).status_code == 403
     first = client.patch(
         route, json={"status": "reviewing", "revision": 1}, headers=owner_signed_in
     )
@@ -179,9 +177,7 @@ def test_owner_queue_links_to_same_crm_contact(client, owner_signed_in):
     requests = response.json()["requests"]
     assert len(requests) == 1
     assert requests[0]["email"] == "lupuspec-buyer@example.com"
-    contact = client.get(
-        "/api/admin/crm/contacts/" + requests[0]["contact_id"]
-    )
+    contact = client.get("/api/admin/crm/contacts/" + requests[0]["contact_id"])
     assert contact.status_code == 200, contact.text
     assert contact.json()["contact"]["project_id"] == "lupuspec"
     report = client.get("/api/admin/crm/projects")
