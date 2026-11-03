@@ -58,7 +58,9 @@ class LupuSpecFinanceEntry(Base):
 
     __tablename__ = "lw2_lupuspec_finance_entries"
     __table_args__ = (
-        CheckConstraint("amount_cents != 0 AND amount_cents >= -100000000 AND amount_cents <= 100000000"),
+        CheckConstraint(
+            "amount_cents != 0 AND amount_cents >= -100000000 AND amount_cents <= 100000000"
+        ),
         CheckConstraint("kind IN ('receipt','expense')"),
         CheckConstraint("capability IN ('studio','software','fabrication','supply')"),
     )
