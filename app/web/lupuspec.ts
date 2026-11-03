@@ -1,4 +1,5 @@
 /** Public, same-origin LupuSpec concept intake. No browser credential storage. */
+export {};
 type FormFields = HTMLInputElement | HTMLTextAreaElement;
 const form = document.querySelector<HTMLFormElement>("#concept-form");
 const status =
