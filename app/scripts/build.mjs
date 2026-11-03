@@ -26,6 +26,16 @@ await build({
   outfile: `${output}/assets/app.js`,
   minify: true,
 });
+await build({
+  entryPoints: ["web/lupuspec.ts"],
+  bundle: true,
+  format: "iife",
+  target: "es2022",
+  outfile: `${output}/assets/lupuspec.js`,
+  minify: true,
+});
+await copyFile("web/lupuspec.html", `${output}/lupuspec.html`);
+await copyFile("web/lupuspec.css", `${output}/assets/lupuspec.css`);
 await copyFile("web/index.html", `${output}/index.html`);
 await copyFile("web/styles.css", `${output}/assets/styles.css`);
 await copyFile("web/graphite.css", `${output}/assets/graphite.css`);
