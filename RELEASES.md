@@ -1,5 +1,64 @@
 # LandWolf release log
 
+## v0.20.0 — private customer workspace candidate (not deployed)
+
+[PR #50](https://github.com/lupu-spec/Landwolf/pull/50) builds on PR #49 with
+signed-in, customer-scoped project tracking and updates; owner-reviewed Software
+factory briefs; and customer/service/project cash dimensions with separate receipt
+and cost streams. Schema 15 is additive and retains earlier requests and ledger
+records without granting access through email matches. The customer frontend uses
+the approved lupu-spec wolf mark and metallic space-grey theme.
+
+**Status: source candidate, not deployed.** Existing Render production and staging
+services/databases and the Cloudflare L91 runner are unchanged. See
+`app/docs/CUSTOMER_WORKSPACE.md` for the model and `app/docs/VERIFICATION.md` for
+verification and release requirements. This entry is not a deployment event.
+
+## v0.19.0 — LupuSpec portal candidate (not deployed)
+
+Feature branch for owner review: adds a separate LupuSpec concept-intake
+customer portal with Studio, Software, Fabrication and Supply; project-scoped
+CRM intake and owner request status review; LupuSpec-specific owner cash ledger;
+shared consolidated L91/ LandWolf finance view. Additive schema 14 migration
+and preserved LandWolf subscription/billing boundary. Automated job dispatch,
+external suppliers and customer payment capture are intentionally not enabled.
+**Status: not deployed or release-verified.** No Render service/database change,
+production acceptance or deploy event is claimed by this entry.
+See app/docs/LUPUSPEC_PORTAL.md for scope and limitations.
+
+
+## v0.18.1 — production acceptance complete
+
+**Live in production and staging; final acceptance passed.** Production hosted
+run [41211814103](https://github.com/lupu-spec/Landwolf/actions/runs/41211814103)
+passed exact v0.18.1/6eba75a identity, health/live billing configuration,
+customer/privacy/CSRF/paywall journeys, persistent browser sessions/logout and
+public responsive checks. Live smoke 41211814059 passed. Post-deploy logs had no
+runtime warning, error, source-refresh failure or quarantine event in the observed
+window. External database inspection remains intentionally blocked; stored source
+timestamps and quarantine rows were not independently queried or modified.
+No additional runtime deploy followed the documentation commits. Details and
+immutable deployment IDs are in the rollout entries below.
+
+## v0.18.1 — production deployment event, October 31, 2026
+
+**Production deployment observed; final hosted acceptance pending.**
+[PR #48](https://github.com/lupu-spec/Landwolf/pull/48) repairs IRS jurisdiction
+handling and MnDOT sale-layout parsing, guards research-goal loading and updates
+audited dependencies. The complete production source tree equals the candidate
+and staging-tested tree `5dbea6838c4846a03692ea2c4c1dc61dfdc1cf04`.
+
+- Required candidate gates: application 41208443024 and archived 41208442977 passed.
+- Staging acceptance 41211329329 passed exact identity, customer/privacy/CSRF,
+  mapped inventory, research, persistent sessions, Chromium/WebKit journeys and
+  public-page responsiveness. Staging live smoke 41211329279 passed.
+- Production runtime `6eba75a029f0eaac91958887fb69d69c976a94a7`, Render
+  `dep-dbivu7p42hec73blijog`, live 2026-10-31 14:47:00 UTC.
+- Existing services/databases, live billing, accounts, entitlements, pilot access,
+  source allowlists, last-good snapshots and quarantine controls were preserved.
+  No credentials or network permissions were changed. Final production hosted
+  acceptance is requested by this documentation-only record; it is not a redeploy.
+
 ## v0.18.1 — source layout repairs, staging deployment event
 
 **Live in isolated staging; production promotion pending.** Candidate
@@ -642,7 +701,7 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.18.0 | `7e8aaa71e3fb60948657622273c11dc135aad53c` | 2026-10-19 02:29:35 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.18.1 | `6eba75a029f0eaac91958887fb69d69c976a94a7` | 2026-10-31 14:47:00 |
 | Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.18.1 | `a82eb0b31c8adf63156b4043fbd7df13fbff49d2` | 2026-10-31 14:40:48 |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta

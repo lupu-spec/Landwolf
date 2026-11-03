@@ -1,5 +1,148 @@
 # LandWolf verification
 
+## v0.20.0 — customer workspace final source acceptance
+
+Runtime code `c250f93d776ae4368d71fb3b022cdd022cc61966` passed
+[application run 41701975411](https://github.com/lupu-spec/Landwolf/actions/runs/41701975411)
+and [isolated legacy run 41701975830](https://github.com/lupu-spec/Landwolf/actions/runs/41701975830).
+This record changes documentation only; it does not change runtime code or claim a deployment.
+
+**Passed (exit 0):** `pip install uv==0.12.11`; `uv sync --frozen --dev`;
+`npm ci`; `.venv/bin/playwright install --with-deps chromium webkit` (hosted);
+`.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check`;
+`.venv/bin/ruff check landwolf tests scripts`; `npm run lint`;
+`.venv/bin/mypy landwolf`; `npm run typecheck`; `npm run test:unit` (27);
+`.venv/bin/pytest -q -m 'not browser'` (743);
+`.venv/bin/python scripts/check_postgres.py` (disposable PostgreSQL 18);
+`.venv/bin/python scripts/check_restore.py` (actual CI service, exact 46-table digests);
+`npm run build`; `.venv/bin/pytest -q -m browser` (152);
+`.venv/bin/pytest -q -x -m browser tests/test_header_css_browser.py` (2);
+`.venv/bin/python -m build`; `.venv/bin/python scripts/check_package.py`;
+`.venv/bin/bandit -r landwolf`; `.venv/bin/pip-audit --local --skip-editable`;
+`npm audit --audit-level=moderate`; `npm run secrets`; `uv lock --check` (local);
+`git diff --check`; `git status --short` (clean at the tested runtime).
+
+All configured focused hosted browser commands also passed:
+`.venv/bin/pytest -q -m browser tests/test_commercial_browser.py` (8);
+`.venv/bin/pytest -q -m browser tests/test_public_pages_browser.py` (6);
+`.venv/bin/pytest -q -m browser tests/test_theme_browser.py` (8);
+`.venv/bin/pytest -q -m browser tests/test_source_list_browser.py` (4);
+`.venv/bin/pytest -q -m browser tests/test_mobile_research_browser.py tests/test_dock_browser.py tests/test_wolf_assistant_browser.py` (18).
+The separate legacy environment passed `pip install -r requirements.txt` and
+`PYTHONPATH=. pytest -q` (53) from `archive/legacy/`.
+
+Local final owner/customer verification passed
+`.venv/bin/pytest -q -m browser tests/test_lupuspec_browser.py tests/test_customer_portal_browser.py tests/test_finance_browser.py`
+(16, real Chromium/WebKit in the official Playwright v1.62.0 Noble container), plus
+`.venv/bin/pytest -q -m browser tests/test_customer_portal_browser.py -k 'owner and chromium' -x` (1).
+The last UI adjustment displays names plus stable customer/project references and
+copyable ledger IDs; mobile overflow is checked with a recorded receipt present.
+Two customer accounts prove project read/write isolation; owner publication,
+optimistic status changes, approved brief preparation and classified receipts persist.
+
+**Resolved/retained failures:** the opening checkpoint below records corrected
+format/import, migration-version and accessible-label issues. A host WebKit library
+failure and early constrained-container timeout were resolved using the official
+browser image with a writable temporary home and 3 GiB memory. No host-validation
+bypass or skipped test was used. An intermediate local full-browser attempt was
+interrupted for the final UI changes and is not a pass; the complete final hosted
+suite above passed. Two upstream Python deprecation warnings remain. Audits found
+no known vulnerabilities; no security gate or dependency pin was weakened.
+
+**Not run:** isolated hosted staging acceptance, production promotion/acceptance,
+live source sync or research-provider verification (no adapter changes). No live
+customer/payment data or runner credentials were used. Schema 15, access boundaries,
+source reconciliation, single-account workspaces and manual factory-review limits
+are documented in [CUSTOMER_WORKSPACE.md](CUSTOMER_WORKSPACE.md).
+
+## v0.20.0 — customer workspace candidate (local checkpoint)
+
+This source extends PR #49; no production or staging deployment is claimed.
+
+**Passed (exit 0):** `.venv/bin/ruff format --check landwolf tests scripts`;
+`npm run format:check`; `.venv/bin/ruff check landwolf tests scripts`;
+`npm run lint`; `.venv/bin/mypy landwolf`; `npm run typecheck`;
+`npm run test:unit` (27); `.venv/bin/pytest -q -m 'not browser'` (743);
+`LANDWOLF_TEST_POSTGRES_URL=<disposable-local-landwolf_ci> .venv/bin/python scripts/check_postgres.py`;
+`npm run build`; `.venv/bin/pytest -q -m browser tests/test_customer_portal_browser.py -k 'owner and chromium' -x` (1);
+`npm run secrets`; `git diff --check`.
+
+PostgreSQL 18 ran in an owned disposable Docker container on loopback. It exercised
+account/project/service/message persistence, duplicate submissions, optimistic
+work updates, cash dimensions and a second customer's denied access, alongside
+all existing integration checks. No production database or customer data was used.
+
+**Resolved failures:** new migration tests needed the WorkItem import; two existing
+migration assertions needed the new expected schema 15 (all retention assertions
+kept); owner select controls needed explicit accessible labels; asynchronous form
+tests now await their actual successful HTTP response before checking rendering.
+The v14 unclassified cash fingerprint is retained so upgrades cannot bypass its
+duplicate guard. Supply sales and purchased-parts costs use distinct stream codes.
+
+**Pending at this checkpoint:** full Chromium/WebKit browser suite, package/security
+sequence, isolated legacy tests, CI backup/restore and hosted CI. Host WebKit lacks
+system libraries, so local browser verification uses the official Playwright
+Python v1.62.0 Noble Docker image with both real engines. Tests are not skipped or
+mocked to bypass that host limitation. `check_restore.py` is CI-only and will be
+reported from the real GitHub Actions service; its environment guard is retained.
+See [customer workspace/data model](CUSTOMER_WORKSPACE.md) for scope and limitations.
+
+## v0.18.1 — production acceptance completion
+
+Production hosted run 41211814103 completed successfully after the observed
+deployment: exact identity/health and live billing mode, Chromium/WebKit phone and
+desktop customer/paywall/privacy/CSRF checks, persistent-profile cache-clear,
+restart/logout, public documents/themes and responsive budgets. Live smoke
+41211814059 passed. No post-startup runtime warning/error, source-refresh failure
+or quarantine event was logged in the observed window. External database access
+remains intentionally blocked; stored refresh timestamps/quarantine rows were not
+queried or changed. This evidence-only update does not relabel or redeploy runtime.
+
+## v0.18.1 — final source repair gates and observed rollout
+
+**Passed (exit 0):** `uv sync --frozen --dev`; `npm ci`;
+`.venv/bin/ruff format --check landwolf tests scripts`; `npm run format:check`;
+`.venv/bin/ruff check landwolf tests scripts`; `npm run lint`;
+`.venv/bin/mypy landwolf`; `npm run typecheck`; `npm run test:unit` (27);
+`.venv/bin/pytest -q -m 'not browser'` (683);
+`.venv/bin/pytest -q tests/test_minnesota.py tests/test_national.py` (52);
+`npm run build`; `.venv/bin/python -m build`;
+`.venv/bin/python scripts/check_package.py`; `.venv/bin/bandit -r landwolf`;
+`.venv/bin/pip-audit --local --skip-editable`; `.venv/bin/pip-audit -r requirements.lock`;
+`npm audit --audit-level=moderate`; `npm run secrets`; `uv lock --check`;
+`git diff --check`; `git status --short` (clean before rollout documentation).
+Both dependency audits reported no known vulnerabilities. The initial Python
+format check failed on the new regression test; formatting fixed it before all
+checks passed. No security or regression gate was weakened.
+
+**Passed in final hosted application run 41208443024:** the same static/unit/API
+commands; `.venv/bin/python scripts/check_postgres.py`;
+`.venv/bin/python scripts/check_restore.py` against disposable CI PostgreSQL;
+focused commercial/public/theme/source/mobile/dock/assistant browser suites;
+`.venv/bin/pytest -q -m browser` (142); header screenshot/cascade comparison;
+package and security gates. Archived run 41208442977 passed its separate
+`PYTHONPATH=. pytest -q`. Local PostgreSQL/restore were **Not run** (Docker absent).
+Local browser installation **Failed** (truncated CDN archives); local browser tests
+were **Not run** in this patch, and were replaced by actual successful hosted runs,
+not mocks, skips or a pass claim for the failed local installation.
+
+**Live source command passed:** `LANDWOLF_DATABASE_URL=sqlite:///<disposable-db>`
+with `LANDWOLF_LICENSED_LISTING_SOURCES=[]` and
+`.venv/bin/python -m landwolf.cli sync`: MN 5, AR 2, TX 29, USDA 19, Treasury 19,
+IRS 6, AK 2, MI 29 (111). Both `check-research` points returned partial status
+because FEMA was unavailable through this runner; Census, USGS, soil and applicable
+NC parcels succeeded. Staging's real hosted research request returned ready, so
+the runner failure is not evidence of a provider-wide or production FEMA outage.
+
+Staging `a82eb0b31c8adf63156b4043fbd7df13fbff49d2`, Render
+`dep-dbivr9ks728c738f302g`, became live at 2026-10-31 14:40:48 UTC. Its exact
+HTTPS identity/health and hosted acceptance 41211329329 passed (customer/session,
+map, research, privacy/CSRF, browser and public pages). Production
+`6eba75a029f0eaac91958887fb69d69c976a94a7`, Render
+`dep-dbivu7p42hec73blijog`, became live at 2026-10-31 14:47:00 UTC using the exact
+same tested source tree. Final production hosted acceptance remains pending at
+this checkpoint. A documentation head is not the runtime commit.
+
 ## Authorized release-unblocking patch — October 31, 2026
 
 The owner authorized layout repairs and necessary release-blocker patches before

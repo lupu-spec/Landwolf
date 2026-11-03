@@ -27,10 +27,12 @@ from landwolf import (
     billing,
     commercial,
     crm,
+    customer_portal,
     feedback,
     feedback_export,
     finance,
     hunt,
+    lupuspec,
     public_pages,
     recovery,
     research_workspace,
@@ -189,7 +191,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
-        elif request.url.path == "/" or request.url.path.startswith("/assets/"):
+        elif request.url.path in {"/", "/lupuspec"} or request.url.path.startswith("/assets/"):
             # Stable asset names must revalidate after a deployment.
             response.headers["Cache-Control"] = "no-cache"
         if settings.secure_cookies:
@@ -445,6 +447,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/admin/finance/refresh")
     def finance_refresh(request: Request, session: DB) -> dict[str, Any]:
         return finance.refresh(request, session, settings)
+
+    @app.post("/api/admin/finance/lupuspec/entries", status_code=201)
+    def lupuspec_finance_entry(
+        body: finance.LupuSpecEntryInput, request: Request, session: DB
+    ) -> dict[str, Any]:
+        return finance.add_lupuspec_entry(request, session, settings, body)
 
     @app.post("/api/admin/finance/expenses", status_code=201)
     def finance_expense(
@@ -858,6 +866,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return analyze(spec)
 
     crm.register(app, settings, factory)
+    lupuspec.register(app, settings, factory)
+    customer_portal.register(app, settings, factory)
     research_workspace.register(app, settings, factory)
 
     static = Path(__file__).resolve().parent / "static"
@@ -865,6 +875,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         index_template = (static / "index.html").read_text(encoding="utf-8")
         public_pages.register(app, settings)
         app.mount("/assets", StaticFiles(directory=static / "assets"), name="assets")
+
+        @app.get("/lupuspec", include_in_schema=False)
+        def lupuspec_portal() -> FileResponse:
+            return FileResponse(static / "lupuspec.html", media_type="text/html")
+
+        app.add_api_route(
+            "/lupuspec/",
+            public_pages.canonical_redirect("/lupuspec"),
+            methods=["GET"],
+            include_in_schema=False,
+        )
 
         @app.get("/trial-terms", include_in_schema=False)
         def trial_terms() -> FileResponse:

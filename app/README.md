@@ -1,5 +1,25 @@
 # LandWolf application
 
+## Customer workspace (v0.20.0 candidate)
+
+Private multi-service projects, customer updates, owner-reviewed factory briefs and
+customer/project/stream cash classification extend PR #49. See
+[Customer workspace and data scheme](docs/CUSTOMER_WORKSPACE.md). Not deployed.
+
+
+## LupuSpec customer portal (v0.19.0 candidate)
+
+LupuSpec, an L91 LLC business, has a separate customer concept-intake portal
+at /lupuspec on the existing LandWolf origin. Its four service categories are
+Studio, Software, Fabrication and Supply. Requests are recorded in the existing
+L91 CRM under a distinct LupuSpec project; they do not grant LandWolf access.
+The owner-only Finances board combines the existing LandWolf figures with a
+separate LupuSpec manual cash ledger and capability-specific totals.
+See [LupuSpec portal](docs/LUPUSPEC_PORTAL.md) for limitations and security.
+**This feature branch is not deployed; no automatic production dispatch or
+customer payments are enabled for LupuSpec.**
+
+
 A separate rebuild of LandWolf with the original wordmark, wolf logo, graphite/silver
 palette, and rural photography. Choose Auto, Light or Dark from Appearance in the
 header. Frosted cards, controls, dock and chat follow the same mode; the choice
