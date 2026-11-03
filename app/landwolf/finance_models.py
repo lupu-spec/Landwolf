@@ -51,3 +51,25 @@ class FinanceAudit(Base):
     action: Mapped[str] = mapped_column(String(80))
     resource_id: Mapped[str] = mapped_column(String(36))
     created_at: Mapped[int] = mapped_column(Integer)
+
+
+class LupuSpecFinanceEntry(Base):
+    """Owner-entered, append-only cash ledger separate from LandWolf Stripe billing."""
+
+    __tablename__ = "lw2_lupuspec_finance_entries"
+    __table_args__ = (
+        CheckConstraint(
+            "amount_cents != 0 AND amount_cents >= -100000000 AND amount_cents <= 100000000"
+        ),
+        CheckConstraint("kind IN ('receipt','expense')"),
+        CheckConstraint("capability IN ('studio','software','fabrication','supply')"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    fingerprint: Mapped[str] = mapped_column(String(64), unique=True)
+    date: Mapped[str] = mapped_column(String(10), index=True)
+    capability: Mapped[str] = mapped_column(String(20), index=True)
+    kind: Mapped[str] = mapped_column(String(12))
+    amount_cents: Mapped[int] = mapped_column(Integer)
+    reference: Mapped[str] = mapped_column(String(40), default="")
+    created_by: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"))
+    created_at: Mapped[int] = mapped_column(Integer)

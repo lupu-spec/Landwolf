@@ -1,5 +1,32 @@
 # LandWolf release log
 
+## v0.20.0 — private customer workspace candidate (not deployed)
+
+[PR #50](https://github.com/lupu-spec/Landwolf/pull/50) builds on PR #49 with
+signed-in, customer-scoped project tracking and updates; owner-reviewed Software
+factory briefs; and customer/service/project cash dimensions with separate receipt
+and cost streams. Schema 15 is additive and retains earlier requests and ledger
+records without granting access through email matches. The customer frontend uses
+the approved lupu-spec wolf mark and metallic space-grey theme.
+
+**Status: source candidate, not deployed.** Existing Render production and staging
+services/databases and the Cloudflare L91 runner are unchanged. See
+`app/docs/CUSTOMER_WORKSPACE.md` for the model and `app/docs/VERIFICATION.md` for
+verification and release requirements. This entry is not a deployment event.
+
+## v0.19.0 — LupuSpec portal candidate (not deployed)
+
+Feature branch for owner review: adds a separate LupuSpec concept-intake
+customer portal with Studio, Software, Fabrication and Supply; project-scoped
+CRM intake and owner request status review; LupuSpec-specific owner cash ledger;
+shared consolidated L91/ LandWolf finance view. Additive schema 14 migration
+and preserved LandWolf subscription/billing boundary. Automated job dispatch,
+external suppliers and customer payment capture are intentionally not enabled.
+**Status: not deployed or release-verified.** No Render service/database change,
+production acceptance or deploy event is claimed by this entry.
+See app/docs/LUPUSPEC_PORTAL.md for scope and limitations.
+
+
 ## v0.18.1 — production acceptance complete
 
 **Live in production and staging; final acceptance passed.** Production hosted

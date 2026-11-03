@@ -418,7 +418,7 @@ class ResearchGoal(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
 
 
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 15
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -430,8 +430,8 @@ def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
 
 
 def initialize(engine: Engine) -> None:
-    """Add private finance tables in v13; preserve existing accounts and billing."""
-    from landwolf import finance_models  # noqa: F401 -- register additive tables
+    """Add customer service boundaries in v15; preserve all existing data."""
+    from landwolf import finance_models, lupuspec, portal_models  # noqa: F401 -- additive tables
     from landwolf.crm_core import Contact, CRMBase, Project
 
     with engine.begin() as connection:
@@ -459,6 +459,8 @@ def initialize(engine: Engine) -> None:
             [10],
             [11],
             [12],
+            [13],
+            [14],
             [SCHEMA_VERSION],
         ):
             raise RuntimeError("Unsupported application schema version; migration required")
@@ -467,6 +469,10 @@ def initialize(engine: Engine) -> None:
         if connection.scalar(select(Project.id).where(Project.id == "landwolf")) is None:
             connection.execute(
                 insert(Project).values(id="landwolf", name="LandWolf", created_at=int(time.time()))
+            )
+        if connection.scalar(select(Project.id).where(Project.id == "lupuspec")) is None:
+            connection.execute(
+                insert(Project).values(id="lupuspec", name="LupuSpec", created_at=int(time.time()))
             )
         # Retain only facts already held. Legacy users have no inferred profile or consent.
         connection.execute(
@@ -481,9 +487,12 @@ def initialize(engine: Engine) -> None:
                     Account.created_at,
                     Account.created_at,
                 ).where(
+                    ~select(portal_models.Customer.id)
+                    .where(portal_models.Customer.account_id == Account.id)
+                    .exists(),
                     ~select(Contact.id)
                     .where(Contact.project_id == "landwolf", Contact.external_id == Account.id)
-                    .exists()
+                    .exists(),
                 ),
             )
         )

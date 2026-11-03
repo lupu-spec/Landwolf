@@ -43,6 +43,10 @@ USES = {
     "development": "Plan development or construction",
     "personal": "Find land for personal use",
     "exploring": "Explore the tool",
+    "lupuspec_studio": "LupuSpec Studio",
+    "lupuspec_software": "LupuSpec Software",
+    "lupuspec_fabrication": "LupuSpec Fabrication",
+    "lupuspec_supply": "LupuSpec Supply",
     "other": "Other",
 }
 STAGES = {
