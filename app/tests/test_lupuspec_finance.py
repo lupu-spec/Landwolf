@@ -28,10 +28,7 @@ def record(client, credentials, **updates):
 
 
 def test_only_owner_can_create_cash_entries(client, signed_in, owner_signed_in):
-    assert (
-        client.post("/api/admin/finance/lupuspec/entries", json=row()).status_code
-        == 403
-    )
+    assert client.post("/api/admin/finance/lupuspec/entries", json=row()).status_code == 403
     client.app.state.settings.owner_account_id = None
     assert record(client, signed_in).status_code == 403
 
@@ -82,9 +79,7 @@ def test_duplication_protection_and_credit_offset(client, owner_signed_in):
     first = record(client, owner_signed_in)
     assert first.status_code == 201, first.text
     assert record(client, owner_signed_in).status_code == 409
-    offset = record(
-        client, owner_signed_in, amount_cents=-25000, reference="reversal_A"
-    )
+    offset = record(client, owner_signed_in, amount_cents=-25000, reference="reversal_A")
     assert offset.status_code == 201, offset.text
     report = client.get("/api/admin/finance").json()
     assert report["lupuspec"]["totals"]["net_cents"] == 0
@@ -111,9 +106,7 @@ def test_invalid_financial_entry_never_writes(client, owner_signed_in, change):
         assert session.scalar(select(func.count()).select_from(LupuSpecFinanceEntry)) == 0
 
 
-def test_no_cross_product_double_count_for_original_landwolf_expenses(
-    client, owner_signed_in
-):
+def test_no_cross_product_double_count_for_original_landwolf_expenses(client, owner_signed_in):
     assert record(client, owner_signed_in, kind="expense").status_code == 201
     response = client.post(
         "/api/admin/finance/expenses",
