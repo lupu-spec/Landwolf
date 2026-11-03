@@ -1,0 +1,24 @@
+name: Factory bridge gates
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+permissions:
+  contents: read
+jobs:
+  factory:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/l91-factory-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: integrations/l91-factory-api/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm audit --audit-level=moderate

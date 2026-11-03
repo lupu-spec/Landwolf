@@ -28,6 +28,7 @@ from landwolf import (
     commercial,
     crm,
     customer_portal,
+    factory_bridge,
     feedback,
     feedback_export,
     finance,
@@ -868,6 +869,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     crm.register(app, settings, factory)
     lupuspec.register(app, settings, factory)
     customer_portal.register(app, settings, factory)
+    factory_bridge.register(app, settings, factory)
     research_workspace.register(app, settings, factory)
 
     static = Path(__file__).resolve().parent / "static"

@@ -2,8 +2,10 @@
 
 import uuid
 from datetime import UTC, datetime
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 from sqlalchemy import select
 
 from landwolf.config import Settings
@@ -69,6 +71,37 @@ def check(client: TestClient, settings: Settings, suffix: str) -> None:
             != 409
         ):
             raise RuntimeError("PostgreSQL work-item revision guard failed")
+        original_token = settings.factory_token
+        settings.factory_token = SecretStr("synthetic-postgres-bridge")
+        remote_jobs = {}
+
+        def remote(_settings, method, route, payload=None):
+            if route == "/portal/targets":
+                return {"runners": [{"projects": [{"id": "new", "runtimes": ["python"]}]}]}
+            key = route.rsplit("/", 1)[-1]
+            remote_jobs.setdefault(
+                key, {"id": key, "task_id": str(uuid.uuid4()), "state": "queued"}
+            )
+            return remote_jobs[key]
+
+        try:
+            with patch("landwolf.factory_bridge.exchange", remote):
+                approval = {
+                    "revision": 2,
+                    "project_key": "new",
+                    "runtime": "python",
+                    "confirmed": True,
+                }
+                dispatched = client.post(endpoint + "/factory", headers=headers, json=approval)
+                replay = client.post(endpoint + "/factory", headers=headers, json=approval)
+                if (
+                    dispatched.status_code != 201
+                    or replay.json() != dispatched.json()
+                    or len(remote_jobs) != 1
+                ):
+                    raise RuntimeError("PostgreSQL factory idempotency failed")
+        finally:
+            settings.factory_token = original_token
         entry = client.post(
             "/api/admin/finance/lupuspec/entries",
             headers=headers,
