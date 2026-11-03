@@ -617,6 +617,7 @@ export function setupFinance(api: Api) {
             amount(entry.amount_cents) +
             (entry.reference ? " · " + entry.reference : ""),
         ),
+        node("p", "ENTRY ID · " + entry.id, "finance-entry-id"),
       );
     }
     lupuspecLedger.append(ledgerForm, ledgerRecords);
@@ -676,13 +677,21 @@ export function setupFinance(api: Api) {
           node(
             "p",
             row.customer_id
-              ? "CUSTOMER · " + row.customer_id.slice(0, 8)
+              ? "CUSTOMER · " +
+                  (catalog.customers.find((c) => c.id === row.customer_id)
+                    ?.name || "CUSTOMER") +
+                  " · " +
+                  row.customer_id.slice(0, 8)
               : "UNASSIGNED",
           ),
           node(
             "p",
             row.project_id
-              ? "PROJECT · " + row.project_id.slice(0, 8)
+              ? "PROJECT · " +
+                  (catalog.work.find((w) => w.request_id === row.project_id)
+                    ?.title || "PROJECT") +
+                  " · " +
+                  row.project_id.slice(0, 8)
               : "NO PROJECT",
           ),
         );

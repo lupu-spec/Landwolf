@@ -3514,6 +3514,9 @@ select {
   }
 }
 
+.finance-entry-id {
+  overflow-wrap: anywhere;
+}
 .customer-management {
   display: grid;
   gap: 1rem;

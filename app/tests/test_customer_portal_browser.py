@@ -151,7 +151,18 @@ def test_owner_customer_update_and_classified_finance(browser_server, engine):
         expect(
             owner.locator("#finance-panel").get_by_text("RECEIPTS · $250.00", exact=True)
         ).to_be_visible()
+        expect(owner.locator("#finance-panel")).to_contain_text(
+            "CUSTOMER · Synthetic Portal Customer"
+        )
+        expect(owner.locator("#finance-panel")).to_contain_text(
+            "PROJECT · Synthetic workshop controller"
+        )
+        owner.get_by_text("LupuSpec recorded entries (1)", exact=True).click()
+        expect(owner.locator(".finance-entry-id")).to_contain_text("ENTRY ID · ")
         assert page.request.get(origin + "/api/admin/finance").status == 403
+        owner.set_viewport_size({"width": 390, "height": 950})
+        assert owner.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        owner.set_viewport_size({"width": 1440, "height": 1000})
         Path("test-results").mkdir(exist_ok=True)
         owner.screenshot(path=f"test-results/customer-finance-{engine}.png", full_page=True)
         browser.close()
