@@ -31,6 +31,7 @@ export function factoryRun(
   const content = element("div", "customer-management");
   panel.append(content);
   let generation = 0;
+  let poll: ReturnType<typeof setTimeout> | undefined;
   const endpoint = "/api/admin/portal/work/" + work.id + "/factory";
   function button(
     label: string,
@@ -55,6 +56,7 @@ export function factoryRun(
   const message = element("p");
   message.setAttribute("role", "status");
   async function load() {
+    clearTimeout(poll);
     const stamp = ++generation;
     const current = () => isActive() && stamp === generation && panel.open;
     content.replaceChildren(element("p", "", "LOADING…"));
@@ -102,6 +104,22 @@ export function factoryRun(
           "RESULTS STAY PRIVATE UNTIL YOU PUBLISH AN UPDATE. CODE IS NOT APPLIED OR DEPLOYED.",
         ),
       );
+      if (["queued", "running"].includes(dispatch.state)) {
+        content.append(
+          element(
+            "p",
+            "muted",
+            "UPDATES EVERY 5 SECONDS WHILE THIS PANEL IS OPEN.",
+          ),
+        );
+        poll = setTimeout(() => {
+          if (current() && document.visibilityState === "visible")
+            void load().catch(() => {
+              if (isActive() && panel.open)
+                message.textContent = "STATUS UNAVAILABLE. REFRESH TO RETRY.";
+            });
+        }, 5000);
+      }
       if (dispatch.state !== "pending") return;
     }
     if (work.status !== "approved") {
@@ -224,6 +242,7 @@ export function factoryRun(
   }
   panel.addEventListener("toggle", () => {
     if (!panel.open) {
+      clearTimeout(poll);
       generation++;
       return;
     }

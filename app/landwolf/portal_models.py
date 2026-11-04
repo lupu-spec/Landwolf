@@ -16,9 +16,19 @@ from landwolf.db import Base
 class Customer(Base):
     __tablename__ = "lw2_customers"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), unique=True)
+    account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("lw2_accounts.id"), unique=True, nullable=True
+    )
     name: Mapped[str] = mapped_column(String(120))
     created_at: Mapped[int] = mapped_column(Integer)
+
+
+class GuestAccess(Base):
+    """An owner-verified account may view one prepared guest customer; never email-matched."""
+
+    __tablename__ = "lw2_guest_access"
+    customer_id: Mapped[str] = mapped_column(ForeignKey("lw2_customers.id"), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("lw2_accounts.id"), index=True)
 
 
 class ServiceAccount(Base):

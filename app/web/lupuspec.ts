@@ -227,6 +227,30 @@ async function detail(id: string) {
       element("strong", "", title(item.service)),
       element("span", "status-tag", title(item.status)),
     );
+    if (item.service === "software") {
+      const progress = element("span", "note", "FACTORY · LOADING");
+      row.append(progress);
+      const refresh = element("button", "", "REFRESH PROGRESS");
+      refresh.type = "button";
+      const update = async () => {
+        refresh.disabled = true;
+        try {
+          const state = await api<{ state: string }>(
+            "/api/portal/work/" + item.id + "/factory",
+          );
+          if (stamp === generation && selected === id)
+            progress.textContent = "FACTORY · " + title(state.state);
+        } catch {
+          if (stamp === generation && selected === id)
+            progress.textContent = "FACTORY · STATUS UNAVAILABLE";
+        } finally {
+          refresh.disabled = false;
+        }
+      };
+      refresh.addEventListener("click", () => void update());
+      row.append(refresh);
+      void update();
+    }
     work.append(row);
   }
   view.append(
@@ -430,7 +454,9 @@ form.addEventListener("submit", async (event) => {
     submissionId = crypto.randomUUID();
     showSession();
     submissionStatus.textContent =
-      "Request received. Reference: " + (result.id || result.request_id) + ".";
+      "Request received. Reference: " +
+      (result.id || result.request_id) +
+      ". WAITING FOR OWNER REVIEW. NO FACTORY RUN YET.";
     if (session.authenticated && result.id) {
       const customerEmail = session.email;
       try {

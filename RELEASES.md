@@ -1,5 +1,22 @@
 # LandWolf release log
 
+## v0.22.1 — delivery-status correction candidate (not deployed)
+
+The owner’s persisted DELIVERED/CLOSED decision replaces AWAITING REVIEW in customer
+factory progress, while preserving account scope and keeping private results hidden.
+This follows the staged v0.22.0 candidate. Final gates and promotion remain pending.
+
+## v0.22.0 — guest request workflow candidate (not deployed)
+
+Owner preparation connects guest inquiries to service work without granting account access.
+Explicit verified-account linkage retains stable customer/work identities. Software work
+uses the existing approval and idempotent dispatch boundaries; owners see live run updates,
+and signed-in customers see allowlisted progress without private code or runner details.
+The intake form requires an explicit service selection. Schema 17 permits accountless
+customer entities and adds verified guest access records. Follow docs/PDCA_RELEASE.md.
+Release gates and hosted acceptance are pending; no production promotion is claimed.
+
+
 ## v0.21.0 — customer-to-factory connection deployed
 
 - Staging: `591f6ab766a193db9be155379fa1da9b6f91767c`, Render `dep-dbl7ad6tlv9c73b6sc6g`, live 2026-11-03 23:59:52 UTC.
