@@ -78,7 +78,7 @@ def test_v16_customer_migration_preserves_links(client):
         engine = session.get_bind()
     with engine.begin() as connection:
         connection.exec_driver_sql(
-            "CREATE TABLE old_customers (id VARCHAR(36) PRIMARY KEY, "
+            "CREATE TABLE old_customers (id VARCHAR(36) NOT NULL PRIMARY KEY, "
             "account_id VARCHAR(36) NOT NULL UNIQUE REFERENCES lw2_accounts(id), "
             "name VARCHAR(120) NOT NULL, created_at INTEGER NOT NULL)"
         )
@@ -91,6 +91,10 @@ def test_v16_customer_migration_preserves_links(client):
     assert client.get("/api/portal/projects/" + item["id"]).status_code == 200
     with engine.connect() as connection:
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
+        columns = {
+            row[1]: row[3] for row in connection.exec_driver_sql("PRAGMA table_info(lw2_customers)")
+        }
+        assert columns["id"] == 1 and columns["account_id"] == 0
 
 
 def test_prepared_guest_can_be_explicitly_linked_without_moving_work(client, owner_signed_in):

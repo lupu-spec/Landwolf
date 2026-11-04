@@ -481,7 +481,7 @@ def initialize(engine: Engine) -> None:
                 else:
                     connection.exec_driver_sql("PRAGMA defer_foreign_keys=ON")
                     connection.exec_driver_sql(
-                        "CREATE TABLE lw2_customers_v17 (id VARCHAR(36) PRIMARY KEY, "
+                        "CREATE TABLE lw2_customers_v17 (id VARCHAR(36) NOT NULL PRIMARY KEY, "
                         "account_id VARCHAR(36) UNIQUE REFERENCES lw2_accounts(id), "
                         "name VARCHAR(120) NOT NULL, created_at INTEGER NOT NULL)"
                     )
