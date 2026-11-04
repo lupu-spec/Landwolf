@@ -263,3 +263,23 @@ def test_customer_progress_is_allowlisted_and_results_stay_private(client, appro
     assert client.get(public_path).status_code == 404
     client.cookies.clear()
     assert client.get(public_path).status_code == 401
+
+
+@pytest.mark.parametrize(
+    "status, expected", [("FAILED_OR_BLOCKED", "failed"), ("VERIFIED_SANDBOX", "completed")]
+)
+def test_finished_job_preserves_acceptance_outcome(client, approved, status, expected):
+    headers, path, jobs, _, _ = approved
+    dispatch = client.post(path + "/factory", headers=headers, json=BODY).json()["dispatch"]
+    jobs[dispatch["id"]].update(
+        state="completed", result={"patch": "private code", "report": {"status": status}}
+    )
+    result = client.get(path + "/factory").json()["dispatch"]
+    assert result["state"] == expected
+    assert result["result"]["report"]["status"] == status
+    if expected == "failed":
+        assert "CHECKS FAILED" in result["message"]
+    public_path = path.replace("/api/admin/portal/", "/api/portal/") + "/factory"
+    assert client.get(public_path).json() == {
+        "state": "awaiting_review" if expected == "completed" else "failed"
+    }

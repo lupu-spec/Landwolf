@@ -108,6 +108,15 @@ def visible(dispatch: FactoryDispatch, remote: dict[str, Any] | None = None) -> 
             message=str(remote.get("message", ""))[:500],
             result=remote.get("result"),
         )
+        output = remote.get("result")
+        report = output.get("report") if isinstance(output, dict) else None
+        if (
+            result["state"] == "completed"
+            and isinstance(report, dict)
+            and report.get("status") == "FAILED_OR_BLOCKED"
+        ):
+            result["state"] = "failed"
+            result["message"] = "FACTORY CHECKS FAILED. REVIEW THE REPORT. CODE WAS NOT APPLIED."
     return result
 
 
