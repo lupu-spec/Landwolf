@@ -418,7 +418,7 @@ class ResearchGoal(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
 
 
-SCHEMA_VERSION = 16
+SCHEMA_VERSION = 17
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -467,9 +467,32 @@ def initialize(engine: Engine) -> None:
             [13],
             [14],
             [15],
+            [16],
             [SCHEMA_VERSION],
         ):
             raise RuntimeError("Unsupported application schema version; migration required")
+        if inspect(connection).has_table("lw2_customers"):
+            columns = inspect(connection).get_columns("lw2_customers")
+            if not next(c for c in columns if c["name"] == "account_id")["nullable"]:
+                if engine.dialect.name == "postgresql":
+                    connection.execute(
+                        text("ALTER TABLE lw2_customers ALTER COLUMN account_id DROP NOT NULL")
+                    )
+                else:
+                    connection.exec_driver_sql("PRAGMA defer_foreign_keys=ON")
+                    connection.exec_driver_sql(
+                        "CREATE TABLE lw2_customers_v17 (id VARCHAR(36) NOT NULL PRIMARY KEY, "
+                        "account_id VARCHAR(36) UNIQUE REFERENCES lw2_accounts(id), "
+                        "name VARCHAR(120) NOT NULL, created_at INTEGER NOT NULL)"
+                    )
+                    connection.exec_driver_sql(
+                        "INSERT INTO lw2_customers_v17 "
+                        "SELECT id, account_id, name, created_at FROM lw2_customers"
+                    )
+                    connection.exec_driver_sql("DROP TABLE lw2_customers")
+                    connection.exec_driver_sql(
+                        "ALTER TABLE lw2_customers_v17 RENAME TO lw2_customers"
+                    )
         Base.metadata.create_all(connection)
         CRMBase.metadata.create_all(connection)
         if connection.scalar(select(Project.id).where(Project.id == "landwolf")) is None:

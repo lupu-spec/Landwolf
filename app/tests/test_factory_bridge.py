@@ -221,7 +221,7 @@ def test_v15_migration_preserves_accounts_work_and_dispatch(client, approved):
     with client.app.state.factory() as session:
         assert session.scalar(select(func.count()).select_from(Account)) == account_count
         assert session.scalar(select(func.count()).select_from(WorkItem)) == work_count
-        assert session.scalar(select(SchemaVersion.version)) == 16
+        assert session.scalar(select(SchemaVersion.version)) == 17
     assert client.get(path + "/factory").json() == first
 
 
@@ -249,3 +249,37 @@ def test_transport_never_follows_redirects_or_leaks_errors(client, monkeypatch, 
         bridge.exchange(settings, "GET", "/portal/targets")
     assert error.value.status_code == 503
     assert "private" not in error.value.detail
+
+
+def test_customer_progress_is_allowlisted_and_results_stay_private(client, approved):
+    headers, path, jobs, _, _ = approved
+    result = client.post(path + "/factory", headers=headers, json=BODY).json()["dispatch"]
+    jobs[result["id"]].update(
+        state="completed", result={"patch": "private code", "report": {"private": "local paths"}}
+    )
+    public_path = path.replace("/api/admin/portal/", "/api/portal/") + "/factory"
+    assert client.get(public_path).json() == {"state": "awaiting_review"}
+    join(client, "other-progress@example.com")
+    assert client.get(public_path).status_code == 404
+    client.cookies.clear()
+    assert client.get(public_path).status_code == 401
+
+
+@pytest.mark.parametrize(
+    "status, expected", [("FAILED_OR_BLOCKED", "failed"), ("VERIFIED_SANDBOX", "completed")]
+)
+def test_finished_job_preserves_acceptance_outcome(client, approved, status, expected):
+    headers, path, jobs, _, _ = approved
+    dispatch = client.post(path + "/factory", headers=headers, json=BODY).json()["dispatch"]
+    jobs[dispatch["id"]].update(
+        state="completed", result={"patch": "private code", "report": {"status": status}}
+    )
+    result = client.get(path + "/factory").json()["dispatch"]
+    assert result["state"] == expected
+    assert result["result"]["report"]["status"] == status
+    if expected == "failed":
+        assert "CHECKS FAILED" in result["message"]
+    public_path = path.replace("/api/admin/portal/", "/api/portal/") + "/factory"
+    assert client.get(public_path).json() == {
+        "state": "awaiting_review" if expected == "completed" else "failed"
+    }

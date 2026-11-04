@@ -383,6 +383,40 @@ def main() -> None:
             )
             settings.owner_account_id = owner.id
             participant_id = participant.id
+        # Guest intake must survive preparation and explicit verified-account linkage.
+        from test_lupuspec import request_body
+
+        from landwolf.customer_portal import customer_for
+
+        guest = client.post(
+            "/api/lupuspec/requests",
+            headers=headers,
+            json=request_body(email=f"guest-{suffix}@example.com", capability="studio"),
+        )
+        require(guest.status_code == 201, "PostgreSQL guest intake failed")
+        guest_path = "/api/admin/portal/projects/" + guest.json()["request_id"]
+        prepare = {"revision": 1, "service": "software", "confirmed": True}
+        prepared = client.post(guest_path + "/prepare", headers=owner_headers, json=prepare)
+        require(prepared.status_code == 200, "PostgreSQL guest preparation failed")
+        require(
+            client.post(guest_path + "/prepare", headers=owner_headers, json=prepare).json()
+            == prepared.json(),
+            "PostgreSQL guest replay differed",
+        )
+        with app.state.factory() as session:
+            customer = customer_for(session, session.get_one(Account, owner.id), create=True)
+            customer_id = customer.id
+            session.commit()
+        linked = client.post(
+            guest_path + "/link",
+            headers=owner_headers,
+            json={"customer_id": customer_id, "identity_confirmed": True},
+        )
+        require(linked.status_code == 200, "PostgreSQL guest account linkage failed")
+        require(
+            client.get("/api/portal/projects/" + guest.json()["request_id"]).status_code == 200,
+            "PostgreSQL guest visibility failed",
+        )
         # Populate every additive finance table so the exact-content restore includes
         # monetary entries, forecast assumptions, owner audit and cached aggregate facts.
         financial_entry = client.post(

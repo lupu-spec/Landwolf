@@ -1,5 +1,46 @@
 # LandWolf release log
 
+## v0.22.0 — guest request workflow candidate (not deployed)
+
+Owner preparation connects guest inquiries to service work without granting account access.
+Explicit verified-account linkage retains stable customer/work identities. Software work
+uses the existing approval and idempotent dispatch boundaries; owners see live run updates,
+and signed-in customers see allowlisted progress without private code or runner details.
+The intake form requires an explicit service selection. Schema 17 permits accountless
+customer entities and adds verified guest access records. Follow docs/PDCA_RELEASE.md.
+Release gates and hosted acceptance are pending; no production promotion is claimed.
+
+
+## v0.21.0 — customer-to-factory connection deployed
+
+- Staging: `591f6ab766a193db9be155379fa1da9b6f91767c`, Render `dep-dbl7ad6tlv9c73b6sc6g`, live 2026-11-03 23:59:52 UTC.
+- Production: `b93e42f164cbb3779210a6c0ac937c9b3809ec5c`, Render `dep-dbl7f00m7kps739gk1i0`, live 2026-11-04 00:09:33 UTC.
+
+Both services were observed healthy on version 0.21.0 and schema 16. The approved
+customer Software brief now transfers from owner CRM to the paired local factory.
+Owners can review, run, refresh and cancel without manually copying requirements.
+Dispatch identity and approval are durable; a retry cannot create a second job.
+Results remain private to the owner. Customer records, services and financial
+streams retain their existing boundaries; no generated code is applied or released.
+
+Factory Worker version b04997e9-c0c0-4dd1-9538-a0eb70f04f72 includes additive D1
+migration 0005 and separate scoped staging/production connections. The original
+outbound-only runner, Docker isolation and model configuration are retained.
+A real LFM3 run produced a patch and passed all seven independent Docker tests;
+original source remained unchanged. Both hosted environments passed customer
+isolation, factory access rejection, persistence, CSRF, browser and public-site checks.
+
+Candidate source is e66dc714b35c66960d91ef606073a0f268038852, tree
+299003a559662e93a556cd442faf19fabe928de0. Application CI 41739045354, factory CI
+41739045194 and legacy CI 41739045164 passed. The earlier hosted workflow ran
+before deployment and failed its expected-version check; no account tests ran.
+Post-deploy checks use the observed runtime commit explicitly.
+
+Schema 16 is additive. A rollback to the old schema-15 application requires a
+reconciled database recovery; use a tested forward fix rather than a code-only rollback.
+The normal database backup/restore rehearsal passed against disposable PostgreSQL.
+This documentation record does not trigger another runtime deployment.
+
 ## v0.21.0 — customer-to-factory connection candidate
 
 Owner-approved Software requests can be sent from CRM to the existing paired local
@@ -740,8 +781,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.20.0 | `b4b647fe222f20f800ba9305452c2d4af2bc3b55` | 2026-11-03 23:02:23 |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.20.0 | `03520d37b203fbb4916d9551b7d556bdd07daac5` | 2026-11-03 22:49:04 |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.21.0 | `b93e42f164cbb3779210a6c0ac937c9b3809ec5c` | 2026-11-04 00:09:33 UTC |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.21.0 | `591f6ab766a193db9be155379fa1da9b6f91767c` | 2026-11-03 23:59:52 UTC |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 

@@ -61,3 +61,59 @@ def test_approve_run_lost_acknowledgement_and_private_result(browser_server, eng
         )
         assert owner.evaluate("document.documentElement.scrollWidth <= innerWidth")
         browser.close()
+
+
+@pytest.mark.parametrize("browser_server", ["factory_owner"], indirect=True)
+@pytest.mark.parametrize("engine", ["chromium", "webkit"])
+@pytest.mark.parametrize("width", [390, 1440])
+def test_guest_inquiry_prepared_approved_and_result_persists(browser_server, engine, width):
+    origin, _ = browser_server
+    with sync_playwright() as pw:
+        browser = getattr(pw, engine).launch()
+        guest = browser.new_page()
+        guest.goto(origin + "/lupuspec")
+        assert guest.locator('input[name="capability"]:checked').count() == 0
+        guest.get_by_text("Studio", exact=True).click()
+        guest.get_by_label("Project title", exact=True).fill("Guest calculator request")
+        guest.get_by_label("Concept and requirements", exact=True).fill(
+            "Create a calculator webpage with a funny animated cartoon character."
+        )
+        guest.get_by_label("Full name", exact=True).fill("Guest Test Customer")
+        guest.get_by_label("Email", exact=True).fill("guest-calculator@example.com")
+        guest.get_by_label("I authorize L91 LLC to contact me about this project.").check()
+        with guest.expect_response("**/api/lupuspec/requests") as submitted:
+            guest.get_by_role("button", name="Submit project request").click()
+        request_id = submitted.value.json()["request_id"]
+        expect(guest.locator("#submission-status")).to_contain_text("WAITING FOR OWNER REVIEW")
+        owner = browser.new_page(viewport={"width": width, "height": 950})
+        owner.goto(origin)
+        owner.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
+        owner.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        owner.locator("#auth-submit").click()
+        expect(owner.locator(".property-card").first).to_be_visible()
+        owner.locator("#crm-nav").click()
+        owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
+        owner.get_by_label("WORK SERVICE", exact=True).select_option("software")
+        owner.get_by_role("button", name="PREPARE WORK", exact=True).click()
+        owner.get_by_label("SOFTWARE", exact=True).select_option("approved")
+        owner.get_by_role("button", name="SAVE WORK STATUS", exact=True).click()
+        owner.locator('details[data-work-status="approved"] summary').click()
+        expect(owner.locator("#crm-panel")).to_contain_text("Create a calculator webpage")
+        owner.get_by_label("ACCEPTANCE REQUIREMENTS", exact=True).fill("RETURN SYNTHETIC RESULT")
+        owner.get_by_label(
+            "I REVIEWED THIS REQUEST AND APPROVE RUNNING IT ON MY MACHINE.", exact=True
+        ).check()
+        owner.get_by_role("button", name="RUN REQUEST", exact=True).click()
+        expect(owner.locator("#crm-panel")).to_contain_text(
+            "Factory unavailable; retry this request"
+        )
+        owner.get_by_role("button", name="REFRESH RUN", exact=True).click()
+        expect(owner.locator("#crm-panel")).to_contain_text("RESULT FOR OWNER REVIEW")
+        owner.reload()
+        owner.locator("#crm-nav").click()
+        owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
+        owner.locator('details[data-work-status="approved"] summary').click()
+        expect(owner.locator("#crm-panel")).to_contain_text("COMPLETED")
+        assert guest.request.get(origin + "/api/admin/portal/projects/" + request_id).status == 401
+        assert owner.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        browser.close()
