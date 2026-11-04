@@ -1,6 +1,7 @@
 /** Owner tools for publishing a customer-safe update and preparing a reviewed handoff. */
 import type { Api } from "./crm";
 import { element } from "./dom";
+import { factoryRun } from "./factory-run";
 
 type Project = {
   customer_id: string;
@@ -72,51 +73,8 @@ export function customerManagement(
           }
         });
         wrap.append(label, save);
-        if (work.service === "software" && work.status === "approved") {
-          const handoff = element("button", "button", "PREPARE FACTORY BRIEF");
-          handoff.type = "button";
-          handoff.addEventListener("click", async () => {
-            handoff.disabled = true;
-            try {
-              const brief = await api<{
-                title: string;
-                goal: string;
-                work_item_id: string;
-              }>("/api/admin/portal/work/" + work.id + "/handoff", "POST", {});
-              if (!live(stamp)) return;
-              const review = element("label", "", "REVIEW BEFORE RUNNING");
-              const text = element("textarea");
-              text.readOnly = true;
-              text.rows = 7;
-              text.value =
-                brief.title +
-                "\n\n" +
-                brief.goal +
-                "\n\nWork reference: " +
-                brief.work_item_id;
-              review.append(text);
-              const open = element("a", "button", "OPEN L91 FACTORY");
-              open.href = "https://l91.landwolf.ai/";
-              open.target = "_blank";
-              open.rel = "noopener noreferrer";
-              wrap.append(
-                review,
-                open,
-                element(
-                  "p",
-                  "muted",
-                  "Copy the reviewed brief into a new L91 task. Preparing it does not run code.",
-                ),
-              );
-            } catch (e) {
-              if (live(stamp))
-                status.textContent =
-                  e instanceof Error ? e.message : "Unable to prepare brief.";
-            } finally {
-              handoff.disabled = false;
-            }
-          });
-          wrap.append(handoff);
+        if (work.service === "software") {
+          wrap.append(factoryRun(api, work, () => live(stamp)));
         }
         content.append(wrap);
       }

@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     auto_sync: bool = True
     licensed_listing_sources: tuple[str, ...] = Field(default=(), max_length=52)
     owner_account_id: str | None = Field(default=None, pattern=r"^[0-9a-fA-F-]{36}$")
+    factory_token: SecretStr | None = Field(default=None, repr=False)
     payments_enabled: bool = False
     feedback_trial_launch_at: int = Field(default=0, ge=0)
     stripe_secret_key: SecretStr | None = Field(default=None, repr=False)

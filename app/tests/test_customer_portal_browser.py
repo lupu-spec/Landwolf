@@ -1,6 +1,5 @@
 """Customer → same-origin API → durable service records → owner update → customer."""
 
-import re
 from pathlib import Path
 
 import pytest
@@ -135,10 +134,8 @@ def test_owner_customer_update_and_classified_finance(browser_server, engine):
         owner.get_by_label("SOFTWARE", exact=True).locator("..").locator("..").get_by_role(
             "button", name="SAVE WORK STATUS"
         ).click()
-        owner.get_by_role("button", name="PREPARE FACTORY BRIEF").click()
-        expect(owner.get_by_label("REVIEW BEFORE RUNNING")).to_have_value(
-            re.compile(".*Customer-visible.*", re.DOTALL)
-        )
+        owner.locator('details[data-work-status="approved"] summary').click()
+        expect(owner.locator("#crm-panel")).to_contain_text("Factory connection is not configured")
         owner.locator("#finance-nav").click()
         owner.get_by_label("Capability", exact=True).select_option("software")
         owner.get_by_label("Customer / project work", exact=True).select_option(index=1)

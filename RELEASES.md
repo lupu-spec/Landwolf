@@ -1,5 +1,13 @@
 # LandWolf release log
 
+## v0.21.0 — customer-to-factory connection candidate
+
+Owner-approved Software requests can be sent from CRM to the existing paired local
+runner with durable, idempotent dispatch and private results. Schema 16 adds one
+dispatch table. Cloudflare migration 0005 adds a scoped server connection and job
+mapping; existing local sandbox and machine credentials are unchanged. Candidate
+only; production remains v0.20.0 until an observed deployment is recorded below.
+
 ## v0.20.0 — production and staging acceptance complete, November 3, 2026
 
 Customer portal: https://landwolf.ai/lupuspec. PR #50 was merged into PR #49,
