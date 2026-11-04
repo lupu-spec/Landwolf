@@ -1,5 +1,11 @@
 # LandWolf release log
 
+## v0.22.1 — delivery-status correction candidate (not deployed)
+
+The owner’s persisted DELIVERED/CLOSED decision replaces AWAITING REVIEW in customer
+factory progress, while preserving account scope and keeping private results hidden.
+This follows the staged v0.22.0 candidate. Final gates and promotion remain pending.
+
 ## v0.22.0 — guest request workflow candidate (not deployed)
 
 Owner preparation connects guest inquiries to service work without granting account access.

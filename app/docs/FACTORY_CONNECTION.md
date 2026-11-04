@@ -1,9 +1,13 @@
 # Customer requests and local factory
 
-Owners open CRM → CUSTOMER WORKSPACE, set Software work to APPROVED, then open
+Owners open CRM → CUSTOMER WORKSPACE. For a guest inquiry without service work,
+choose WORK SERVICE and PREPARE WORK. This preserves the original brief and customer
+identity without granting account access or running code. Set Software work to
+APPROVED, then open
 FACTORY RUN. Review the exact submitted requirements, choose a registered project
 and runtime, add acceptance requirements, check the approval box and choose RUN REQUEST.
-REFRESH RUN loads status and the returned report/patch. CANCEL RUN stops queued work
+Queued/running work refreshes every five seconds while the panel is open and visible.
+REFRESH RUN also loads status and the returned report/patch. CANCEL RUN stops queued work
 or stops active work at its next heartbeat. Results are owner-only; publish a separate
 customer update when ready. The local machine must be awake with Ollama, Docker and
 l91-runner.service running. Offline requests remain queued.
@@ -48,8 +52,15 @@ concurrent machine jobs; cancellation rejects late uploads.
 
 A pending local record means delivery is unknown, not proof that no job ran. Refresh
 or retry the same request; never create a duplicate project to recover a timeout.
-Unavailable credentials preserve the record and fail closed. Status is explicitly
-refreshed, not continuously polled. Result claims are shown as reported by the runner.
+Unavailable credentials preserve the record and fail closed. A FAILED_OR_BLOCKED
+acceptance report is shown as FAILED even when transport completed. Customers can
+refresh allowlisted progress; completed generation shows AWAITING REVIEW until the
+owner records DELIVERED or CLOSED. Private code and reports are owner-only.
+
+Schema 17 permits guest Customer entities without an account and adds GuestAccess.
+An owner must verify and explicitly link a registered account before it can read
+a guest project. Matching email text never grants access; customer, service, work
+and financial identities remain stable.
 
 ## Deployment
 

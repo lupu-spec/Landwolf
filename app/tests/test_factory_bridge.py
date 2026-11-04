@@ -283,3 +283,25 @@ def test_finished_job_preserves_acceptance_outcome(client, approved, status, exp
     assert client.get(public_path).json() == {
         "state": "awaiting_review" if expected == "completed" else "failed"
     }
+
+
+@pytest.mark.parametrize("status", ["delivered", "closed"])
+def test_customer_delivery_supersedes_factory_review_without_losing_scope(client, approved, status):
+    headers, path, jobs, calls, _ = approved
+    dispatch = client.post(path + "/factory", headers=headers, json=BODY).json()["dispatch"]
+    jobs[dispatch["id"]].update(
+        state="completed",
+        result={"patch": "private code", "report": {"status": "VERIFIED_SANDBOX"}},
+    )
+    assert (
+        client.patch(path, headers=headers, json={"revision": 2, "status": status}).status_code
+        == 200
+    )
+    public_path = path.replace("/api/admin/portal/", "/api/portal/") + "/factory"
+    previous_calls = len(calls)
+    assert client.get(public_path).json() == {"state": status}
+    assert len(calls) == previous_calls
+    join(client, "other-delivery@example.com")
+    assert client.get(public_path).status_code == 404
+    client.cookies.clear()
+    assert client.get(public_path).status_code == 401
