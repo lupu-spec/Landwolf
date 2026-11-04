@@ -118,6 +118,28 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
 
     DB = Annotated[Session, Depends(db)]
 
+    @app.get("/api/portal/work/{work_id}/factory")
+    def customer_status(work_id: str, request: Request, session: DB) -> dict[str, str]:
+        from landwolf.customer_portal import scoped_project
+
+        account = auth.authenticate(request, session, settings)
+        auth.limit(session, f"customer-factory-status:{account.id}", 60, 60)
+        work = session.get(WorkItem, work_id)
+        if work is None:
+            raise HTTPException(404, "Work not found")
+        scoped_project(session, account, work.request_id)
+        dispatch = session.scalar(select(FactoryDispatch).where(FactoryDispatch.work_id == work_id))
+        if dispatch is None:
+            return {"state": "not_started"}
+        try:
+            remote = visible(dispatch, exchange(settings, "GET", "/portal/jobs/" + dispatch.id))
+        except HTTPException as error:
+            if error.status_code not in {404, 502, 503}:
+                raise
+            return {"state": "status_unavailable"}
+        # No code, report, local paths, job IDs, errors or contact data cross this boundary.
+        return {"state": "awaiting_review" if remote["state"] == "completed" else remote["state"]}
+
     @app.get("/api/admin/portal/factory/targets")
     def targets(request: Request, session: DB) -> dict[str, Any]:
         owner = admin.require_owner(request, session, settings, write=False)

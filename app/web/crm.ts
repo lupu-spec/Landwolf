@@ -716,7 +716,12 @@ export function setupCRM(api: Api) {
         info,
         details,
         actions,
-        customerManagement(api, entry.id, () => active && stamp === sequence),
+        customerManagement(
+          api,
+          entry.id,
+          entry.revision,
+          () => active && stamp === sequence,
+        ),
       );
       lupuspecQueue.append(card);
     }

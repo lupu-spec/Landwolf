@@ -7,7 +7,7 @@ from typing import Annotated, Any, Literal, Self
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from pydantic import Field, field_validator, model_validator
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -25,6 +25,7 @@ from landwolf.lupuspec import (
 from landwolf.portal_models import (
     Customer,
     CustomerProject,
+    GuestAccess,
     PortalAudit,
     ProjectMessage,
     ServiceAccount,
@@ -58,6 +59,12 @@ class ProjectInput(RequestInput):
 class MessageInput(TextContract):
     submission_id: uuid.UUID
     text: str = Field(min_length=1, max_length=2000)
+
+
+class PrepareInput(TextContract):
+    revision: int = Field(ge=1, strict=True)
+    service: Capability
+    confirmed: Literal[True]
 
 
 class LinkInput(TextContract):
@@ -139,6 +146,15 @@ def link_project(
     audit(session, actor, "project_linked", item.id)
 
 
+def customer_access(account_id: str) -> Any:
+    return or_(
+        Customer.account_id == account_id,
+        select(GuestAccess.customer_id)
+        .where(GuestAccess.customer_id == Customer.id, GuestAccess.account_id == account_id)
+        .exists(),
+    )
+
+
 def scoped_project(
     session: Session, account: Account, request_id: str
 ) -> tuple[ConceptRequest, CustomerProject]:
@@ -146,7 +162,7 @@ def scoped_project(
         select(ConceptRequest, CustomerProject)
         .join(CustomerProject, CustomerProject.request_id == ConceptRequest.id)
         .join(Customer, Customer.id == CustomerProject.customer_id)
-        .where(Customer.account_id == account.id, ConceptRequest.id == request_id)
+        .where(customer_access(account.id), ConceptRequest.id == request_id)
     ).first()
     if record is None:
         raise HTTPException(404, "Project not found")
@@ -292,7 +308,7 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
             select(ConceptRequest, CustomerProject)
             .join(CustomerProject, CustomerProject.request_id == ConceptRequest.id)
             .join(Customer, Customer.id == CustomerProject.customer_id)
-            .where(Customer.account_id == account.id)
+            .where(customer_access(account.id))
             .order_by(ConceptRequest.created_at.desc(), ConceptRequest.id)
             .offset(offset)
             .limit(21)
@@ -399,7 +415,87 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         )
         if item is None or link is None:
             raise HTTPException(404, "Project has no customer workspace")
-        return {**project_view(session, item, link, detail=True), "customer_id": link.customer_id}
+        return {
+            **project_view(session, item, link, detail=True),
+            "customer_id": link.customer_id,
+            "access_pending": session.get_one(Customer, link.customer_id).account_id is None
+            and session.get(GuestAccess, link.customer_id) is None,
+        }
+
+    @app.post("/api/admin/portal/projects/{request_id}/prepare")
+    def prepare(
+        request_id: str, body: PrepareInput, request: Request, session: DB
+    ) -> dict[str, Any]:
+        owner = admin.require_owner(request, session, settings, write=True)
+        auth.limit(session, f"portal-prepare:{owner.id}", 20, 60)
+        item = session.scalar(
+            select(ConceptRequest).where(ConceptRequest.id == request_id).with_for_update()
+        )
+        if item is None:
+            raise HTTPException(404, "Request not found")
+        if item.revision != body.revision:
+            raise HTTPException(409, "Request changed; refresh and review")
+        link = session.get(CustomerProject, item.id)
+        try:
+            if link is None:
+                # A guest entity grants no account access. Never match a submitted email.
+                from landwolf.crm_core import Contact
+
+                contact = session.get_one(Contact, item.contact_id)
+                customer = Customer(
+                    id=str(uuid.uuid4()),
+                    account_id=None,
+                    name=contact.full_name or "Guest customer",
+                    created_at=int(time.time()),
+                )
+                session.add(customer)
+                session.flush()
+                link_project(
+                    session, item, customer, [body.service], owner.id, "owner_prepared_guest"
+                )
+            elif not session.scalar(
+                select(WorkItem.id).where(
+                    WorkItem.request_id == item.id, WorkItem.service == body.service
+                )
+            ):
+                account = session.scalar(
+                    select(ServiceAccount).where(
+                        ServiceAccount.customer_id == link.customer_id,
+                        ServiceAccount.service == body.service,
+                    )
+                )
+                if account is None:
+                    account = ServiceAccount(
+                        id=str(uuid.uuid4()),
+                        customer_id=link.customer_id,
+                        service=body.service,
+                        created_at=int(time.time()),
+                    )
+                    session.add(account)
+                    session.flush()
+                session.add(
+                    WorkItem(
+                        id=str(uuid.uuid4()),
+                        request_id=item.id,
+                        customer_id=link.customer_id,
+                        service_account_id=account.id,
+                        service=body.service,
+                        status="received",
+                        revision=1,
+                    )
+                )
+                audit(session, owner.id, "service_work_prepared", item.id)
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            raise HTTPException(409, "Request changed; refresh and retry") from None
+        link = session.get_one(CustomerProject, item.id)
+        return {
+            **project_view(session, item, link, detail=True),
+            "customer_id": link.customer_id,
+            "access_pending": session.get_one(Customer, link.customer_id).account_id is None
+            and session.get(GuestAccess, link.customer_id) is None,
+        }
 
     @app.post("/api/admin/portal/projects/{request_id}/link")
     def owner_link(
@@ -413,10 +509,23 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         )
         if item is None or customer is None:
             raise HTTPException(404, "Project or customer not found")
-        if session.get(CustomerProject, request_id):
-            raise HTTPException(
-                409, "Project already linked; customer ownership cannot be reassigned here"
-            )
+        existing = session.get(CustomerProject, request_id)
+        if existing:
+            guest = session.get_one(Customer, existing.customer_id)
+            if guest.account_id is not None or session.get(GuestAccess, guest.id) is not None:
+                raise HTTPException(
+                    409, "Project already linked; customer ownership cannot be reassigned here"
+                )
+            if customer.account_id is None:
+                raise HTTPException(422, "Select a registered customer account")
+            session.add(GuestAccess(customer_id=guest.id, account_id=customer.account_id))
+            audit(session, owner.id, "guest_access_verified", item.id)
+            try:
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                raise HTTPException(409, "Access changed; refresh") from None
+            return {"ok": True}
         try:
             link_project(
                 session, item, customer, [item.capability], owner.id, "owner_verified_identity"
