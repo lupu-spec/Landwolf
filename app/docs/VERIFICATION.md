@@ -1,5 +1,125 @@
 # LandWolf verification
 
+## v0.21.0 — customer-to-factory connection deployed
+
+- Staging: `591f6ab766a193db9be155379fa1da9b6f91767c`, Render `dep-dbl7ad6tlv9c73b6sc6g`, live 2026-11-03 23:59:52 UTC.
+- Production: `b93e42f164cbb3779210a6c0ac937c9b3809ec5c`, Render `dep-dbl7f00m7kps739gk1i0`, live 2026-11-04 00:09:33 UTC.
+
+Both services were observed healthy on version 0.21.0 and schema 16. The approved
+customer Software brief now transfers from owner CRM to the paired local factory.
+Owners can review, run, refresh and cancel without manually copying requirements.
+Dispatch identity and approval are durable; a retry cannot create a second job.
+Results remain private to the owner. Customer records, services and financial
+streams retain their existing boundaries; no generated code is applied or released.
+
+Factory Worker version b04997e9-c0c0-4dd1-9538-a0eb70f04f72 includes additive D1
+migration 0005 and separate scoped staging/production connections. The original
+outbound-only runner, Docker isolation and model configuration are retained.
+A real LFM3 run produced a patch and passed all seven independent Docker tests;
+original source remained unchanged. Both hosted environments passed customer
+isolation, factory access rejection, persistence, CSRF, browser and public-site checks.
+
+Candidate source is e66dc714b35c66960d91ef606073a0f268038852, tree
+299003a559662e93a556cd442faf19fabe928de0. Application CI 41739045354, factory CI
+41739045194 and legacy CI 41739045164 passed. The earlier hosted workflow ran
+before deployment and failed its expected-version check; no account tests ran.
+Post-deploy checks use the observed runtime commit explicitly.
+
+Schema 16 is additive. A rollback to the old schema-15 application requires a
+reconciled database recovery; use a tested forward fix rather than a code-only rollback.
+The normal database backup/restore rehearsal passed against disposable PostgreSQL.
+This documentation record does not trigger another runtime deployment.
+
+### Command evidence
+
+Candidate commit: e66dc714b35c66960d91ef606073a0f268038852.
+Runtime version 0.21.0, schema 16. Deployment evidence is recorded separately.
+
+## Passed locally
+
+From app/ (Node 24, Python 3.12):
+
+- `.venv/bin/ruff format --check landwolf tests scripts`
+- `npm run format:check`
+- `.venv/bin/ruff check landwolf tests scripts`
+- `npm run lint`
+- `.venv/bin/mypy landwolf`
+- `npm run typecheck`
+- `npm run test:unit` — 27 tests.
+- `.venv/bin/pytest -q tests/test_factory_bridge.py tests/test_customer_portal.py` — 37 tests.
+- `npm run build`
+- `.venv/bin/pytest -q -m browser tests/test_factory_browser.py tests/test_customer_portal_browser.py` — 10 tests, Chromium and WebKit in Playwright Docker.
+- `.venv/bin/python -m build`
+- `.venv/bin/python scripts/check_package.py`
+- `.venv/bin/bandit -r landwolf`
+- `.venv/bin/pip-audit --local --skip-editable`
+- `npm audit --audit-level=moderate`
+- `npm run secrets`
+- `uv lock --check`
+- `git diff --check`
+
+Factory API: locked installation, `npm run typecheck`, `npm test` (28 tests), and
+`npm audit --audit-level=moderate` passed. The deployment tooling was updated to
+resolve six audit findings; final audits report no known vulnerabilities.
+
+## Passed in GitHub CI
+
+Application run 41739045354 passed 757 backend, 27 frontend and 156 browser tests,
+PostgreSQL integration and exact backup/restore across 47 tables, formatting, lint,
+types, package and security gates. Header comparison passed. Factory run 41739045194
+passed all 28 tests and its audit; legacy run 41739045164 passed.
+
+## Real local-model test
+
+A disposable portal database and synthetic owner/customer exercised the real
+Cloudflare connection and local LFM3 runner. Customer dispatch was denied; owner
+approval created one durable job. A repeated submission returned the same task.
+The local model produced a clamp implementation; all seven independent acceptance
+tests passed in Docker with networking disabled and a read-only workspace. The
+returned report was VERIFIED_SANDBOX. Original source remained unchanged.
+
+Task: e7691586-a480-4e78-8488-87b26642edb8.
+Report and patch: evidence/real-run.json and evidence/real-run.patch.
+
+## Resolved test failures and limitations
+
+The initial backend run passed 755 tests and failed two old assertions expecting
+schema 15. Those assertions were updated to schema 16 and the two tests passed.
+The first browser run raced the work-panel reload; the test now waits for the
+approved panel, and the complete focused browser run passed.
+The real-run harness initially expected PASSED at the report's outer level; the
+runner correctly returned VERIFIED_SANDBOX with inner verification PASSED. A
+read-only follow-up verified the existing completed job and unchanged source;
+no duplicate model job was started.
+
+Production owner-session dispatch is not exercised through a real customer's
+request. Synthetic browser accounts must not be charged or assigned real work.
+No generated patch was applied, merged, or deployed automatically. One task is
+linked to each Software work item; later iterations use the existing factory.
+
+## Deployment observations
+
+One production version request returned HTTP 502 during the rolling deployment.
+After Render reported live, exact version/commit and health requests succeeded.
+The first Render log query temporarily returned provider HTTP 503; a later query
+succeeded and returned no application warnings/errors in the post-live window.
+Staging also reported no warnings/errors in its observed deployment window.
+These transient failures were not counted as passing checks.
+
+## Passed in CI and hosted environments
+
+Application CI ran all repository gates, including the complete backend/browser suites, PostgreSQL and backup/restore, packaging and security. Factory and legacy CI passed.
+
+- `check_portal_factory_release.py <staging-origin> 591f6ab766a193db9be155379fa1da9b6f91767c <evidence-directory>` — exit 0.
+- `.venv/bin/python scripts/check_hosted_staging.py --environment staging --commit 591f6ab766a193db9be155379fa1da9b6f91767c` — exit 0.
+- `.venv/bin/python scripts/check_public_seo.py --environment staging` — exit 0.
+- `check_portal_factory_release.py <production-origin> b93e42f164cbb3779210a6c0ac937c9b3809ec5c <evidence-directory>` — exit 0.
+- `.venv/bin/python scripts/check_hosted_staging.py --environment production --commit b93e42f164cbb3779210a6c0ac937c9b3809ec5c` — exit 0.
+- `.venv/bin/python scripts/check_public_seo.py --environment production` — exit 0.
+
+Hosted browser commands ran in Playwright v1.62.0 Noble Docker. Existing owner-session UI was unavailable in the inspection browser; the real factory dispatch used a disposable portal owner and actual Cloudflare/local runner. Production non-owner rejection and normal customer journeys were exercised on the live site. No real customer request was executed.
+
+
 ## v0.20.0 — production and staging acceptance complete, November 3, 2026
 
 Customer portal: https://landwolf.ai/lupuspec. PR #50 was merged into PR #49,
