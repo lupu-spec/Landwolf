@@ -16,6 +16,10 @@ Production uses `landwolf.ai` with `www.landwolf.ai` redirected at Render. Prese
 the existing rebuilt service/database during promotion; do not reset accounts.
 Configure explicit HTTPS origins; never derive trust from client forwarding headers.
 
+For customer-request or factory-delivery changes, follow `docs/PDCA_RELEASE.md`.
+Verify the original entry path, a complete request-to-delivery chain, and customer
+isolation before marking the release complete.
+
 Run commands from `app/` using Python 3.12+ and Node 24. Install dependencies with
 `uv sync --frozen --dev` and `npm ci`. Browser setup is
 `.venv/bin/playwright install --with-deps chromium webkit`.

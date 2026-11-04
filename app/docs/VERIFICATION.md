@@ -1,5 +1,85 @@
 # LandWolf verification
 
+## v0.22.1 — guest requests reach the factory; production acceptance complete
+
+- Candidate: `affc4562b398372373ea0c8a824fc7b638d7d71e`; PR #52.
+- Staging: `6aa355468ff7d2256f5842740f7c079e56529311`, Render `dep-dbl9kr0u01pc739i6850`, live 2026-11-04 02:38:40 UTC.
+- Production: `34dc6e332d3550b7a23aef6298d71589994f3e55`, Render `dep-dbla6ldg1s2s73e407qg`, live 2026-11-04 03:16:45 UTC.
+- All three commits have the same complete tree: `7b5f75f56ac40c814a54412461b42b14737e062f`. Runtime 0.22.1; schema 17.
+
+Guest inquiries previously stopped at CRM intake without service work. Owners can
+now prepare work, approve Software requests, and dispatch the stored brief. No
+account access or run is granted by preparation. Explicit verified-account linking
+preserves customer/work/financial identities; email text never grants access.
+Owners can follow progress and inspect private results. Customers receive allowlisted
+status: failed checks remain failed, and an owner’s Delivered/Closed decision replaces
+Awaiting Review. Generated code still requires review and independent acceptance.
+
+Final application CI 41761901570 passed 766 backend, 27 frontend and 160 browser
+cases, header comparison, PostgreSQL/restore, builds and security. Factory CI
+41761901721 passed 28 tests; legacy CI 41761901578 passed 53. Exact-runtime hosted
+acceptance passed in staging and production, including customer isolation, CSRF,
+message/session persistence, owner restrictions, billing mode, public pages, themes
+and layout budgets. The PR-triggered hosted check ran before deployment and failed
+live identity; it is not relabeled as passed. Explicit post-deployment checks exited 0.
+
+The original guest calculator request was prepared and approved through the owner
+UI, dispatched once to the real local LFM3 runner, and returned a reviewed arithmetic
+patch. All 16 independent tests passed with Docker networking disabled and source
+read-only. After applying the patch and normalizing whitespace, all 16 passed again.
+The actual page passed Chromium/WebKit desktop/mobile checks and asset-hash/security
+header checks in preview and production. Its result URL and Delivered statuses were
+published and confirmed after reload. The factory task’s Approved state also persisted.
+Customer identifiers and the detailed correlation record remain in private local evidence.
+Calculator: https://lupu-spec-calculator.pages.dev/ . No cloud model inference was used.
+
+The Toyota-inspired software PDCA skill is installed locally and recorded in
+`app/docs/PDCA_RELEASE.md`; application instructions now require that workflow for
+customer/factory changes. Failed rehearsals remain archived and restorable.
+Schema 17 requires a verified forward fix or reconciled database recovery to return
+to schema-16 code; no production database restore/reset was performed. Guest portal
+access remains pending until the owner verifies and links a registered account.
+This documentation-only sign-off does not redeploy or relabel either runtime.
+
+### Final command evidence
+
+| Command (from `app/`, unless stated otherwise) | Result |
+| --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts` | Passed |
+| `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts` | Passed |
+| `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf` | Passed |
+| `npm run typecheck` | Passed |
+| `npm run test:unit` | Passed, 27 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed, 766 tests |
+| `.venv/bin/python scripts/check_postgres.py` | Passed against disposable CI PostgreSQL |
+| `.venv/bin/python scripts/check_restore.py` | Passed against that disposable CI database |
+| `npm run build` | Passed |
+| `.venv/bin/pytest -q -m browser tests/test_commercial_browser.py` | Passed, 8 tests |
+| `.venv/bin/pytest -q -m browser tests/test_public_pages_browser.py` | Passed, 6 tests |
+| `.venv/bin/pytest -q -m browser tests/test_theme_browser.py` | Passed, 8 tests |
+| `.venv/bin/pytest -q -m browser tests/test_source_list_browser.py` | Passed, 4 tests |
+| `.venv/bin/pytest -q -m browser tests/test_mobile_research_browser.py tests/test_dock_browser.py tests/test_wolf_assistant_browser.py` | Passed, 18 tests |
+| `.venv/bin/pytest -q -m browser` | Passed, all 160 tests |
+| `.venv/bin/python -m build` | Passed |
+| `.venv/bin/python scripts/check_package.py` | Passed |
+| `.venv/bin/bandit -r landwolf` | Passed |
+| `.venv/bin/pip-audit --local --skip-editable` | Passed |
+| `npm audit --audit-level=moderate` | Passed |
+| `npm run secrets` | Passed |
+| `git diff --check` / `git status --short` | Passed; clean candidate |
+| `uv lock --check --project app` (repository root) | Passed |
+| `npm ci` (CI locked environment setup) | Passed |
+| Factory integration: `npm ci`, `npm run typecheck`, `npm test`, `npm audit --audit-level=moderate` | Passed; 28 tests |
+| Archived legacy: `pytest -q` in its separate environment | Passed; 53 tests |
+
+Final candidate/source CI: https://github.com/lupu-spec/Landwolf/actions/runs/41761901570 . Hosted wrappers explicitly checked each deployed commit, rather than inferring deployment from a branch push. Local commands and raw logs are retained in the task’s private `outputs/calculator-workflow` folder.
+
+### Resolved failures and limits
+
+Earlier attempts remain recorded. A local full-browser run was interrupted after property-page timeouts (6 failed, 7 passed), not counted as a pass. Isolated unchanged final/baseline cases passed, and two subsequent complete CI suites passed; resource contention is a hypothesis, not a proven sole cause. Local restore refused its intentional GitHub-container guard; actual CI restore passed without bypassing it. Initial model attempts failed malformed JSON, timeout or acceptance; later review strengthened overflow checks before release. The runner’s optional direct-JSON/nonthinking mode and bounded 4096-token context were verified with real local inference. A v0.22.0 staging raw-log path was accidentally reused; its old command metadata remains, while complete final v0.22.1 evidence is separate. Browser automation selector mismatches were corrected after inspecting the UI, without duplicate submissions. No account access was granted to test delivery.
+
 ## v0.21.0 — customer-to-factory connection deployed
 
 - Staging: `591f6ab766a193db9be155379fa1da9b6f91767c`, Render `dep-dbl7ad6tlv9c73b6sc6g`, live 2026-11-03 23:59:52 UTC.
