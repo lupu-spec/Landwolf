@@ -140,6 +140,9 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         dispatch = session.scalar(select(FactoryDispatch).where(FactoryDispatch.work_id == work_id))
         if dispatch is None:
             return {"state": "not_started"}
+        # The owner's persisted delivery decision supersedes generation progress.
+        if work.status in {"delivered", "closed"}:
+            return {"state": work.status}
         try:
             remote = visible(dispatch, exchange(settings, "GET", "/portal/jobs/" + dispatch.id))
         except HTTPException as error:
