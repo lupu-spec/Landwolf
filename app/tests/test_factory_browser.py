@@ -165,6 +165,8 @@ def test_release_delivers_product_and_private_source(browser_server, engine, wid
             "href", "https://fixture-calculator.pages.dev"
         )
         customer.reload()
+        expect(customer.locator("#account-state")).to_contain_text("SIGNED IN")
+        customer.get_by_role("button", name="MY PROJECTS", exact=True).click()
         customer.get_by_role("button", name="Synthetic workshop controller").click()
         expect(customer.get_by_role("link", name="OPEN PRODUCT", exact=True)).to_be_visible()
         with customer.expect_download() as download:
