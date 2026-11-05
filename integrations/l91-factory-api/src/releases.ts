@@ -169,7 +169,7 @@ export async function handleReleaseMachine(request:Request,db:D1Database,runner:
     preview=checkedURL(input.preview_url,r.target);
     source=field(input,'source_base64',700000,true);sourceHash=field(input,'source_sha256',64,true);
     if(!digest.test(sourceHash)||!/^[A-Za-z0-9+/]+={0,2}$/.test(source))throw new InputError('Invalid source package.');
-    const bytes=Uint8Array.from(atob(source),c=>c.charCodeAt(0));const actual=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+    const bytes=Uint8Array.from(atob(source),c=>c.charCodeAt(0));if(bytes.length>500000)throw new InputError('Source package exceeds 500 KB.');const actual=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
     if(actual!==sourceHash||bytes[0]!==80||bytes[1]!==75)throw new InputError('Source package hash mismatch.');
     previousVersion=r.previous_version||(typeof input.previous_version==='string'&&/^\d+\.\d+\.\d+$/.test(input.previous_version)?input.previous_version:null);
     if(r.previous_id){const old=await db.prepare('SELECT artifact_sha256 FROM releases WHERE id=? AND owner_id=?').bind(r.previous_id,r.owner_id).first<{artifact_sha256:string}>();previousHash=old?.artifact_sha256||null;}else if(previousVersion){if(typeof input.previous_sha256!=='string'||!digest.test(input.previous_sha256))throw new InputError('Previous release fingerprint required.');previousHash=input.previous_sha256;}

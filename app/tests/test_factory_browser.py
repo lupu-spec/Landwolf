@@ -8,6 +8,14 @@ from test_customer_portal_browser import create_customer, create_project
 pytestmark = pytest.mark.browser
 
 
+def refresh_factory(owner):
+    """Wait for the actual async response, then retain the rendered-state assertions."""
+    with owner.expect_response("**/api/admin/portal/work/*/factory") as refreshed:
+        owner.get_by_role("button", name="REFRESH RUN", exact=True).click()
+    assert refreshed.value.status == 200
+    refreshed.value.json()
+
+
 @pytest.mark.parametrize("browser_server", ["factory_owner"], indirect=True)
 @pytest.mark.parametrize("engine", ["chromium", "webkit"])
 @pytest.mark.parametrize("width", [390, 1440])
@@ -26,7 +34,9 @@ def test_approve_run_lost_acknowledgement_and_private_result(browser_server, eng
         owner.goto(origin)
         owner.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         owner.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
-        owner.locator("#auth-submit").click()
+        with owner.expect_response("**/api/search") as listings:
+            owner.locator("#auth-submit").click()
+        assert listings.value.status == 200
         expect(owner.locator(".property-card").first).to_be_visible()
         owner.locator("#crm-nav").click()
         owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
@@ -46,13 +56,13 @@ def test_approve_run_lost_acknowledgement_and_private_result(browser_server, eng
         expect(owner.locator("#crm-panel")).to_contain_text(
             "Factory unavailable; retry this request"
         )
-        owner.get_by_role("button", name="REFRESH RUN", exact=True).click()
+        refresh_factory(owner)
         expect(owner.locator("#crm-panel")).to_contain_text("COMPLETED")
         expect(owner.get_by_label("PROPOSED CODE", exact=True)).to_have_value(
             "--- a/main.py\n+++ b/main.py\n@@ -1 +1 @@\n-pass\n+print('fixture')\n"
         )
         before = owner.request.get(origin + path).json()
-        owner.get_by_role("button", name="REFRESH RUN", exact=True).click()
+        refresh_factory(owner)
         assert owner.request.get(origin + path).json() == before
         assert customer.request.get(origin + path).status == 403
         assert (
@@ -89,7 +99,9 @@ def test_guest_inquiry_prepared_approved_and_result_persists(browser_server, eng
         owner.goto(origin)
         owner.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         owner.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
-        owner.locator("#auth-submit").click()
+        with owner.expect_response("**/api/search") as listings:
+            owner.locator("#auth-submit").click()
+        assert listings.value.status == 200
         expect(owner.locator(".property-card").first).to_be_visible()
         owner.locator("#crm-nav").click()
         owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
@@ -107,7 +119,7 @@ def test_guest_inquiry_prepared_approved_and_result_persists(browser_server, eng
         expect(owner.locator("#crm-panel")).to_contain_text(
             "Factory unavailable; retry this request"
         )
-        owner.get_by_role("button", name="REFRESH RUN", exact=True).click()
+        refresh_factory(owner)
         expect(owner.locator("#crm-panel")).to_contain_text("RESULT FOR OWNER REVIEW")
         owner.reload()
         owner.locator("#crm-nav").click()
@@ -137,7 +149,9 @@ def test_release_delivers_product_and_private_source(browser_server, engine, wid
         owner.goto(origin)
         owner.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         owner.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
-        owner.locator("#auth-submit").click()
+        with owner.expect_response("**/api/search") as listings:
+            owner.locator("#auth-submit").click()
+        assert listings.value.status == 200
         expect(owner.locator(".property-card").first).to_be_visible()
         owner.locator("#crm-nav").click()
         owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
@@ -157,14 +171,19 @@ def test_release_delivers_product_and_private_source(browser_server, engine, wid
         expect(owner.locator("#crm-panel")).to_contain_text(
             "Factory unavailable; retry this request"
         )
-        owner.get_by_role("button", name="REFRESH RUN", exact=True).click()
+        refresh_factory(owner)
         expect(owner.locator("#crm-panel")).to_contain_text("COMPLETED")
         owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
-        owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
+        with owner.expect_response("**/api/admin/portal/projects/*") as workspace:
+            owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
+        assert workspace.value.status == 200
+        workspace.value.json()
         expect(owner.get_by_role("link", name="OPEN PRODUCT", exact=True)).to_have_attribute(
             "href", "https://fixture-calculator.pages.dev"
         )
         customer.reload()
+        expect(customer.locator("#account-state")).to_contain_text("SIGNED IN")
+        customer.get_by_role("button", name="MY PROJECTS", exact=True).click()
         customer.get_by_role("button", name="Synthetic workshop controller").click()
         expect(customer.get_by_role("link", name="OPEN PRODUCT", exact=True)).to_be_visible()
         with customer.expect_download() as download:

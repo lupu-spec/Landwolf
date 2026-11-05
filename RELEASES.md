@@ -1163,3 +1163,13 @@ Adds verified release delivery, customer product/source links, and additive sche
 and delivery are separate decisions. Candidate checks are in progress. Neither
 staging nor production is claimed deployed by this entry. See
 [release workflow and limits](app/docs/FACTORY_RELEASE.md).
+
+
+## v0.23.1 — delivery-history correction candidate
+
+Review found that a queued version could hide an earlier delivery or restoration.
+The bridge now returns bounded delivery history separately from the newest attempt;
+the portal applies each delivery once and withdraws restored versions. The API also
+enforces the same 500,000-byte source limit as customer downloads. Targeted API and
+portal regression tests pass. This supersedes the staged v0.23.0 candidate; full
+checks, staging and production promotion remain pending.

@@ -17,6 +17,7 @@ files after preview verification. A failed live check blocks delivery and attemp
 to restore and verify the retained previous artifact. Explicit restoration also
 requires the previous hash. A restored release needs a new version to publish again.
 
+The portal synchronizes bounded delivery history independently of newer build attempts.
 The portal records the factory's explicit delivery once, scoped to the immutable
 request/dispatch/customer link. It does not infer ownership from email. Other
 services remain open. Source downloads require the same customer session or an
@@ -30,7 +31,7 @@ email is added.
 
 ## Verification status
 
-Candidate v0.23.0; not deployed. API tests, local runner tests, and customer-isolation
+Candidate v0.23.1; not deployed. API tests, local runner tests, and customer-isolation
 regressions are recorded in the local release evidence. Browser, staging and
 production acceptance must be completed before promotion. Existing production
 version remains v0.22.1 until an observed deploy is recorded in RELEASES.md.

@@ -72,8 +72,35 @@ def validated_release(value: Any) -> dict[str, str] | None:
         raise HTTPException(502, "Invalid factory delivery receipt") from None
 
 
+def delivery_history(remote: dict[str, Any]) -> list[tuple[dict[str, Any], dict[str, str] | None]]:
+    """Validate the bounded delivery projection before changing any local record."""
+    values = remote.get("releases")
+    if values is None:  # Compatibility with the previous bridge during rollout.
+        values = [remote.get("release")]
+    if not isinstance(values, list) or len(values) > 30:
+        raise HTTPException(502, "Invalid factory delivery history")
+    result = []
+    seen = set()
+    for value in values:
+        if value is None:
+            continue
+        if not isinstance(value, dict):
+            raise HTTPException(502, "Invalid factory delivery history")
+        if value.get("state") not in {"delivered", "rolled_back"}:
+            continue
+        try:
+            release_id = str(uuid.UUID(value["id"]))
+        except (KeyError, ValueError, TypeError, AttributeError):
+            raise HTTPException(502, "Invalid factory delivery identity") from None
+        if release_id in seen:
+            raise HTTPException(502, "Duplicate factory delivery identity")
+        seen.add(release_id)
+        result.append((value, validated_release(value)))
+    return result
+
+
 def sync_deliveries(session: Session, settings: Settings, request_id: str) -> None:
-    """Refresh a projection of an already-authorized action; never infer ownership."""
+    """Refresh authorized delivery history, independently of the newest build attempt."""
     from landwolf.factory_bridge import FactoryDispatch, exchange, visible
 
     if settings.factory_token is None:
@@ -86,8 +113,8 @@ def sync_deliveries(session: Session, settings: Settings, request_id: str) -> No
     for dispatch, known_work in rows:
         try:
             remote = exchange(settings, "GET", "/portal/jobs/" + dispatch.id)
-            visible(dispatch, remote)  # Validate dispatch identity before reading delivery.
-            receipt = validated_release(remote.get("release"))
+            visible(dispatch, remote)
+            history = delivery_history(remote)
         except HTTPException as error:
             if error.status_code in {404, 502, 503}:
                 continue
@@ -95,65 +122,67 @@ def sync_deliveries(session: Session, settings: Settings, request_id: str) -> No
         work = session.scalar(
             select(WorkItem).where(WorkItem.id == known_work.id).with_for_update()
         )
-        if work is None:
+        if work is None or not history:
             continue
-        if receipt is None:
-            release = remote.get("release")
-            if isinstance(release, dict) and release.get("state") == "rolled_back":
-                old = session.get(FactoryDelivery, str(release.get("id", "")))
-                if old and old.work_id == work.id and old.active:
-                    old.active = False
-                    if work.status == "delivered":
-                        work.status = "in_progress"
-                        work.revision += 1
-                        item = session.get_one(ConceptRequest, work.request_id)
-                        if item.status == "delivered":
-                            item.status = "in_progress"
-                            item.updated_at = int(time.time())
-                    session.commit()
-            continue
-        prior = session.get(FactoryDelivery, receipt["id"])
-        if prior:
-            if (
-                prior.dispatch_id != dispatch.id
-                or prior.artifact_sha256 != receipt["artifact_sha256"]
-            ):
-                raise HTTPException(502, "Delivery identity changed")
-            if prior.active:
-                continue
-            prior.active = True
-            if work.status != "closed":
-                work.status = "delivered"
-                work.revision += 1
-            session.commit()
-            continue
+        changed = False
         now = int(time.time())
-        session.add(
-            FactoryDelivery(
-                **receipt,
-                dispatch_id=dispatch.id,
-                work_id=work.id,
-                active=True,
-                created_at=now,
+        for release, receipt in history:
+            prior = session.get(FactoryDelivery, str(release["id"]))
+            if prior and (prior.dispatch_id != dispatch.id or prior.work_id != work.id):
+                raise HTTPException(502, "Delivery identity changed")
+            if receipt is None:
+                if prior and prior.active:
+                    prior.active = False
+                    changed = True
+                continue
+            if prior:
+                if any(
+                    getattr(prior, key) != receipt[key]
+                    for key in ("version", "url", "artifact_sha256", "source_sha256")
+                ):
+                    raise HTTPException(502, "Delivery identity changed")
+                if not prior.active:
+                    prior.active = True
+                    changed = True
+                continue
+            session.add(
+                FactoryDelivery(
+                    **receipt,
+                    dispatch_id=dispatch.id,
+                    work_id=work.id,
+                    active=True,
+                    created_at=now,
+                )
             )
-        )
-        session.add(
-            ProjectMessage(
-                id=str(uuid.uuid4()),
-                request_id=work.request_id,
-                customer_id=work.customer_id,
-                actor_id=dispatch.approved_by,
-                submission_id=receipt["id"],
-                author="team",
-                text=(
-                    f"RELEASE {receipt['version']}\n{receipt['url']}\n"
-                    "CHECKS PASSED. SOURCE DOWNLOAD AVAILABLE."
-                ),
-                created_at=now,
+            session.add(
+                ProjectMessage(
+                    id=str(uuid.uuid4()),
+                    request_id=work.request_id,
+                    customer_id=work.customer_id,
+                    actor_id=dispatch.approved_by,
+                    submission_id=receipt["id"],
+                    author="team",
+                    text=(
+                        f"RELEASE {receipt['version']}\n{receipt['url']}\n"
+                        "CHECKS PASSED. SOURCE DOWNLOAD AVAILABLE."
+                    ),
+                    created_at=now,
+                )
             )
-        )
+            session.add(
+                PortalAudit(
+                    id=str(uuid.uuid4()),
+                    actor_id=dispatch.approved_by,
+                    action="factory_release_delivered",
+                    resource_id=receipt["id"],
+                    created_at=now,
+                )
+            )
+            changed = True
+        if not changed:
+            continue
         if work.status != "closed":
-            work.status = "delivered"
+            work.status = "delivered" if history[-1][1] is not None else "in_progress"
             work.revision += 1
         try:
             session.flush()
@@ -167,20 +196,13 @@ def sync_deliveries(session: Session, settings: Settings, request_id: str) -> No
             if unfinished is None and item.status != "closed":
                 item.status = "delivered"
                 item.updated_at = now
-            session.add(
-                PortalAudit(
-                    id=str(uuid.uuid4()),
-                    actor_id=dispatch.approved_by,
-                    action="factory_release_delivered",
-                    resource_id=receipt["id"],
-                    created_at=now,
-                )
-            )
+            elif unfinished is not None and item.status == "delivered":
+                item.status = "in_progress"
+                item.updated_at = now
             session.commit()
         except IntegrityError:
             session.rollback()
-            if session.get(FactoryDelivery, receipt["id"]) is None:
-                raise HTTPException(409, "Delivery changed; refresh") from None
+            raise HTTPException(409, "Delivery changed; refresh") from None
 
 
 def public_deliveries(session: Session, request_id: str) -> list[dict[str, Any]]:

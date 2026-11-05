@@ -135,3 +135,70 @@ def test_rollback_withdraws_release_download(client, approved):
     receipt["state"] = "rolled_back"
     assert client.get("/api/portal/projects/" + item).json()["releases"] == []
     assert client.get(release["source_url"]).status_code == 404
+
+
+def history_remote(approved, receipts):
+    jobs = approved[2]
+    remote = next(iter(jobs.values()))
+    remote["releases"] = receipts
+    remote["release"] = {"id": str(uuid.uuid4()), "state": "queued"}
+    return remote
+
+
+def test_newer_queued_attempt_does_not_hide_delivered_history(client, approved):
+    _, item, receipt, _, _, _ = delivered(client, approved)
+    second = {**receipt, "id": str(uuid.uuid4()), "version": "1.0.1"}
+    history_remote(approved, [receipt, second])
+    first = client.get("/api/portal/projects/" + item).json()
+    assert {r["version"] for r in first["releases"]} == {"1.0.0", "1.0.1"}
+    assert next(w for w in first["services"] if w["service"] == "software")["status"] == "delivered"
+    assert first == client.get("/api/portal/projects/" + item).json()
+    with client.app.state.factory() as session:
+        assert session.scalar(select(func.count()).select_from(FactoryDelivery)) == 2
+        assert session.scalar(select(func.count()).select_from(ProjectMessage)) == 2
+
+
+def test_rollback_is_not_hidden_by_new_attempt_or_later_delivery(client, approved):
+    _, item, receipt, _, _, _ = delivered(client, approved)
+    old = client.get("/api/portal/projects/" + item).json()["releases"][0]
+    receipt["state"] = "rolled_back"
+    remote = history_remote(approved, [receipt])
+    data = client.get("/api/portal/projects/" + item).json()
+    assert not data["releases"]
+    assert (
+        next(w for w in data["services"] if w["service"] == "software")["status"] == "in_progress"
+    )
+    assert client.get(old["source_url"]).status_code == 404
+    second = {**receipt, "id": str(uuid.uuid4()), "state": "delivered", "version": "1.0.1"}
+    remote["releases"].append(second)
+    data = client.get("/api/portal/projects/" + item).json()
+    assert [r["version"] for r in data["releases"]] == ["1.0.1"]
+    assert next(w for w in data["services"] if w["service"] == "software")["status"] == "delivered"
+    assert data == client.get("/api/portal/projects/" + item).json()
+
+
+def test_rollback_and_later_delivery_sync_together(client, approved):
+    _, item, receipt, _, _, _ = delivered(client, approved)
+    client.get("/api/portal/projects/" + item)
+    receipt["state"] = "rolled_back"
+    second = {**receipt, "id": str(uuid.uuid4()), "state": "delivered", "version": "1.0.1"}
+    history_remote(approved, [receipt, second])
+    data = client.get("/api/portal/projects/" + item).json()
+    assert [r["version"] for r in data["releases"]] == ["1.0.1"]
+    assert next(w for w in data["services"] if w["service"] == "software")["status"] == "delivered"
+
+
+@pytest.mark.parametrize("invalid", ["duplicate", "oversized", "bad_receipt"])
+def test_invalid_history_does_not_partially_materialize_delivery(client, approved, invalid):
+    _, item, receipt, _, _, _ = delivered(client, approved)
+    history = [receipt]
+    if invalid == "duplicate":
+        history.append(receipt)
+    elif invalid == "oversized":
+        history *= 31
+    else:
+        history.append({**receipt, "id": str(uuid.uuid4()), "source_sha256": "invalid"})
+    history_remote(approved, history)
+    assert not client.get("/api/portal/projects/" + item).json()["releases"]
+    with client.app.state.factory() as session:
+        assert session.scalar(select(func.count()).select_from(FactoryDelivery)) == 0
