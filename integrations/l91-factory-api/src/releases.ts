@@ -29,6 +29,10 @@ async function current(db:D1Database,r:Release){
  const latest=await db.prepare('SELECT id,sha256 FROM task_results WHERE task_id=? ORDER BY task_revision DESC LIMIT 1').bind(r.task_id).first<{id:string;sha256:string}>();
  if(!t||latest?.id!==r.result_id||latest.sha256!==r.result_sha256)throw new InputError('Approval changed. Review the latest result and create a new release.',409);
 }
+async function unchangedLiveRelease(db:D1Database,r:Release){
+ const live=await db.prepare("SELECT id FROM releases WHERE runner_id=? AND project_key=? AND id<>? AND state IN ('published','delivered') ORDER BY updated_at DESC LIMIT 1").bind(r.runner_id,r.project_key,r.id).first<{id:string}>();
+ if((live?.id||null)!==r.previous_id)throw new InputError('Another release is live. Build a new version or restore from the latest release.',409);
+}
 async function event(db:D1Database,r:Release,state:string,message:string){
  return db.prepare('INSERT INTO release_events(id,release_id,revision,state,message,created_at) SELECT ?,?,?,?,?,? WHERE changes()=1').bind(crypto.randomUUID(),r.id,r.revision+1,state,message,stamp());
 }
@@ -83,22 +87,25 @@ export async function handleReleases(request:Request,db:D1Database,user:string,t
    await current(db,r);
    if(r.state!=='preview_ready'||!r.artifact_sha256||input.artifact_sha256!==r.artifact_sha256)throw new InputError('A tested preview and matching artifact are required.',409);
    if(!profile||profile.target!==r.target)throw new InputError('Release target changed.',409);
-   const live=await db.prepare("SELECT id FROM releases WHERE runner_id=? AND project_key=? AND state IN ('published','delivered') ORDER BY updated_at DESC LIMIT 1").bind(r.runner_id,r.project_key).first<{id:string}>();
-   if((live?.id||null)!==r.previous_id)throw new InputError('Another release was published after this preview. Build a new version.',409);
+   await unchangedLiveRelease(db,r);
    state='publish_queued';operation='publish';message='WAITING TO PUBLISH';
   }else if(verb==='deliver'){
    await current(db,r);
    if(r.state==='delivered')return reply({ok:true},200,origin);
    if(r.state!=='published'||!r.production_url)throw new InputError('Verify the published release before delivery.',409);
+   await unchangedLiveRelease(db,r);
    state='delivered';message='DELIVERED';
   }else if(verb==='rollback'){
    if(!['published','delivered'].includes(r.state)||!r.previous_version)throw new InputError('No previous release is available.',409);
-   const newer=await db.prepare("SELECT id FROM releases WHERE runner_id=? AND project_key=? AND id<>? AND state IN ('published','delivered') AND updated_at>?").bind(r.runner_id,r.project_key,r.id,r.updated_at).first();
-   if(newer)throw new InputError('A newer release is live. Open that release to roll back.',409);
+   await unchangedLiveRelease(db,r);
    state='rollback_queued';operation='rollback';message='WAITING TO RESTORE PREVIOUS RELEASE';
   }else if(verb==='retry'){
    await current(db,r);
    if(r.state!=='failed')throw new InputError('Only failed releases can be retried.',409);
+   if(operation!=='build'){
+    if(!profile||profile.target!==r.target)throw new InputError('Release target changed.',409);
+    await unchangedLiveRelease(db,r);
+   }
    state=operation==='build'?'queued':operation==='publish'?'publish_queued':'rollback_queued';message='WAITING FOR RUNNER';
   }else if(verb==='cancel'){
    if(!['queued','building','preview_ready','publish_queued'].includes(r.state))throw new InputError('This release cannot be cancelled during publication.',409);

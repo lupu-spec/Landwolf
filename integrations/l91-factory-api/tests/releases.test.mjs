@@ -91,3 +91,17 @@ test('cancellation invalidates an in-flight build and rollback pins the earlier 
  assert.equal((await(await task(s2.db,s2.endpoint)).json()).releases[0].state,'rolled_back');
  assert.equal((await task(s2.db,s2.endpoint+'/'+r2.id+'/deliver','POST',{revision:3})).status,409);
 });
+
+test('a failed publication cannot retry over a newer published release',async()=>{
+ const s=await setup(),old=await build(s);await finish(s,await claim(s));
+ let r=(await(await task(s.db,s.endpoint)).json()).releases.find(x=>x.id===old.id);
+ await task(s.db,s.endpoint+'/'+r.id+'/publish','POST',{revision:r.revision,artifact_sha256:r.artifact_sha256});
+ const j=await claim(s);await finish(s,j,{lease:j.lease,revision:j.revision,ok:false,message:'NETWORK FAILED'});
+ const next=await(await task(s.db,s.endpoint,'POST',{revision:3,version:'1.0.1',files:['src/main.js']})).json();
+ await finish(s,await claim(s));
+ r=(await(await task(s.db,s.endpoint)).json()).releases.find(x=>x.id===next.release.id);
+ await task(s.db,s.endpoint+'/'+r.id+'/publish','POST',{revision:r.revision,artifact_sha256:r.artifact_sha256});
+ const pub=await claim(s);await finish(s,pub,evidence(pub,{production_url:'https://release-test.pages.dev'}));
+ assert.equal((await task(s.db,s.endpoint+'/'+old.id+'/retry','POST',{revision:2})).status,409);
+ assert.equal(await claim(s),null);
+});
