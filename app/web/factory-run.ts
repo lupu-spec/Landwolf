@@ -12,6 +12,7 @@ type Dispatch = {
   acceptance: string;
   message?: string;
   task_id?: string;
+  release?: { version: string; state: string; message: string } | null;
   result?: { report: unknown; patch: string } | null;
 };
 type Runner = {
@@ -80,6 +81,12 @@ export function factoryRun(
           }),
         );
       }
+      if (dispatch.release) {
+        content.append(
+          element("h4", "", "RELEASE " + dispatch.release.version),
+          element("p", "", dispatch.release.message),
+        );
+      }
       if (dispatch.result) {
         content.append(element("h4", "", "RESULT FOR OWNER REVIEW"));
         const report = element("pre", "preserve-lines");
@@ -101,7 +108,9 @@ export function factoryRun(
         element(
           "p",
           "muted",
-          "RESULTS STAY PRIVATE UNTIL YOU PUBLISH AN UPDATE. CODE IS NOT APPLIED OR DEPLOYED.",
+          dispatch.release
+            ? "OPEN THE FACTORY RELEASE TAB TO MANAGE THIS RELEASE."
+            : "REVIEW THE RESULT, THEN USE THE FACTORY RELEASE TAB TO BUILD AND PUBLISH.",
         ),
       );
       if (["queued", "running"].includes(dispatch.state)) {

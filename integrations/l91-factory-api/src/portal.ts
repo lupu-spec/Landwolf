@@ -1,3 +1,5 @@
+import {publicRelease,releaseBundle} from './releases.ts';
+import type {Release} from './releases.ts';
 /** Narrow server-to-server bridge. No browser token, customer identity or host path. */
 import {body,field,hash,InputError} from './common.ts';
 import {expireRuns,runnerList,validateTarget} from './runners.ts';
@@ -10,7 +12,12 @@ async function detail(db:D1Database,c:Connection,d:Dispatch){
  const response=await handleTasks(new Request('https://factory.internal/api/tasks/'+d.task_id),db,c.owner_id,'');
  if(!response.ok)throw new InputError('Factory task unavailable.',502);
  const data=await response.json() as {task:{execution:{state:string;stage:string;message:string}|null;status:string};results:unknown[]};
- return {id:d.id,task_id:d.task_id,state:data.task.execution?.state||data.task.status,stage:data.task.execution?.stage||'',message:data.task.execution?.message||'',result:data.results[0]||null};
+ const release=await db.prepare('SELECT * FROM releases WHERE task_id=? AND owner_id=? ORDER BY created_at DESC LIMIT 1').bind(d.task_id,c.owner_id).first<Release>();
+ // Delivery decisions survive newer queued/failed attempts. Keep the projection small:
+ // full reports, manifests and source bytes are available only through their own routes.
+ const history=await db.prepare("SELECT * FROM releases WHERE task_id=? AND owner_id=? AND state IN ('delivered','rolled_back') ORDER BY updated_at ASC,id ASC LIMIT 30").bind(d.task_id,c.owner_id).all<Release>();
+ const releases=history.results.map(r=>{const report=JSON.parse(r.report);return {id:r.id,state:r.state,version:r.version,target:r.target,production_url:r.production_url,has_source:!!r.source_base64,source_sha256:r.source_sha256,artifact_sha256:r.artifact_sha256,report:{schema:report.schema,passed:report.passed,operation:report.operation,artifact_sha256:report.artifact_sha256}};});
+ return {releases,release:release?publicRelease(release):null,id:d.id,task_id:d.task_id,state:data.task.execution?.state||data.task.status,stage:data.task.execution?.stage||'',message:data.task.execution?.message||'',result:data.results[0]||null};
 }
 export async function handlePortal(request:Request,db:D1Database):Promise<Response>{
  try{
@@ -24,6 +31,12 @@ export async function handlePortal(request:Request,db:D1Database):Promise<Respon
   if(path==='/portal/targets'&&request.method==='GET'){
    const runners=(await runnerList(db,c.owner_id)).filter(r=>r.id===c.runner_id);
    return reply({runners});
+  }
+  const bundle=/^\/portal\/jobs\/([a-f0-9-]+)\/releases\/([a-f0-9-]+)\/source$/.exec(path);
+  if(bundle&&request.method==='GET'){
+   const r=await db.prepare("SELECT r.id FROM releases r JOIN portal_dispatches d ON d.task_id=r.task_id WHERE d.connection_id=? AND d.id=? AND r.id=? AND r.owner_id=? AND r.state='delivered'").bind(c.id,bundle[1],bundle[2],c.owner_id).first<{id:string}>();
+   if(!r)throw new InputError('Delivered release not found.',404);
+   return reply(await releaseBundle(db,r.id,c.owner_id));
   }
   const match=/^\/portal\/jobs\/([a-f0-9-]+)(\/cancel)?$/.exec(path);
   if(!match||!uuid.test(match[1]))throw new InputError('Not found.',404);

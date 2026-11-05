@@ -221,7 +221,7 @@ def test_v15_migration_preserves_accounts_work_and_dispatch(client, approved):
     with client.app.state.factory() as session:
         assert session.scalar(select(func.count()).select_from(Account)) == account_count
         assert session.scalar(select(func.count()).select_from(WorkItem)) == work_count
-        assert session.scalar(select(SchemaVersion.version)) == 17
+        assert session.scalar(select(SchemaVersion.version)) == 18
     assert client.get(path + "/factory").json() == first
 
 

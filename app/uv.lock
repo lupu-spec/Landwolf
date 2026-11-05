@@ -742,7 +742,7 @@ wheels = [
 
 [[package]]
 name = "landwolf"
-version = "0.22.1"
+version = "0.23.1"
 source = { editable = "." }
 dependencies = [
     { name = "argon2-cffi" },

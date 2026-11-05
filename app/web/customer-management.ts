@@ -1,9 +1,11 @@
+import { releaseCards, type Delivery } from "./releases";
 /** Owner tools for publishing a customer-safe update and preparing a reviewed handoff. */
 import type { Api } from "./crm";
 import { element } from "./dom";
 import { factoryRun } from "./factory-run";
 
 type Project = {
+  releases?: Delivery[];
   customer_id: string;
   access_pending?: boolean;
   services: { id: string; service: string; status: string; revision: number }[];
@@ -146,6 +148,7 @@ export function customerManagement(
       content.replaceChildren(
         element("p", "muted", "CUSTOMER · " + project.customer_id),
       );
+      content.append(releaseCards(project.releases || [], true));
       const status = element("p");
       status.setAttribute("role", "status");
       for (const work of project.services) {

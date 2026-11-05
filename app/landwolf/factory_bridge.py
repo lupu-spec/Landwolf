@@ -7,7 +7,7 @@ from collections.abc import Iterator
 from typing import Annotated, Any, Literal
 
 import httpx
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from pydantic import Field
 from sqlalchemy import JSON, ForeignKey, Integer, String, select
 from sqlalchemy.exc import IntegrityError
@@ -107,6 +107,7 @@ def visible(dispatch: FactoryDispatch, remote: dict[str, Any] | None = None) -> 
             stage=str(remote.get("stage", ""))[:100],
             message=str(remote.get("message", ""))[:500],
             result=remote.get("result"),
+            release=remote.get("release"),
         )
         output = remote.get("result")
         report = output.get("report") if isinstance(output, dict) else None
@@ -151,6 +152,27 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
             return {"state": "status_unavailable"}
         # No code, report, local paths, job IDs, errors or contact data cross this boundary.
         return {"state": "awaiting_review" if remote["state"] == "completed" else remote["state"]}
+
+    @app.get("/api/portal/work/{work_id}/releases/{release_id}/source")
+    def customer_source(work_id: str, release_id: str, request: Request, session: DB) -> Response:
+        from landwolf.customer_portal import scoped_project
+        from landwolf.factory_delivery import download
+
+        account = auth.authenticate(request, session, settings)
+        auth.limit(session, f"customer-source:{account.id}", 20, 60)
+        work = session.get(WorkItem, work_id)
+        if work is None:
+            raise HTTPException(404, "Work not found")
+        scoped_project(session, account, work.request_id)
+        return download(session, settings, work_id, release_id)
+
+    @app.get("/api/admin/portal/work/{work_id}/releases/{release_id}/source")
+    def owner_source(work_id: str, release_id: str, request: Request, session: DB) -> Response:
+        from landwolf.factory_delivery import download
+
+        owner = admin.require_owner(request, session, settings, write=False)
+        auth.limit(session, f"owner-source:{owner.id}", 20, 60)
+        return download(session, settings, work_id, release_id)
 
     @app.get("/api/admin/portal/factory/targets")
     def targets(request: Request, session: DB) -> dict[str, Any]:
