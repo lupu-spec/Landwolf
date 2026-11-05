@@ -1,5 +1,101 @@
 # LandWolf verification
 
+## v0.23.1 — factory releases and customer delivery verified
+
+- Candidate: `cec7e122765c63b1d7e8314e69d6415bcf8204a7`; PR #53.
+- Staging: `ce93714c1ad8c93540b53ec8a24df84d0a66d3df`, Render `dep-dbm147l6e07s73aqds20`, live 2026-11-05 05:21:49 UTC.
+- Production: `d6821ecbd6941823a855b6faf7b7a519967f56c2`, Render `dep-dbm1i649v7es738j6jog`, live 2026-11-05 05:51:32 UTC.
+- All three commits have the same entire Git tree: `244be971facf05ab482636b20286b0533b007a05`. Runtime 0.23.1; schema 18.
+
+An approved factory result can now BUILD PREVIEW, PUBLISH the same checked
+artifact, DELIVER to its customer project, DOWNLOAD SOURCE and RESTORE the previous
+version. The local runner builds/tests in Docker without network or deployment
+credentials. Trusted local profiles define allowed files, checks and hosting targets;
+website requests cannot supply host commands or paths. Version, result, approval,
+artifact and source fingerprints are retained; leases and operation identities bound
+retries and reject stale work.
+
+Customer projects show the delivered product and private source package. Delivery
+history survives newer queued attempts, and restoration withdraws the affected
+download. Customer/account/dispatch identity remains unchanged; the API enforces the
+same 500,000-byte source limit as the portal. Other services are not marked delivered
+by Software completion. No automatic billing, account linkage or customer email was added.
+
+Final application CI [41972908867](https://github.com/lupu-spec/Landwolf/actions/runs/41972908867)
+passed 780 backend/API, 27 frontend and 164 Chromium/WebKit browser cases, header
+comparison, PostgreSQL integration, backup/restore over 49 tables, builds and security.
+Factory CI 41972908859 passed 36 tests; legacy CI 41972908856 passed 53. Local runner
+verification passed 145 tests including real Docker, with no skips. Exact-runtime
+hosted checks passed in staging and production: sessions/logout, owner restrictions,
+two-customer isolation, CSRF, persistence, mobile/desktop, themes and load budgets.
+The PR-triggered hosted check 41972908847 failed its pre-deployment runtime check and
+ran no account tests; explicit post-deployment checks exited 0. It is not relabeled as passed.
+
+The original calculator request retained its reviewed result and identity. Release
+1.0.2 built, passed preview checks, published the saved artifact and recorded explicit
+delivery through the production factory UI. Its production portal shows one release
+card and one delivery update after reload. The owner downloaded source through the
+portal and its SHA256 matched the factory package. Another customer was denied access
+to that actual source route. Guest access remains pending until an owner verifies and
+links the correct registered account; an email match never grants access.
+Calculator: https://lupu-spec-calculator.pages.dev/ . No new model inference was needed.
+
+A separate real Cloudflare rehearsal passed preview, publication, delivery, private
+source/hash, reload, anonymous denial and restoration of the retained prior artifact.
+A scoped API check confirmed rollback history survives a newer queue; its temporary
+connection was revoked afterward. Factory API 0.5.1 is Worker
+`5e54f9c0-8b72-4e16-9fd5-ffd852b75821`. Factory UI is the Cloudflare Pages deployment
+`343b6f8e` on project `l91-preview-20261103`, serving https://l91.landwolf.ai/.
+
+Review caught the latest-attempt history projection and mismatched source limit;
+both have regression tests. Earlier new browser tests missed MY PROJECTS after reload
+and checked before async responses finished; navigation and response synchronization
+were corrected without removing assertions. The initial full run's 160 passed/4 failed
+result remains retained. The first factory frontend deploy targeted a similarly named
+Worker; the first corrected Pages build then lacked public Clerk configuration. The
+configured Pages deployment replaced it, and a required production build guard now
+checks the public Clerk/API/brand configuration and compiled assets.
+
+Only registered static Cloudflare Pages projects are enabled initially; the calculator
+is registered. Limits are 30 releases per task and 500,000-byte compressed source.
+Schema 18 is additive; returning to schema-17 initialization needs a verified forward
+fix or compatible recovery. No customer database reset was performed. Previous Pages
+artifacts and private source/database backups are retained. This documentation-only
+sign-off does not redeploy or relabel either runtime.
+
+### Final command evidence
+
+Commands are from `app/` unless noted. All named test runs retain their original failures; later passing evidence applies to the corrected candidate.
+
+| Command | Result |
+| --- | --- |
+| `.venv/bin/ruff format --check landwolf tests scripts` and `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts` and `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf` and `npm run typecheck` | Passed |
+| `npm run test:unit` | Passed, 27 tests |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed, 780 tests |
+| `.venv/bin/pytest -q tests/test_factory_delivery.py` | Passed, 14 delivery/authorization/history cases |
+| `.venv/bin/pytest -q -m browser tests/test_factory_browser.py` in the prepared Docker browser | Passed, 12 Chromium/WebKit cases |
+| `.venv/bin/python scripts/check_postgres.py` and `scripts/check_restore.py` | Passed in final CI 41972908867; disposable PostgreSQL only |
+| `.venv/bin/pytest -q -m browser` | Passed, 164 cases in final CI 41972908867 |
+| `npm run build` | Passed |
+| `.venv/bin/python -m build` and `.venv/bin/python scripts/check_package.py` | Passed |
+| `.venv/bin/bandit -r landwolf` | Passed, no findings |
+| `.venv/bin/pip-audit --local --skip-editable` | Passed, no known dependency vulnerabilities; editable application is checked separately by static/code review |
+| `npm audit --audit-level=moderate` and `npm run secrets` | Passed |
+| Factory API: `npm test`, `npm run typecheck`, `npm audit --audit-level=moderate` | Passed, 36 tests and CI 41972908859 |
+| Factory runner: `L91_DOCKER_ACCEPTANCE=1` test suite | Passed, 145 tests including real Docker; no skips |
+| Factory web: `npm run build:production` with documented public configuration | Passed; missing public configuration rejected in a negative check |
+| Real isolated release: `check-staging-history-ui.py`, then `check-staging-history-api.py` | Passed, actual runner/API/Cloudflare preview, publish, delivery, source, refresh, restore and history behind a new queued version |
+| `scripts/check_hosted_staging.py --environment staging --commit ce93714c1ad8c93540b53ec8a24df84d0a66d3df` | Passed |
+| `check-portal-hosted.py` against that exact staging runtime | Passed, two-customer read/write isolation, source/owner restrictions, CSRF, persistence, logout |
+| `scripts/check_public_seo.py --environment staging` | Passed, public links, themes, responsive layouts and original load budgets |
+| `git diff --check` and `git status --short` | Passed; source tree clean |
+| `scripts/check_hosted_staging.py --environment production --commit d6821ecbd6941823a855b6faf7b7a519967f56c2` | Passed |
+| `check-portal-hosted.py https://landwolf.ai d6821ecbd6941823a855b6faf7b7a519967f56c2 ...` | Passed in Chromium/WebKit, including foreign access to the actual calculator source returning 404 |
+| `scripts/check_public_seo.py --environment production` | Passed |
+| Actual owner browser: original request, source download, reload | Passed; one release card, one delivery message, source SHA256 matched |
+
 ## v0.22.1 — guest requests reach the factory; production acceptance complete
 
 - Candidate: `affc4562b398372373ea0c8a824fc7b638d7d71e`; PR #52.
