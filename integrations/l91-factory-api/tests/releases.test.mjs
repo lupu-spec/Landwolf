@@ -105,3 +105,39 @@ test('a failed publication cannot retry over a newer published release',async()=
  assert.equal((await task(s.db,s.endpoint+'/'+old.id+'/retry','POST',{revision:2})).status,409);
  assert.equal(await claim(s),null);
 });
+
+test('source archive byte limit matches the customer download limit',async()=>{
+ const s=await setup();await build(s);const job=await claim(s);
+ for(const length of [500001,510000]){
+  const source=Buffer.alloc(length,1);source.write('PK');
+  assert.equal((await finish(s,job,evidence(job,{source_base64:source.toString('base64'),source_sha256:hash(source)}))).status,400);
+  assert.equal((await(await task(s.db,s.endpoint)).json()).releases[0].state,'building');
+ }
+ const source=Buffer.alloc(500000,1);source.write('PK');
+ assert.equal((await finish(s,job,evidence(job,{source_base64:source.toString('base64'),source_sha256:hash(source)}))).status,200);
+});
+
+test('portal delivery history retains delivered and rolled-back versions behind a queued attempt',async()=>{
+ const {handlePortal}=await import('../src/portal.ts');
+ const s=await setup(),r=await build(s),token=randomBytes(48).toString('base64url'),dispatch=crypto.randomUUID();
+ const runner=await s.db.prepare('SELECT runner_id FROM releases WHERE id=?').bind(r.id).first();
+ await s.db.prepare('INSERT INTO portal_connections(id,token_hash,owner_id,runner_id) VALUES(?,?,?,?)').bind('history-portal',hash(token),'alice',runner.runner_id).run();
+ await s.db.prepare('INSERT INTO portal_dispatches(connection_id,id,task_id,payload_hash,created_at) VALUES(?,?,?,?,?)').bind('history-portal',dispatch,s.taskId,hash('request'),new Date().toISOString()).run();
+ const detail=async()=>{const response=await handlePortal(req('/portal/jobs/'+dispatch,'GET',{},token),s.db);assert.equal(response.status,200);return response.json();};
+ await finish(s,await claim(s));
+ let item=(await(await task(s.db,s.endpoint)).json()).releases[0];
+ await task(s.db,s.endpoint+'/'+r.id+'/publish','POST',{revision:item.revision,artifact_sha256:item.artifact_sha256});
+ const pub=await claim(s);await finish(s,pub,evidence(pub,{production_url:'https://release-test.pages.dev'}));
+ await task(s.db,s.endpoint+'/'+r.id+'/deliver','POST',{revision:2});
+ const next=await(await task(s.db,s.endpoint,'POST',{revision:3,version:'1.0.1',files:['src/main.js']})).json();
+ let data=await detail();assert.equal(data.release.id,next.release.id);assert.equal(data.release.state,'queued');
+ assert.deepEqual(data.releases.map(x=>[x.id,x.state]),[[r.id,'delivered']]);
+ for(const key of ['source_base64','lease','manifest','selected_files','runner_id'])assert.equal(key in data.releases[0],false);
+ assert.equal((await task(s.db,s.endpoint+'/'+next.release.id+'/cancel','POST',{revision:1})).status,200);
+ assert.equal((await task(s.db,s.endpoint+'/'+r.id+'/rollback','POST',{revision:3})).status,200);
+ const undo=await claim(s),proof=evidence(undo,{production_url:'https://release-test.pages.dev'});proof.report.artifact_sha256=hash('previous');
+ assert.equal((await finish(s,undo,proof)).status,200);
+ assert.equal((await task(s.db,s.endpoint,'POST',{revision:3,version:'1.0.2',files:['src/main.js']})).status,201);
+ data=await detail();assert.equal(data.release.state,'queued');assert.deepEqual(data.releases.map(x=>[x.id,x.state]),[[r.id,'rolled_back']]);
+ assert.equal((await handlePortal(req('/portal/jobs/'+dispatch+'/releases/'+r.id+'/source','GET',{},token),s.db)).status,404);
+});

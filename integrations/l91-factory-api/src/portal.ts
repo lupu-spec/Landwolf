@@ -13,7 +13,11 @@ async function detail(db:D1Database,c:Connection,d:Dispatch){
  if(!response.ok)throw new InputError('Factory task unavailable.',502);
  const data=await response.json() as {task:{execution:{state:string;stage:string;message:string}|null;status:string};results:unknown[]};
  const release=await db.prepare('SELECT * FROM releases WHERE task_id=? AND owner_id=? ORDER BY created_at DESC LIMIT 1').bind(d.task_id,c.owner_id).first<Release>();
- return {release:release?publicRelease(release):null,id:d.id,task_id:d.task_id,state:data.task.execution?.state||data.task.status,stage:data.task.execution?.stage||'',message:data.task.execution?.message||'',result:data.results[0]||null};
+ // Delivery decisions survive newer queued/failed attempts. Keep the projection small:
+ // full reports, manifests and source bytes are available only through their own routes.
+ const history=await db.prepare("SELECT * FROM releases WHERE task_id=? AND owner_id=? AND state IN ('delivered','rolled_back') ORDER BY updated_at ASC,id ASC LIMIT 30").bind(d.task_id,c.owner_id).all<Release>();
+ const releases=history.results.map(r=>{const report=JSON.parse(r.report);return {id:r.id,state:r.state,version:r.version,target:r.target,production_url:r.production_url,has_source:!!r.source_base64,source_sha256:r.source_sha256,artifact_sha256:r.artifact_sha256,report:{schema:report.schema,passed:report.passed,operation:report.operation,artifact_sha256:report.artifact_sha256}};});
+ return {releases,release:release?publicRelease(release):null,id:d.id,task_id:d.task_id,state:data.task.execution?.state||data.task.status,stage:data.task.execution?.stage||'',message:data.task.execution?.message||'',result:data.results[0]||null};
 }
 export async function handlePortal(request:Request,db:D1Database):Promise<Response>{
  try{

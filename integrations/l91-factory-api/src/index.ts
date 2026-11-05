@@ -11,7 +11,7 @@ export default {async fetch(request:Request,env:Env):Promise<Response>{
   if(request.method==='OPTIONS')return new Response(null,{status:cors?204:403,headers:{'access-control-allow-origin':cors,'access-control-allow-headers':'Authorization, Content-Type','access-control-allow-methods':'GET,POST,PATCH,DELETE,OPTIONS','vary':'Origin'}});
   if(origin&&!cors)return json({error:'origin forbidden'},403);
   const url=new URL(request.url);
-  if(url.pathname==='/health')return json({ok:true,version:"0.5.0"},200,cors);
+  if(url.pathname==='/health')return json({ok:true,version:"0.5.1"},200,cors);
   if(url.pathname.startsWith('/portal/'))return handlePortal(request,env.DATABASE);
   if(url.pathname.startsWith('/runner/'))return handleMachine(request,env.DATABASE);
   if(!url.pathname.startsWith('/api/runners') && !url.pathname.startsWith('/api/notes') && !/^\/api\/tasks(?:\/|$)/.test(url.pathname))return json({error:'not found'},404,cors);
