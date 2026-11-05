@@ -7,7 +7,8 @@ APPROVED, then open
 FACTORY RUN. Review the exact submitted requirements, choose a registered project
 and runtime, add acceptance requirements, check the approval box and choose RUN REQUEST.
 Queued/running work refreshes every five seconds while the panel is open and visible.
-REFRESH RUN also loads status and the returned report/patch. CANCEL RUN stops queued work
+REFRESH RUN also loads status and the returned report/patch; use it to resume checks
+after returning from a backgrounded tab. CANCEL RUN stops queued work
 or stops active work at its next heartbeat. Results are owner-only; publish a separate
 customer update when ready. The local machine must be awake with Ollama, Docker and
 l91-runner.service running. Offline requests remain queued.

@@ -117,3 +117,60 @@ def test_guest_inquiry_prepared_approved_and_result_persists(browser_server, eng
         assert guest.request.get(origin + "/api/admin/portal/projects/" + request_id).status == 401
         assert owner.evaluate("document.documentElement.scrollWidth <= innerWidth")
         browser.close()
+
+
+@pytest.mark.parametrize("browser_server", ["factory_owner"], indirect=True)
+@pytest.mark.parametrize("engine", ["chromium", "webkit"])
+@pytest.mark.parametrize("width", [390, 1440])
+def test_release_delivers_product_and_private_source(browser_server, engine, width):
+    origin, _ = browser_server
+    with sync_playwright() as pw:
+        browser = getattr(pw, engine).launch()
+        customer = browser.new_page()
+        customer.goto(origin + "/lupuspec")
+        create_customer(customer, "factory-customer@example.com")
+        create_project(customer)
+        project = customer.request.get(origin + "/api/portal/projects").json()["projects"][0]
+        work = next(w for w in project["services"] if w["service"] == "software")
+        path = "/api/admin/portal/work/" + work["id"] + "/factory"
+        owner = browser.new_page(viewport={"width": width, "height": 950})
+        owner.goto(origin)
+        owner.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
+        owner.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
+        owner.locator("#auth-submit").click()
+        expect(owner.locator(".property-card").first).to_be_visible()
+        owner.locator("#crm-nav").click()
+        owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
+        owner.get_by_label("SOFTWARE", exact=True).select_option("approved")
+        owner.get_by_label("SOFTWARE", exact=True).locator("..").locator("..").get_by_role(
+            "button", name="SAVE WORK STATUS"
+        ).click()
+        owner.locator('details[data-work-status="approved"] summary').click()
+        expect(owner.locator("#crm-panel")).to_contain_text("Customer-visible test requirements")
+        owner.get_by_label("ACCEPTANCE REQUIREMENTS", exact=True).fill("RETURN SYNTHETIC RELEASE")
+        owner.get_by_role("button", name="RUN REQUEST", exact=True).click()
+        assert owner.request.get(origin + path).json()["dispatch"] is None
+        owner.get_by_label(
+            "I REVIEWED THIS REQUEST AND APPROVE RUNNING IT ON MY MACHINE.", exact=True
+        ).check()
+        owner.get_by_role("button", name="RUN REQUEST", exact=True).click()
+        expect(owner.locator("#crm-panel")).to_contain_text(
+            "Factory unavailable; retry this request"
+        )
+        owner.get_by_role("button", name="REFRESH RUN", exact=True).click()
+        expect(owner.locator("#crm-panel")).to_contain_text("COMPLETED")
+        owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
+        owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
+        expect(owner.get_by_role("link", name="OPEN PRODUCT", exact=True)).to_have_attribute(
+            "href", "https://fixture-calculator.pages.dev"
+        )
+        customer.reload()
+        customer.get_by_role("button", name="Synthetic workshop controller").click()
+        expect(customer.get_by_role("link", name="OPEN PRODUCT", exact=True)).to_be_visible()
+        with customer.expect_download() as download:
+            customer.get_by_role("link", name="DOWNLOAD SOURCE", exact=True).click()
+        assert download.value.suggested_filename == "source-1.0.0.zip"
+        assert customer.request.get(origin + path).status == 403
+        assert customer.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        assert owner.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        browser.close()

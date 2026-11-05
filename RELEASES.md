@@ -1,5 +1,46 @@
 # LandWolf release log
 
+## v0.22.1 — guest requests reach the factory; production acceptance complete
+
+- Candidate: `affc4562b398372373ea0c8a824fc7b638d7d71e`; PR #52.
+- Staging: `6aa355468ff7d2256f5842740f7c079e56529311`, Render `dep-dbl9kr0u01pc739i6850`, live 2026-11-04 02:38:40 UTC.
+- Production: `34dc6e332d3550b7a23aef6298d71589994f3e55`, Render `dep-dbla6ldg1s2s73e407qg`, live 2026-11-04 03:16:45 UTC.
+- All three commits have the same complete tree: `7b5f75f56ac40c814a54412461b42b14737e062f`. Runtime 0.22.1; schema 17.
+
+Guest inquiries previously stopped at CRM intake without service work. Owners can
+now prepare work, approve Software requests, and dispatch the stored brief. No
+account access or run is granted by preparation. Explicit verified-account linking
+preserves customer/work/financial identities; email text never grants access.
+Owners can follow progress and inspect private results. Customers receive allowlisted
+status: failed checks remain failed, and an owner’s Delivered/Closed decision replaces
+Awaiting Review. Generated code still requires review and independent acceptance.
+
+Final application CI 41761901570 passed 766 backend, 27 frontend and 160 browser
+cases, header comparison, PostgreSQL/restore, builds and security. Factory CI
+41761901721 passed 28 tests; legacy CI 41761901578 passed 53. Exact-runtime hosted
+acceptance passed in staging and production, including customer isolation, CSRF,
+message/session persistence, owner restrictions, billing mode, public pages, themes
+and layout budgets. The PR-triggered hosted check ran before deployment and failed
+live identity; it is not relabeled as passed. Explicit post-deployment checks exited 0.
+
+The original guest calculator request was prepared and approved through the owner
+UI, dispatched once to the real local LFM3 runner, and returned a reviewed arithmetic
+patch. All 16 independent tests passed with Docker networking disabled and source
+read-only. After applying the patch and normalizing whitespace, all 16 passed again.
+The actual page passed Chromium/WebKit desktop/mobile checks and asset-hash/security
+header checks in preview and production. Its result URL and Delivered statuses were
+published and confirmed after reload. The factory task’s Approved state also persisted.
+Customer identifiers and the detailed correlation record remain in private local evidence.
+Calculator: https://lupu-spec-calculator.pages.dev/ . No cloud model inference was used.
+
+The Toyota-inspired software PDCA skill is installed locally and recorded in
+`app/docs/PDCA_RELEASE.md`; application instructions now require that workflow for
+customer/factory changes. Failed rehearsals remain archived and restorable.
+Schema 17 requires a verified forward fix or reconciled database recovery to return
+to schema-16 code; no production database restore/reset was performed. Guest portal
+access remains pending until the owner verifies and links a registered account.
+This documentation-only sign-off does not redeploy or relabel either runtime.
+
 ## v0.22.1 — delivery-status correction candidate (not deployed)
 
 The owner’s persisted DELIVERED/CLOSED decision replaces AWAITING REVIEW in customer
@@ -787,8 +828,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.21.0 | `b93e42f164cbb3779210a6c0ac937c9b3809ec5c` | 2026-11-04 00:09:33 UTC |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.21.0 | `591f6ab766a193db9be155379fa1da9b6f91767c` | 2026-11-03 23:59:52 UTC |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.22.1 | `34dc6e332d3550b7a23aef6298d71589994f3e55` | 2026-11-04 03:16:45 UTC |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.22.1 | `6aa355468ff7d2256f5842740f7c079e56529311` | 2026-11-04 02:38:40 UTC |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -1114,3 +1155,11 @@ responses did not establish a production outage. No URL/parser change was
 confirmed and no source repair was deployed. Billing, access, accounts, allowlists
 and quarantine protections were preserved. See
 [source check evidence and limits](app/docs/SOURCE_MAINTENANCE_2026_10_10.md).
+
+## v0.23.0 — factory release candidate
+
+Adds verified release delivery, customer product/source links, and additive schema
+18. The factory release API pins the approved result and tested artifact; publishing
+and delivery are separate decisions. Candidate checks are in progress. Neither
+staging nor production is claimed deployed by this entry. See
+[release workflow and limits](app/docs/FACTORY_RELEASE.md).

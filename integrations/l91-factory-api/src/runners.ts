@@ -1,7 +1,8 @@
+import {handleReleaseMachine,releaseProfile,expireReleases} from './releases.ts';
 import {body,field,hash,InputError,validateResult} from './common.ts';
 
 type Runner={id:string;owner_id:string|null;name:string;token_hash:string;pair_hash:string|null;pair_expires:string|null;last_seen:string|null;capabilities:string;ready:number;issue:string;revoked:number};
-type Project={id:string;name:string;runtimes:string[];checks:string};
+type Project={id:string;name:string;runtimes:string[];checks:string;release?:{target:string;files:string[]}};
 export type Run={id:string;task_id:string;owner_id:string;runner_id:string;state:string;stage:string;message:string;lease:string|null;lease_until:string|null;deadline:string|null;result_hash:string|null;created_at:string;started_at:string|null;finished_at:string|null;sequence:number};
 type Task={id:string;owner_id:string;runner_id:string|null;project_key:string;runtime:string;status:string;archived:number;revision:number;goal:string};
 const now=()=>new Date().toISOString();
@@ -41,7 +42,7 @@ export async function queueRun(db:D1Database,user:string,task:Task,input:Record<
 function capabilities(value:unknown):Project[]{
  if(!Array.isArray(value)||value.length>20)throw new InputError('Invalid projects.');
  const seen=new Set();
- return value.map(p=>{if(!p||typeof p!=='object'||Array.isArray(p)||!/^[a-z0-9][a-z0-9-]{0,49}$/.test(p.id)||seen.has(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>100||!Array.isArray(p.runtimes)||!p.runtimes.length||p.runtimes.some((r:unknown)=>!['python','node','rust'].includes(String(r)))||!['syntax','acceptance'].includes(p.checks))throw new InputError('Invalid project.');seen.add(p.id);return {id:p.id,name:p.name,runtimes:[...new Set<string>(p.runtimes)],checks:p.checks};});
+ return value.map(p=>{if(!p||typeof p!=='object'||Array.isArray(p)||!/^[a-z0-9][a-z0-9-]{0,49}$/.test(p.id)||seen.has(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>100||!Array.isArray(p.runtimes)||!p.runtimes.length||p.runtimes.some((r:unknown)=>!['python','node','rust'].includes(String(r)))||!['syntax','acceptance'].includes(p.checks))throw new InputError('Invalid project.');seen.add(p.id);return {id:p.id,name:p.name,runtimes:[...new Set<string>(p.runtimes)],checks:p.checks,...(p.release?{release:releaseProfile(p.release)}:{})};});
 }
 // Clerk-authenticated user controls. Runner credentials are never returned here.
 export async function handleRunnerSettings(request:Request,db:D1Database,user:string,origin:string){
@@ -91,14 +92,16 @@ export async function handleMachine(request:Request,db:D1Database){
   if(!runner.owner_id)throw new InputError(runner.pair_expires&&runner.pair_expires>now()?'Pair this machine from the website.':'Pairing expired. Generate a new code.',403);
   if(request.method!=='POST')return reply({error:'Method not allowed.'},405);
   const input=await body(request);
+  if(path.startsWith('/runner/releases/'))return handleReleaseMachine(request,db,{id:runner.id,owner_id:runner.owner_id},input);
   if(path==='/runner/poll'){
    const projects=capabilities(input.projects),issue=field(input,'issue',200);
    if(typeof input.ready!=='boolean')throw new InputError('Invalid health.');
    await db.prepare('UPDATE runners SET last_seen=?,capabilities=?,ready=?,issue=? WHERE id=? AND revoked=0').bind(now(),JSON.stringify(projects),input.ready?1:0,issue,runner.id).run();
    await expireRuns(db);
+   await expireReleases(db);
    if(!input.ready)return reply({run:null});
    const lease=crypto.randomUUID();
-   const run=await db.prepare("UPDATE task_runs SET state='running',stage='generating',message='WRITING CODE ON YOUR MACHINE.',lease=?,lease_until=?,deadline=?,started_at=? WHERE id=(SELECT j.id FROM task_runs j JOIN tasks t ON t.id=j.task_id WHERE j.runner_id=? AND j.owner_id=? AND j.state='queued' AND t.status='queued' AND t.archived=0 AND NOT EXISTS(SELECT 1 FROM task_runs WHERE runner_id=? AND state='running') ORDER BY j.created_at,j.id LIMIT 1) AND state='queued' AND EXISTS(SELECT 1 FROM runners WHERE id=? AND revoked=0) RETURNING *").bind(lease,after(90),after(900),now(),runner.id,runner.owner_id,runner.id,runner.id).first<Run>();
+   const run=await db.prepare("UPDATE task_runs SET state='running',stage='generating',message='WRITING CODE ON YOUR MACHINE.',lease=?,lease_until=?,deadline=?,started_at=? WHERE id=(SELECT j.id FROM task_runs j JOIN tasks t ON t.id=j.task_id WHERE j.runner_id=? AND j.owner_id=? AND j.state='queued' AND t.status='queued' AND t.archived=0 AND NOT EXISTS(SELECT 1 FROM task_runs WHERE runner_id=? AND state='running') ORDER BY j.created_at,j.id LIMIT 1) AND state='queued' AND NOT EXISTS(SELECT 1 FROM releases WHERE runner_id=task_runs.runner_id AND state IN ('building','publishing','rolling_back')) AND EXISTS(SELECT 1 FROM runners WHERE id=? AND revoked=0) RETURNING *").bind(lease,after(90),after(900),now(),runner.id,runner.owner_id,runner.id,runner.id).first<Run>();
    if(!run)return reply({run:null});
    const task=await db.prepare('SELECT id,title,goal,acceptance,runtime,project,project_key FROM tasks WHERE id=? AND owner_id=?').bind(run.task_id,runner.owner_id).first();
    const feedback=await db.prepare("SELECT message FROM task_events WHERE task_id=? AND kind='changes_requested' ORDER BY task_revision DESC LIMIT 1").bind(run.task_id).first();
