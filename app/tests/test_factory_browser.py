@@ -26,7 +26,9 @@ def test_approve_run_lost_acknowledgement_and_private_result(browser_server, eng
         owner.goto(origin)
         owner.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         owner.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
-        owner.locator("#auth-submit").click()
+        with owner.expect_response("**/api/search") as listings:
+            owner.locator("#auth-submit").click()
+        assert listings.value.status == 200
         expect(owner.locator(".property-card").first).to_be_visible()
         owner.locator("#crm-nav").click()
         owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
@@ -89,7 +91,9 @@ def test_guest_inquiry_prepared_approved_and_result_persists(browser_server, eng
         owner.goto(origin)
         owner.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         owner.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
-        owner.locator("#auth-submit").click()
+        with owner.expect_response("**/api/search") as listings:
+            owner.locator("#auth-submit").click()
+        assert listings.value.status == 200
         expect(owner.locator(".property-card").first).to_be_visible()
         owner.locator("#crm-nav").click()
         owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
@@ -137,7 +141,9 @@ def test_release_delivers_product_and_private_source(browser_server, engine, wid
         owner.goto(origin)
         owner.get_by_label("Email address", exact=True).fill("owner-fixture@example.com")
         owner.get_by_label("Password", exact=True).fill("Test-only passphrase 847!")
-        owner.locator("#auth-submit").click()
+        with owner.expect_response("**/api/search") as listings:
+            owner.locator("#auth-submit").click()
+        assert listings.value.status == 200
         expect(owner.locator(".property-card").first).to_be_visible()
         owner.locator("#crm-nav").click()
         owner.get_by_text("CUSTOMER WORKSPACE", exact=True).click()
