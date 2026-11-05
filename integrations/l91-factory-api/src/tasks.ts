@@ -1,3 +1,4 @@
+import {handleReleases,activeRelease,expireReleases} from './releases.ts';
 import {body,field,InputError,validateResult} from './common.ts';
 import type {Run} from './runners.ts';
 import {expireRuns,publicRun,queueRun,runnerList,validateTarget,newRun} from './runners.ts';
@@ -11,7 +12,7 @@ export async function handleTasks(request:Request,db:D1Database,user:string,orig
   const reply=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json','access-control-allow-origin':origin,'vary':'Origin','cache-control':'no-store'}});
   try {
     const url=new URL(request.url),parts=url.pathname.split('/').filter(Boolean),id=parts[2],action=parts[3];
-    if(parts.length>4)return reply({error:'Not found.'},404);
+    if(parts.length>4&&action!=='releases')return reply({error:'Not found.'},404);
     if(!id&&request.method==='GET'){
       const offset=Number(url.searchParams.get('offset')||0);
       if(!Number.isSafeInteger(offset)||offset<0||offset>100000)throw new InputError('Invalid offset.');
@@ -35,6 +36,9 @@ export async function handleTasks(request:Request,db:D1Database,user:string,orig
     await expireRuns(db);
     const task=await db.prepare('SELECT * FROM tasks WHERE id=? AND owner_id=?').bind(id,user).first<Task>();
     if(!task)return reply({error:'Task not found.'},404);
+    if(action==='releases')return handleReleases(request,db,user,task as typeof task & {runner_id:string},action,origin);
+    await expireReleases(db);
+    if(request.method!=='GET'&&await activeRelease(db,id))throw new InputError('Finish or cancel the active release before changing this task.',409);
     const execution=await db.prepare('SELECT * FROM task_runs WHERE task_id=? ORDER BY sequence DESC LIMIT 1').bind(id).first<Run>();
     const active=execution&&['queued','running'].includes(String(execution.state));
     if(action==='run'&&request.method==='POST'){await queueRun(db,user,task,await body(request));return reply({ok:true},201);}

@@ -1155,3 +1155,11 @@ responses did not establish a production outage. No URL/parser change was
 confirmed and no source repair was deployed. Billing, access, accounts, allowlists
 and quarantine protections were preserved. See
 [source check evidence and limits](app/docs/SOURCE_MAINTENANCE_2026_10_10.md).
+
+## v0.23.0 — factory release candidate
+
+Adds verified release delivery, customer product/source links, and additive schema
+18. The factory release API pins the approved result and tested artifact; publishing
+and delivery are separate decisions. Candidate checks are in progress. Neither
+staging nor production is claimed deployed by this entry. See
+[release workflow and limits](app/docs/FACTORY_RELEASE.md).

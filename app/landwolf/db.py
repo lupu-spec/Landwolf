@@ -418,7 +418,7 @@ class ResearchGoal(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
 
 
-SCHEMA_VERSION = 17
+SCHEMA_VERSION = 18
 
 
 def database(url: str) -> tuple[Engine, sessionmaker[Session]]:
@@ -433,6 +433,7 @@ def initialize(engine: Engine) -> None:
     """Add customer service boundaries in v15; preserve all existing data."""
     from landwolf import (  # noqa: F401 -- additive tables
         factory_bridge,
+        factory_delivery,
         finance_models,
         lupuspec,
         portal_models,
@@ -468,6 +469,7 @@ def initialize(engine: Engine) -> None:
             [14],
             [15],
             [16],
+            [17],
             [SCHEMA_VERSION],
         ):
             raise RuntimeError("Unsupported application schema version; migration required")

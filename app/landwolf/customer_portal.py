@@ -191,6 +191,9 @@ def project_view(
         ],
     }
     if detail:
+        from landwolf.factory_delivery import public_deliveries
+
+        result["releases"] = public_deliveries(session, item.id)
         messages = session.scalars(
             select(ProjectMessage)
             .where(
@@ -322,6 +325,9 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
     def project(request_id: str, request: Request, session: DB) -> dict[str, Any]:
         account = auth.authenticate(request, session, settings)
         item, link = scoped_project(session, account, request_id)
+        from landwolf.factory_delivery import sync_deliveries
+
+        sync_deliveries(session, settings, request_id)
         return project_view(session, item, link, detail=True)
 
     @app.post("/api/portal/projects", status_code=201)
@@ -415,6 +421,9 @@ def register(app: FastAPI, settings: Settings, factory: sessionmaker[Session]) -
         )
         if item is None or link is None:
             raise HTTPException(404, "Project has no customer workspace")
+        from landwolf.factory_delivery import sync_deliveries
+
+        sync_deliveries(session, settings, request_id)
         return {
             **project_view(session, item, link, detail=True),
             "customer_id": link.customer_id,

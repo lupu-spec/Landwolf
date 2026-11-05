@@ -1,8 +1,10 @@
+import { releaseCards, type Delivery } from "./releases";
 /** Customer API only. Shared CRM, costs and factory credentials never enter this bundle. */
 import { byId, element } from "./dom";
 
 type Work = { id: string; service: string; status: string; revision: number };
 type Project = {
+  releases?: Delivery[];
   id: string;
   title: string;
   status: string;
@@ -266,6 +268,7 @@ async function detail(id: string) {
     link.rel = "noopener noreferrer";
     view.append(link);
   }
+  view.append(releaseCards(p.releases || []));
   view.append(element("h3", "", "UPDATES"));
   if (!p.messages?.length) view.append(element("p", "note", "NO UPDATES YET"));
   if (p.older_messages)
