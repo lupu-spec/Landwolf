@@ -82,6 +82,10 @@ def test_accessible_journeys(browser_server, width, theme, engine):
         page.keyboard.press("Enter")
         expect(page.locator("#property-dialog")).to_be_visible()
         audit("property-dialog")
+        page.locator("#property-dialog .wolf-chat-trigger").click()
+        expect(page.locator("#wolf-chat-panel")).to_be_visible()
+        audit("dialog-help")
+        page.get_by_role("button", name="Collapse Romulus and Remus chat").click()
         page.keyboard.press("Escape")
         expect(opener).to_be_focused()
         for view in ["research", "hunt", "sources", "crm", "finance", "feedback", "billing"]:
