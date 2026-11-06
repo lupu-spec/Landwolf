@@ -30,11 +30,11 @@ export function renderStatistics(
     const button = document.createElement("button");
     button.type = "button";
     button.className = "crm-statistic button secondary";
-    button.setAttribute("aria-label", `Show ${label.toLowerCase()}: ${count}`);
+    button.setAttribute("aria-label", `Show ${count} ${label.toLowerCase()}`);
     const value = document.createElement("strong");
     value.textContent = String(count);
     const caption = document.createElement("span");
-    caption.textContent = label;
+    caption.textContent = ` ${label}`;
     button.append(value, caption);
     button.addEventListener("click", () => choose(category, membership));
     cards.append(button);

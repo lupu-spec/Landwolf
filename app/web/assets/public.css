@@ -27,7 +27,7 @@ a {
   color: var(--link);
   text-underline-offset: 0.2em;
 }
-a:focus-visible {
+:is(a, select, summary):focus-visible {
   outline: 3px solid currentColor;
   outline-offset: 4px;
 }

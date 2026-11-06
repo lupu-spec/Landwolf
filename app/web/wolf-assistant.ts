@@ -156,7 +156,7 @@ export function setupWolfAssistant(bridge: Bridge) {
   launcher.id = "wolf-chat-launcher";
   launcher.setAttribute("aria-label", "AI Chat with Romulus and Remus");
   launcher.setAttribute("aria-controls", panel.id);
-  launcher.append(twins(), node("span", "Ask Romulus & Remus"));
+  launcher.append(twins(), node("span", "Romulus and Remus"));
   root.append(panel, coach, launcher);
   document.body.append(root);
   let expanded = false;

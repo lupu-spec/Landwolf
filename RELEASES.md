@@ -1239,3 +1239,12 @@ the portal applies each delivery once and withdraws restored versions. The API a
 enforces the same 500,000-byte source limit as customer downloads. Targeted API and
 portal regression tests pass. This supersedes the staged v0.23.0 candidate; full
 checks, staging and production promotion remain pending.
+
+## v0.24.0 — accessibility candidate, not deployed
+
+WCAG 2.2 AA accessibility countermeasures for observed label, keyboard table,
+map contrast and result-layout semantics defects; reduced-motion scrolling,
+error descriptions and a public accessibility statement. Adds axe browser
+regressions and a manual assistive-technology checklist. No schema, entitlement,
+billing or infrastructure changes. Verification and staging/production promotion
+remain pending. See app/docs/ACCESSIBILITY.md. No legal certification is claimed.

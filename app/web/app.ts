@@ -3,7 +3,7 @@ import { sourceLink } from "./source-links";
 import { setupAppearance } from "./theme";
 import { setupCoverage, type CoverageReport } from "./coverage";
 import type { Source } from "./source-list";
-import { byId, element } from "./dom";
+import { byId, element, scrollBehavior } from "./dom";
 import { setupCRM } from "./crm";
 import { setupFinance } from "./finance";
 import { setupNavigationDock } from "./navigation-dock";
@@ -1100,19 +1100,21 @@ function renderMapMarkers(): void {
     markers.addLayer(marker);
   }
 }
-document.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((button) =>
-  button.addEventListener("click", () => {
-    byId("results-layout").dataset.view = button.dataset.view;
-    document
-      .querySelectorAll<HTMLButtonElement>("[data-view]")
-      .forEach((other) => {
-        if (other.tagName === "BUTTON")
-          other.setAttribute("aria-pressed", String(other === button));
-      });
-    mapNeedsFit = true;
-    scheduleMapViewport();
-  }),
-);
+document
+  .querySelectorAll<HTMLButtonElement>("button[data-view]")
+  .forEach((button) =>
+    button.addEventListener("click", () => {
+      byId("results-layout").dataset.view = button.dataset.view;
+      document
+        .querySelectorAll<HTMLButtonElement>("button[data-view]")
+        .forEach((other) => {
+          if (other.tagName === "BUTTON")
+            other.setAttribute("aria-pressed", String(other === button));
+        });
+      mapNeedsFit = true;
+      scheduleMapViewport();
+    }),
+  );
 
 function researchMode(): void {
   const address = byId<HTMLSelectElement>("research-mode").value === "address";
@@ -1165,7 +1167,7 @@ function propertyActions(record: PropertyRecord): HTMLElement {
     void (async () => {
       if (!dialog.open || currentProperty?.id !== record.id)
         await openDetail(record.id);
-      byId("decision-workspace").scrollIntoView({ behavior: "smooth" });
+      byId("decision-workspace").scrollIntoView({ behavior: scrollBehavior() });
     })();
   });
   actions.append(research, decision, similar);
@@ -1878,7 +1880,7 @@ for (const state of states.split("|")) {
 byId("year").textContent = String(new Date().getFullYear());
 if (window.matchMedia("(max-width: 800px)").matches) {
   document
-    .querySelectorAll<HTMLButtonElement>("[data-view]")
+    .querySelectorAll<HTMLButtonElement>("button[data-view]")
     .forEach((button) =>
       button.setAttribute(
         "aria-pressed",
@@ -2100,7 +2102,7 @@ async function loadHunts(): Promise<HuntRow[] | null> {
         byId("hunt-cancel").hidden = false;
         byId("hunt-status").textContent =
           `Editing ${hunt.name}. Submit the form to save a new criteria revision.`;
-        huntForm.scrollIntoView({ behavior: "smooth" });
+        huntForm.scrollIntoView({ behavior: scrollBehavior() });
       });
       button(
         hunt.active ? "Pause" : "Resume",
@@ -2254,7 +2256,7 @@ async function showHunt(hunt: HuntRow, scroll = true): Promise<void> {
     };
     group("Matches", result.matches);
     group("Needs review", result.needs_review);
-    if (scroll) target.scrollIntoView({ behavior: "smooth" });
+    if (scroll) target.scrollIntoView({ behavior: scrollBehavior() });
   } catch (error) {
     if (!current()) return;
     const retry = element("button", "button secondary small", "Retry matches");
@@ -2317,7 +2319,7 @@ huntForm.addEventListener("submit", (event) => {
       byId("hunt-status").textContent = message;
       notify(message);
       byId("hunt-status").scrollIntoView({
-        behavior: "smooth",
+        behavior: scrollBehavior(),
         block: "center",
       });
       // A failed or slow match request is not a failed save. Keep its retry separate.

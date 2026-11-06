@@ -121,7 +121,7 @@
                     d="m12 3 10 6-10 6L2 9Zm-10 10 10 6 10-6M2 17l10 6 10-6"
                   /></svg
               ></span>
-              <span class="dock-label" aria-hidden="true">Sources</span
+              <span class="dock-label" aria-hidden="true">Coverage</span
               ><span class="sr-only">Data coverage</span>
             </button>
             <button
@@ -181,7 +181,7 @@
                   <path
                     d="M5 17c0-4 8-4 8 0M15 8h3M15 12h3M16 16h2"
                   /></svg></span
-              ><span class="dock-label">L91 CRM</span>
+              ><span class="dock-label">CRM</span>
             </button>
             <button
               id="finance-nav"
@@ -262,7 +262,7 @@
         <button id="signout" class="button quiet small" hidden>Sign out</button>
       </div>
     </header>
-    <main id="main">
+    <main id="main" tabindex="-1">
       <section id="auth-view" class="auth-layout">
         <div class="auth-story">
           <div class="story-shade"></div>
@@ -334,6 +334,7 @@
               <label for="email">Email address</label
               ><input
                 id="email"
+                aria-describedby="auth-message"
                 name="email"
                 type="email"
                 maxlength="254"
@@ -344,6 +345,7 @@
               <label for="password">Password</label
               ><input
                 id="password"
+                aria-describedby="password-help auth-message"
                 name="password"
                 type="password"
                 minlength="12"
@@ -352,7 +354,7 @@
                 placeholder="At least 12 characters"
                 required
               />
-              <p class="input-note">
+              <p id="password-help" class="input-note">
                 Use a unique password of 12–128 characters.
               </p>
               <fieldset
@@ -611,7 +613,11 @@
             or no successful update. Gray: directory only. Times use your
             device’s time zone. Select a source for details.
           </p>
-          <div id="source-cards" aria-label="Source freshness"></div>
+          <div
+            id="source-cards"
+            role="region"
+            aria-label="Source freshness"
+          ></div>
           <details class="feature-roadmap">
             <summary>Development roadmap</summary>
             <div id="feature-roadmap"></div>
@@ -699,6 +705,7 @@
               >
               <input
                 id="research-address"
+                aria-describedby="research-status"
                 minlength="8"
                 maxlength="240"
                 autocomplete="off"
@@ -715,6 +722,7 @@
                 <label for="research-latitude">Latitude</label
                 ><input
                   id="research-latitude"
+                  aria-describedby="research-status"
                   type="number"
                   min="-90"
                   max="90"
@@ -726,6 +734,7 @@
                 <label for="research-longitude">Longitude</label
                 ><input
                   id="research-longitude"
+                  aria-describedby="research-status"
                   type="number"
                   min="-180"
                   max="180"
@@ -1037,7 +1046,12 @@
           <div class="results-toolbar">
             <div>
               <h2 id="results-title">Property results</h2>
-              <p id="results-subtitle">
+              <p
+                id="results-subtitle"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
                 Search the connected inventory to begin.
               </p>
             </div>
@@ -1080,13 +1094,17 @@
               </div>
               <div
                 id="property-map"
+                role="region"
+                aria-describedby="map-alternative"
                 aria-label="Map of source-reported property locations"
               ></div>
               <div id="map-warning" class="map-warning" hidden></div>
-              <div class="map-footer">
-                Source locations across your filtered search, independent of
-                list pages. Listings without coordinates remain in the list.
-                Location points, not surveyed boundaries.
+              <div class="map-footer" id="map-alternative">
+                Use the List button above for keyboard-accessible property
+                details, including properties without map coordinates. Source
+                locations across your filtered search, independent of list
+                pages. Listings without coordinates remain in the list. Location
+                points, not surveyed boundaries.
                 <a
                   href="https://www.openstreetmap.org/fixthemap"
                   target="_blank"
@@ -1494,6 +1512,7 @@
         <a href="/land-investing">Land research checklist</a> ·
         <a href="/faq">FAQ</a> · <a href="/about">About LandWolf</a> ·
         <a href="/trial-terms">Trial terms</a> ·
+        <a href="/accessibility">Accessibility</a> ·
         <a href="/lupuspec">LupuSpec</a>
       </nav>
       <a href="mailto:support.landwolf@gmail.com">Contact support ↗</a>

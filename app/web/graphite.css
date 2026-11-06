@@ -445,7 +445,7 @@ summary:focus-visible {
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip,
 .leaflet-bar a,
-.leaflet-control-attribution {
+.leaflet-container .leaflet-control-attribution {
   color: var(--ink);
   background: var(--surface);
 }
@@ -658,5 +658,20 @@ summary:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .source-row-name::before {
     transition: none;
+  }
+}
+
+/* Keyboard access to horizontally scrolling exact-value chart tables. */
+.finance-table-wrap:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+:is(main, dialog)
+  :where(button, a, input, select, textarea, summary, [tabindex]) {
+  scroll-margin-block: 7rem;
+}
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight;
   }
 }
