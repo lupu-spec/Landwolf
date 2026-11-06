@@ -31,7 +31,8 @@ email is added.
 
 ## Verification status
 
-Candidate v0.23.1; not deployed. API tests, local runner tests, and customer-isolation
-regressions are recorded in the local release evidence. Browser, staging and
-production acceptance must be completed before promotion. Existing production
-version remains v0.22.1 until an observed deploy is recorded in RELEASES.md.
+Production v0.23.1 is verified. The original calculator release 1.0.2 completed the
+factory and portal delivery path, including the actual source download and reload.
+Full source gates, hosted staging/production checks, customer isolation and a real
+Cloudflare restoration rehearsal passed. See RELEASES.md and docs/VERIFICATION.md
+for immutable runtime commits, deployments, commands, failed attempts and limits.

@@ -14,3 +14,10 @@ export function element<K extends keyof HTMLElementTagNameMap>(
   if (text !== undefined) node.textContent = text;
   return node;
 }
+
+/** Programmatic scrolling must honor the same motion preference as CSS. */
+export function scrollBehavior(): ScrollBehavior {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? "instant"
+    : "smooth";
+}

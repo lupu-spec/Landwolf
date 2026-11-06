@@ -3,6 +3,8 @@
   --bg: #f3f4f8;
   --fg: #20232b;
   --link: #244f83;
+  background: var(--bg);
+  color: var(--fg);
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -27,7 +29,7 @@ a {
   color: var(--link);
   text-underline-offset: 0.2em;
 }
-a:focus-visible {
+:is(a, select, summary):focus-visible {
   outline: 3px solid currentColor;
   outline-offset: 4px;
 }

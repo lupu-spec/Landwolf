@@ -37,6 +37,35 @@ FAQ = (
     ),
 )
 PAGES = {
+    "/accessibility": (
+        "Accessibility at LandWolf",
+        "LandWolf accessibility goals, keyboard and map alternatives, known limitations "
+        "and how to request help or report an accessibility barrier.",
+        """<p>LandWolf, operated by L91 LLC, is working toward the Web Content Accessibility
+Guidelines (WCAG) 2.2 Level AA. Accessibility review and improvements are ongoing.
+We do not claim complete conformance or legal certification.</p>
+<h2>Using LandWolf</h2>
+<p>Use the Skip to content link to bypass navigation. Controls can be reached with Tab
+and Shift+Tab and activated with the keyboard. Escape closes property and account dialogs.
+Appearance offers light and dark themes, and the interface respects reduced-motion settings.</p>
+<h2>Property maps and alternatives</h2>
+<p>Choose List above property results to browse with a keyboard or screen reader.
+The list includes properties without coordinates and provides property details and source links.
+Maps show source-reported points, not surveyed boundaries. Research also accepts typed
+addresses or coordinates; dragging a map is not required.</p>
+<h2>Known limitations and ongoing review</h2>
+<p>Automated checks cover selected public and authenticated screens. They do not replace
+manual assistive-technology testing. Complex research, administrative tools, zoom and mobile
+assistive-technology workflows need continued review. External property documents, map tiles
+and payment-provider pages may have accessibility limitations outside our control.</p>
+<h2>Request help or report a barrier</h2>
+<p>Email <a href="mailto:support.landwolf@gmail.com">support.landwolf@gmail.com</a>
+with the page or feature, what you were trying to do and the barrier you encountered.
+If useful, include your browser and assistive technology. You may request an accessible
+alternative or assistance completing the task. Do not send passwords, payment card details
+or sensitive property/account records. We will review reports and discuss available help.</p>
+<p>Statement updated November 6, 2026.</p>""",
+    ),
     "/land-investing": (
         "Land investing research checklist",
         "Research US land purchases with a checklist for official sale terms, parcel access, "
@@ -144,7 +173,7 @@ def document(path: str) -> str:
 <nav aria-label="Public navigation">{links}</nav>
 <label>Appearance <select id="appearance" aria-label="Appearance">
 <option value="system">Auto</option><option value="light">Light</option>
-<option value="dark">Dark</option></select></label></header><main id="main">
+<option value="dark">Dark</option></select></label></header><main id="main" tabindex="-1">
 <nav aria-label="Breadcrumb"><a href="/">LandWolf</a> /
 <span aria-current="page">{escape(title)}</span></nav><h1>{escape(title)}</h1>{body}</main>
 <footer>© L91 LLC · LandWolf. Verify records with their original source.</footer></body></html>'''

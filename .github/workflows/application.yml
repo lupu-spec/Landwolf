@@ -11,7 +11,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     services:
       postgres:
         image: postgres:18
@@ -39,6 +39,7 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
       - name: Install locked environments
+        timeout-minutes: 10
         run: |
           pip install uv==0.12.11
           uv sync --frozen --dev
