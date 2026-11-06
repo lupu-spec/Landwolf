@@ -103,6 +103,9 @@ export function renderChart(
   table.append(tbody);
   const wrap = document.createElement("div");
   wrap.className = "finance-table-wrap";
+  wrap.tabIndex = 0;
+  wrap.setAttribute("role", "region");
+  wrap.setAttribute("aria-label", `${title} data table`);
   wrap.append(table);
   figure.append(wrap);
   return figure;

@@ -100,6 +100,7 @@ export function setupWolfAssistant(bridge: Bridge) {
   info.append(infoTitle, disclosure, support);
   const contextLabel = node("p", "", "wolf-context");
   const quick = node("div", "", "wolf-quick-topics wolf-suggestions");
+  quick.setAttribute("role", "group");
   quick.setAttribute("aria-label", "Suggested help topics");
   const log = node("div", "", "wolf-chat-log");
   log.id = "wolf-chat-log";
@@ -156,7 +157,7 @@ export function setupWolfAssistant(bridge: Bridge) {
   launcher.id = "wolf-chat-launcher";
   launcher.setAttribute("aria-label", "AI Chat with Romulus and Remus");
   launcher.setAttribute("aria-controls", panel.id);
-  launcher.append(twins(), node("span", "Ask Romulus & Remus"));
+  launcher.append(twins(), node("span", "Romulus and Remus"));
   root.append(panel, coach, launcher);
   document.body.append(root);
   let expanded = false;
