@@ -1,3 +1,4 @@
+import { setupFocusVisibility } from "./focus-visibility";
 import { setupSourceFilter, type SourceOption } from "./source-filter";
 import { sourceLink } from "./source-links";
 import { setupAppearance } from "./theme";
@@ -26,6 +27,8 @@ import {
 import { setupAccountActions } from "./account-actions";
 import { acreagePresets, acreageRange, huntName } from "./hunt-form";
 import { setupDecisionWorkspace } from "./decision-workspace";
+
+setupFocusVisibility();
 
 type ResearchLocation = {
   address: string | null;

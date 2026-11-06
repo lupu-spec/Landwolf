@@ -12,12 +12,15 @@ AXE = Path("node_modules/axe-core/axe.min.js")
 
 
 def scan(page: Page, name: str) -> list[dict]:
+    output = Path("test-results/accessibility")
+    output.mkdir(parents=True, exist_ok=True)
+    # Force a real paint before measuring inherited theme colors in WebKit.
+    # The existing public-theme suite uses the same rendered-paint boundary.
+    page.screenshot(path=str(output / f"{name}.png"))
     page.evaluate(AXE.read_text())
     result = page.evaluate("""async () => await axe.run(document, {
         runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']}
     })""")
-    output = Path("test-results/accessibility")
-    output.mkdir(parents=True, exist_ok=True)
     (output / f"{name}.json").write_text(json.dumps(result, indent=2))
     return [
         {"page": name, "id": v["id"], "nodes": [n["target"] for n in v["nodes"]]}
@@ -117,6 +120,12 @@ def test_accessible_journeys(browser_server, width, theme, engine):
                 table = page.locator(".finance-table-wrap").first
                 table.focus()
                 expect(table).to_be_focused()
+        for link in page.locator(".site-footer a").all():
+            link.focus()
+            assert link.evaluate("""el => {
+                const r = el.getBoundingClientRect();
+                return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+            }""")
         page.emulate_media(reduced_motion="reduce")
         assert page.locator(".dock-tile").first.evaluate(
             "el => getComputedStyle(el).transitionDuration === '0s'"
