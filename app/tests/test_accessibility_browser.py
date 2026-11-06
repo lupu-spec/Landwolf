@@ -92,6 +92,8 @@ def test_accessible_journeys(browser_server, width, theme, engine):
             page.locator(f'#main-nav [data-nav="{view}"]').click()
             expect(page.locator("#workspace-title")).to_be_focused()
             page.wait_for_timeout(500)
+            if view == "hunt":
+                expect(page.get_by_role("group", name="Quick starters")).to_be_visible()
             audit(view)
             if view == "research":
                 page.locator("#research-mode").select_option("address")
