@@ -1,5 +1,98 @@
 # LandWolf verification
 
+## v0.24.0 — accessibility improvements deployed and verified
+
+- Candidate: `99aa3d68a74dd4370ce398478c1c34dd7962d938`; [PR #54](https://github.com/lupu-spec/Landwolf/pull/54).
+- Staging: `f904d5e34a7a9b1a8b82e194403a8392a54e9294`, Render `dep-dbn05kjrjlhs73ckrm90`, live 2026-11-06 16:41:03 UTC.
+- Production: `18b53c81a3a3a662b9dbd7eb1681dbd3b9ba1718`, Render `dep-dbn09915efls738ohvug`, live 2026-11-06 16:48:47 UTC.
+- All three commits have the identical complete tree `748101bc119db865df4adfa610155342454c0662`. Runtime 0.24.0; schema 18 unchanged.
+
+Corrects visible/accessibility-name mismatches, invalid result-toggle semantics,
+unnamed groups, keyboard access to finance tables, map-credit contrast, public
+canvas colors, focus hidden by floating controls, and long-account text reflow.
+Adds error/help associations, result announcements, reduced-motion scrolling,
+map List guidance and the public `/accessibility` statement. Existing native
+dialog and focus-return behavior is regression-tested. Authentication, billing,
+entitlements, customer data and infrastructure are preserved.
+
+Final application [CI 42247666585](https://github.com/lupu-spec/Landwolf/actions/runs/42247666585)
+passed 782 backend/API, 28 frontend and 172 browser cases, separate exact header
+comparison, PostgreSQL integration, disposable backup/restore across 49 tables,
+format/lint/types, production packaging and security. Factory 42247666690 and
+legacy 42247666728 passed. Axe checked 184 isolated fixture states, plus
+96 live staging and 64 live production states,
+with zero WCAG-tagged violations. Incomplete results remain for human review.
+Exact-runtime hosted session/customer and public-page checks exited 0 in both
+environments, including mobile/desktop, themes, logout and persistence.
+
+Local Docker WebKit retained a maximum-one-RGB-level difference in an exact dock
+image comparison: the earlier full command had 171 passed/1 failed; the final
+focused command had 9 passed/1 failed. Hosted exact header/full-suite gates passed
+unchanged. A fresh-render diagnostic produced identical approved/current PNGs;
+a longer control was inconclusive after a fixture-loading timeout. No assertions
+were relaxed. The PR-triggered hosted workflow 42247666764 failed before deployment
+because the expected runtime was not live; no account tests ran in that workflow.
+It is not relabeled passed. Explicit post-deployment acceptance exited 0.
+
+Manual screen-reader/physical-device testing, gradient/translucent contrast review,
+third-party maps/payment/source documents and entitled production-owner journeys
+remain unverified. Owner/admin flows were exercised with isolated fixtures;
+hosted ordinary accounts were denied owner APIs. No legal certification or complete
+WCAG conformance is claimed. See `app/docs/ACCESSIBILITY.md` for the manual checklist.
+This documentation-only sign-off does not redeploy or relabel the observed runtimes.
+The prior 0.23.1 release uses the same schema and is the compatible code rollback
+candidate; no database reset or restore was performed.
+
+### Command evidence
+
+Commands are from `app/` unless noted. Final application CI ran the configured
+commands in repository order. Passed means exit 0; local failures remain separate.
+
+| Command | Result |
+| --- | --- |
+| `uv sync --frozen --dev`, `npm ci`, `uv lock --check` | Passed; locked axe dependency installed |
+| `.venv/bin/ruff format --check landwolf tests scripts`, `npm run format:check` | Passed |
+| `.venv/bin/ruff check landwolf tests scripts`, `npm run lint` | Passed |
+| `.venv/bin/mypy landwolf`, `npm run typecheck` | Passed |
+| `npm run test:unit` | Passed, 28 |
+| `.venv/bin/pytest -q -m 'not browser'` | Passed, 782 |
+| `.venv/bin/python scripts/check_postgres.py` | Passed in disposable CI PostgreSQL |
+| `.venv/bin/python scripts/check_restore.py` | Passed, row digests across 49 tables |
+| `npm run build` | Passed |
+| `.venv/bin/pytest -q -m browser tests/test_commercial_browser.py` | Passed, 8 |
+| `.venv/bin/pytest -q -m browser tests/test_public_pages_browser.py` | Passed, 6 |
+| `.venv/bin/pytest -q -m browser tests/test_theme_browser.py` | Passed, 8 |
+| `.venv/bin/pytest -q -m browser tests/test_source_list_browser.py` | Passed, 4 |
+| `.venv/bin/pytest -q -m browser tests/test_mobile_research_browser.py tests/test_dock_browser.py tests/test_wolf_assistant_browser.py` | Passed, 18 |
+| `.venv/bin/pytest -q -m browser` | Passed in final CI, 172; earlier local full run failed, 171 passed/1 failed |
+| `.venv/bin/pytest -q -x -m browser tests/test_header_css_browser.py` | Passed in final hosted header job, 2 |
+| Local combined `pytest -q -m browser tests/test_accessibility_browser.py tests/test_header_css_browser.py` | Failed overall, 9 passed/1 WebKit image comparison failed; all 8 accessibility cases passed |
+| Supplementary `pytest -q -c pyproject.toml /manual/test_manual_accessibility.py` in the prepared browser container | Passed, 2 keyboard/reflow cases on final candidate; not a screen-reader test |
+| `.venv/bin/python -m build`, `.venv/bin/python scripts/check_package.py` | Passed; final Hunt group markup verified inside wheel |
+| `.venv/bin/bandit -r landwolf` | Passed, no findings |
+| `.venv/bin/pip-audit --local --skip-editable` | Passed, no known vulnerabilities |
+| `npm audit --audit-level=moderate`, `npm run secrets` | Passed |
+| Legacy isolated `pytest -q` | Passed, 53 in legacy CI |
+| Factory configured tests/type checks/audit | Passed, 36 tests in factory CI |
+| `git diff --check`, `git status --short` | Passed, clean release candidate |
+| Real screen-reader and physical-device checklist | Not run |
+
+### Exact-runtime hosted commands
+
+| Command | Result |
+| --- | --- |
+| `python scripts/check_hosted_staging.py --environment staging --commit f904d5e34a7a9b1a8b82e194403a8392a54e9294` | Passed |
+| `python scripts/check_public_seo.py --environment staging` | Passed |
+| `python /manual/check_hosted_accessibility.py --environment staging --commit f904d5e34a7a9b1a8b82e194403a8392a54e9294` | Passed, 96 states/0 violations |
+| `python scripts/check_hosted_staging.py --environment production --commit 18b53c81a3a3a662b9dbd7eb1681dbd3b9ba1718` | Passed |
+| `python scripts/check_public_seo.py --environment production` | Passed |
+| `python /manual/check_hosted_accessibility.py --environment production --commit 18b53c81a3a3a662b9dbd7eb1681dbd3b9ba1718` | Passed, 64 states/0 violations |
+
+Hosted scripts ran in a prepared Chromium/WebKit container using the final locked
+environment. Version, environment, commit and asset hashes were checked. Staging
+payments remained disabled; production live-payment mode remained enabled. No
+checkout, charge, entitlement grant or destructive customer operation was performed.
+
 ## v0.23.1 — factory releases and customer delivery verified
 
 - Candidate: `cec7e122765c63b1d7e8314e69d6415bcf8204a7`; PR #53.
