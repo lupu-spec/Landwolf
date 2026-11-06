@@ -675,3 +675,10 @@ summary:focus-visible {
     outline: 3px solid Highlight;
   }
 }
+/* Long account identifiers must reflow with enlarged text and custom spacing. */
+.signed-in div {
+  min-width: 0;
+}
+.signed-in strong {
+  overflow-wrap: anywhere;
+}

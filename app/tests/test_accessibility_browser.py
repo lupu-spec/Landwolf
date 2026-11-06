@@ -124,12 +124,24 @@ def test_accessible_journeys(browser_server, width, theme, engine):
             link.focus()
             assert link.evaluate("""el => {
                 const r = el.getBoundingClientRect();
-                return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+                const visible = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+                return el.contains(visible);
             }""")
         page.emulate_media(reduced_motion="reduce")
         assert page.locator(".dock-tile").first.evaluate(
             "el => getComputedStyle(el).transitionDuration === '0s'"
         )
         page.screenshot(path=f"test-results/accessibility/final-{engine}-{width}-{theme}.png")
+        page.set_viewport_size({"width": 320, "height": 900})
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.set_viewport_size({"width": 1280, "height": 900})
+        page.add_style_tag(
+            content="""body { zoom: 2; }
+            * { line-height: 1.5 !important; letter-spacing: .12em !important;
+                word-spacing: .16em !important; }
+            p { margin-bottom: 2em !important; }"""
+        )
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.screenshot(path=f"test-results/accessibility/reflow-{engine}-{width}-{theme}.png")
         browser.close()
     assert failures == [], json.dumps(failures, indent=2)
