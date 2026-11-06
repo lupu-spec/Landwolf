@@ -3,6 +3,8 @@
   --bg: #f3f4f8;
   --fg: #20232b;
   --link: #244f83;
+  background: var(--bg);
+  color: var(--fg);
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
