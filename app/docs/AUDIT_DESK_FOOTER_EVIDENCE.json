@@ -1,0 +1,254 @@
+{
+  "source_commit": "df350b6bf191c65f9e69593fb025ab38e9987d52",
+  "source_tree": "f6d31da2b85ad3285c1fbea9caf5519ae8b71a0e",
+  "ci": {
+    "application": {
+      "run_id": 42441901616,
+      "result": "success",
+      "backend_tests": 783,
+      "frontend_tests": 28,
+      "browser_tests": 172
+    },
+    "factory": {
+      "run_id": 42441901649,
+      "result": "success"
+    },
+    "legacy": {
+      "run_id": 42441901635,
+      "result": "success"
+    },
+    "first_failed_run": 42439024989
+  },
+  "pdca": {
+    "record": {
+      "phase": "ACT",
+      "repairs": 1,
+      "max_repairs": 3,
+      "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+      "requirements": [
+        "application",
+        "factory",
+        "header",
+        "legacy"
+      ],
+      "evidence": {
+        "application": {
+          "result": "PASSED",
+          "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42441901616",
+          "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+          "artifact_sha256": "f8951d9e96714304aea828d883cea982b6f03aa2ccf8adfe6756bce2bb6f71c8",
+          "independent": true
+        },
+        "factory": {
+          "result": "PASSED",
+          "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42441901649",
+          "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+          "artifact_sha256": "32406711f6c3f59402b8c2c285f0f6c757a6054d005b714cfb7ad68afb1c9725",
+          "independent": true
+        },
+        "header": {
+          "result": "PASSED",
+          "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42441901616",
+          "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+          "artifact_sha256": "44884b6ea0d3d982997cb33b7ff3da476287e8210144c3a3f6a76c6920d7beb6",
+          "independent": true
+        },
+        "legacy": {
+          "result": "PASSED",
+          "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42441901635",
+          "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+          "artifact_sha256": "5e95a9f1dafc9efb9ef7d4080609162044f76c8723e20f369ba518fc9ed48be5",
+          "independent": true
+        }
+      },
+      "history": [
+        {
+          "phase": "DO",
+          "reason": "plan accepted by trusted host",
+          "repairs": 0,
+          "input_sha256": "9fe493fc7f992970191af1a56d41cfb9a1de89e2bb18301cdc4dea4a020c3fdd"
+        },
+        {
+          "phase": "CHECK",
+          "reason": "implementation submitted",
+          "repairs": 0,
+          "input_sha256": "9fe493fc7f992970191af1a56d41cfb9a1de89e2bb18301cdc4dea4a020c3fdd"
+        },
+        {
+          "event": "check",
+          "input_sha256": "9fe493fc7f992970191af1a56d41cfb9a1de89e2bb18301cdc4dea4a020c3fdd",
+          "evidence": {
+            "application": {
+              "result": "FAILED",
+              "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42439024989",
+              "input_sha256": "9fe493fc7f992970191af1a56d41cfb9a1de89e2bb18301cdc4dea4a020c3fdd",
+              "artifact_sha256": "67093166f3324aa65eaea0ec602cbbf4a85301c69e7001f28cb85ef41d46ed2c",
+              "independent": true
+            },
+            "factory": {
+              "result": "PASSED",
+              "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42439024987",
+              "input_sha256": "9fe493fc7f992970191af1a56d41cfb9a1de89e2bb18301cdc4dea4a020c3fdd",
+              "artifact_sha256": "71bb70ea25f05458a39ba6ba729d37cb1775995a49f919bfaf1c574a57667b13",
+              "independent": true
+            },
+            "header": {
+              "result": "PASSED",
+              "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42439024989",
+              "input_sha256": "9fe493fc7f992970191af1a56d41cfb9a1de89e2bb18301cdc4dea4a020c3fdd",
+              "artifact_sha256": "e54609e33ca4b918bcd649ba7b91f7820f07f8d77b31c6ae5e25c59d7a89f787",
+              "independent": true
+            },
+            "legacy": {
+              "result": "PASSED",
+              "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42439024980",
+              "input_sha256": "9fe493fc7f992970191af1a56d41cfb9a1de89e2bb18301cdc4dea4a020c3fdd",
+              "artifact_sha256": "84305c14ebbd4c298bc657fa99c941384241b6b80bf0b452c08831db3f3af02b",
+              "independent": true
+            }
+          }
+        },
+        {
+          "phase": "DO",
+          "reason": "repair required: implementation",
+          "repairs": 1,
+          "input_sha256": "9fe493fc7f992970191af1a56d41cfb9a1de89e2bb18301cdc4dea4a020c3fdd"
+        },
+        {
+          "phase": "DO",
+          "reason": "new revision invalidated all earlier evidence",
+          "repairs": 1,
+          "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6"
+        },
+        {
+          "phase": "CHECK",
+          "reason": "implementation submitted",
+          "repairs": 1,
+          "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6"
+        },
+        {
+          "event": "check",
+          "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+          "evidence": {
+            "application": {
+              "result": "PASSED",
+              "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42441901616",
+              "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+              "artifact_sha256": "f8951d9e96714304aea828d883cea982b6f03aa2ccf8adfe6756bce2bb6f71c8",
+              "independent": true
+            },
+            "factory": {
+              "result": "PASSED",
+              "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42441901649",
+              "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+              "artifact_sha256": "32406711f6c3f59402b8c2c285f0f6c757a6054d005b714cfb7ad68afb1c9725",
+              "independent": true
+            },
+            "header": {
+              "result": "PASSED",
+              "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42441901616",
+              "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+              "artifact_sha256": "44884b6ea0d3d982997cb33b7ff3da476287e8210144c3a3f6a76c6920d7beb6",
+              "independent": true
+            },
+            "legacy": {
+              "result": "PASSED",
+              "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42441901635",
+              "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6",
+              "artifact_sha256": "5e95a9f1dafc9efb9ef7d4080609162044f76c8723e20f369ba518fc9ed48be5",
+              "independent": true
+            }
+          }
+        },
+        {
+          "phase": "ACT",
+          "reason": "declared internal gates passed; not release approval",
+          "repairs": 1,
+          "input_sha256": "1c2defcd3a9fe36174cc54ff30cb0413213f52c4eba1c8ad0f4c4c4b18b778d6"
+        }
+      ]
+    },
+    "record_sha256": "57856e7534c67e34294e6e966c5b7da420d6bc80bda129260b9202a2385e1fba",
+    "scope": "Trusted-host observation of completed GitHub Actions gates; not independent human review.",
+    "input_hash_contract": "SHA256 of github:repository:immutable-source-commit",
+    "evidence_hash_contract": "SHA256 of CI URL, gate name and observed boolean result",
+    "source_commit": "df350b6bf191c65f9e69593fb025ab38e9987d52",
+    "source_tree": "f6d31da2b85ad3285c1fbea9caf5519ae8b71a0e"
+  },
+  "staging": {
+    "origin": "https://landwolf-premium-staging.onrender.com",
+    "checked_at": "2026-11-08T04:01:52.661251+00:00",
+    "identity": {
+      "version": "0.24.1",
+      "environment": "staging",
+      "commit": "eeb25dfbea198d5ddf19f3e28395ed8af3a29d14"
+    },
+    "health": {
+      "status": "ok",
+      "version": "0.24.1",
+      "payments_enabled": false
+    },
+    "footer_link": {
+      "href": "https://l91-audit-desk.secret-hen-4327.chatgpt.site",
+      "target": "_blank",
+      "rel": "noopener noreferrer"
+    },
+    "html_sha256": "7fd76ff34ef21e7f32a042666f7b3b16511220db6aa4740ba3d290ffc8f1c563"
+  },
+  "production": {
+    "origin": "https://landwolf.ai",
+    "checked_at": "2026-11-08T04:04:15.843691+00:00",
+    "identity": {
+      "version": "0.24.1",
+      "environment": "production",
+      "commit": "9c8d08b229d343ff821e06b3cba322c1fb5e7398"
+    },
+    "health": {
+      "status": "ok",
+      "version": "0.24.1",
+      "payments_enabled": true
+    },
+    "footer_link": {
+      "href": "https://l91-audit-desk.secret-hen-4327.chatgpt.site",
+      "target": "_blank",
+      "rel": "noopener noreferrer"
+    },
+    "html_sha256": "edf8596369827debdf4d7aa942ee2383c52d7d8ba3deafcb6a302c25b88542f9"
+  },
+  "deployments": {
+    "staging": {
+      "commit": {
+        "createdAt": "2026-11-08T03:47:16Z",
+        "id": "eeb25dfbea198d5ddf19f3e28395ed8af3a29d14",
+        "message": "Stage corrected v0.24.1 Audit Desk footer candidate"
+      },
+      "createdAt": "2026-11-08T03:58:45.041502Z",
+      "finishedAt": "2026-11-08T03:59:53.702777Z",
+      "id": "dep-dbnv6t6417fc73erhi6g",
+      "startedAt": "2026-11-08T03:58:45.015099Z",
+      "status": "live",
+      "trigger": "api",
+      "updatedAt": "2026-11-08T03:59:53.702954Z"
+    },
+    "production": {
+      "commit": {
+        "createdAt": "2026-11-08T04:02:33Z",
+        "id": "9c8d08b229d343ff821e06b3cba322c1fb5e7398",
+        "message": "Merge pull request #55 from lupu-spec/codex/auditdesk-footer-20261108\n\nAdd Audit Desk link to LandWolf footer"
+      },
+      "createdAt": "2026-11-08T04:02:42.229175Z",
+      "finishedAt": "2026-11-08T04:03:40.363926Z",
+      "id": "dep-dbnv8ojrjlhs739vt6c0",
+      "startedAt": "2026-11-08T04:02:42.20426Z",
+      "status": "live",
+      "trigger": "api",
+      "updatedAt": "2026-11-08T04:03:40.364187Z"
+    }
+  },
+  "runtime_log_sample": {
+    "hasMore": false,
+    "logs": [],
+    "nextEndTime": "2026-11-08T04:04:23.922249525Z",
+    "nextStartTime": "2026-11-08T04:03:40Z"
+  }
+}
