@@ -1,0 +1,12 @@
+{
+  "command": [
+    ".venv/bin/playwright",
+    "install",
+    "chromium",
+    "--only-shell"
+  ],
+  "startedAt": "2026-11-08T04:50:14.211703+00:00",
+  "endedAt": "2026-11-08T04:50:37.116073+00:00",
+  "durationSeconds": 22.904378205001194,
+  "exitCode": 1
+}

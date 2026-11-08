@@ -1,6 +1,16 @@
 {
   "task": "Bounded Retail Watch footer implementation or review",
   "observedAt": null,
+  "startedAt": null,
+  "endedAt": null,
+  "connectionAttemptDurationSeconds": null,
+  "runtimeVersion": null,
+  "registeredEnvironment": "Documented outbound-polling owner-portal runner; no reachable control connection from this execution environment",
+  "automationEnvironmentDiscovery": {
+    "selection": "inherited",
+    "registeredEnvironments": null,
+    "meaning": "Current automation lookup did not expose registered environment details; this does not establish that an owner computer is offline"
+  },
   "timestampPrecision": "Exact connection-attempt timestamp was not captured",
   "status": "UNAVAILABLE_CONTROL_CONNECTION",
   "modelExecuted": false,

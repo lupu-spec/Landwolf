@@ -1,0 +1,14 @@
+Read-only live-verification helper quality checks:
+
+ruff check --fix app/docs/factory-runs/retail-watch-footer-20261108/verify_live.py
+Initial result: 6 lint errors, 4 automatically fixed; 2 E501 long lines remained.
+Individual initial exit status was not separately captured (unknown).
+
+ruff format app/docs/factory-runs/retail-watch-footer-20261108/verify_live.py
+Result: 1 file reformatted.
+
+ruff check app/docs/factory-runs/retail-watch-footer-20261108/verify_live.py
+Result: All checks passed. Final command exit status: 0.
+
+This helper is an audit artifact, not LandWolf runtime code. Actual staging and
+production executions are recorded separately. No application gate was weakened.

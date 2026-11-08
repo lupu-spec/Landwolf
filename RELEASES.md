@@ -1,5 +1,39 @@
 # LandWolf release log
 
+## v0.24.2 — Retail Watch footer link published
+
+Adds one Retail Watch link beside the completed Audit Desk footer link, preserving
+the private apps' ordinary URLs, new-tab protections and existing navigation.
+Retail Watch access policy, publication, collectors and experiment records are unchanged.
+
+- [PR #56](https://github.com/lupu-spec/Landwolf/pull/56); candidate `5fc6ae5265aa5d050c635489052a0497c74747be`.
+- Staging `d375ee9346320d9890d31aeb27456db67b437984`, Render `dep-dbo06uff3r2c739qpup0`, live 2026-11-08 05:08:13 UTC.
+- Production `2562941200eff7ea3944480d89ca09b844218501`, Render `dep-dbo07tqjnfac73difshg`, live 2026-11-08 05:09:59 UTC.
+- Candidate, staging and production share complete tree `87a855e101b63ff9fdfe672e4065461f6a90debb`.
+- Application CI 42446911747 passed 784 backend/API, 28 frontend and 172 full browser
+  cases, early mobile checks, independent header comparisons, PostgreSQL/49-table
+  restore, formatting/lint/types, production packaging and security. Factory
+  42446911790 passed 36 tests; legacy 42446911677 passed 53.
+- Read-only staging and production proofs passed exact version/commit/health,
+  environment/billing mode, unique correct footer links, protected new tabs,
+  supplied branding asset hashes and production www HTTPS identity.
+- Actual pinned L91 PDCA controller reached ACT with zero application repairs.
+  Application CI took 37m 09s; full browser suite 26m 07s. Deployments took about
+  68 seconds staging and 48 seconds production.
+- Local AI was unavailable through the current control connection; no local
+  inference ran. Model, hardware, token/throughput and cost metrics remain unknown.
+  Cloud-authored code passed independent executable checks. Failed setup attempts
+  and the audit helper's formatting correction are retained.
+- CI mobile/desktop fixture screenshots were visually reviewed. Live proofs check
+  returned markup, not computed layout or physical devices. No warning/error appeared
+  in the bounded post-release app-log samples. No schema/account/billing or
+  infrastructure change; the prior 0.24.1 image remains schema-compatible.
+
+See [commands, evidence and limits](app/docs/RETAIL_WATCH_FOOTER_RELEASE.md),
+[factory performance](app/docs/factory-runs/retail-watch-footer-20261108/factory-performance.json)
+and [local AI record](app/docs/factory-runs/retail-watch-footer-20261108/local-ai.json).
+This documentation-only sign-off does not redeploy or relabel observed runtimes.
+
 ## v0.24.1 — Audit Desk footer link published
 
 Adds Audit Desk to the homepage footer, opening the existing private app in a
@@ -965,8 +999,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.24.1 | `9c8d08b229d343ff821e06b3cba322c1fb5e7398` | 2026-11-08 04:03:40 UTC |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.24.1 | `eeb25dfbea198d5ddf19f3e28395ed8af3a29d14` | 2026-11-08 03:59:53 UTC |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.24.2 | `2562941200eff7ea3944480d89ca09b844218501` | 2026-11-08 05:09:59 UTC |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.24.2 | `d375ee9346320d9890d31aeb27456db67b437984` | 2026-11-08 05:08:13 UTC |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 

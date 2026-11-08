@@ -1,0 +1,37 @@
+{
+  "startedAt": "2026-11-08T05:08:27.040619+00:00",
+  "completedAt": "2026-11-08T05:08:43.876209+00:00",
+  "durationSeconds": 16.83564589100024,
+  "origin": "https://landwolf-premium-staging.onrender.com",
+  "identity": {
+    "version": "0.24.2",
+    "environment": "staging",
+    "commit": "d375ee9346320d9890d31aeb27456db67b437984"
+  },
+  "health": {
+    "status": "ok",
+    "version": "0.24.2",
+    "payments_enabled": false
+  },
+  "footerLinks": [
+    {
+      "href": "https://l91-audit-desk.secret-hen-4327.chatgpt.site",
+      "target": "_blank",
+      "rel": "noopener noreferrer",
+      "label": "Audit Desk \u2197"
+    },
+    {
+      "href": "https://lupu-retail-watch.secret-hen-4327.chatgpt.site",
+      "target": "_blank",
+      "rel": "noopener noreferrer",
+      "label": "Retail Watch"
+    }
+  ],
+  "htmlSha256": "9430114d480435a255f79068cc896c0b33d2b4de124a13d17e695f05ee871321",
+  "assetSha256": {
+    "landwolf-logo.jpg": "e2306fabc89a4078ab8e58f613d63fbec69087108fc378d8436057b146b68fbf",
+    "no-photo-available.png": "ee886bf1a48cbaa82557f4c651adb0acee07afa6047567eda24af83644820a6c"
+  },
+  "scope": "Read-only HTTPS and returned markup; no computed-layout or physical-device claim",
+  "result": "PASSED"
+}

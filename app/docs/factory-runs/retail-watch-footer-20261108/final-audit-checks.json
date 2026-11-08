@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-08T05:13:41.526087+00:00",
+  "npmRunSecrets": {
+    "exitCode": 0,
+    "log": "final-secret-scan.txt"
+  },
+  "gitDiffCheck": {
+    "exitCode": 0
+  },
+  "auditJsonParse": {
+    "result": "PASSED"
+  },
+  "checkerQuality": "checker-quality.txt",
+  "liveCommandExitCodes": {
+    "staging": 0,
+    "production": 0
+  },
+  "unknownTimingPolicy": "Final secret-scan/diff commands did not capture individual duration; no duration is estimated."
+}

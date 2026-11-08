@@ -1,0 +1,61 @@
+{
+  "staging": {
+    "commit": {
+      "createdAt": "2026-11-08T05:06:49Z",
+      "id": "d375ee9346320d9890d31aeb27456db67b437984",
+      "message": "Stage verified v0.24.2 Retail Watch footer candidate"
+    },
+    "createdAt": "2026-11-08T05:07:05.083521Z",
+    "finishedAt": "2026-11-08T05:08:13.063163Z",
+    "id": "dep-dbo06uff3r2c739qpup0",
+    "startedAt": "2026-11-08T05:07:05.052511Z",
+    "status": "live",
+    "trigger": "api",
+    "updatedAt": "2026-11-08T05:08:13.063435Z"
+  },
+  "production": {
+    "commit": {
+      "createdAt": "2026-11-08T05:08:59Z",
+      "id": "2562941200eff7ea3944480d89ca09b844218501",
+      "message": "Merge pull request #56 from lupu-spec/feat/retail-watch-footer-20261108\n\nAdd Retail Watch link after the completed Audit Desk footer release"
+    },
+    "createdAt": "2026-11-08T05:09:11.37238Z",
+    "finishedAt": "2026-11-08T05:09:59.418193Z",
+    "id": "dep-dbo07tqjnfac73difshg",
+    "startedAt": "2026-11-08T05:09:11.344967Z",
+    "status": "live",
+    "trigger": "api",
+    "updatedAt": "2026-11-08T05:10:31.122661Z"
+  },
+  "sameTestedTree": "87a855e101b63ff9fdfe672e4065461f6a90debb",
+  "candidateCommit": "5fc6ae5265aa5d050c635489052a0497c74747be",
+  "sourceComparison": {
+    "mainBefore": "9a5526662edd2b8bdba48c6a321bfdec37d5dad7",
+    "stagingBefore": "edb4336bb9a054320235e8d6b30dbf936f7fab37",
+    "treesBeforeEqual": "2490861db34ce31e020e39bf1a3f54beaae594c4",
+    "candidateStagingProductionTreesEqual": true
+  },
+  "logs": {
+    "production": {
+      "hasMore": false,
+      "logs": [],
+      "nextEndTime": "2026-11-08T05:10:44.409843564Z",
+      "nextStartTime": "2026-11-08T05:09:59.418193Z"
+    },
+    "staging": {
+      "hasMore": false,
+      "logs": [],
+      "nextEndTime": "2026-11-08T05:10:45.050410514Z",
+      "nextStartTime": "2026-11-08T05:08:13.063163Z"
+    },
+    "query": {
+      "type": [
+        "app"
+      ],
+      "level": [
+        "warn",
+        "error"
+      ]
+    }
+  }
+}
