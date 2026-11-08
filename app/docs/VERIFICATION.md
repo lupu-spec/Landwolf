@@ -4503,3 +4503,36 @@ redeployment follows the documentation-only sign-off commits; manual deploy mode
 existing databases/services and protected account/billing/CRM contracts are retained.
 The source-flow release and bounded header consolidation are complete. Prior local
 browser/access limitations and resolved native failures remain recorded above.
+
+
+## v0.24.1 — Audit Desk footer link published
+
+Adds Audit Desk to the homepage footer, opening the existing private app in a
+protected new tab. The direct support link retains a 44px touch target when the
+navigation wraps. No dependency, schema, account, billing or infrastructure changes.
+
+- Candidate `df350b6bf191c65f9e69593fb025ab38e9987d52`; [PR #55](https://github.com/lupu-spec/Landwolf/pull/55).
+- Staging `eeb25dfbea198d5ddf19f3e28395ed8af3a29d14`, Render `dep-dbnv6t6417fc73erhi6g`, live 2026-11-08 03:59:53 UTC.
+- Production `9c8d08b229d343ff821e06b3cba322c1fb5e7398`, Render `dep-dbnv8ojrjlhs739vt6c0`, live 2026-11-08 04:03:40 UTC.
+- Candidate, staging and production have the same complete tree `f6d31da2b85ad3285c1fbea9caf5519ae8b71a0e`.
+- Corrected [application CI 42441901616](https://github.com/lupu-spec/Landwolf/actions/runs/42441901616)
+  passed 783 backend/API, 28 frontend, 172 full browser cases, the four early
+  mobile accessibility journeys, exact header comparison, PostgreSQL integration,
+  49-table backup/restore, builds/packages and clean security checks.
+  Factory 42441901649 and legacy 42441901635 passed.
+- First application run 42439024989 failed four mobile target-size cases; that
+  failure is retained. The support target was corrected and the affected journeys
+  moved to the start of browser CI without removing any existing gate.
+- Actual Factory PDCA controller reached ACT after one implementation repair.
+  This is internal verification, not independent human acceptance.
+- Read-only live staging and production checks passed exact version/commit,
+  health, billing mode and a unique footer destination with new-tab protections.
+  No runtime warning/error appeared in the sampled production app-log window
+  04:03:40–04:04:23 UTC. No charge or real customer interaction was performed.
+
+Command outcomes, failed attempts, proof JSON and retention details are in
+`app/docs/AUDIT_DESK_FOOTER_RELEASE.md` and `app/docs/AUDIT_DESK_FOOTER_EVIDENCE.json`.
+Hosted fixture browser coverage is distinct from a physical-device test; the
+live read-only proof checks returned markup, not computed layout. The prior
+0.24.0 image remains schema-compatible. This documentation update is not a redeploy.
+
