@@ -38,6 +38,18 @@ def test_public_document(client: TestClient, path: str) -> None:
         assert client.get(link["href"]).status_code == 200, link["href"]
 
 
+def test_home_footer_links_to_private_audit_desk(client: TestClient) -> None:
+    html = BeautifulSoup(client.get("/").text, "html.parser")
+    links = html.select(
+        'footer.site-footer a[href="https://l91-audit-desk.secret-hen-4327.chatgpt.site"]'
+    )
+    assert len(links) == 1
+    link = links[0]
+    assert link.get_text(strip=True) == "Audit Desk ↗"
+    assert link["target"] == "_blank"
+    assert set(link["rel"]) == {"noopener", "noreferrer"}
+
+
 def test_faq_schema(client: TestClient) -> None:
     html = BeautifulSoup(client.get("/faq").text, "html.parser")
     breadcrumb, faq = json.loads(html.select_one('script[type="application/ld+json"]').string)

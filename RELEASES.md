@@ -1,5 +1,48 @@
 # LandWolf release log
 
+## v0.24.0 — accessibility improvements deployed and verified
+
+- Candidate: `99aa3d68a74dd4370ce398478c1c34dd7962d938`; [PR #54](https://github.com/lupu-spec/Landwolf/pull/54).
+- Staging: `f904d5e34a7a9b1a8b82e194403a8392a54e9294`, Render `dep-dbn05kjrjlhs73ckrm90`, live 2026-11-06 16:41:03 UTC.
+- Production: `18b53c81a3a3a662b9dbd7eb1681dbd3b9ba1718`, Render `dep-dbn09915efls738ohvug`, live 2026-11-06 16:48:47 UTC.
+- All three commits have the identical complete tree `748101bc119db865df4adfa610155342454c0662`. Runtime 0.24.0; schema 18 unchanged.
+
+Corrects visible/accessibility-name mismatches, invalid result-toggle semantics,
+unnamed groups, keyboard access to finance tables, map-credit contrast, public
+canvas colors, focus hidden by floating controls, and long-account text reflow.
+Adds error/help associations, result announcements, reduced-motion scrolling,
+map List guidance and the public `/accessibility` statement. Existing native
+dialog and focus-return behavior is regression-tested. Authentication, billing,
+entitlements, customer data and infrastructure are preserved.
+
+Final application [CI 42247666585](https://github.com/lupu-spec/Landwolf/actions/runs/42247666585)
+passed 782 backend/API, 28 frontend and 172 browser cases, separate exact header
+comparison, PostgreSQL integration, disposable backup/restore across 49 tables,
+format/lint/types, production packaging and security. Factory 42247666690 and
+legacy 42247666728 passed. Axe checked 184 isolated fixture states, plus
+96 live staging and 64 live production states,
+with zero WCAG-tagged violations. Incomplete results remain for human review.
+Exact-runtime hosted session/customer and public-page checks exited 0 in both
+environments, including mobile/desktop, themes, logout and persistence.
+
+Local Docker WebKit retained a maximum-one-RGB-level difference in an exact dock
+image comparison: the earlier full command had 171 passed/1 failed; the final
+focused command had 9 passed/1 failed. Hosted exact header/full-suite gates passed
+unchanged. A fresh-render diagnostic produced identical approved/current PNGs;
+a longer control was inconclusive after a fixture-loading timeout. No assertions
+were relaxed. The PR-triggered hosted workflow 42247666764 failed before deployment
+because the expected runtime was not live; no account tests ran in that workflow.
+It is not relabeled passed. Explicit post-deployment acceptance exited 0.
+
+Manual screen-reader/physical-device testing, gradient/translucent contrast review,
+third-party maps/payment/source documents and entitled production-owner journeys
+remain unverified. Owner/admin flows were exercised with isolated fixtures;
+hosted ordinary accounts were denied owner APIs. No legal certification or complete
+WCAG conformance is claimed. See `app/docs/ACCESSIBILITY.md` for the manual checklist.
+This documentation-only sign-off does not redeploy or relabel the observed runtimes.
+The prior 0.23.1 release uses the same schema and is the compatible code rollback
+candidate; no database reset or restore was performed.
+
 ## v0.23.1 — factory releases and customer delivery verified
 
 - Candidate: `cec7e122765c63b1d7e8314e69d6415bcf8204a7`; PR #53.
@@ -891,8 +934,8 @@ coverage, accounts and existing infrastructure are retained. See
 
 | Environment | Site | Observed release | Runtime commit | Last deployment (UTC) |
 | --- | --- | --- | --- | --- |
-| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.23.1 | `d6821ecbd6941823a855b6faf7b7a519967f56c2` | 2026-11-05 05:51:32 UTC |
-| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.23.1 | `ce93714c1ad8c93540b53ec8a24df84d0a66d3df` | 2026-11-05 05:21:49 UTC |
+| Production | [landwolf.ai](https://landwolf.ai/) (`www` redirects here) | v0.24.0 | `18b53c81a3a3a662b9dbd7eb1681dbd3b9ba1718` | 2026-11-06 16:48:47 UTC |
+| Staging | [Isolated staging](https://landwolf-premium-staging.onrender.com/) | v0.24.0 | `f904d5e34a7a9b1a8b82e194403a8392a54e9294` | 2026-11-06 16:41:03 UTC |
 
 ## v0.4.0-beta.3 — Hunt result cards, live in isolated beta
 
@@ -1051,6 +1094,8 @@ Append deployments below only after Render reports them live and HTTPS checks su
 | 2026-11-05 04:25:54 | Staging | v0.23.0 / `49168d416f40dcdb43a726ec2aa8679fe5da343c` | `dep-dbm0a361egvs73attmog` | Initial release candidate; later review corrections superseded it before portal production promotion. |
 | 2026-11-05 05:21:49 | Staging | v0.23.1 / `ce93714c1ad8c93540b53ec8a24df84d0a66d3df` | `dep-dbm147l6e07s73aqds20` | Delivery history/source-limit corrections; exact-runtime hosted checks passed. |
 | 2026-11-05 05:51:32 | Production | v0.23.1 / `d6821ecbd6941823a855b6faf7b7a519967f56c2` | `dep-dbm1i649v7es738j6jog` | PR #53; full tree equals staged/tested source. Actual calculator delivery/source/reload and customer isolation passed. |
+| 2026-11-06 16:41:03 | Staging | v0.24.0 / `f904d5e34a7a9b1a8b82e194403a8392a54e9294` | `dep-dbn05kjrjlhs73ckrm90` | Accessibility release; exact tested tree; hosted acceptance and 96 axe states passed. |
+| 2026-11-06 16:48:47 | Production | v0.24.0 / `18b53c81a3a3a662b9dbd7eb1681dbd3b9ba1718` | `dep-dbn09915efls738ohvug` | PR #54; exact staged/tested tree; hosted acceptance and 64 axe states passed. |
 
 Post-deployment acceptance supplement, 2026-10-11 00:34:25 UTC: all six focused
 production research journeys passed in `38097925640` attempt 2 against the same
