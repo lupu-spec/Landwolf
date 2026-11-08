@@ -1,0 +1,18 @@
+{
+  "task": "Bounded Retail Watch footer implementation or review",
+  "observedAt": null,
+  "timestampPrecision": "Exact connection-attempt timestamp was not captured",
+  "status": "UNAVAILABLE_CONTROL_CONNECTION",
+  "modelExecuted": false,
+  "model": null,
+  "hardware": null,
+  "tokens": null,
+  "tokensPerSecond": null,
+  "modelDurationSeconds": null,
+  "cost": null,
+  "attempt": "Connected browser bootstrap for existing authenticated owner factory portal",
+  "error": "Mcp error -32001: Unknown tool browser.js",
+  "fallback": "Cloud-authored patch; real pinned factory PDCA controller; existing independent hosted CI",
+  "acceptance": "No local-model output exists to accept or reject",
+  "credentialsOrRuntimeConfigurationChanged": false
+}

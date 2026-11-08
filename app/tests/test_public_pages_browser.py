@@ -90,6 +90,16 @@ def test_public_pages(browser_server: tuple[str, int], engine: str, width: int) 
             "href", "https://l91-audit-desk.secret-hen-4327.chatgpt.site"
         )
         expect(audit_link).to_have_attribute("target", "_blank")
+        retail_link = page.locator("footer.site-footer").get_by_role(
+            "link", name="Retail Watch", exact=True
+        )
+        expect(retail_link).to_have_count(1)
+        expect(retail_link).to_be_visible()
+        expect(retail_link).to_have_attribute(
+            "href", "https://lupu-retail-watch.secret-hen-4327.chatgpt.site"
+        )
+        expect(retail_link).to_have_attribute("target", "_blank")
+        expect(retail_link).to_have_attribute("rel", "noopener noreferrer")
         support_link = page.locator('footer.site-footer > a[href^="mailto:"]')
         assert support_link.evaluate("el => el.getBoundingClientRect().height") >= 44
         expect(page.locator(".brand img")).to_have_js_property("complete", True)

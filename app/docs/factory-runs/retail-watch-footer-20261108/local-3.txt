@@ -1,0 +1,5 @@
+
+> landwolf-ui@0.24.2 lint
+> eslint web/*.ts tests/*.test.mjs scripts/build.mjs
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
