@@ -1,6 +1,6 @@
 {
   "record": {
-    "phase": "CHECK",
+    "phase": "ACT",
     "repairs": 0,
     "max_repairs": 3,
     "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
@@ -10,7 +10,36 @@
       "header",
       "legacy"
     ],
-    "evidence": {},
+    "evidence": {
+      "application": {
+        "result": "PASSED",
+        "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42446911747/job/128627666548",
+        "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+        "artifact_sha256": "b497650b06eec4bb0d12c0bac1af6b59c56b0768388b52c35ad1fb09f55a80fd",
+        "independent": true
+      },
+      "factory": {
+        "result": "PASSED",
+        "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42446911790/job/128627666698",
+        "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+        "artifact_sha256": "b47f0a6d2204ab63559d85154821b25afd20874dd926dcefb25546d21078fc93",
+        "independent": true
+      },
+      "header": {
+        "result": "PASSED",
+        "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42446911747/job/128627666929",
+        "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+        "artifact_sha256": "592ce43b1f3c3fc5e341069c6f88a82e1739d5d891e0e8c8e52bb87b89a2647e",
+        "independent": true
+      },
+      "legacy": {
+        "result": "PASSED",
+        "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42446911677/job/128627666346",
+        "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+        "artifact_sha256": "42d1ef9479c66be7c0be60b85316bc57036785325f2b38dcb4b2abe234ecf055",
+        "independent": true
+      }
+    },
     "history": [
       {
         "phase": "DO",
@@ -23,11 +52,60 @@
         "reason": "implementation submitted",
         "repairs": 0,
         "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a"
+      },
+      {
+        "event": "check",
+        "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+        "evidence": {
+          "application": {
+            "result": "PASSED",
+            "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42446911747/job/128627666548",
+            "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+            "artifact_sha256": "b497650b06eec4bb0d12c0bac1af6b59c56b0768388b52c35ad1fb09f55a80fd",
+            "independent": true
+          },
+          "factory": {
+            "result": "PASSED",
+            "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42446911790/job/128627666698",
+            "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+            "artifact_sha256": "b47f0a6d2204ab63559d85154821b25afd20874dd926dcefb25546d21078fc93",
+            "independent": true
+          },
+          "header": {
+            "result": "PASSED",
+            "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42446911747/job/128627666929",
+            "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+            "artifact_sha256": "592ce43b1f3c3fc5e341069c6f88a82e1739d5d891e0e8c8e52bb87b89a2647e",
+            "independent": true
+          },
+          "legacy": {
+            "result": "PASSED",
+            "verifier": "https://github.com/lupu-spec/Landwolf/actions/runs/42446911677/job/128627666346",
+            "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+            "artifact_sha256": "42d1ef9479c66be7c0be60b85316bc57036785325f2b38dcb4b2abe234ecf055",
+            "independent": true
+          }
+        }
+      },
+      {
+        "phase": "ACT",
+        "reason": "declared internal gates passed; not release approval",
+        "repairs": 0,
+        "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a"
       }
     ]
   },
-  "record_sha256": "ca4c8f33126ec8297e9e6b2c1587a3b50f35b89f50c956943c1cd972b1586d2a",
+  "record_sha256": "f2807c35662ae74f3c8be1a63a5ffe3074f9bddbfe615be07671842a6c450a72",
   "factoryRevision": "d5352b028f2881a6c85ec5f8b82596be4ba9e8f1",
+  "factoryModuleSha256": "cbcbc2bd8b4af9401539b451b2764b7051ff43ba4a9973a379948bb87a0a2822",
+  "sourceCommit": "5fc6ae5265aa5d050c635489052a0497c74747be",
   "scope": "Hosted internal executable checks; separate staging/production verification required",
-  "localAI": false
+  "localAI": false,
+  "completedGateEvaluation": {
+    "startedAt": "2026-11-08T05:06:33.867270+00:00",
+    "completedAt": "2026-11-08T05:06:33.867536+00:00",
+    "durationSeconds": 0.00026251199960825033
+  },
+  "restoration": "Replayed and hash-checked previously persisted PLAN/DO/CHECK state before attaching fresh independent evidence.",
+  "artifactHashContract": "SHA256 of canonical sorted compact JSON for the named job in ci-evidence.json"
 }

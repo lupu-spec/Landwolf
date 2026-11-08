@@ -1,0 +1,19 @@
+{
+  "scope": "Independent visual review of CI fixture screenshots, not live production browser rendering",
+  "artifactId": 13604718602,
+  "archiveSha256": "519dc0fa122028d1994c591464acebf9fe820061784a959c4502eb1f63b14aa2",
+  "archiveDigestVerified": true,
+  "screenshots": [
+    {
+      "path": "public-seo/home-auto-chromium-390.png",
+      "sha256": "374d672d7cd296ef25a0a952fcc323f488dfd978e61e9fa14d6a8d90a7c06305"
+    },
+    {
+      "path": "public-seo/home-auto-chromium-1440.png",
+      "sha256": "cd882eaebe55709ee3aca2600c7db04a065f5b354a84da077321d5907cce04a2"
+    }
+  ],
+  "observed": "Both links appear once in the bottom navigation. Footer wraps within the mobile width and retains a separate support link; desktop footer fits.",
+  "result": "PASSED",
+  "retention": "GitHub screenshot artifacts expire 2026-11-15; textual results and hashes are retained in this repository."
+}

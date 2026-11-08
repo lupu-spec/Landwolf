@@ -1,0 +1,17 @@
+2026-11-08T04:28:16.0949532Z found 0 vulnerabilities
+2026-11-08T04:29:30.4644577Z ℹ tests 28
+2026-11-08T04:29:30.4645184Z ℹ pass 28
+2026-11-08T04:29:30.4646664Z ℹ duration_ms 464.926379
+2026-11-08T04:32:13.9434470Z 784 passed, 172 deselected, 2 warnings in 157.62s (0:02:37)
+2026-11-08T04:32:21.6917998Z Passed: pg_dump/pg_restore and exact row digests across 49 tables
+2026-11-08T04:33:46.9663697Z 4 passed, 4 deselected, 2 warnings in 83.75s (0:01:23)
+2026-11-08T04:34:25.3526238Z 8 passed, 2 warnings in 36.97s
+2026-11-08T04:34:51.0136875Z 6 passed, 2 warnings in 24.21s
+2026-11-08T04:36:04.3809509Z 8 passed, 2 warnings in 71.77s (0:01:11)
+2026-11-08T04:36:28.5533177Z 4 passed, 2 warnings in 22.82s
+2026-11-08T04:38:25.0458331Z 18 passed, 2 warnings in 115.10s (0:01:55)
+2026-11-08T05:04:33.8822465Z 172 passed, 784 deselected, 2 warnings in 1567.31s (0:26:07)
+2026-11-08T05:04:38.3921403Z Successfully built landwolf-0.24.2.tar.gz and landwolf-0.24.2-py3-none-any.whl
+2026-11-08T05:04:38.4956239Z Passed: wheel contains runtime/branding assets; source archive contains frontend tests
+2026-11-08T05:04:41.1919029Z No known vulnerabilities found
+2026-11-08T05:04:41.5355899Z found 0 vulnerabilities

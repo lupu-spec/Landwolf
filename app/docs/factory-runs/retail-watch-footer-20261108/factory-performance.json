@@ -1,0 +1,142 @@
+{
+  "task": "LandWolf Retail Watch footer",
+  "automation": {
+    "id": "Automation_44e770de4d28819196b6c7ac53a00892",
+    "runId": "47a157cd-f51c-8326-a4e2-255f3ba4e0b1",
+    "startedAt": "2026-11-08T04:22:03.331979Z",
+    "environmentSelection": "inherited",
+    "registeredEnvironments": null
+  },
+  "factory": {
+    "repository": "lupu-spec/L91-Unified-Factory",
+    "revision": "d5352b028f2881a6c85ec5f8b82596be4ba9e8f1",
+    "module": "l91_factory/pdca.py",
+    "moduleGitBlob": "9ed96798460258923c3c7d47e3999a7e0843cd91",
+    "moduleSha256": "cbcbc2bd8b4af9401539b451b2764b7051ff43ba4a9973a379948bb87a0a2822",
+    "scope": "Actual pinned deterministic controller + existing LandWolf factory bridge and application CI. No claim of full factory runner or local-model execution."
+  },
+  "execution": {
+    "location": "Cloud session",
+    "python": "3.12.14",
+    "node": "24.22.1",
+    "uv": "0.13.5",
+    "platform": "Linux x86_64",
+    "localInference": false
+  },
+  "sourceProof": {
+    "matches": true,
+    "hashes": {
+      "app/landwolf/version.py": "60e1c002ec8cfb07f58e27a9406b92aabb647b86",
+      "app/package-lock.json": "920cf7119a1e522fc38e9c8500752f6c51aacb8a",
+      "app/package.json": "5319a9d43eff1c9a1aab7105d9d5bac20895767d",
+      "app/pyproject.toml": "8326cfcb639c64bd2e4c2d819d5d5191b04b9029",
+      "app/tests/test_public_pages.py": "b9c5c13cfacc78e394bb65edb599aed751930f47",
+      "app/tests/test_public_pages_browser.py": "9d2a3079eff311adbba41cbab4ff20b873acf45f",
+      "app/uv.lock": "126ea5c89242cf2a2b16c1d29332cf56ce7a4cb7",
+      "app/web/index.html": "7f7995fe8483ccb7a97820ec7a71029bf84b7201"
+    },
+    "commit": "5fc6ae5265aa5d050c635489052a0497c74747be"
+  },
+  "state": "ACT",
+  "completedAt": "2026-11-08T05:11:04.522082+00:00",
+  "phaseTiming": {
+    "PLAN": null,
+    "DO": null,
+    "CHECK": "2026-11-08T04:27:47Z",
+    "ACT": "2026-11-08T05:06:33.867536+00:00"
+  },
+  "phaseTimingNote": "CHECK timestamp is hosted CI run start. Other exact phase-transition timestamps were not captured.",
+  "localAIRecord": "local-ai.json",
+  "setupFailures": "setup-attempts.json",
+  "localChecks": "local-checks.json",
+  "ciRunIds": {
+    "application": 42446911747,
+    "factory": 42446911790,
+    "legacy": 42446911677
+  },
+  "staging": {
+    "commit": "d375ee9346320d9890d31aeb27456db67b437984",
+    "deployId": "dep-dbo06uff3r2c739qpup0",
+    "deployDurationSeconds": 68.010652,
+    "liveCheckDurationSeconds": 16.83564589100024,
+    "result": "PASSED"
+  },
+  "production": {
+    "commit": "2562941200eff7ea3944480d89ca09b844218501",
+    "deployId": "dep-dbo07tqjnfac73difshg",
+    "deployDurationSeconds": 48.073226,
+    "liveCheckDurationSeconds": 22.035309825001605,
+    "result": "PASSED"
+  },
+  "durationToVerifiedReleaseSeconds": 2941.190103,
+  "completionScope": "All internal gates, staged promotion, production identity/footer checks; documentation publication and follow-up deactivation follow this recorded release verification.",
+  "candidateTree": "87a855e101b63ff9fdfe672e4065461f6a90debb",
+  "sourceTreesEqual": true,
+  "ciJobs": [
+    {
+      "name": "verify",
+      "runId": 42446911747,
+      "startedAt": "2026-11-08T04:27:49Z",
+      "completedAt": "2026-11-08T05:04:58Z",
+      "conclusion": "success",
+      "durationSeconds": 2229.0
+    },
+    {
+      "name": "header-cascade",
+      "runId": 42446911747,
+      "startedAt": "2026-11-08T04:27:49Z",
+      "completedAt": "2026-11-08T04:38:29Z",
+      "conclusion": "success",
+      "durationSeconds": 640.0
+    },
+    {
+      "name": "factory",
+      "runId": 42446911790,
+      "startedAt": "2026-11-08T04:27:49Z",
+      "completedAt": "2026-11-08T04:28:02Z",
+      "conclusion": "success",
+      "durationSeconds": 13.0
+    },
+    {
+      "name": "test",
+      "runId": 42446911677,
+      "startedAt": "2026-11-08T04:27:49Z",
+      "completedAt": "2026-11-08T04:28:24Z",
+      "conclusion": "success",
+      "durationSeconds": 35.0
+    }
+  ],
+  "testCounts": {
+    "backendApi": 784,
+    "frontend": 28,
+    "fullBrowser": 172,
+    "earlyMobileAccessibility": 4,
+    "independentHeaderComparison": 2,
+    "factoryBridge": 36,
+    "legacy": 53
+  },
+  "testCountNote": "Focused browser groups and the full suite overlap; do not add them as unique tests.",
+  "nativeFullBrowserTestDurationSeconds": 1567.31,
+  "buildTimingScope": "Named CI step durations are in ci-evidence.json; Browser journey combines frontend build and browser tests. Separate frontend build and Render image-build durations were not captured.",
+  "frontendBuildDurationSeconds": null,
+  "renderImageBuildDurationSeconds": null,
+  "factoryCost": null,
+  "localModelOutputAccepted": null,
+  "cloudImplementationAccepted": true,
+  "correctionSummary": {
+    "applicationRepairs": 0,
+    "auditHelperLintCorrection": true,
+    "controlAndSetupFailuresRetained": true
+  },
+  "safeguards": {
+    "retailWatchAccessPolicyChanged": false,
+    "retailWatchRepublished": false,
+    "credentialsChanged": false,
+    "collectorComputerDependencyAdded": false
+  },
+  "improvementSuggestions": [
+    "Expose an authenticated read-only runner/model health receipt so unavailable control access can be distinguished from an offline runner without guessing hardware or model settings.",
+    "Split the existing composite browser workflow into visible timed steps and evaluate parallel groups under the same isolation and acceptance gates; preserve the full regression suite. The full browser suite took 1567.31 seconds in this run.",
+    "Capture start/end timestamps for every control/setup attempt at task entry; several early setup timings remain unknown rather than estimated."
+  ]
+}

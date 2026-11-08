@@ -1,0 +1,69 @@
+{
+  "attempts": [
+    {
+      "operation": "Private factory repository clone",
+      "outcome": "FAILED",
+      "reason": "GitHub shell authentication unavailable; could not read Username",
+      "fallback": "Read pinned factory PDCA source through authorized GitHub connector",
+      "startTime": null,
+      "endTime": null,
+      "durationSeconds": null
+    },
+    {
+      "operation": "Create candidate branch with update_ref",
+      "outcome": "FAILED",
+      "reason": "HTTP 422 reference does not exist",
+      "fallback": "Used create_branch with the tested commit SHA",
+      "startTime": null,
+      "endTime": null,
+      "durationSeconds": null
+    },
+    {
+      "operation": "Create pull request before branch existed",
+      "outcome": "FAILED",
+      "reason": "HTTP 422 invalid head",
+      "fallback": "Created branch, then opened PR #56 successfully",
+      "startTime": null,
+      "endTime": null,
+      "durationSeconds": null
+    },
+    {
+      "operation": ".venv/bin/playwright install chromium",
+      "outcome": "FAILED",
+      "exitCode": 1,
+      "reason": "Downloaded browser archive invalid/truncated; all installer retries exhausted",
+      "startTime": null,
+      "endTime": null,
+      "durationSeconds": null
+    },
+    {
+      "operation": "Primary runtime Playwright install chromium",
+      "outcome": "FAILED",
+      "exitCode": 1,
+      "reason": "Same pinned browser archive invalid/truncated; installer retries exhausted",
+      "log": "browser-install-failed.txt",
+      "startTime": null,
+      "endTime": null,
+      "durationSeconds": null
+    },
+    {
+      "operation": "apt-get update for browser availability",
+      "outcome": "FAILED",
+      "exitCode": 100,
+      "reason": "Execution environment cannot setgroups/setegid/seteuid for apt helper",
+      "log": "apt-browser-setup-failed.txt",
+      "startTime": null,
+      "endTime": null,
+      "durationSeconds": null
+    },
+    {
+      "operation": "Fetch in-progress application job log",
+      "outcome": "NOT_YET_AVAILABLE",
+      "observedAt": "2026-11-08T04:54:08Z",
+      "reason": "GitHub returned 404 BlobNotFound before job completion",
+      "followup": "Read completed job log after the job ends; this is not a test failure"
+    }
+  ],
+  "timingPolicy": "Exact timing not captured for these setup/control attempts; null means unknown, not zero. Completed command and CI timings are recorded separately.",
+  "correctionPolicy": "No quality gate was weakened; local model did not run. Existing hosted CI supplies executable regression evidence."
+}

@@ -1,0 +1,37 @@
+{
+  "startedAt": "2026-11-08T05:10:42.486785+00:00",
+  "completedAt": "2026-11-08T05:11:04.522082+00:00",
+  "durationSeconds": 22.035309825001605,
+  "origin": "https://landwolf.ai",
+  "identity": {
+    "version": "0.24.2",
+    "environment": "production",
+    "commit": "2562941200eff7ea3944480d89ca09b844218501"
+  },
+  "health": {
+    "status": "ok",
+    "version": "0.24.2",
+    "payments_enabled": true
+  },
+  "footerLinks": [
+    {
+      "href": "https://l91-audit-desk.secret-hen-4327.chatgpt.site",
+      "target": "_blank",
+      "rel": "noopener noreferrer",
+      "label": "Audit Desk \u2197"
+    },
+    {
+      "href": "https://lupu-retail-watch.secret-hen-4327.chatgpt.site",
+      "target": "_blank",
+      "rel": "noopener noreferrer",
+      "label": "Retail Watch"
+    }
+  ],
+  "htmlSha256": "d881c999de4d076626f4521ae6f44b401db27606f5c962d684964e2ac9634f90",
+  "assetSha256": {
+    "landwolf-logo.jpg": "e2306fabc89a4078ab8e58f613d63fbec69087108fc378d8436057b146b68fbf",
+    "no-photo-available.png": "ee886bf1a48cbaa82557f4c651adb0acee07afa6047567eda24af83644820a6c"
+  },
+  "scope": "Read-only HTTPS and returned markup; no computed-layout or physical-device claim",
+  "result": "PASSED"
+}
