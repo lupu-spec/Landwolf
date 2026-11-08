@@ -73,6 +73,7 @@ jobs:
       - name: Browser journey
         run: |
           npm run build
+          .venv/bin/pytest -q -x -m browser tests/test_accessibility_browser.py -k 'accessible_journeys and 390'
           .venv/bin/pytest -q -m browser tests/test_commercial_browser.py
           .venv/bin/pytest -q -m browser tests/test_public_pages_browser.py
           .venv/bin/pytest -q -m browser tests/test_theme_browser.py

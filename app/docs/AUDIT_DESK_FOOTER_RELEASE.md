@@ -28,3 +28,20 @@ Use the connected GitHub API to publish the identical reviewed file changes.
 
 Rollback: previous 0.24.0 runtime remains schema-compatible; this change adds no
 database writes or migrations. Preserve existing services and databases.
+
+PDCA correction: application CI 42439024989 passed 783 API/backend and 28
+frontend tests, PostgreSQL integration and backup/restore, but its full browser
+suite had 4 failed / 168 passed. Axe reported mobile target-size violations for
+the direct footer support link after the new navigation link wrapped the row.
+No deployment was attempted. The correction gives the direct support link a
+44px minimum target height and asserts that size in responsive browser tests.
+Run the four affected accessibility journeys first in CI so this failure is
+caught early; retain all existing browser, package and security gates.
+
+Local follow-up: recovered verification modules with the primary Python
+interpreter; mypy, 783 backend/API tests, build/package and Bandit passed.
+Node typecheck, 28 unit tests, build, dependency audit and secret scan passed.
+Local pip-audit failed on unrelated shared-runtime packages (multidict, PyMuPDF,
+VTK); do not treat that shared environment as the clean locked application.
+An offline uv environment setup also failed on an uncached Ruff wheel.
+Clean hosted security gates remain required for the corrected candidate.

@@ -90,6 +90,8 @@ def test_public_pages(browser_server: tuple[str, int], engine: str, width: int) 
             "href", "https://l91-audit-desk.secret-hen-4327.chatgpt.site"
         )
         expect(audit_link).to_have_attribute("target", "_blank")
+        support_link = page.locator('footer.site-footer > a[href^="mailto:"]')
+        assert support_link.evaluate("el => el.getBoundingClientRect().height") >= 44
         expect(page.locator(".brand img")).to_have_js_property("complete", True)
         assert page.locator(".brand img").evaluate("el => el.currentSrc.endsWith('.webp')")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
