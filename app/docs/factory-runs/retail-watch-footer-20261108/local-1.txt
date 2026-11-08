@@ -1,0 +1,7 @@
+
+> landwolf-ui@0.24.2 format:check
+> prettier --check web tests/*.test.mjs scripts/build.mjs package.json tsconfig.json eslint.config.js
+
+Checking formatting...
+All matched files use Prettier code style!
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.

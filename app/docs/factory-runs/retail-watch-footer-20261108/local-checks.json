@@ -1,0 +1,86 @@
+[
+  {
+    "command": [
+      ".venv/bin/ruff",
+      "format",
+      "--check",
+      "landwolf",
+      "tests",
+      "scripts"
+    ],
+    "startedAt": "2026-11-08T04:25:31.974801+00:00",
+    "durationSeconds": 0.041,
+    "exitCode": 0
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "format:check"
+    ],
+    "startedAt": "2026-11-08T04:25:32.016312+00:00",
+    "durationSeconds": 3.588,
+    "exitCode": 0
+  },
+  {
+    "command": [
+      ".venv/bin/ruff",
+      "check",
+      "landwolf",
+      "tests",
+      "scripts"
+    ],
+    "startedAt": "2026-11-08T04:25:35.604495+00:00",
+    "durationSeconds": 0.035,
+    "exitCode": 0
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "lint"
+    ],
+    "startedAt": "2026-11-08T04:25:35.639657+00:00",
+    "durationSeconds": 3.029,
+    "exitCode": 0
+  },
+  {
+    "command": [
+      ".venv/bin/mypy",
+      "landwolf"
+    ],
+    "startedAt": "2026-11-08T04:25:38.668775+00:00",
+    "durationSeconds": 14.649,
+    "exitCode": 0
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "startedAt": "2026-11-08T04:25:53.318002+00:00",
+    "durationSeconds": 2.007,
+    "exitCode": 0
+  },
+  {
+    "command": [
+      ".venv/bin/pytest",
+      "-q",
+      "tests/test_public_pages.py"
+    ],
+    "startedAt": "2026-11-08T04:25:55.324988+00:00",
+    "durationSeconds": 11.17,
+    "exitCode": 0
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "startedAt": "2026-11-08T04:26:06.495210+00:00",
+    "durationSeconds": 0.011,
+    "exitCode": 0
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "record": {
+    "phase": "CHECK",
+    "repairs": 0,
+    "max_repairs": 3,
+    "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a",
+    "requirements": [
+      "application",
+      "factory",
+      "header",
+      "legacy"
+    ],
+    "evidence": {},
+    "history": [
+      {
+        "phase": "DO",
+        "reason": "plan accepted by trusted host",
+        "repairs": 0,
+        "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a"
+      },
+      {
+        "phase": "CHECK",
+        "reason": "implementation submitted",
+        "repairs": 0,
+        "input_sha256": "e375497f9d8d76fbde1820c1eb59ccf7c807bd13cfc37c46ad997a862915438a"
+      }
+    ]
+  },
+  "record_sha256": "ca4c8f33126ec8297e9e6b2c1587a3b50f35b89f50c956943c1cd972b1586d2a",
+  "factoryRevision": "d5352b028f2881a6c85ec5f8b82596be4ba9e8f1",
+  "scope": "Hosted internal executable checks; separate staging/production verification required",
+  "localAI": false
+}

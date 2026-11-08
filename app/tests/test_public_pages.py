@@ -50,6 +50,18 @@ def test_home_footer_links_to_private_audit_desk(client: TestClient) -> None:
     assert set(link["rel"]) == {"noopener", "noreferrer"}
 
 
+def test_home_footer_links_to_private_retail_watch(client: TestClient) -> None:
+    html = BeautifulSoup(client.get("/").text, "html.parser")
+    links = html.select(
+        'footer.site-footer a[href="https://lupu-retail-watch.secret-hen-4327.chatgpt.site"]'
+    )
+    assert len(links) == 1
+    link = links[0]
+    assert link.get_text(strip=True) == "Retail Watch"
+    assert link["target"] == "_blank"
+    assert set(link["rel"]) == {"noopener", "noreferrer"}
+
+
 def test_faq_schema(client: TestClient) -> None:
     html = BeautifulSoup(client.get("/faq").text, "html.parser")
     breadcrumb, faq = json.loads(html.select_one('script[type="application/ld+json"]').string)
