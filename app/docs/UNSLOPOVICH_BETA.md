@@ -77,3 +77,16 @@ The source-only candidate can be discarded by deleting its feature branch.
 GitHub repository access works. The application workflow was observed enabled;
 no credit/billing failure was observed. No hosted jobs or PR were started to preserve
 the user's credit hold. This does not establish the account's billing balance.
+
+
+## Owner-requested white revision
+
+Replaced Light palette with white page/header/cards/inputs, black primary actions,
+black/dark-grey text, flat navigation tiles and no glossy shadows. Geometry and
+behavior preserved. Explicit Dark/Auto preferences remain available; preview is Light.
+Passed after revision: npm run format:check, npm run lint, npm run typecheck,
+npm run test:unit (11/11), npm run build, git diff --check.
+Full backend/browser/package/dependency gates retain the blockers above. Existing
+silver appearance and exact-header visual baselines are intentionally superseded
+by the owner's new direction and require reviewed replacement before release.
+This is a beta candidate only, not a production deployment.
