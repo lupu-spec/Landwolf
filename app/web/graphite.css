@@ -137,7 +137,6 @@ body {
   border-radius: 24px;
   box-shadow: var(--shadow);
 }
-.search-bar,
 .source-panel,
 .auth-panel,
 .wolf-chat-panel {
@@ -681,4 +680,26 @@ summary:focus-visible {
 }
 .signed-in strong {
   overflow-wrap: anywhere;
+}
+
+/* Explore beta: retain silver surfaces, reserve elevation for overlays.
+   Scope to content so the approved header/dock cascade remains unchanged. */
+#explore-panel .search-bar,
+#explore-panel .property-card,
+#explore-panel .map-panel {
+  border-radius: 12px;
+  border-color: var(--line);
+  box-shadow: none;
+}
+#explore-panel .property-card:hover {
+  border-color: var(--control-line);
+  box-shadow: none;
+}
+#explore-panel .property-card:focus-within {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+#workspace-eyebrow {
+  letter-spacing: normal;
+  text-transform: none;
 }
